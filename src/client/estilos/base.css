@@ -1,0 +1,804 @@
+/* CÁBALA · «Dark Dithered Lithography». Fondo nocturno tramado, papel hueso solo en los naipes, y todo marco, botón,
+   barra o bocadillo forjado en pixel-art (sprites de la forja partidos en 9). Nada de fondos beige, ni de bordes
+   lisos de HTML, ni de cajas blancas. Las escalas de los sprites son siempre enteras. */
+
+:root {
+  --abismo: #0b0711;
+  --noche-1: #09070f;
+  --noche-2: #160c1c;
+  --noche-3: #24112b;
+  --hueso: #f4efe2;
+  --hueso-2: #d9ceb4;
+  --oro: #ffd500;
+  --oro-2: #ff7b00;
+  --carmesi: #ff1453;
+  --sangre: #f0124a;
+  --cian: #00c8ff;
+  --lima: #22d95b;
+  --purpura: #c88bff;
+  --gris: #9a90a8;
+
+  /* escalas enteras de los sprites (celdas → píxeles) */
+  --k: 1;
+  /* derivadas: k + 1, k + 2 y el doble de k */
+  --k2: 2;
+  --k3: 3;
+  --kd: 2;
+  --k-naipe: 1;
+  --k-enemigo: 2;
+  --k-bufon: 2;
+  --k-retrato: 2;
+  --k-rey: 3;
+  --k-logo: 3;
+  --k-mazo: 2;
+  /* tipografía */
+  --fs: 16px;
+  --fs-s: 14px;
+  --fs-l: 20px;
+  --fs-xl: 32px;
+  /* la letra de rótulo (títulos, botones, chips): mayúsculas de píxel, en múltiplos de 8 */
+  --rot: 'Silkscreen', 'Pixelify Sans', ui-monospace, monospace;
+  --fr: 16px;
+  --fr-l: 16px;
+  --u: 8px;
+  color-scheme: dark;
+}
+
+@media (min-width: 1700px) and (min-height: 950px) {
+  :root {
+    --k: 2;
+    --k2: 3;
+    --k3: 4;
+    --kd: 4;
+    --k-naipe: 2;
+    --k-enemigo: 3;
+    --k-bufon: 3;
+    --k-retrato: 3;
+    --k-rey: 4;
+    --k-logo: 5;
+    --k-mazo: 3;
+    --fs: 22px;
+    --fs-s: 18px;
+    --fs-l: 28px;
+    --fs-xl: 48px;
+    --fr: 24px;
+    --fr-l: 24px;
+    --u: 12px;
+  }
+}
+
+@media (max-width: 700px) {
+  :root {
+    --k-bufon: 1;
+    --k-rey: 2;
+    --k-logo: 1;
+    --k-mazo: 1;
+    --fs-xl: 24px;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--noche-1);
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  font-family: 'Pixelify Sans', ui-monospace, 'Courier New', monospace;
+  font-size: var(--fs);
+  line-height: 1.2;
+  color: var(--hueso);
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+#fondo,
+#fx-color,
+#fx-luz {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+#fondo {
+  z-index: 0;
+}
+#fx-color {
+  z-index: 60;
+}
+#fx-luz {
+  z-index: 61;
+  mix-blend-mode: plus-lighter;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+}
+#capa {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+#capa > * {
+  pointer-events: auto;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+  font-weight: 400;
+}
+button {
+  font: inherit;
+  color: inherit;
+}
+
+/* ───────────── sprites ───────────── */
+
+.px {
+  display: inline-block;
+  flex: none;
+  width: calc(var(--w) * var(--k) * 1px);
+  height: calc(var(--h) * var(--k) * 1px);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  vertical-align: middle;
+}
+
+.cifra {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  vertical-align: middle;
+  line-height: 0;
+}
+.cifra .cf {
+  width: calc(var(--w) * var(--kc, var(--k)) * 1px);
+  height: calc(var(--h) * var(--kc, var(--k)) * 1px);
+  margin-right: calc(-1px * var(--kc, var(--k)));
+}
+.cifra .cf-esp {
+  display: inline-block;
+  width: calc(5px * var(--kc, var(--k)));
+}
+.cifra.grande {
+  --kc: var(--kd);
+}
+
+/* ───────────── marcos de 9 trozos ───────────── */
+
+.marco {
+  --kf: var(--k);
+  --mi: var(--m-madera);
+  --mv: var(--m-madera-viva);
+  border: calc(8px * var(--kf)) solid transparent;
+  border-image: var(--mi) 8 fill / calc(8px * var(--kf)) / 0 repeat;
+  image-rendering: pixelated;
+  background: none;
+}
+.marco.hierro {
+  --mi: var(--m-hierro);
+  --mv: var(--m-hierro-viva);
+}
+.marco.oro {
+  --mi: var(--m-oro);
+  --mv: var(--m-oro-viva);
+  color: #1c1024;
+}
+.marco.dorado {
+  --mi: var(--m-dorado);
+  --mv: var(--m-dorado-viva);
+}
+.marco.hueso {
+  --mi: var(--m-hueso);
+  --mv: var(--m-hueso);
+  color: #1c1024;
+}
+.marco.hundido {
+  --mi: var(--m-hundido);
+  --mv: var(--m-hundido);
+}
+.marco.tinta {
+  --mi: var(--m-tinta);
+  --mv: var(--m-tinta);
+}
+.marco.plata {
+  --mi: var(--m-plata);
+  --mv: var(--m-plata-viva);
+}
+.marco.prisma {
+  --mi: var(--m-prisma);
+  --mv: var(--m-prisma-viva);
+}
+.marco.paloS {
+  --mi: var(--m-paloS);
+  --mv: var(--m-paloS-viva);
+}
+.marco.paloC {
+  --mi: var(--m-paloC);
+  --mv: var(--m-paloC-viva);
+}
+.marco.paloD {
+  --mi: var(--m-paloD);
+  --mv: var(--m-paloD-viva);
+}
+.marco.paloH {
+  --mi: var(--m-paloH);
+  --mv: var(--m-paloH-viva);
+}
+
+/* ───────────── botones ───────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 0.75);
+  min-height: calc(44px * var(--k) * 0.5 + 22px);
+  min-width: 44px;
+  padding: 0 calc(var(--u) * 1.25);
+  font-family: var(--rot);
+  font-weight: 400;
+  font-size: var(--fr);
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--hueso);
+  cursor: pointer;
+  position: relative;
+}
+.btn.oro {
+  color: #1c1024;
+}
+.btn:hover:not(:disabled),
+.btn:focus-visible,
+.btn.foco {
+  border-image-source: var(--mv);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(calc(1px * var(--k)));
+}
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: default;
+}
+.btn.grande {
+  font-size: var(--fr-l);
+  font-weight: 700;
+  min-height: calc(56px * var(--k) * 0.5 + 28px);
+  padding: 0 calc(var(--u) * 3);
+}
+.btn.monumental {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  min-height: calc(72px * var(--k) * 0.5 + 36px);
+  padding: 0 calc(var(--u) * 5);
+}
+.btn.chico {
+  font-size: var(--fr);
+  min-height: 44px;
+  padding: 0 var(--u);
+}
+.btn .precio {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+:focus {
+  outline: none;
+}
+:focus-visible,
+.foco {
+  outline: calc(2px * var(--k)) solid var(--oro);
+  outline-offset: calc(2px * var(--k));
+}
+
+/* ───────────── textos ───────────── */
+
+.titulo {
+  font-family: var(--rot);
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--oro);
+  text-shadow:
+    calc(1px * var(--k)) calc(1px * var(--k)) 0 #7a0026,
+    calc(2px * var(--k)) calc(2px * var(--k)) 0 var(--abismo);
+}
+.sub {
+  font-size: var(--fs-s);
+  color: var(--hueso-2);
+  letter-spacing: 0.04em;
+}
+.rotulo {
+  font-family: var(--rot);
+  font-size: var(--fr);
+  font-weight: 400;
+  text-transform: uppercase;
+  color: var(--hueso-2);
+}
+.dorado {
+  color: var(--oro);
+}
+.rojo {
+  color: #ff6e8e;
+}
+.verde {
+  color: var(--lima);
+}
+.azul {
+  color: var(--cian);
+}
+.apagado {
+  color: var(--gris);
+}
+
+/* ───────────── chips y sellos ───────────── */
+
+.chip {
+  --kf: var(--k);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 calc(var(--u) * 0.5);
+  min-height: calc(var(--fr) + 8px);
+  font-family: var(--rot);
+  font-size: var(--fr);
+  font-weight: 400;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border: calc(3px * var(--k)) solid transparent;
+  border-image: var(--m-tinta) 3 fill / calc(3px * var(--k)) / 0 repeat;
+  image-rendering: pixelated;
+}
+.chip.canto {
+  color: var(--oro);
+}
+.chip.sinergia {
+  color: var(--oro);
+}
+.chip.maldicion {
+  color: #ff6e8e;
+}
+.sello-vivo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--rot);
+  font-size: var(--fr);
+  color: var(--oro);
+  text-transform: uppercase;
+}
+.sello-vivo .mas {
+  margin-left: -2px;
+}
+.sinergia-caja {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.sinergia-caja .micro {
+  font-size: var(--fs-s);
+  color: var(--oro);
+}
+.chip .sello {
+  --k: 1;
+}
+
+/* ───────────── bocadillo ───────────── */
+
+.bocadillo {
+  --kf: var(--k);
+  position: relative;
+  max-width: min(46ch, 78vw);
+  padding: calc(var(--u) * 0.25) calc(var(--u) * 0.75);
+  font-size: var(--fs);
+  line-height: 1.25;
+  color: #1c1024;
+  border: calc(8px * var(--kf)) solid transparent;
+  border-image: var(--m-hueso) 8 fill / calc(8px * var(--kf)) / 0 repeat;
+  image-rendering: pixelated;
+}
+.bocadillo::after {
+  /* la cola del bocadillo, en escalera de píxeles */
+  content: '';
+  position: absolute;
+  left: calc(14px * var(--k));
+  bottom: calc(-12px * var(--k));
+  width: calc(4px * var(--k));
+  height: calc(4px * var(--k));
+  background: var(--hueso);
+  box-shadow:
+    calc(4px * var(--k)) 0 0 var(--hueso),
+    calc(8px * var(--k)) 0 0 var(--hueso-2),
+    0 calc(4px * var(--k)) 0 var(--hueso),
+    calc(4px * var(--k)) calc(4px * var(--k)) 0 var(--hueso-2),
+    0 calc(8px * var(--k)) 0 var(--hueso-2);
+}
+.bocadillo.sin-cola::after {
+  display: none;
+}
+
+/* ───────────── pantalla genérica ───────────── */
+
+.pantalla {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--u) calc(var(--u) * 2);
+  gap: var(--u);
+}
+.cabecera {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--u);
+  min-height: 44px;
+}
+.cabecera .lado {
+  display: flex;
+  align-items: center;
+  gap: var(--u);
+}
+.cuerpo {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 1.5);
+}
+.fila {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--u);
+  flex-wrap: wrap;
+}
+.crece {
+  flex: 1;
+}
+
+/* ───────────── el anfitrión ───────────── */
+
+.bufon {
+  position: relative;
+  --k: var(--k-bufon);
+  width: calc(80px * var(--k));
+  height: calc(100px * var(--k));
+  flex: none;
+}
+.bufon .px {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.bufon .bf-palo {
+  transform-origin: 15% 97%;
+  animation: bf-mece 3.6s steps(6) infinite alternate;
+}
+.bufon .bf-cuerpo {
+  animation: bf-respira 2.8s steps(2) infinite;
+}
+@keyframes bf-mece {
+  from {
+    transform: rotate(-3deg);
+  }
+  to {
+    transform: rotate(3deg);
+  }
+}
+@keyframes bf-respira {
+  50% {
+    transform: translateY(calc(-1px * var(--k)));
+  }
+}
+.anfitrion {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--u);
+}
+.anfitrion .bocadillo {
+  margin-bottom: calc(40px * var(--k-bufon));
+}
+
+/* ───────────── retratos de los Reyes ───────────── */
+
+.rey {
+  position: relative;
+  --k: var(--k-rey);
+  width: calc(64px * var(--k));
+  height: calc(64px * var(--k));
+  flex: none;
+}
+.rey .px {
+  position: absolute;
+  inset: 0;
+}
+.rey .r-busto {
+  animation: rey-respira 3.2s steps(2) infinite;
+}
+.rey .r-aura {
+  position: absolute;
+  inset: calc(-6px * var(--k));
+  background: radial-gradient(closest-side, var(--aura, #ffd500) 0%, transparent 70%);
+  opacity: 0.28;
+  animation: rey-aura 2.4s steps(4) infinite alternate;
+  mix-blend-mode: plus-lighter;
+}
+@keyframes rey-respira {
+  50% {
+    transform: translateY(calc(1px * var(--k)));
+  }
+}
+@keyframes rey-aura {
+  from {
+    opacity: 0.16;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 0.36;
+    transform: scale(1.04);
+  }
+}
+
+/* ───────────── HUD: la barra del jugador ───────────── */
+
+.hud {
+  --kf: var(--k);
+  width: min(100%, calc(1180px * var(--k) * 0.62 + 448px));
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: stretch;
+  gap: var(--u);
+  padding: calc(var(--u) * 0.25) var(--u);
+  flex: none;
+}
+.hud-lado {
+  display: flex;
+  align-items: center;
+  gap: var(--u);
+  min-width: 0;
+}
+.hud-lado.izq {
+  justify-content: flex-end;
+}
+.hud-pozo {
+  --kf: var(--k);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 calc(var(--u) * 0.75);
+  min-width: calc(64px * var(--k) * 0.5 + 40px);
+  align-self: stretch;
+  border: calc(8px * var(--kf)) solid transparent;
+  border-image: var(--m-hundido) 8 fill / calc(8px * var(--kf)) / 0 repeat;
+  image-rendering: pixelated;
+  cursor: default;
+}
+button.hud-pozo {
+  cursor: pointer;
+}
+button.hud-pozo:hover,
+button.hud-pozo:focus-visible {
+  border-image-source: var(--m-tinta);
+}
+.hud-pozo .valor {
+  display: flex;
+  align-items: center;
+  gap: calc(4px * var(--k));
+}
+.hud-vida {
+  min-width: calc(150px * var(--k) * 0.5 + 75px);
+}
+.hud-barra {
+  width: 100%;
+  height: calc(8px * var(--k));
+  background: var(--abismo);
+  position: relative;
+  overflow: hidden;
+}
+.hud-barra > i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--b-vida) 0 0 / calc(8px * var(--k)) calc(8px * var(--k));
+  image-rendering: pixelated;
+  transition: width 0.25s steps(6);
+}
+.hud-retrato {
+  --kf: var(--k);
+  position: relative;
+  width: calc(48px * var(--k-retrato) + 16px * var(--kf));
+  height: calc(48px * var(--k-retrato) + 16px * var(--kf));
+  border: calc(8px * var(--kf)) solid transparent;
+  border-image: var(--m-oro) 8 / calc(8px * var(--kf)) / 0 repeat;
+  image-rendering: pixelated;
+  overflow: hidden;
+  background: var(--abismo);
+}
+.hud-cara {
+  /* el retrato de 64 celdas, recortado a las 48 del centro: la cara, bien grande */
+  position: absolute;
+  left: calc(-8px * var(--k-retrato));
+  top: calc(-6px * var(--k-retrato));
+  width: calc(64px * var(--k-retrato));
+  height: calc(64px * var(--k-retrato));
+  background-size: 100% 100%;
+  image-rendering: pixelated;
+}
+.hud-cara.golpe {
+  animation: cara-golpe 0.3s steps(3);
+}
+@keyframes cara-golpe {
+  33% {
+    transform: translate(calc(3px * var(--k)), calc(-2px * var(--k)));
+  }
+  66% {
+    transform: translate(calc(-2px * var(--k)), calc(1px * var(--k)));
+  }
+}
+.hud-tiras {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(2px * var(--k));
+  min-width: 0;
+  flex: 1;
+}
+.hud-tira {
+  display: flex;
+  align-items: center;
+  gap: calc(3px * var(--k));
+  min-height: calc(30px * var(--k));
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+.ficha {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(32px * var(--k));
+  height: calc(32px * var(--k));
+  flex: none;
+  background: var(--abismo);
+  box-shadow:
+    inset calc(1px * var(--k)) calc(1px * var(--k)) 0 #3a1426,
+    inset calc(-1px * var(--k)) calc(-1px * var(--k)) 0 #6b2e1a;
+  cursor: help;
+  padding: 0;
+  border: 0;
+}
+.ficha.vacia {
+  opacity: 0.5;
+}
+.ficha .cuenta {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  background: var(--abismo);
+  padding: 0 1px;
+  line-height: 0;
+}
+.ficha.carga {
+  width: auto;
+  padding: 0 calc(4px * var(--k));
+  gap: calc(2px * var(--k));
+}
+.ficha.carga .pinta {
+  transform: scale(0.75);
+}
+.ficha.sube {
+  animation: ficha-sube 0.4s steps(4);
+}
+@keyframes ficha-sube {
+  50% {
+    transform: translateY(calc(-4px * var(--k)));
+    box-shadow: inset 0 0 0 calc(2px * var(--k)) var(--oro);
+  }
+}
+
+/* ───────────── inspección (tooltip) ───────────── */
+
+.tip {
+  --kf: var(--k);
+  position: fixed;
+  z-index: 70;
+  max-width: min(34ch, 86vw);
+  padding: calc(var(--u) * 0.25) calc(var(--u) * 0.75);
+  border: calc(8px * var(--kf)) solid transparent;
+  border-image: var(--m-madera) 8 fill / calc(8px * var(--kf)) / 0 repeat;
+  image-rendering: pixelated;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tip b {
+  font-family: var(--rot);
+  color: var(--oro);
+  font-weight: 400;
+  text-transform: uppercase;
+}
+.tip span {
+  font-size: var(--fs-s);
+  color: var(--hueso);
+}
+.tip .apagado {
+  color: var(--hueso-2);
+}
+
+/* ───────────── modal ───────────── */
+
+.velo {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 1.5);
+  padding: var(--u);
+  background:
+    repeating-conic-gradient(var(--abismo) 0% 25%, transparent 0% 50%) 0 0 / calc(2px * var(--k)) calc(2px * var(--k)),
+    rgba(9, 7, 15, 0.82);
+}
+.panel {
+  --kf: var(--k);
+  max-width: min(960px * var(--k) * 0.5 + 480px, 96vw);
+  max-height: 92dvh;
+  display: flex;
+  flex-direction: column;
+  gap: var(--u);
+  padding: var(--u) calc(var(--u) * 1.5);
+  border: calc(8px * var(--kf)) solid transparent;
+  border-image: var(--m-madera) 8 fill / calc(8px * var(--kf)) / 0 repeat;
+  image-rendering: pixelated;
+}
+
+/* ───────────── con «Reducir movimiento» nada se mueve solo ───────────── */
+
+.calma *,
+.calma *::before,
+.calma *::after {
+  animation: none !important;
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001s !important;
+    transition-duration: 0.001s !important;
+  }
+}

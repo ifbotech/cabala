@@ -1,0 +1,409 @@
+{
+  "jugadas": {
+    "sola": {
+      "d": 0,
+      "m": 1
+    },
+    "par": {
+      "d": 4,
+      "m": 2
+    },
+    "doblepar": {
+      "d": 6,
+      "m": 2
+    },
+    "flor": {
+      "d": 6,
+      "m": 2
+    },
+    "pierna": {
+      "d": 8,
+      "m": 3
+    },
+    "escalera": {
+      "d": 8,
+      "m": 3
+    },
+    "full": {
+      "d": 12,
+      "m": 4
+    },
+    "escalerapalo": {
+      "d": 12,
+      "m": 4
+    },
+    "poker": {
+      "d": 16,
+      "m": 5
+    },
+    "quince": {
+      "d": 0,
+      "m": 1
+    },
+    "envido": {
+      "d": 0,
+      "m": 2
+    }
+  },
+  "palos": {
+    "escudoPorBasto": 2,
+    "curaPorCopa": 2,
+    "oroPorOro": 1,
+    "salpicaPorOro": 3
+  },
+  "jugador": {
+    "vida": 70,
+    "mano": 6,
+    "descartes": 3,
+    "escudoMax": 20,
+    "oro": 5,
+    "huecos": 4,
+    "comodines": 2,
+    "mazoMin": 12
+  },
+  "exacto": {
+    "oro": 3,
+    "multi": 1
+  },
+  "furia": {
+    "mazoAgotado": 3,
+    "reyPorTurno": 1
+  },
+  "enemigos": {
+    "vida": {
+      "10": 100,
+      "11": 150,
+      "12": 230
+    },
+    "ataque": {
+      "10": 11,
+      "11": 14,
+      "12": 17
+    },
+    "escudoCaballo": 14,
+    "actos": [
+      {
+        "vida": 1,
+        "ataque": 0,
+        "escudo": 1
+      },
+      {
+        "vida": 2.8,
+        "ataque": 7,
+        "escudo": 2
+      },
+      {
+        "vida": 7.5,
+        "ataque": 17,
+        "escudo": 4
+      }
+    ],
+    "elite": {
+      "vida": 1.4,
+      "ataque": 2
+    },
+    "jefe": {
+      "vida": 1.6,
+      "sangreConocida": 0.05,
+      "sangreTope": 0.2
+    }
+  },
+  "reyes": {
+    "S": {
+      "furiaTurno": 2,
+      "perfora": 0.5
+    },
+    "C": {
+      "escudo": 30,
+      "regenera": 12,
+      "contragolpe": 1.5
+    },
+    "D": {
+      "diezmo": 3
+    },
+    "H": {
+      "cura": 14,
+      "furiaCada": 4
+    }
+  },
+  "cargas": {
+    "filoDano": 1,
+    "corazaTope": 12,
+    "fortunaTope": 10,
+    "brindisTope": 10
+  },
+  "mazos": {
+    "escoba": {
+      "vida": 62,
+      "mano": 6,
+      "hasta": 9,
+      "comodines": 2,
+      "multi": 2,
+      "cargaDano": 1
+    },
+    "truco": {
+      "vida": 81,
+      "mano": 6,
+      "hasta": 7,
+      "comodines": 2,
+      "bravas": {
+        "S1": 24,
+        "C1": 20,
+        "S7": 16,
+        "D7": 12
+      },
+      "envido": 28,
+      "cargaDano": 1
+    },
+    "chinchon": {
+      "vida": 61,
+      "mano": 7,
+      "hasta": 9,
+      "comodines": 2,
+      "cargaDano": 3,
+      "mitiga": 0.5
+    },
+    "mentiroso": {
+      "vida": 65,
+      "mano": 6,
+      "hasta": 9,
+      "comodines": 4,
+      "enganos": 2,
+      "furiaFallo": 3
+    },
+    "chancho": {
+      "vida": 55,
+      "mano": 6,
+      "hasta": 9,
+      "comodines": 2,
+      "multi": 2,
+      "aturde": 2
+    }
+  },
+  "botin": {
+    "oro": {
+      "guardia": [
+        8,
+        10,
+        12
+      ],
+      "elite": [
+        14,
+        17,
+        20
+      ],
+      "rey": [
+        20,
+        24,
+        0
+      ]
+    },
+    "curaRey": 0.3,
+    "saltar": 4
+  },
+  "pulperia": {
+    "precio": {
+      "comun": 10,
+      "raro": 16,
+      "epico": 24,
+      "legendario": 40
+    },
+    "purgar": 8,
+    "purgarSube": 4,
+    "curar": 8,
+    "curarSube": 3,
+    "curarPct": 0.3
+  },
+  "fogon": {
+    "curaPct": 0.3
+  },
+  "bufon": {
+    "afinidadMin": -3,
+    "afinidadMax": 3,
+    "suerteBase": 0.5,
+    "suertePorAfinidad": 0.1,
+    "furiaGarca": 2
+  },
+  "amuletos": {
+    "danoPorCarta": 3,
+    "poncho": {
+      "escudo": 6,
+      "multi": 2
+    },
+    "taba": {
+      "desde": 4,
+      "multi": 1
+    },
+    "cofre": {
+      "cada": 30,
+      "tope": 2
+    },
+    "bota": 8,
+    "caliz": {
+      "vida": 0.8,
+      "multi": 2
+    },
+    "lanza": 2,
+    "cetro": 3,
+    "cascabel": 2
+  },
+  "bendiciones": {
+    "deguello": [
+      0.12,
+      0.16,
+      0.2
+    ],
+    "puntahacha": [
+      4,
+      3,
+      2
+    ],
+    "primerasangre": [
+      8,
+      12,
+      16
+    ],
+    "empalizada": [
+      1,
+      2,
+      3
+    ],
+    "contragolpe": [
+      10,
+      16,
+      22
+    ],
+    "paloypalo": [
+      1,
+      2,
+      3
+    ],
+    "interes": {
+      "cada": [
+        10,
+        8,
+        6
+      ],
+      "tope": [
+        5,
+        7,
+        9
+      ]
+    },
+    "pesofuerte": {
+      "cada": [
+        40,
+        30,
+        25
+      ],
+      "tope": 2
+    },
+    "tabacargada": [
+      2,
+      3,
+      4
+    ],
+    "coparebosante": [
+      4,
+      3,
+      2
+    ],
+    "sangreporsangre": [
+      1,
+      2,
+      3
+    ],
+    "otraronda": [
+      1,
+      2,
+      3
+    ],
+    "hojabroquel": {
+      "escudo": 5,
+      "filo": 1
+    },
+    "filodorado": {
+      "cada": 5,
+      "tope": 12
+    },
+    "sangria": 3,
+    "peaje": 2,
+    "rescoldo": 2,
+    "convite": {
+      "cada": 15,
+      "tope": 3
+    }
+  },
+  "aumentos": {
+    "dardeabajo": 2,
+    "cortedemazo": 1,
+    "vueltodemas": 4,
+    "sermano": 1,
+    "mesaservida": 6,
+    "manocaliente": {
+      "multi": 1,
+      "tope": 4
+    },
+    "chamuyo": 0.25,
+    "retruco": 1,
+    "irsealmazo": 0.3,
+    "faltaenvido": {
+      "vida": 0.4,
+      "multi": 2
+    },
+    "valecuatro": {
+      "cartas": 4,
+      "multi": 3
+    },
+    "barajacargada": {
+      "de": [
+        2,
+        3
+      ],
+      "a": 9
+    },
+    "pactogarca": {
+      "oro": 40,
+      "furia": 2
+    },
+    "contraflor": {
+      "multi": 2,
+      "vida": 0.4
+    },
+    "venderalma": {
+      "mano": 1,
+      "vida": 6
+    }
+  },
+  "altar": {
+    "costes": [
+      20,
+      40,
+      70,
+      110,
+      160
+    ],
+    "vida": 0.02,
+    "oro": 2,
+    "descuento": 0.03,
+    "suerte": 0.05,
+    "reyes": 1,
+    "purga": 2
+  },
+  "porotos": {
+    "combate": 4,
+    "elite": 8,
+    "rey": 15,
+    "victoria": 40,
+    "porReinado": 0.25
+  },
+  "reinados": {
+    "vidaGuardias": 0.1,
+    "furiaInicial": 1,
+    "vidaReyes": 0.2,
+    "descartes": 1,
+    "vidaMax": 8,
+    "ataque": 1,
+    "furiaReyes": 3
+  }
+}

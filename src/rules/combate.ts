@@ -1,0 +1,664 @@
+// El combate: un enemigo a la vez, tu mano contra la Corte.
+//
+//     TOTAL = DAÑO × MULTI      (los dos, siempre enteros)
+//
+// `cuenta` hace la cuenta de un golpe sin tocar nada (la mesa la enseña mientras elegís o arrastrás cartas, y el bot
+// la usa para decidir); `golpear` y `descartar` la aplican y devuelven la lista de sucesos para que la interfaz los
+// anime. Todo es determinista: el azar sale del `rng` de la partida.
+import { B } from './balance';
+import { MAX_GOLPE, clasificar, esComodin, resolver, suma } from './cartas';
+import type { Carta, Efectiva, Jugada, Palo, Rango } from './cartas';
+import { activo, carga, curar, donesDe, nivelBend, sirveA, tieneAmuleto, tieneAumento } from './estado';
+import type { Combate, Enemigo, Partida, TipoCombate } from './estado';
+import type { MazoId } from './mazos';
+import { nivelDe } from './reyes';
+import { barajar, dado } from './rng';
+
+// ───────────────────────── sucesos ─────────────────────────
+
+export type Ev =
+  | { t: 'golpe'; ids: string[]; jugada: Jugada; dano: number; multi: number; total: number; palos: Palo[]; critico: boolean; engano: boolean }
+  | { t: 'canto'; mazo: MazoId }
+  | { t: 'dano'; n: number; aEscudo: number; vida: number; escudo: number }
+  | { t: 'cae'; palo: Palo; rango: Rango; exacto: boolean; ejecutado: boolean; jefe: boolean }
+  | { t: 'entra'; palo: Palo; rango: Rango; jefe: boolean }
+  | { t: 'perfora'; n: number }
+  | { t: 'salpica'; n: number }
+  | { t: 'exacto' }
+  | { t: 'escudo'; n: number }
+  | { t: 'cura'; n: number }
+  | { t: 'oro'; n: number }
+  | { t: 'carga'; rey: Palo; n: number }
+  | { t: 'aturde'; turnos: number }
+  | { t: 'contra'; n: number; frenado: number; vida: number; de: Palo; rango: Rango }
+  | { t: 'sincontra'; por: 'aturdido' | 'caradepoker' }
+  | { t: 'contragolpe'; n: number }
+  | { t: 'furia'; n: number; por: 'mazo' | 'rey' | 'engano' | 'diezmo' | 'brindis' }
+  | { t: 'rey'; que: 'cura' | 'escudo' | 'diezmo'; n: number }
+  | { t: 'roba'; ids: string[] }
+  | { t: 'descarta'; ids: string[] }
+  | { t: 'baraja' }
+  | { t: 'sena'; id: string }
+  | { t: 'dado'; n: number }
+  | { t: 'salva' }
+  | { t: 'victoria' }
+  | { t: 'derrota' };
+
+// ───────────────────────── la cuenta ─────────────────────────
+
+/** Una línea de la cuenta: de dónde sale, si suma Daño (d), suma Multi (m) o multiplica (x), y cuánto. */
+export interface Paso {
+  de: string;
+  tipo: 'd' | 'm' | 'x';
+  v: number;
+}
+
+export type Motivo = 'vacio' | 'muchas' | 'comodines' | 'nojugada';
+
+export interface Cuenta {
+  ok: boolean;
+  motivo?: Motivo;
+  jugada: Jugada;
+  ef: Efectiva[];
+  dano: number;
+  multi: number;
+  total: number;
+  pasos: Paso[];
+  /** El canto del Mazo se cumple (¡ESCOBA!, ¡ENVIDO!, ¡CHINCHÓN!, ¡MENTIRA!, ¡CHANCHO!). */
+  canto: boolean;
+  critico: boolean;
+  perfora: boolean;
+  /** Lo que dan los palos: Escudo (Bastos), cura (Copas), oro y salpicadura (Oros). */
+  escudo: number;
+  cura: number;
+  oro: number;
+  salpica: number;
+  /** Contra el enemigo activo. */
+  aEscudo: number;
+  aVida: number;
+  abate: boolean;
+  exacto: boolean;
+  ejecuta: boolean;
+  sobra: number;
+  aturde: number;
+  /** Lo que te va a costar el Contraataque (null si no lo hay: lo abatís, está Aturdido o no llega). */
+  contra: number | null;
+}
+
+const NULA: Cuenta = {
+  ok: false, jugada: 'sola', ef: [], dano: 0, multi: 0, total: 0, pasos: [], canto: false, critico: false, perfora: false,
+  escudo: 0, cura: 0, oro: 0, salpica: 0, aEscudo: 0, aVida: 0, abate: false, exacto: false, ejecuta: false, sobra: 0, aturde: 0, contra: null,
+};
+
+/** ¿Llevás algo que tire el dado cada turno? */
+export const usaDado = (p: Partida): boolean => tieneAmuleto(p, 'taba') || nivelBend(p, 'tabacargada') > 0;
+/** Cuánto vale un canto con el Cascabel del Bufón. */
+const doble = (p: Partida): number => (tieneAmuleto(p, 'cascabel') ? B.amuletos.cascabel : 1);
+
+/** ¿El golpe cumple el canto del Mazo? */
+function hayCanto(p: Partida, ef: readonly Efectiva[], jugada: Jugada, engano: boolean): boolean {
+  switch (p.mazoId) {
+    case 'escoba':
+      return suma(ef) === 15;
+    case 'truco':
+      return ef.length === 2 && ef[0].palo === ef[1].palo;
+    case 'chinchon':
+      return jugada === 'pierna' || jugada === 'escalerapalo';
+    case 'mentiroso':
+      return engano;
+    case 'chancho':
+      return jugada === 'poker';
+  }
+}
+
+/** El Contraataque del enemigo activo tal como te llegaría ahora: daño total y la parte que atraviesa el Escudo. */
+export function contraataque(p: Partida, e: Enemigo, o: { mitiga?: boolean; sinVida?: boolean } = {}): { n: number; directo: number } {
+  const c = p.combate!;
+  let n = e.ataque + c.furia;
+  if (e.jefe && e.palo === 'C' && o.sinVida) n = Math.ceil(n * B.reyes.C.contragolpe);
+  if (o.mitiga) n = Math.ceil(n * B.mazos.chinchon.mitiga);
+  const directo = e.jefe && e.palo === 'S' ? Math.floor(n * B.reyes.S.perfora) : 0;
+  return { n, directo };
+}
+
+/**
+ * La cuenta de un golpe con esas cartas de la mano contra el enemigo activo. No cambia nada.
+ */
+export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
+  const c = p.combate;
+  const e = c?.fila[0];
+  if (!c || !e) return { ...NULA, motivo: 'vacio' };
+  if (!sel.length) return { ...NULA, motivo: 'vacio' };
+  if (sel.length > MAX_GOLPE) return { ...NULA, motivo: 'muchas' };
+  const engano = c.engano && c.enganos > 0;
+  const sinInmune = engano || tieneAmuleto(p, 'doscaras');
+  const ef = resolver(sel, sinInmune ? undefined : e.palo, engano);
+  if (!ef) return { ...NULA, motivo: 'comodines' };
+  const jugada = clasificar(ef, p.mazoId);
+  if (!jugada) return { ...NULA, ef, motivo: 'nojugada' };
+
+  const pasos: Paso[] = [];
+  let dano = 0;
+  let multi = 0;
+  let por = 1;
+  const d = (de: string, v: number) => {
+    if (v) {
+      dano += v;
+      pasos.push({ de, tipo: 'd', v });
+    }
+  };
+  const m = (de: string, v: number) => {
+    if (v) {
+      multi += v;
+      pasos.push({ de, tipo: 'm', v });
+    }
+  };
+  const x = (de: string, v: number) => {
+    if (v > 1) {
+      por *= v;
+      pasos.push({ de, tipo: 'x', v });
+    }
+  };
+  const inmune = (palo: Palo) => !sinInmune && palo === e.palo;
+  const cuantas = (palo: Palo) => ef.filter((k) => k.palo === palo).length;
+  const vivas = (palo: Palo) => (inmune(palo) ? 0 : cuantas(palo));
+
+  // ── Daño: la jugada, las cartas y lo que suman Mazo, Amuletos y Bendiciones
+  const base = B.jugadas[jugada];
+  d(`j:${jugada}`, base.d);
+  m(`j:${jugada}`, base.m);
+  for (const k of ef) d(`c:${k.de.id}`, inmune(k.palo) ? 0 : k.n);
+
+  const canto = hayCanto(p, ef, jugada, engano);
+  const dob = doble(p);
+  if (p.mazoId === 'truco') {
+    const bravas = B.mazos.truco.bravas as Record<string, number>;
+    for (const k of ef) if (!k.copia && !inmune(k.palo)) d('brava', bravas[`${k.palo}${k.n}`] ?? 0);
+    if (canto) {
+      d('canto', B.mazos.truco.envido * dob);
+      d('cantos', p.cantos * B.mazos.truco.cargaDano);
+    }
+  }
+  if (p.mazoId === 'escoba') d('cantos', p.cantos * B.mazos.escoba.cargaDano);
+  if (p.mazoId === 'chinchon' && canto) d('cantos', p.cantos * B.mazos.chinchon.cargaDano);
+
+  const porCarta = B.amuletos.danoPorCarta;
+  if (tieneAmuleto(p, 'cuchillo')) d('a:cuchillo', vivas('S') * porCarta);
+  if (tieneAmuleto(p, 'rebenque')) d('a:rebenque', vivas('C') * porCarta);
+  if (tieneAmuleto(p, 'moneda')) d('a:moneda', vivas('D') * porCarta);
+  if (tieneAmuleto(p, 'mate')) d('a:mate', vivas('H') * porCarta);
+
+  d('r:S', carga(p, 'S') * B.cargas.filoDano);
+  const bn = B.bendiciones;
+  let lv = nivelBend(p, 'primerasangre');
+  if (lv && e.golpes === 0) d('b:primerasangre', nivelDe(bn.primerasangre, lv));
+  lv = nivelBend(p, 'paloypalo');
+  if (lv) d('b:paloypalo', Math.floor(c.escudo / 2) * nivelDe(bn.paloypalo, lv));
+  lv = nivelBend(p, 'tabacargada');
+  if (lv) d('b:tabacargada', c.dado * nivelDe(bn.tabacargada, lv));
+  if (nivelBend(p, 'filodorado')) d('b:filodorado', Math.min(bn.filodorado.tope, Math.floor(p.oro / bn.filodorado.cada)));
+
+  // ── los poderes de palo (también los da una carta que no hace Daño por Inmune)
+  const escudo = cuantas('C') * (B.palos.escudoPorBasto + (nivelBend(p, 'empalizada') ? nivelDe(bn.empalizada, nivelBend(p, 'empalizada')) : 0));
+  const cura = cuantas('H') * (B.palos.curaPorCopa + (nivelBend(p, 'otraronda') ? nivelDe(bn.otraronda, nivelBend(p, 'otraronda')) : 0));
+  const oro = cuantas('D') * B.palos.oroPorOro;
+  const salpica = c.fila.length > 1 ? cuantas('D') * B.palos.salpicaPorOro : 0;
+  const perfora = cuantas('S') > 0 || tieneAmuleto(p, 'lanza');
+
+  // ── Multi: primero lo que suma…
+  m('combate', c.multiCombate);
+  m('prox', c.proxMulti);
+  const au = B.aumentos;
+  if (tieneAumento(p, 'sermano') && c.golpes === 0) m('u:sermano', au.sermano);
+  if (tieneAumento(p, 'retruco') && e.golpes > 0) m('u:retruco', au.retruco);
+  if (tieneAumento(p, 'valecuatro') && ef.length >= au.valecuatro.cartas) m('u:valecuatro', au.valecuatro.multi);
+  const am = B.amuletos;
+  if (tieneAmuleto(p, 'poncho') && c.escudo >= am.poncho.escudo) m('a:poncho', am.poncho.multi);
+  if (tieneAmuleto(p, 'taba') && c.dado >= am.taba.desde) m('a:taba', am.taba.multi);
+  if (tieneAmuleto(p, 'cofre')) m('a:cofre', Math.min(am.cofre.tope, Math.floor(p.oro / am.cofre.cada)));
+  if (tieneAmuleto(p, 'caliz') && p.vida >= p.vidaMax * am.caliz.vida) m('a:caliz', am.caliz.multi);
+  lv = nivelBend(p, 'pesofuerte');
+  if (lv) m('b:pesofuerte', Math.min(bn.pesofuerte.tope, Math.floor(p.oro / nivelDe(bn.pesofuerte.cada, lv))));
+  lv = nivelBend(p, 'sangreporsangre');
+  if (lv && p.vida * 2 <= p.vidaMax) m('b:sangreporsangre', nivelDe(bn.sangreporsangre, lv));
+  lv = nivelBend(p, 'coparebosante');
+  if (lv) m('b:coparebosante', Math.floor(Math.max(0, p.vida + cura - p.vidaMax) / nivelDe(bn.coparebosante, lv)));
+
+  // …y al final lo que multiplica
+  if (canto && p.mazoId === 'escoba') x('canto', B.mazos.escoba.multi * dob);
+  if (canto && p.mazoId === 'chancho') x('canto', B.mazos.chancho.multi * dob);
+  lv = nivelBend(p, 'puntahacha');
+  const critico = lv > 0 && (c.golpes + 1) % nivelDe(bn.puntahacha, lv) === 0;
+  if (critico) x('b:puntahacha', 2);
+  if (tieneAmuleto(p, 'cetro') && c.golpes === 0) x('a:cetro', am.cetro);
+
+  if (tieneAumento(p, 'faltaenvido') && p.vida <= p.vidaMax * au.faltaenvido.vida) x('u:faltaenvido', au.faltaenvido.multi);
+  if (tieneAumento(p, 'contraflor')) x('u:contraflor', au.contraflor.multi);
+
+  const multiFinal = Math.max(1, multi) * por;
+  const total = dano * multiFinal;
+
+  // ── contra el enemigo activo
+  const aEscudo = perfora ? 0 : Math.min(e.escudo, total);
+  const aVida = total - aEscudo;
+  const abate = aVida >= e.vida;
+  const exacto = aVida === e.vida;
+  lv = nivelBend(p, 'deguello');
+  const ejecuta = !abate && lv > 0 && e.vida - aVida <= Math.floor(e.vidaMax * nivelDe(bn.deguello, lv));
+  const sobra = abate && perfora ? (aVida - e.vida) * (tieneAmuleto(p, 'lanza') ? am.lanza : 1) : 0;
+  let aturde = 0;
+  if (canto && p.mazoId === 'chancho') aturde = B.mazos.chancho.aturde * dob;
+  if (!aturde && tieneAmuleto(p, 'boleadoras') && !e.boleado && cuantas('C') >= 2) aturde = 1;
+
+  let contra: number | null = null;
+  if (!abate && !ejecuta) {
+    if (e.aturdido > 0 || aturde > 0 || c.caraDePoker) contra = 0;
+    else {
+      const k = contraataque(p, e, { mitiga: canto && p.mazoId === 'chinchon', sinVida: aVida === 0 });
+      const tuEscudo = Math.min(B.jugador.escudoMax, c.escudo + escudo);
+      contra = k.n - Math.min(tuEscudo, k.n - k.directo);
+    }
+  }
+
+  return { ok: true, jugada, ef, dano, multi: multiFinal, total, pasos, canto, critico, perfora, escudo, cura, oro, salpica, aEscudo, aVida, abate, exacto, ejecuta, sobra, aturde, contra };
+}
+
+// ───────────────────────── enemigos ─────────────────────────
+
+/** Crea un enemigo de la Corte con los números del tramo, del Reinado y de lo que el jugador lleva encima. */
+export function crearEnemigo(p: Partida, palo: Palo, rango: Rango, o: { elite?: boolean; jefe?: boolean } = {}): Enemigo {
+  const en = B.enemigos;
+  const acto = en.actos[Math.min(p.acto, en.actos.length - 1)];
+  const R = B.reinados;
+  let vida = (en.vida as Record<string, number>)[rango] * acto.vida;
+  if (o.elite) vida *= en.elite.vida;
+  if (o.jefe) {
+    vida *= en.jefe.vida;
+    vida *= 1 - Math.min(en.jefe.sangreTope, donesDe(p, palo) * en.jefe.sangreConocida);
+    if (p.reinado >= 4) vida *= 1 + R.vidaReyes;
+  } else if (p.reinado >= 2) vida *= 1 + R.vidaGuardias;
+  vida = Math.max(5, Math.round(vida / 5) * 5);
+  let ataque = (en.ataque as Record<string, number>)[rango] + acto.ataque + (o.elite ? en.elite.ataque : 0);
+  if (p.reinado >= 7) ataque += R.ataque;
+  let escudo = 0;
+  if (rango === 11) escudo = Math.round(en.escudoCaballo * acto.escudo);
+  if (o.jefe && palo === 'C') escudo = Math.round(B.reyes.C.escudo * acto.escudo);
+  const e: Enemigo = { palo, rango, vida, vidaMax: vida, escudo, escudoMax: escudo, ataque, aturdido: 0, golpes: 0 };
+  if (o.elite) e.elite = true;
+  if (o.jefe) e.jefe = true;
+  return e;
+}
+
+/** Roba `n` cartas; si el Mazo se agota, baraja el Descarte y la Furia sube. */
+function robar(p: Partida, n: number, evs: Ev[]): void {
+  const c = p.combate!;
+  const ids: string[] = [];
+  for (let i = 0; i < n; i++) {
+    if (!c.mazo.length) {
+      if (!c.descarte.length) break;
+      c.mazo = barajar(p, c.descarte);
+      c.descarte = [];
+      evs.push({ t: 'baraja' });
+      if (p.mazoId !== 'truco') {
+        c.furia += B.furia.mazoAgotado;
+        evs.push({ t: 'furia', n: B.furia.mazoAgotado, por: 'mazo' });
+      }
+    }
+    const carta = c.mazo.pop()!;
+    c.mano.push(carta);
+    ids.push(carta.id);
+  }
+  if (ids.length) evs.push({ t: 'roba', ids });
+}
+
+/** Empieza un combate contra esa fila de enemigos. */
+export function iniciarCombate(p: Partida, tipo: TipoCombate, fila: Enemigo[]): Ev[] {
+  const evs: Ev[] = [];
+  const j = B.jugador;
+  const R = B.reinados;
+  let escudo = carga(p, 'C');
+  if (tieneAumento(p, 'mesaservida')) escudo += B.aumentos.mesaservida;
+  let furia = p.reinado >= 3 ? R.furiaInicial : 0;
+  if (tipo === 'rey') {
+    furia += p.furiaRey + (p.reinado >= 8 ? R.furiaReyes : 0);
+    p.furiaRey = 0;
+  }
+  const c: Combate = {
+    tipo,
+    fila,
+    total: fila.length,
+    mazo: barajar(p, p.mazo.map((k) => ({ ...k }))),
+    mano: [],
+    descarte: [],
+    escudo: Math.min(j.escudoMax, escudo),
+    furia,
+    turno: 1,
+    descartes: Math.max(0, j.descartes + (tieneAumento(p, 'cortedemazo') ? B.aumentos.cortedemazo : 0) - (p.reinado >= 5 ? R.descartes : 0)),
+    pasar: p.mazoId === 'chancho',
+    enganos: p.mazoId === 'mentiroso' ? B.mazos.mentiroso.enganos * doble(p) : 0,
+    engano: false,
+    multiCombate: 0,
+    proxMulti: 0,
+    golpes: 0,
+    dado: 0,
+    caraDePoker: tieneAumento(p, 'caradepoker'),
+    sena: false,
+    perdida: 0,
+  };
+  p.combate = c;
+  p.fase = 'combate';
+  if (tieneAmuleto(p, 'bota')) {
+    const antes = p.vida;
+    curar(p, B.amuletos.bota);
+    if (p.vida > antes) evs.push({ t: 'cura', n: p.vida - antes });
+  }
+  evs.push({ t: 'entra', palo: fila[0].palo, rango: fila[0].rango, jefe: !!fila[0].jefe });
+  robar(p, p.manoMax + (tieneAumento(p, 'dardeabajo') ? B.aumentos.dardeabajo : 0), evs);
+  if (usaDado(p)) {
+    c.dado = dado(p);
+    evs.push({ t: 'dado', n: c.dado });
+  }
+  return evs;
+}
+
+// ───────────────────────── golpear ─────────────────────────
+
+const enMano = (c: Combate, ids: readonly string[]): Carta[] | null => {
+  const out: Carta[] = [];
+  for (const id of ids) {
+    const k = c.mano.find((x) => x.id === id);
+    if (!k || out.includes(k)) return null;
+    out.push(k);
+  }
+  return out;
+};
+
+/** Un enemigo cae: premios, cargas de los Reyes, y entra el siguiente (con lo que sobró si el golpe Perfora). */
+function abatir(p: Partida, evs: Ev[], o: { exacto: boolean; ejecutado: boolean; palos: Palo[]; sobra: number; deUnSaque: boolean }): void {
+  const c = p.combate!;
+  const e = c.fila.shift()!;
+  p.stats.abatidos++;
+  evs.push({ t: 'cae', palo: e.palo, rango: e.rango, exacto: o.exacto, ejecutado: o.ejecutado, jefe: !!e.jefe });
+  if (o.exacto) {
+    p.stats.exactos++;
+    p.oro += B.exacto.oro;
+    c.proxMulti += B.exacto.multi;
+    evs.push({ t: 'exacto' }, { t: 'oro', n: B.exacto.oro });
+    if (nivelBend(p, 'hojabroquel')) {
+      const hb = B.bendiciones.hojabroquel;
+      c.escudo = Math.min(B.jugador.escudoMax, c.escudo + hb.escudo);
+      p.cargas.S += hb.filo;
+      evs.push({ t: 'escudo', n: hb.escudo }, { t: 'carga', rey: 'S', n: hb.filo });
+    }
+  }
+  // la regla única de las cargas: cada enemigo abatido con el palo de un Rey en el golpe, +1 (si llevás dones suyos)
+  for (const palo of o.palos) {
+    if (!sirveA(p, palo)) continue;
+    p.cargas[palo]++;
+    evs.push({ t: 'carga', rey: palo, n: 1 });
+  }
+  if (tieneAmuleto(p, 'facon') && o.palos.includes('S')) c.proxMulti += 1;
+  if (nivelBend(p, 'sangria')) {
+    const antes = p.vida;
+    curar(p, B.bendiciones.sangria);
+    if (p.vida > antes) evs.push({ t: 'cura', n: p.vida - antes });
+  }
+  const sig = c.fila[0];
+  if (!sig) return;
+  evs.push({ t: 'entra', palo: sig.palo, rango: sig.rango, jefe: !!sig.jefe });
+  if (p.mazoId === 'chancho' && o.deUnSaque) {
+    sig.aturdido = Math.max(sig.aturdido, 1);
+    evs.push({ t: 'aturde', turnos: sig.aturdido });
+  }
+  if (o.sobra > 0) {
+    evs.push({ t: 'perfora', n: o.sobra });
+    const resto = o.sobra - sig.vida;
+    sig.vida = Math.max(0, sig.vida - o.sobra);
+    evs.push({ t: 'dano', n: o.sobra, aEscudo: 0, vida: sig.vida, escudo: sig.escudo });
+    if (sig.vida <= 0) abatir(p, evs, { exacto: false, ejecutado: false, palos: o.palos, sobra: Math.max(0, resto), deUnSaque: false });
+  }
+}
+
+/** Cierra el combate ganado (el botín lo arma partida.ts). */
+function victoria(p: Partida, evs: Ev[]): void {
+  evs.push({ t: 'victoria' });
+}
+
+/** El Contraataque del enemigo activo, con todo lo que dispara. Devuelve false si la partida terminó. */
+function contraatacar(p: Partida, evs: Ev[], o: { mitiga: boolean; sinVida: boolean }): boolean {
+  const c = p.combate!;
+  const e = c.fila[0];
+  if (e.aturdido > 0) {
+    e.aturdido--;
+    evs.push({ t: 'sincontra', por: 'aturdido' });
+    return true;
+  }
+  if (c.caraDePoker) {
+    c.caraDePoker = false;
+    evs.push({ t: 'sincontra', por: 'caradepoker' });
+    return true;
+  }
+  const k = contraataque(p, e, o);
+  const frenado = Math.min(c.escudo, k.n - k.directo);
+  c.escudo -= frenado;
+  const llega = k.n - frenado;
+  if (llega > 0) {
+    p.vida -= llega;
+    c.perdida += llega;
+    p.stats.danoRecibido += llega;
+  }
+  evs.push({ t: 'contra', n: k.n, frenado, vida: Math.max(0, p.vida), de: e.palo, rango: e.rango });
+  if (e.jefe && e.palo === 'D') {
+    const cobra = Math.min(p.oro, B.reyes.D.diezmo);
+    if (cobra > 0) {
+      p.oro -= cobra;
+      c.furia += cobra;
+      evs.push({ t: 'rey', que: 'diezmo', n: cobra }, { t: 'furia', n: cobra, por: 'diezmo' });
+    }
+  }
+  if (p.vida <= 0) {
+    if (p.irseAlMazo) {
+      p.irseAlMazo = false;
+      p.vida = Math.max(1, Math.ceil(p.vidaMax * B.aumentos.irsealmazo));
+      evs.push({ t: 'salva' });
+    } else {
+      p.vida = 0;
+      evs.push({ t: 'derrota' });
+      return false;
+    }
+  }
+  if (llega === 0 && k.n > 0) {
+    if (nivelBend(p, 'peaje')) {
+      p.oro += B.bendiciones.peaje;
+      evs.push({ t: 'oro', n: B.bendiciones.peaje });
+    }
+    const lv = nivelBend(p, 'contragolpe');
+    if (lv) {
+      const n = nivelDe(B.bendiciones.contragolpe, lv) + carga(p, 'C');
+      const aEscudo = Math.min(e.escudo, n);
+      e.escudo -= aEscudo;
+      e.vida = Math.max(0, e.vida - (n - aEscudo));
+      evs.push({ t: 'contragolpe', n }, { t: 'dano', n, aEscudo, vida: e.vida, escudo: e.escudo });
+      if (e.vida <= 0) {
+        abatir(p, evs, { exacto: false, ejecutado: false, palos: ['C'], sobra: 0, deUnSaque: false });
+        if (!c.fila.length) victoria(p, evs);
+      }
+    }
+  }
+  return true;
+}
+
+/** Fin de turno: lo que hace el Rey cada turno, las cartas jugadas al Descarte, robar y el dado. */
+function finTurno(p: Partida, evs: Ev[], jugadas: Carta[]): void {
+  const c = p.combate!;
+  const e = c.fila[0];
+  if (e?.jefe) {
+    let sube = B.furia.reyPorTurno;
+    if (e.palo === 'S') sube += B.reyes.S.furiaTurno;
+    c.furia += sube;
+    evs.push({ t: 'furia', n: sube, por: 'rey' });
+    const escala = B.enemigos.actos[Math.min(p.acto, B.enemigos.actos.length - 1)];
+    if (e.palo === 'C' && e.escudo < e.escudoMax) {
+      const n = Math.min(e.escudoMax - e.escudo, Math.round(B.reyes.C.regenera * escala.escudo));
+      e.escudo += n;
+      evs.push({ t: 'rey', que: 'escudo', n });
+    }
+    if (e.palo === 'H') {
+      const n = Math.round(B.reyes.H.cura * escala.vida);
+      const cabe = Math.min(n, e.vidaMax - e.vida);
+      e.vida += cabe;
+      if (cabe > 0) evs.push({ t: 'rey', que: 'cura', n: cabe });
+      const furia = Math.floor((n - cabe) / B.reyes.H.furiaCada);
+      if (furia > 0) {
+        c.furia += furia;
+        evs.push({ t: 'furia', n: furia, por: 'brindis' });
+      }
+    }
+  }
+  for (const k of jugadas) {
+    if (k.marcada) continue;
+    const i = c.mano.indexOf(k);
+    if (i >= 0) c.mano.splice(i, 1);
+    c.descarte.push(k);
+  }
+  robar(p, Math.max(0, p.manoMax + c.mano.filter((k) => k.marcada).length - c.mano.length), evs);
+  c.turno++;
+  p.stats.turnos++;
+  c.pasar = p.mazoId === 'chancho';
+  if (usaDado(p)) {
+    c.dado = dado(p);
+    evs.push({ t: 'dado', n: c.dado });
+  }
+}
+
+/** Golpea al enemigo activo con esas cartas de la mano. Devuelve los sucesos (vacío si la jugada no vale). */
+export function golpear(p: Partida, ids: readonly string[]): Ev[] {
+  const c = p.combate;
+  if (!c || p.fase !== 'combate' || !c.fila.length) return [];
+  const sel = enMano(c, ids);
+  if (!sel) return [];
+  const q = cuenta(p, sel);
+  if (!q.ok) return [];
+  const e = c.fila[0];
+  const evs: Ev[] = [];
+  const palos = [...new Set(q.ef.map((k) => k.palo))];
+  const engano = c.engano && c.enganos > 0;
+  evs.push({ t: 'golpe', ids: [...ids], jugada: q.jugada, dano: q.dano, multi: q.multi, total: q.total, palos, critico: q.critico, engano });
+  p.stats.golpes++;
+  p.stats.mejorGolpe = Math.max(p.stats.mejorGolpe, q.total);
+  if (q.jugada === 'poker') p.stats.pokers++;
+  if (engano) {
+    c.enganos--;
+    c.engano = false;
+  }
+  if (q.canto) {
+    p.stats.cantos++;
+    evs.push({ t: 'canto', mazo: p.mazoId });
+    if (p.mazoId === 'escoba' || p.mazoId === 'truco') p.cantos++;
+    if (p.mazoId === 'chinchon') p.cantos += doble(p);
+    if (tieneAumento(p, 'manocaliente')) c.multiCombate = Math.min(B.aumentos.manocaliente.tope, c.multiCombate + B.aumentos.manocaliente.multi);
+  }
+  c.proxMulti = 0;
+  // los poderes de palo
+  if (q.escudo) {
+    c.escudo = Math.min(B.jugador.escudoMax, c.escudo + q.escudo);
+    evs.push({ t: 'escudo', n: q.escudo });
+  }
+  if (q.cura) {
+    const antes = p.vida;
+    curar(p, q.cura);
+    if (p.vida > antes) evs.push({ t: 'cura', n: p.vida - antes });
+  }
+  if (q.oro) {
+    p.oro += q.oro;
+    evs.push({ t: 'oro', n: q.oro });
+  }
+  // el daño
+  const deUnSaque = e.golpes === 0;
+  e.golpes++;
+  c.golpes++;
+  e.escudo -= q.aEscudo;
+  e.vida = Math.max(0, e.vida - q.aVida);
+  evs.push({ t: 'dano', n: q.total, aEscudo: q.aEscudo, vida: e.vida, escudo: e.escudo });
+  if (q.salpica && c.fila[1]) {
+    const s = c.fila[1];
+    const n = Math.min(q.salpica, s.vida - 1);
+    if (n > 0) {
+      s.vida -= n;
+      evs.push({ t: 'salpica', n });
+    }
+  }
+  const cae = q.abate || q.ejecuta;
+  if (cae) {
+    if (q.ejecuta) e.vida = 0;
+    abatir(p, evs, { exacto: q.exacto, ejecutado: q.ejecuta, palos, sobra: q.sobra, deUnSaque: deUnSaque && q.abate });
+  } else {
+    if (q.aturde) {
+      e.aturdido = Math.max(e.aturdido, q.aturde);
+      if (p.mazoId !== 'chancho' || !q.canto) e.boleado = true;
+      evs.push({ t: 'aturde', turnos: e.aturdido });
+    }
+    if (engano) {
+      c.furia += B.mazos.mentiroso.furiaFallo;
+      evs.push({ t: 'furia', n: B.mazos.mentiroso.furiaFallo, por: 'engano' });
+    }
+  }
+  if (!c.fila.length) {
+    victoria(p, evs);
+    return evs;
+  }
+  if (!cae) {
+    const sigue = contraatacar(p, evs, { mitiga: q.canto && p.mazoId === 'chinchon', sinVida: q.aVida === 0 });
+    if (!sigue || !c.fila.length) return evs;
+  }
+  finTurno(p, evs, sel);
+  return evs;
+}
+
+/** ¿Se puede descartar esa cantidad de cartas ahora? (el pase gratis de Chancho Va es de 1 sola carta). */
+export function puedeDescartar(p: Partida, n: number): 'gratis' | 'descarte' | null {
+  const c = p.combate;
+  if (!c || n < 1) return null;
+  if (n === 1 && c.pasar) return 'gratis';
+  return c.descartes > 0 ? 'descarte' : null;
+}
+
+/** Descarta esas cartas y roba otras tantas. No gasta el turno. */
+export function descartar(p: Partida, ids: readonly string[]): Ev[] {
+  const c = p.combate;
+  if (!c || p.fase !== 'combate') return [];
+  const sel = enMano(c, ids);
+  if (!sel || !sel.length) return [];
+  const modo = puedeDescartar(p, sel.length);
+  if (!modo) return [];
+  if (modo === 'gratis') c.pasar = false;
+  else c.descartes--;
+  const evs: Ev[] = [{ t: 'descarta', ids: [...ids] }];
+  for (const k of sel) {
+    c.mano.splice(c.mano.indexOf(k), 1);
+    c.descarte.push(k);
+  }
+  robar(p, sel.length, evs);
+  if (tieneAumento(p, 'senafalsa') && !c.sena) {
+    c.sena = true;
+    const baja = c.mano.filter((k) => !esComodin(k) && k.n !== 7).sort((a, b) => a.n - b.n)[0];
+    if (baja) {
+      baja.n = 7;
+      const enMazo = p.mazo.find((k) => k.id === baja.id);
+      if (enMazo) enMazo.n = 7;
+      evs.push({ t: 'sena', id: baja.id });
+    }
+  }
+  return evs;
+}
+
+/** El Mentiroso: arma o desarma el Engaño para el próximo golpe. */
+export function armarEngano(p: Partida, armado: boolean): boolean {
+  const c = p.combate;
+  if (!c || c.enganos <= 0) return false;
+  c.engano = armado;
+  return true;
+}
+
+/** El enemigo activo (atajo para la interfaz y las pruebas). */
+export { activo };

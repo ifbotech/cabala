@@ -1,0 +1,178 @@
+# CONSTITUCIÓN DE «CÁBALA»
+
+Esta es la **única fuente de verdad** del repositorio `ifbotech/cabala`. Todo cambio de reglas, de arte o de interfaz se
+mide contra este documento; lo que lo contradiga se elimina o se consolida de raíz, nunca se parchea encima. Los
+números viven en `src/rules/balance-config.json` y el reglamento (`REGLAS.md`) se genera desde el motor: aquí va lo
+que el juego **es**, no sus cifras. Varias de estas reglas son además pruebas (`tests/constitucion.test.ts`).
+
+---
+
+## 0 · Qué es
+
+**CÁBALA** (el mismo título en español y en inglés; subtítulo inglés *A Spanish-Deck Roguelike*) es un roguelike de
+baraja española para un jugador, en pixel-art oscuro, que se juega en el navegador: `https://ifbotech.github.io/cabala/`.
+
+- Repo propio y limpio. `ifbotech/derrumbe` queda como archivo histórico y no se copia de él nada que no sea chasis
+  sano (el núcleo determinista de la baraja, la forja de pixel-art y las herramientas).
+- Un solo jugador, sin servidor: sitio estático publicado en GitHub Pages bajo `/cabala/`.
+- La marca sale de `src/shared/brand.ts`; nadie escribe el título a mano.
+- Textos en español rioplatense y en inglés, siempre los dos.
+
+## 1 · Reglas («simple para un gamer»)
+
+### 1.1 Lo que CÁBALA no tiene (cero rastro en código, interfaz, Altar, Colección o pruebas)
+
+- Sellos de Lacre, Acabados (filo de plata, templado, policromo, cristal maldito) ni Mesa de Lacre.
+- La Manga (reserva lateral).
+- Cartas Especiales o Trampas en la mano: en la mano solo hay naipes.
+- El Tratante o cualquier pulpero genérico: **el Bufón es el único anfitrión de todo el juego**.
+- Asalto Diario ni Partida Guiada aparte: se aprende jugando, con **tres comentarios cortos del Bufón** en el primer
+  combate.
+- Nombres medievales europeos: toda la toponimia y la jerga son de **pulpería nocturna rioplatense y corte oscura**.
+
+### 1.2 Baraja española pura
+
+- **Mazo del jugador**: cartas del **1 al 9** de los cuatro palos más **Comodines**.
+- **Enemigos (la Corte)**: **10 Sota → 11 Caballo → 12 Rey** de cada palo. Un enemigo activo a la vez.
+- **Poder natural de cada palo**: Espadas perforan (atraviesan la defensa y lo que sobra sigue), Bastos dan Escudo,
+  Oros dan monedas y salpican, Copas curan.
+- **Cada enemigo es Inmune a su propio palo.**
+- **TOTAL = DAÑO × MULTI**, los dos siempre enteros.
+- Códigos internos de palo (nadie los ve en pantalla): `S` Espadas, `C` Bastos, `D` Oros, `H` Copas.
+
+### 1.3 El Bufón chanta y sus Aumentos
+
+- El Bufón te lleva por los caminos del Mapa, atiende la Pulpería, comenta las jugadas en la mesa y ofrece pactos.
+  Habla como un **chanta rioplatense tramposo** (señas falsas, dar de abajo, marcar el as, chamuyo, falta envido sin nada).
+- Lleva un estado vivo de **humor (Afinidad)**: a veces es un garca que ayuda a los Reyes (apuestas trampa, le sopla tu
+  juego al próximo Rey si rechazás su truco) y otras te tira la buena. *Todo es cuestión de Cábala.*
+- **16 a 18 Aumentos del Bufón**, **100 % pasivos** (jamás entran como cartas en la mano), en tres niveles —Plata, Oro y
+  Prismático (con sus Maldiciones)— y ofrecidos de a tres en la pantalla gigante **«ELEGÍ UNA CÁBALA»**, cada uno con
+  su sello `S / A / B` y `★ SINERGIA`.
+
+### 1.4 Los 4 Reyes vivos
+
+- **Espadas · El Caudillo** (filo, ejecuciones, críticos), **Oros · El Caudal** (multiplicadores por oro, interés,
+  dados), **Bastos · El Cacique** (Escudo persistente, contragolpes), **Copas · El Bacanal** (sobrecuración vuelta
+  Multi, pactos de sangre).
+- Te seducen con **Bendiciones que se acumulan** (cargas permanentes, visibles en vivo) y con **Pactos Duales** al
+  combinar dos Reyes.
+- Son **personajes vivos**: aparecen en pantalla, respiran, parpadean, llevan el aura de su color y te hablan, tanto al
+  ofrecer Bendiciones como al enfrentarte de jefes (reaccionan a si aceptaste sus dones).
+
+### 1.5 Exactamente 15 Amuletos y el oráculo nativo
+
+- **3 Amuletos por palo** (1 Común, 1 Raro, 1 Épico) y **3 del Bufón, todos Legendarios**. Ni uno más.
+- Cada Amuleto, Bendición y Aumento enseña su **sello `S / A / B`**, calculado con victorias reales por
+  `npm run analyze:meta`, que se enciende a **`S+` / `★ SINERGIA`** con una micro-etiqueta de 2–3 palabras cuando potencia
+  tu Mazo o lo que ya llevás.
+
+### 1.6 Los 5 Mazos y sus 5 Personajes
+
+Cada Mazo es una fantasía mecánica única y tiene su Personaje jugable, con retrato animado en el HUD:
+
+1. **Escoba** (Escoba del 15) · *La Barrendera*: los golpes que suman 15 justo cantan **¡ESCOBA!**.
+2. **Truco** (Envido y Bravas) · *El Paisano Bravo*: mazo corto del 1 al 7, las 4 Bravas y **¡ENVIDO!**.
+3. **Chinchón** (Pierna y Escalera) · *La Timbera del Club*: Piernas y Escaleras de palo que escalan y mitigan.
+4. **El Mentiroso** (Cara de Piedra) · *El Chamuyero*: Comodines de más y el **Engaño**.
+5. **Chancho Va** (Mano al Centro) · *El Manotazo*: ciclado frenético, **¡CHANCHO!** y golpes que aturden.
+
+**Escoba y Truco están abiertos desde el minuto 0**; los otros tres, con hitos cortos y claros.
+
+### 1.7 El Altar
+
+Una sola pantalla oscura con **6 a 8 mejoras incrementales directas**, cada una con su barra de niveles, su coste y un
+botón grande **MEJORAR**. Sin árbol, sin zoom, sin desplazamiento, sin paredes de texto.
+
+### 1.8 Balance certificado
+
+`balance-config.json` se calibra con `npm run analyze:meta`: los 5 Mazos ganan **28–33 %** con el Altar vacío y
+**45–49 %** con el Altar lleno (Reinado 1, bot del laboratorio). Si cambian las reglas, las pruebas exigen volver a
+certificar (la huella del informe tiene que coincidir).
+
+## 2 · Dirección de arte: «Dark Dithered Lithography»
+
+**La vara es la de los 5 Dorsos.** Vale para todas las pantallas y componentes.
+
+- **Prohibido**: pantallas beige, `border: 2px solid #000`, cajas blancas con letra de sistema, tono «cutie» o infantil.
+- **Tramado matemático real** (Bayer 2 × 2 y 4 × 4, a celda entera) y **paleta híper-saturada**. Fondo nocturno
+  `#09070F → #160C1C → #24112B` con viñeta tramada a luz de candil.
+- **Naipes españoles** de 96 × 140 celdas lógicas, sin suavizado: papel hueso `#F4EFE2` con canto tramado `#D9CEB4`,
+  recuadro fino con las pintas reales del palo (Oros línea continua, Copas 1 corte, Espadas 2, Bastos 3).
+- **Sin mini-palo debajo del número**: en las dos esquinas opuestas va solo el número, nítido.
+- **Rampas eléctricas** con corrimiento de matiz hacia el índigo `#120A24`: Espadas `#1440B8 → #00C8FF → #B8F6FF`,
+  Bastos `#0B5E28 → #22D95B`, Oros `#FF7B00 → #FFD500 → #FFF799`, Copas `#7A0026 → #FF1453`.
+- **Tono pícaro, oscuro e inquietante**: el Bufón de máscara de marfil afilada; Reyes severos; los 5 Personajes, al
+  nivel de los Reyes y de los Dorsos, en varios cuadros expresivos.
+- **Interfaz 100 % forjada en pixel-art**: marcos de 9 trozos (madera oscura, hierro, oro) para botones, bocadillos y
+  tarjetas; barra de Vida y Escudo del enemigo, emblema de Ataque `⚔ N` (late y tiembla cuando es inminente) y sello
+  heráldico de `INMUNE`, todos sprites integrados sobre el paño.
+- Las escalas de los sprites son **siempre enteras**. Luz de arriba a la izquierda; sin contorno negro en las
+  ilustraciones, sin sombreado de almohada, sin bandas, sin píxeles huérfanos (`scripts/pixel-lint.ts`).
+
+## 3 · UX: centro de pantalla, HUD abajo, sensación de videojuego
+
+**Regla de oro: mínimo texto, máxima lectura visual. Mirando el centro de la pantalla se entiende todo.**
+
+- **HUD inferior** cincelado (madera, hierro, oro): en el centro, el **retrato animado del Personaje** (mira a los lados,
+  se lastima según la Vida que queda, sonríe feroz al clavar ¡Escoba! / ¡Envido! / ¡Chancho! / Golpe exacto, hace una
+  mueca al recibir el Contraataque); a sus lados, **VIDA, ESCUDO, ORO, MAZO** y la tira de Amuletos, Aumentos y
+  Bendiciones con sus cargas, todo inspeccionable con el cursor o el foco.
+- **Mesa centrada**: el enemigo activo, grande, flotando sobre el paño tramado; el Bufón vivo a la izquierda, con
+  bocadillos cortos; la pila real de la Corte que queda, a la derecha.
+- **Cuenta auto-explicativa**: al elegir o arrastrar cartas, `DAÑO X × MULTI Y = TOTAL` con el canto del Mazo. En
+  reposo, silencio visual.
+- **Arrastrar y soltar de verdad**, más clic, teclado y mando: una carta o el grupo elegido se arrastra sobre el
+  enemigo (con halo de destino) para golpear, o al descarte para descartar. Siguen los botones **GOLPEAR** y
+  **DESCARTAR** junto a la mano.
+- **Mano en fila respirada**: cartas grandes, física de resorte, micro-flotación desfasada, inclinación al cursor.
+- **Macro-flujo**: portada y elegir Mazo (los 5 Dorsos con el retrato de su Personaje, la regla estrella en una línea de
+  12 palabras como mucho, Reinado 1…8 y un **JUGAR** monumental) → Mapa ramificado que se desplaza, presentado por el
+  Bufón (Guardia, Élite, Pulpería, Cábala del Bufón, Fogón, Rey) → Botín en lista y **«ELEGÍ UNA»** en un modal gigante
+  con 3 opciones y Saltar → Pulpería atendida por el Bufón, con bandejas y precios grandes.
+- **Vida ambiental a 60 FPS** (Canvas, doble buffer de color y luz): brasas, candil que respira, Bufón que mece el
+  cetro y parpadea, retrato vivo, cartas que flotan, `⚔` que late. **Coreografía de combate**: reparto desde el Mazo,
+  las cartas convergen al centro, el tajo del palo, *hitstop* de 65 ms, sacudida medida, números con gravedad y el
+  naipe enemigo que se raja en dos mitades soltando monedas hacia el HUD.
+- **Micro-escenas** de 0,8 a 1,5 s, saltables con un clic: entrada del combate, irrupción de un Rey con su aura,
+  aparición del Bufón cuando una Cábala hace de las suyas.
+- Se respeta **Reducir movimiento** y hay un **modo foto** determinista para la QA visual.
+- Tipografía de 14 px como mínimo; dianas de 44 px (48 en la barra del pulgar del móvil); cero recortes en
+  1920 × 1080, 1366 × 768, 1280 × 800 y 390 × 844, en los dos idiomas.
+
+## 4 · Puertas, publicación y bucle evolutivo
+
+Antes de publicar cualquier versión, todo en verde:
+
+| Puerta | Orden |
+|---|---|
+| Tipos | `npm run typecheck` |
+| Pruebas (constitución incluida) | `npm test` |
+| Forja y linter de pixel-art | `npm run forja` · `npm run pixel-lint` |
+| Laboratorio de balance | `npm run analyze:meta` |
+| QA visual, ES y EN, 4 ventanas, 0 fallos | `npm run qa:visual` · `npm run qa:visual -- --lang=en` |
+| QA de humo (arrastrar para atacar, HUD) | `npm run qa:smoke` |
+| 60 FPS | `npm run qa:fps` |
+| Construcción | `npm run build:web` |
+
+- **Inspección con ojos propios**: antes de publicar se abren al menos 12 capturas reales (portada, elegir Mazo, Mapa,
+  mesa, mesa arrastrando, Elegí una, Pulpería, Altar, Colección, Crónica, Steam Deck 1280, móvil 390) y se auditan
+  contra la vara de los Dorsos.
+- **Publicación**: commit limpio, etiqueta `vX.Y.Z`, `git push origin main --tags`, y se verifica que Pages quede en
+  verde sirviendo esa versión.
+- **Bucle evolutivo** con el panel simulado (`../panelAgentesGaming`, `escenas_cabala.py`, guardia de honestidad: solo
+  hechos y cifras): línea base con el listón promediado de 2–3 placebos nulos, una hipótesis cohesiva por versión, y se
+  publica solo lo que pasa todas las puertas y mejora al Campeón. Metas norte: **Aprobación ≥ 85 % · Claridad ≥ 8,0 ·
+  Diversión ≥ 8,4 · Críticos ≥ 60 % · Steam Deck ≥ 85 % · Móvil ≥ 85 %**. Cada versión publicada se anota en
+  `CHANGELOG.md` y en `MEMORIA_EVOLUTIVA.md`.
+
+## 5 · Cómo se trabaja aquí
+
+- Todo corre **en primer plano y con tope duro** (`node scripts/con-tope.mjs <segundos> …`; cada script de puertas lleva
+  su `guardian`). Nada de procesos en segundo plano ni de esperar archivos de señal.
+- Los números no se tocan a ciegas: primero el laboratorio rápido (`npm run analyze:meta -- --fast`), después el
+  completo. Lo que propone el panel simulado se mide antes de aplicarlo.
+- El panel es **simulado**: se dice siempre, con su ruido.
+- Inspiraciones de diseño (mesa centrada con anfitrión, dones que escalan, sellos de nivel, barra de estado con
+  retrato): son mecánicas y estructuras de género. **Ningún nombre, texto, personaje ni arte de otro juego entra en
+  CÁBALA**: todo el arte es original y se forja por código.

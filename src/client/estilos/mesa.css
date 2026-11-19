@@ -1,0 +1,804 @@
+/* La mesa de combate: el enemigo activo al centro sobre el paño, el Bufón a la izquierda, la pila de la Corte a la
+   derecha, la cuenta bajo el enemigo, la mano en fila y el HUD abajo. */
+
+.mesa {
+  gap: calc(var(--u) * 0.25);
+}
+.mesa-top {
+  min-height: 44px;
+}
+.dado {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: calc(var(--u) * 0.5);
+}
+
+/* ───────────── la escena ───────────── */
+
+.escena {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: calc(var(--u) * 2);
+}
+.esc-bufon {
+  position: relative;
+  justify-self: end;
+  align-self: end;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.esc-bufon .bocadillo {
+  position: absolute;
+  right: calc(20px * var(--k-bufon));
+  bottom: calc(96px * var(--k-bufon));
+  width: max-content;
+  max-width: min(30ch, 34vw);
+}
+.esc-bufon .bocadillo::after {
+  left: auto;
+  right: calc(18px * var(--k));
+}
+.esc-bufon .bocadillo[hidden] {
+  display: none;
+}
+
+.enemigo {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  grid-template-areas:
+    'sellos centro ataque'
+    'barras barras barras';
+  align-items: center;
+  justify-items: center;
+  gap: calc(var(--u) * 0.75) calc(var(--u) * 1.5);
+}
+.e-sellos {
+  grid-area: sellos;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 0.75);
+  min-width: calc(72px * var(--k) * 0.5 + 36px);
+}
+.e-sello {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: help;
+  --k: var(--k2);
+}
+.e-sello .inmune {
+  --k: var(--k2);
+}
+.e-sello .rotulo {
+  color: var(--hueso);
+}
+.e-centro {
+  grid-area: centro;
+  position: relative;
+  --k: var(--k-enemigo);
+  width: calc(100px * var(--k-enemigo));
+  height: calc(140px * var(--k-enemigo));
+}
+.e-pano {
+  position: absolute;
+  left: 50%;
+  bottom: calc(-16px * var(--k-enemigo));
+  width: calc(160px * var(--k-enemigo));
+  height: calc(56px * var(--k-enemigo));
+  transform: translateX(-50%);
+  background: var(--pano) 0 0 / 100% 100%;
+  image-rendering: pixelated;
+}
+.e-carta {
+  position: relative;
+  line-height: 0;
+  animation: e-flota 2.6s steps(4) infinite alternate;
+}
+.e-carta.jefe {
+  box-shadow:
+    0 0 0 calc(1px * var(--k-enemigo)) var(--abismo),
+    0 0 0 calc(2px * var(--k-enemigo)) var(--aura);
+  animation:
+    e-flota 2.6s steps(4) infinite alternate,
+    e-aura 1.6s steps(3) infinite alternate;
+}
+@keyframes e-flota {
+  to {
+    transform: translateY(calc(-3px * var(--k-enemigo)));
+  }
+}
+@keyframes e-aura {
+  to {
+    box-shadow:
+      0 0 0 calc(1px * var(--k-enemigo)) var(--abismo),
+      0 0 0 calc(2px * var(--k-enemigo)) var(--aura),
+      0 0 0 calc(4px * var(--k-enemigo)) color-mix(in srgb, var(--aura) 40%, transparent);
+  }
+}
+.e-carta.herido {
+  animation: e-herido 0.18s steps(2);
+}
+@keyframes e-herido {
+  50% {
+    filter: brightness(2.2);
+    transform: translate(calc(2px * var(--k-enemigo)), calc(-1px * var(--k-enemigo)));
+  }
+}
+.e-carta.embiste {
+  animation: e-embiste 0.28s steps(4);
+}
+@keyframes e-embiste {
+  40% {
+    transform: translateY(calc(22px * var(--k-enemigo))) scale(1.06);
+  }
+}
+.e-carta.entra {
+  animation: e-entra 0.26s steps(5);
+}
+@keyframes e-entra {
+  from {
+    transform: translateX(calc(120px * var(--k-enemigo)));
+    opacity: 0.4;
+  }
+}
+.e-carta.partida {
+  visibility: hidden;
+}
+.e-halo {
+  position: absolute;
+  inset: calc(-8px * var(--k-enemigo));
+  opacity: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--oro), var(--oro)) 0 0 / calc(14px * var(--k-enemigo)) calc(2px * var(--k-enemigo)) no-repeat,
+    linear-gradient(var(--oro), var(--oro)) 0 0 / calc(2px * var(--k-enemigo)) calc(14px * var(--k-enemigo)) no-repeat,
+    linear-gradient(var(--oro), var(--oro)) 100% 0 / calc(14px * var(--k-enemigo)) calc(2px * var(--k-enemigo)) no-repeat,
+    linear-gradient(var(--oro), var(--oro)) 100% 0 / calc(2px * var(--k-enemigo)) calc(14px * var(--k-enemigo)) no-repeat,
+    linear-gradient(var(--oro), var(--oro)) 0 100% / calc(14px * var(--k-enemigo)) calc(2px * var(--k-enemigo)) no-repeat,
+    linear-gradient(var(--oro), var(--oro)) 0 100% / calc(2px * var(--k-enemigo)) calc(14px * var(--k-enemigo)) no-repeat,
+    linear-gradient(var(--oro), var(--oro)) 100% 100% / calc(14px * var(--k-enemigo)) calc(2px * var(--k-enemigo)) no-repeat,
+    linear-gradient(var(--oro), var(--oro)) 100% 100% / calc(2px * var(--k-enemigo)) calc(14px * var(--k-enemigo)) no-repeat;
+}
+.arrastrando .e-halo {
+  opacity: 0.45;
+}
+.e-centro.apunta .e-halo {
+  opacity: 1;
+  animation: e-apunta 0.4s steps(2) infinite alternate;
+}
+@keyframes e-apunta {
+  to {
+    inset: calc(-12px * var(--k-enemigo));
+  }
+}
+.e-suelta {
+  position: absolute;
+  left: 50%;
+  top: calc(-14px * var(--k) - var(--fs-s));
+  transform: translateX(-50%);
+  display: none;
+  --k: 1;
+}
+.e-centro.apunta .e-suelta {
+  display: inline-flex;
+}
+
+.e-ataque {
+  grid-area: ataque;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(2px * var(--k));
+  min-width: calc(72px * var(--k) * 0.5 + 36px);
+  cursor: help;
+}
+.e-ataque > .icono {
+  --k: var(--k2);
+}
+.e-ataque.inminente > .icono {
+  animation: ataque-late 0.7s steps(2) infinite;
+}
+.e-ataque.mortal > .icono,
+.e-ataque.mortal [data-n='ataque'] {
+  animation: ataque-tiembla 0.24s steps(3) infinite;
+}
+@keyframes ataque-late {
+  50% {
+    transform: scale(1.18);
+    filter: brightness(1.4);
+  }
+}
+@keyframes ataque-tiembla {
+  33% {
+    transform: translate(calc(2px * var(--k)), calc(-1px * var(--k))) scale(1.2);
+  }
+  66% {
+    transform: translate(calc(-2px * var(--k)), calc(1px * var(--k))) scale(1.2);
+  }
+}
+.e-ataque.dormido {
+  opacity: 0.4;
+}
+.e-ataque.sube [data-n='ataque'] {
+  animation: ficha-sube 0.4s steps(4);
+}
+.e-furia {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.e-furia .icono {
+  --k: 1;
+  transform: scale(0.7);
+}
+
+.e-barras {
+  position: relative;
+  z-index: 1;
+  grid-area: barras;
+  width: calc(400px * var(--k) * 0.5 + 200px);
+  max-width: 94vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(4px * var(--k));
+}
+.e-rasgo {
+  cursor: help;
+}
+.e-nombre {
+  font-family: var(--rot);
+  font-size: var(--fr);
+  font-weight: 700;
+  text-transform: uppercase;
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  min-width: 0;
+  text-shadow:
+    calc(1px * var(--k)) calc(1px * var(--k)) 0 var(--abismo),
+    calc(-1px * var(--k)) 0 0 var(--abismo),
+    0 calc(-1px * var(--k)) 0 var(--abismo);
+}
+.e-vida {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--u);
+  padding: 0 calc(6px * var(--k));
+  height: calc(24px * var(--k));
+  background: var(--abismo);
+  box-shadow:
+    0 0 0 calc(2px * var(--k)) #3a1426,
+    0 0 0 calc(3px * var(--k)) var(--abismo);
+  overflow: hidden;
+}
+.b-vida {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--b-vida) 0 0 / calc(24px * var(--k)) calc(24px * var(--k));
+  image-rendering: pixelated;
+  transition: width 0.22s steps(6);
+}
+.b-escudo {
+  position: absolute;
+  inset: auto auto 0 0;
+  height: calc(6px * var(--k));
+  background: var(--b-escudo) 0 0 / calc(8px * var(--k)) calc(6px * var(--k));
+  image-rendering: pixelated;
+}
+.e-cifras {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: calc(2px * var(--k));
+  flex: none;
+}
+.e-esc {
+  display: inline-flex;
+  align-items: center;
+  margin-left: calc(8px * var(--k));
+}
+.e-esc .icono {
+  --k: 1;
+  transform: scale(0.72);
+}
+
+.corte {
+  justify-self: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(4px * var(--k));
+  --k: var(--k-naipe);
+}
+.corte-pila {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: calc(40px * var(--k-naipe));
+}
+.corte-carta {
+  display: block;
+  line-height: 0;
+  cursor: help;
+}
+.corte-carta + .corte-carta {
+  margin-top: calc(-108px * var(--k-naipe));
+}
+.corte-carta:not(:last-child) .px {
+  filter: brightness(0.7);
+}
+
+/* ───────────── la cuenta ───────────── */
+
+.cuenta-zona {
+  width: 100%;
+  min-height: calc(48px * var(--k) * 0.5 + 24px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cuenta {
+  --kf: var(--k);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: calc(var(--u) * 0.75);
+  padding: 0 var(--u);
+  border: calc(8px * var(--kf)) solid transparent;
+  border-image: var(--m-tinta) 8 fill / calc(8px * var(--kf)) / 0 repeat;
+  image-rendering: pixelated;
+  cursor: help;
+  animation: cuenta-sale 0.12s steps(2);
+}
+@keyframes cuenta-sale {
+  from {
+    transform: translateY(calc(4px * var(--k)));
+    opacity: 0.4;
+  }
+}
+.cuenta.invalida {
+  border: 0;
+  border-image: none;
+}
+.cuenta.abate {
+  border-image-source: var(--m-dorado);
+}
+.c-parte {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(6px * var(--k));
+}
+.c-total {
+  display: inline-flex;
+}
+.c-chips {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: calc(var(--u) * 0.5);
+  margin-left: calc(var(--u) * 0.5);
+}
+.c-efecto {
+  display: inline-flex;
+  align-items: center;
+}
+.c-efecto .icono {
+  --k: 1;
+  transform: scale(0.72);
+}
+.c-canto.salta,
+.c-exacto {
+  animation: canto-salta 0.4s steps(4);
+}
+@keyframes canto-salta {
+  40% {
+    transform: scale(1.5);
+  }
+}
+
+/* ───────────── la mano ───────────── */
+
+.mano-zona {
+  width: 100%;
+  display: grid;
+  grid-template-columns: calc(120px * var(--k) * 0.5 + 60px) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--u);
+}
+.mano {
+  position: relative;
+  --k: var(--k-naipe);
+  height: calc(140px * var(--k-naipe) + 24px * var(--k-naipe));
+  touch-action: none;
+}
+.carta {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  line-height: 0;
+  cursor: grab;
+  will-change: transform;
+}
+.carta .px {
+  pointer-events: none;
+}
+.carta.elegida .px {
+  box-shadow:
+    0 0 0 calc(2px * var(--k-naipe)) var(--oro),
+    0 calc(6px * var(--k-naipe)) 0 calc(-1px * var(--k-naipe)) rgba(11, 7, 17, 0.7);
+}
+.carta:focus-visible {
+  outline: none;
+}
+.carta:focus-visible .px {
+  box-shadow:
+    0 0 0 calc(2px * var(--k-naipe)) var(--hueso),
+    0 0 0 calc(4px * var(--k-naipe)) var(--carmesi);
+}
+.carta.elegida:focus-visible .px {
+  box-shadow:
+    0 0 0 calc(2px * var(--k-naipe)) var(--oro),
+    0 0 0 calc(4px * var(--k-naipe)) var(--carmesi);
+}
+.mano.arrastrando .carta {
+  cursor: grabbing;
+}
+.mano.bloqueada .carta {
+  cursor: default;
+}
+.descarte-zona {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  align-self: stretch;
+  opacity: 0.25;
+  outline: calc(2px * var(--k)) dashed #5c5470;
+  outline-offset: calc(-4px * var(--k));
+  --k: var(--k2);
+}
+.arrastrando .descarte-zona {
+  opacity: 0.8;
+}
+.descarte-zona.apunta {
+  opacity: 1;
+  outline-color: var(--carmesi);
+  background: rgba(240, 18, 74, 0.16);
+}
+.botones {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: calc(var(--u) * 0.75);
+  min-width: calc(190px * var(--k) * 0.5 + 95px);
+}
+
+/* ───────────── micro-escenas ───────────── */
+
+.cortina {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: repeating-conic-gradient(var(--abismo) 0% 25%, transparent 0% 50%) 0 0 / calc(2px * var(--k)) calc(2px * var(--k));
+  animation: cortina-entra 0.16s steps(3);
+}
+@keyframes cortina-entra {
+  from {
+    opacity: 0;
+  }
+}
+.irr-banda {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 2);
+  padding: var(--u);
+  background: var(--abismo);
+  box-shadow:
+    0 calc(-3px * var(--k)) 0 var(--aura, #ffd500),
+    0 calc(3px * var(--k)) 0 var(--aura, #ffd500),
+    0 calc(-6px * var(--k)) 0 var(--abismo),
+    0 calc(6px * var(--k)) 0 var(--abismo);
+  animation: banda-entra 0.2s steps(4);
+}
+@keyframes banda-entra {
+  from {
+    transform: scaleY(0.1);
+  }
+}
+.irr-banda .rey {
+  --k-rey: var(--k3);
+  animation: irr-rey 0.3s steps(5);
+}
+@keyframes irr-rey {
+  from {
+    transform: translateX(calc(-80px * var(--k)));
+    opacity: 0;
+  }
+}
+.irr-texto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(var(--u) * 0.5);
+  max-width: min(46ch, 60vw);
+}
+.irr-banda.rotulo-entrada {
+  flex-direction: column;
+  gap: 4px;
+}
+.irr-banda.rotulo-entrada .titulo {
+  font-size: calc(var(--fs-xl) * 1.4);
+}
+.irr-banda.bufonada {
+  --k-bufon: var(--k2);
+}
+
+/* ───────────── HUD en la mesa ───────────── */
+
+.en-partida .hud {
+  margin-top: calc(var(--u) * 0.25);
+}
+
+/* ───────────── 1080p: los sprites van al doble y el alto no sobra ───────────── */
+
+@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+  .mesa .cuenta {
+    --kd: 3;
+    --kf: 1;
+  }
+  .mesa .hud {
+    --kd: 3;
+    --k-retrato: 2;
+    position: relative;
+    z-index: 5;
+  }
+  .mesa .mano {
+    margin-bottom: calc(-30px * var(--k-naipe));
+  }
+  .mesa .mano-zona {
+    align-items: start;
+  }
+  .mesa .botones,
+  .mesa .descarte-zona {
+    align-self: center;
+    max-height: calc(110px * var(--k-naipe));
+  }
+  .mesa-top {
+    min-height: 0;
+  }
+}
+
+/* ───────────── móvil (vertical) ───────────── */
+
+@media (max-width: 700px) {
+  .escena {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 0;
+    position: relative;
+  }
+  .esc-bufon {
+    position: absolute;
+    left: 0;
+    top: -50px;
+    z-index: 3;
+    align-items: flex-start;
+    justify-self: start;
+    pointer-events: none;
+  }
+  .esc-bufon:has(.bocadillo[hidden]) {
+    top: 0;
+  }
+  .esc-bufon .bufon {
+    --k-bufon: 1;
+    width: 56px;
+    height: 60px;
+    overflow: hidden;
+  }
+  .esc-bufon .bocadillo {
+    position: static;
+    max-width: 54vw;
+    margin-left: 6px;
+    font-size: var(--fs-s);
+  }
+  .esc-bufon {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .esc-bufon .bocadillo::after {
+    display: none;
+  }
+  .enemigo {
+    grid-row: 2;
+    gap: 4px 6px;
+  }
+  .e-sellos,
+  .e-ataque {
+    min-width: 64px;
+  }
+  .e-barras {
+    width: min(100%, 340px);
+  }
+  .corte {
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 2;
+    flex-direction: row;
+    gap: 4px;
+  }
+  .corte .rotulo {
+    display: none;
+  }
+  .mesa-top .lado {
+    gap: 6px;
+  }
+  .mesa-top .rotulo {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+    max-width: 46vw;
+  }
+  .mesa-top .sub {
+    white-space: nowrap;
+  }
+  .corte-pila {
+    flex-direction: row;
+    min-height: 0;
+  }
+  .corte-carta .px {
+    width: calc(var(--w) * 0.4px);
+    height: calc(var(--h) * 0.4px);
+  }
+  .corte-carta + .corte-carta {
+    margin-top: 0;
+    margin-left: -22px;
+  }
+  .cuenta {
+    gap: 4px 6px;
+    padding: 0 4px;
+  }
+  .cuenta .rotulo {
+    display: none;
+  }
+  .c-chips {
+    margin-left: 0;
+    flex-basis: 100%;
+    justify-content: center;
+  }
+  .mano-zona {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      'mano mano'
+      'botones botones';
+    gap: 6px;
+    position: relative;
+  }
+  .mano {
+    grid-area: mano;
+    height: calc(140px + 22px);
+  }
+  .botones {
+    grid-area: botones;
+    flex-direction: row;
+    min-width: 0;
+  }
+  .botones .btn {
+    flex: 1;
+    min-height: 48px;
+    padding: 0 4px;
+  }
+  .botones .btn.grande {
+    flex: 1.4;
+    font-size: var(--fs-l);
+  }
+  .descarte-zona {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    height: 56px;
+    flex-direction: row;
+    display: none;
+    --k: 1;
+    background: rgba(9, 7, 15, 0.9);
+    z-index: 4;
+  }
+  .arrastrando .descarte-zona {
+    display: flex;
+  }
+  .irr-banda {
+    flex-direction: column;
+    gap: var(--u);
+  }
+  .irr-banda .rey {
+    --k-rey: 2;
+  }
+  .irr-texto {
+    max-width: 90vw;
+    align-items: center;
+    text-align: center;
+  }
+
+  /* el HUD, compacto: retrato a la izquierda, cifras en fila y las tiras debajo */
+  .hud {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      'cara izq mazo'
+      'tiras tiras tiras';
+    gap: 4px 6px;
+    padding: 0 2px;
+    --k-retrato: 1;
+  }
+  .hud-retrato {
+    grid-area: cara;
+  }
+  .hud-lado.izq {
+    grid-area: izq;
+    justify-content: space-around;
+    gap: 4px;
+  }
+  .hud-lado.der {
+    display: contents;
+  }
+  .hud-lado.der > .hud-pozo {
+    grid-area: mazo;
+  }
+  .hud-tiras {
+    grid-area: tiras;
+    flex-direction: row;
+    gap: 3px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .hud-tira {
+    min-height: 32px;
+    overflow: visible;
+  }
+  .hud-pozo {
+    min-width: 0;
+    padding: 0 2px;
+    border-width: 4px;
+    border-image-width: 4px;
+    border-image-slice: 8 fill;
+  }
+  .hud-pozo .rotulo {
+    display: none;
+  }
+  .hud-pozo .icono {
+    transform: scale(0.72);
+    margin: 0 -4px;
+  }
+  .hud-vida {
+    min-width: 0;
+    flex: 1.6;
+  }
+  .hud .cifra.grande {
+    --kc: 1;
+  }
+  .hud .hud-vida .cifra.grande {
+    --kc: 2;
+  }
+}
