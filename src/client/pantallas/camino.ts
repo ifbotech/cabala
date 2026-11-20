@@ -15,7 +15,7 @@ import * as juego from '../../rules/partida';
 import { ver } from '../../rules/perfil';
 import { BENDICION, REY_DEF } from '../../rules/reyes';
 import type { BendicionId } from '../../rules/reyes';
-import { clavePieza, selloDe } from '../../rules/sellos';
+import { clavePieza } from '../../rules/notas';
 import { alAzar, idioma, perfil, t, tx } from '../almacen';
 import { sonar } from '../audio';
 import { haloRey, lluviaDeMonedas } from '../fx/efectos';
@@ -23,10 +23,10 @@ import { enFoto } from '../fx/motor';
 import { avivarRetrato, hudHtml } from '../hud';
 import { avanzar, guardar, irPortada, sesion, soltarPartida } from '../juego';
 import type { Expresion } from '../pixel/bufon';
-import { cifra, pxAmuleto, pxAumento, pxBendicion, pxHud, pxNaipe, pxNodo, pxPalo, pxPieza, pxSello, urlRetrato } from '../sprites';
+import { cifra, pxAmuleto, pxAumento, pxBendicion, pxHud, pxNaipe, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
 import { JUGADA_COMO, JUGADA_NOMBRE, NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, TRAMO_NOMBRE } from '../textos';
 import { VOZ } from '../voces';
-import { $, abrirModal, anfitrion, bufonHtml, cerrarModal, esc, fichaDe, repintar, reyHtml, selloHtml, tip, type Accion, type Pantalla } from '../ui';
+import { $, abrirModal, anfitrion, bufonHtml, cerrarModal, esc, fichaDe, repintar, reyHtml, sinergiaHtml, tip, type Accion, type Pantalla } from '../ui';
 
 const fijo = (): number | undefined => (enFoto() ? 0 : undefined);
 const expresionDe = (p: Partida): Expresion => (p.afinidad <= -2 ? 'sombria' : p.afinidad >= 2 ? 'brillo' : 'reposo');
@@ -59,16 +59,16 @@ export function modalMazo(p: Partida, titulo: string, elegir?: (id: string) => v
 
 /** «LO QUE LLEVÁS»: cada Amuleto, Cábala, carga y Bendición con su texto entero (la tira del HUD es su resumen). */
 export function modalPiezas(p: Partida): void {
-  const fila = (icono: string, nombre: string, clase: string, desc: string, sello = ''): string =>
-    `<li class="pieza-fila"><span class="pieza-icono">${icono}</span><div class="pieza-texto"><b>${esc(nombre)}</b><span class="sub">${esc(clase)}</span><p>${esc(desc)}</p></div>${sello}</li>`;
+  const fila = (icono: string, nombre: string, clase: string, desc: string): string =>
+    `<li class="pieza-fila"><span class="pieza-icono">${icono}</span><div class="pieza-texto"><b>${esc(nombre)}</b><span class="sub">${esc(clase)}</span><p>${esc(desc)}</p></div></li>`;
   const vacio = `<li class="pieza-fila vacia"><p class="sub">${t('nada')}</p></li>`;
-  const amuletos = p.amuletos.map((id) => fila(pxAmuleto(id), tx(AMULETO[id].nombre), tx(RAREZA_NOMBRE[AMULETO[id].rareza]), tx(AMULETO[id].desc), pxSello(selloDe('amuleto', id))));
-  const aumentos = p.aumentos.map((id) => fila(pxAumento(id), tx(AUMENTO[id].nombre), AUMENTO[id].maldicion ? t('maldicion') : tx(NIVEL_NOMBRE[AUMENTO[id].nivel]), tx(AUMENTO[id].desc), pxSello(selloDe('aumento', id))));
+  const amuletos = p.amuletos.map((id) => fila(pxAmuleto(id), tx(AMULETO[id].nombre), tx(RAREZA_NOMBRE[AMULETO[id].rareza]), tx(AMULETO[id].desc)));
+  const aumentos = p.aumentos.map((id) => fila(pxAumento(id), tx(AUMENTO[id].nombre), AUMENTO[id].maldicion ? t('maldicion') : tx(NIVEL_NOMBRE[AUMENTO[id].nivel]), tx(AUMENTO[id].desc)));
   const cargas = PALOS.filter((s) => sirveA(p, s)).map((s) => fila(pxPalo(s), `${tx(REY_DEF[s].carga)} ${carga(p, s)}`, tx(REY_DEF[s].apodo), tx(REY_DEF[s].cargaDa)));
   const bendiciones = (Object.keys(p.bendiciones) as BendicionId[]).map((id) => {
     const d = BENDICION[id];
     const n = p.bendiciones[id] ?? 1;
-    return fila(pxBendicion(id), tx(d.nombre), `${tx(REY_DEF[d.rey].apodo)}${d.dual ? ` + ${tx(REY_DEF[d.dual].apodo)}` : ''}${d.niveles > 1 ? ` · ${t('nivel', { n })}` : ''}`, tx(d.desc(n)), pxSello(selloDe('bendicion', id)));
+    return fila(pxBendicion(id), tx(d.nombre), `${tx(REY_DEF[d.rey].apodo)}${d.dual ? ` + ${tx(REY_DEF[d.dual].apodo)}` : ''}${d.niveles > 1 ? ` · ${t('nivel', { n })}` : ''}`, tx(d.desc(n)));
   });
   const bloque = (titulo: string, filas: string[]): string => `<h3 class="rotulo">${esc(titulo)}</h3><ul class="pieza-lista">${filas.length ? filas.join('') : vacio}</ul>`;
   abrirModal(
@@ -229,7 +229,7 @@ export function pantallaMapa(p: Partida): Pantalla {
 const TITULO_OFERTA = { bendicion: 'elegiBendicion', amuleto: 'elegiAmuleto', aumento: 'elegiCabala' } as const;
 const NOMBRE_OFERTA = { bendicion: 'bendicionDe', amuleto: 'amuletoNuevo', aumento: 'cabalaNueva' } as const;
 
-/** El modal gigante «ELEGÍ UNA»: tres opciones con su sello y su sinergia, y Saltar. */
+/** El modal gigante «ELEGÍ UNA»: tres opciones (con su etiqueta de sinergia, si la hay) y Saltar. */
 function modalOferta(p: Partida, indice: number, alTerminar: () => void): void {
   const item = p.botin!.items[indice] as Extract<ItemBotin, { t: 'oferta' }>;
   const oferta: Oferta = item.oferta;
@@ -251,7 +251,7 @@ function modalOferta(p: Partida, indice: number, alTerminar: () => void): void {
       <span class="op-clase rotulo">${esc(f.clase)}</span>
       <b class="op-nombre">${esc(f.nombre)}</b>
       <span class="op-desc">${esc(f.desc)}</span>
-      <span class="op-sellos">${selloHtml(oferta.tipo, id, p)}</span>
+      <span class="op-sinergia">${sinergiaHtml(oferta.tipo, id, p)}</span>
     </button>`;
   };
   const velo = abrirModal(
@@ -395,7 +395,7 @@ export function pantallaPulperia(p: Partida): Pantalla {
                   <span class="op-clase rotulo">${esc(f.clase)}</span>
                   <b class="op-nombre">${esc(f.nombre)}</b>
                   <span class="op-desc">${esc(f.desc)}</span>
-                  <span class="op-sellos">${selloHtml('amuleto', a.id, p)}</span>
+                  <span class="op-sinergia">${sinergiaHtml('amuleto', a.id, p)}</span>
                   ${a.vendido ? `<span class="chip">${t('vendido')}</span>` : precio(a.precio, p.oro >= a.precio)}
                 </button>`;
               })

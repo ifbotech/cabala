@@ -359,7 +359,7 @@ button {
   color: var(--gris);
 }
 
-/* ───────────── chips y sellos ───────────── */
+/* ───────────── chips ───────────── */
 
 .chip {
   --kf: var(--k);
@@ -386,18 +386,6 @@ button {
 .chip.maldicion {
   color: #ff6e8e;
 }
-.sello-vivo {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-family: var(--rot);
-  font-size: var(--fr);
-  color: var(--oro);
-  text-transform: uppercase;
-}
-.sello-vivo .mas {
-  margin-left: -2px;
-}
 .sinergia-caja {
   display: inline-flex;
   flex-direction: column;
@@ -408,7 +396,7 @@ button {
   font-size: var(--fs-s);
   color: var(--oro);
 }
-.chip .sello {
+.chip .estrella {
   --k: 1;
 }
 

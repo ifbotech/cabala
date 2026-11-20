@@ -1,5 +1,5 @@
 // La forja: todas las piezas existen, cuadran y pasan el linter de pixel-art; los naipes llevan SOLO el número en las
-// esquinas (sin mini-palo); el laboratorio certificó el balance vigente y sus sellos cubren todas las piezas.
+// esquinas (sin mini-palo); el laboratorio certificó el balance vigente y sus notas cubren todas las piezas.
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -17,7 +17,7 @@ import { AUMENTOS } from '../src/rules/aumentos';
 import { PALOS } from '../src/rules/cartas';
 import { MAZOS } from '../src/rules/mazos';
 import { BENDICIONES } from '../src/rules/reyes';
-import sellos from '../src/rules/sellos.json';
+import notas from '../src/rules/notas.json';
 
 describe('catálogo de pixel-art', () => {
   const piezas = catalogo();
@@ -75,9 +75,9 @@ describe('naipes', () => {
 });
 
 describe('laboratorio', () => {
-  it('cada pieza tiene su sello S / A / B, por tercios', () => {
+  it('el laboratorio tiene una nota para cada pieza (S / A / B por tercios; interna, para el bot)', () => {
     const claves = [...AMULETOS.map((id) => `a:${id}`), ...BENDICIONES.map((id) => `b:${id}`), ...AUMENTOS.map((id) => `u:${id}`)];
-    const tabla = sellos as Record<string, string>;
+    const tabla = notas as Record<string, string>;
     for (const k of claves) expect(['S', 'A', 'B'], k).toContain(tabla[k]);
     expect(Object.keys(tabla).sort()).toEqual(claves.sort());
     for (const pre of ['a', 'b', 'u']) {

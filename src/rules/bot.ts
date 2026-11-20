@@ -11,10 +11,10 @@ import type { Nodo, Oferta, Partida } from './estado';
 import * as juego from './partida';
 import { azar, elegir } from './rng';
 import type { ConAzar } from './rng';
-import { selloDe, sinergia } from './sellos';
+import { notaDe, sinergia } from './notas';
 
 export interface OpcionesBot {
-  /** Elige al azar en cada «ELEGÍ UNA» (para medir los sellos sin sesgo). */
+  /** Elige al azar en cada «ELEGÍ UNA» (para medir las notas de las piezas sin sesgo). */
   ofertasAlAzar?: boolean;
   /** Azar propio del bot (no toca el de la partida). */
   rng: ConAzar;
@@ -91,15 +91,15 @@ export function decidir(p: Partida): Decision | null {
 
 // ───────────────────────── fuera del combate ─────────────────────────
 
-const PESO_SELLO = { S: 3, A: 2, B: 1 } as const;
+const PESO_NOTA = { S: 3, A: 2, B: 1 } as const;
 
 function nota(p: Partida, oferta: Oferta, id: string): number {
-  return PESO_SELLO[selloDe(oferta.tipo, id)] + (sinergia(p, oferta.tipo, id) ? 0.75 : 0);
+  return PESO_NOTA[notaDe(oferta.tipo, id)] + (sinergia(p, oferta.tipo, id) ? 0.75 : 0);
 }
 
-/** El Amuleto que el bot soltaría para hacer sitio (el de peor sello). */
+/** El Amuleto que el bot soltaría para hacer sitio (el de peor nota). */
 function peorAmuleto(p: Partida): AmuletoId {
-  return [...p.amuletos].sort((a, b) => PESO_SELLO[selloDe('amuleto', a)] - PESO_SELLO[selloDe('amuleto', b)])[0];
+  return [...p.amuletos].sort((a, b) => PESO_NOTA[notaDe('amuleto', a)] - PESO_NOTA[notaDe('amuleto', b)])[0];
 }
 
 function resolverBotin(p: Partida, o: OpcionesBot): void {
@@ -110,8 +110,8 @@ function resolverBotin(p: Partida, o: OpcionesBot): void {
     let id: string | null;
     if (o.ofertasAlAzar) id = elegir(o.rng, ops);
     else {
-      // prefiere los sellos altos, pero no a ciegas: cada punto de nota duplica la probabilidad de elegirla (como
-      // alguien que mira el sello y también su gusto). Así un sello que cambia por poco no da vuelta el resultado.
+      // prefiere las notas altas, pero no a ciegas: cada punto de nota duplica la probabilidad de elegirla (como
+      // alguien que conoce la pieza y también tiene su gusto). Así una nota que cambia por poco no da vuelta el resultado.
       const pesos = ops.map((x) => 2 ** nota(p, it.oferta, x));
       let r = azar(o.rng) * pesos.reduce((s, w) => s + w, 0);
       id = ops[ops.length - 1];
@@ -126,7 +126,7 @@ function resolverBotin(p: Partida, o: OpcionesBot): void {
     let reemplaza: AmuletoId | undefined;
     if (it.oferta.tipo === 'amuleto' && p.amuletos.length >= p.huecos) {
       reemplaza = peorAmuleto(p);
-      if (!o.ofertasAlAzar && PESO_SELLO[selloDe('amuleto', id)] <= PESO_SELLO[selloDe('amuleto', reemplaza)]) id = null;
+      if (!o.ofertasAlAzar && PESO_NOTA[notaDe('amuleto', id)] <= PESO_NOTA[notaDe('amuleto', reemplaza)]) id = null;
     }
     if (!juego.elegirOferta(p, i, id, reemplaza)) {
       juego.elegirOferta(p, i, null);
@@ -163,13 +163,13 @@ const tramoRey = (p: Partida) => juego.tramoActual(p).rey;
 function enPulperia(p: Partida, o: OpcionesBot): void {
   const t = p.tienda!;
   if (p.vida < p.vidaMax * 0.5 && p.oro >= t.curar) juego.curarEnPulperia(p);
-  const orden = t.amuletos.map((a, i) => ({ ...a, i })).sort((a, b) => PESO_SELLO[selloDe('amuleto', b.id)] - PESO_SELLO[selloDe('amuleto', a.id)] || azar(o.rng) - 0.5);
+  const orden = t.amuletos.map((a, i) => ({ ...a, i })).sort((a, b) => PESO_NOTA[notaDe('amuleto', b.id)] - PESO_NOTA[notaDe('amuleto', a.id)] || azar(o.rng) - 0.5);
   for (const a of orden) {
     if (p.oro < a.precio) continue;
     if (p.amuletos.length < p.huecos) juego.comprar(p, a.i);
     else {
       const peor = peorAmuleto(p);
-      if (PESO_SELLO[selloDe('amuleto', a.id)] > PESO_SELLO[selloDe('amuleto', peor)]) juego.comprar(p, a.i, peor);
+      if (PESO_NOTA[notaDe('amuleto', a.id)] > PESO_NOTA[notaDe('amuleto', peor)]) juego.comprar(p, a.i, peor);
     }
   }
   if (p.vida < p.vidaMax * 0.7 && p.oro >= t.curar) juego.curarEnPulperia(p);

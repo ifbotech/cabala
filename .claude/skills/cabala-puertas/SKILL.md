@@ -28,14 +28,15 @@ node scripts/con-tope.mjs 200 npm run build:web
 - Los números viven en `src/rules/balance-config.json`. Para probar uno: `node scripts/balance-set.mjs ruta=valor`.
 - Sondeo barato: `npx tsx scripts/lab.ts 300 [mazo] [vacio|lleno]`; qué pesa cada mejora del Altar:
   `npx tsx scripts/sonda-altar.ts 400 <mazo>`.
-- `npm run analyze:meta` hace dos cosas: mide los **sellos** (partidas con «ELEGÍ UNA» al azar; gana quien la eligió
-  contra quien la vio y la dejó pasar) y escribe `src/rules/sellos.json`; después mide las victorias por Mazo con el
-  bot que ya elige por sello, y escribe `scripts/meta-report.json` con su **huella**.
+- `npm run analyze:meta` hace dos cosas: mide la **nota** de cada pieza (partidas con «ELEGÍ UNA» al azar; gana quien la eligió
+  contra quien la vio y la dejó pasar) y escribe `src/rules/notas.json`; después mide las victorias por Mazo con el
+  bot que ya elige por nota, y escribe `scripts/meta-report.json` con su **huella**.
 - Objetivos (`scripts/objetivos.ts`): 28–33 % con el Altar vacío y 45–49 % con el lleno, los 5 Mazos.
-- Si cambia cualquier archivo de `src/rules` (menos `sellos.json`), `tests/forja.test.ts` falla hasta volver a
+- Si cambia cualquier archivo de `src/rules` (menos `notas.json`), `tests/forja.test.ts` falla hasta volver a
   certificar. Con 500 partidas una proporción del 30 % baila ±4 puntos: no perseguir décimas con el modo rápido.
-- Ojo: el bot elige por sello, así que sellos más precisos hacen al bot más fuerte. Calibrá siempre contra los sellos
-  del informe completo (`--sin-sellos` los conserva al iterar).
+- Ojo: el bot elige por nota, así que notas más precisas hacen al bot más fuerte. Calibrá siempre contra las notas
+  del informe completo (`--sin-notas` las conserva al iterar). Las notas son internas: desde la 0.5.0 el juego no
+  enseña ningún tier al jugador (solo la etiqueta ★ SINERGIA).
 
 ## QA visual
 

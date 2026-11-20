@@ -8,14 +8,14 @@ import type { MazoId } from '../src/rules/mazos';
 import { nuevaPartida } from '../src/rules/partida';
 import { altarLleno, altarVacio } from '../src/rules/perfil';
 import { semillaDe } from '../src/rules/rng';
-import { clavePieza } from '../src/rules/sellos';
+import { clavePieza } from '../src/rules/notas';
 
 export interface Celda {
   mazo: MazoId;
   altar: 'vacio' | 'lleno';
   reinado: number;
   n: number;
-  /** Elegir al azar en cada «ELEGÍ UNA» (para los sellos). */
+  /** Elegir al azar en cada «ELEGÍ UNA» (para las notas del laboratorio). */
   ofertasAlAzar?: boolean;
   semilla?: string;
 }

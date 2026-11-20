@@ -1,6 +1,7 @@
-// El oráculo de la mesa: cada Amuleto, Bendición y Aumento lleva su sello S / A / B, que sale de las victorias reales
-// del laboratorio (npm run analyze:meta escribe sellos.json), y se enciende a «S+» o «★ SINERGIA» con una
-// micro-etiqueta cuando potencia tu Mazo o lo que ya llevás.
+// Dos cosas sobre las piezas (Amuletos, Bendiciones y Aumentos):
+//  · la nota del laboratorio (S / A / B por tercios, de victorias reales: npm run analyze:meta escribe notas.json).
+//    Es interna: la usa el bot que certifica el balance. NO se le muestra al jugador (decisión del 2026-11-20).
+//  · la sinergia: la micro-etiqueta «★ SINERGIA» que sí ve el jugador cuando una pieza potencia su Mazo o lo que lleva.
 import { AMULETO } from './amuletos';
 import type { AmuletoId } from './amuletos';
 import { AUMENTO } from './aumentos';
@@ -13,16 +14,16 @@ import { MAZO } from './mazos';
 import type { MazoId } from './mazos';
 import { BENDICION, REY_DEF } from './reyes';
 import type { BendicionId } from './reyes';
-import datos from './sellos.json';
+import datos from './notas.json';
 
-export type Sello = 'S' | 'A' | 'B';
-const TABLA = datos as Record<string, Sello>;
+export type Nota = 'S' | 'A' | 'B';
+const TABLA = datos as Record<string, Nota>;
 const PREFIJO: Record<TipoOferta, string> = { amuleto: 'a', bendicion: 'b', aumento: 'u' };
 
-/** La clave de una pieza en sellos.json y en la Colección: «a:cuchillo», «b:deguello», «u:senafalsa». */
+/** La clave de una pieza en notas.json y en la Colección: «a:cuchillo», «b:deguello», «u:senafalsa». */
 export const clavePieza = (tipo: TipoOferta, id: string): string => `${PREFIJO[tipo]}:${id}`;
-/** El sello de una pieza (A mientras el laboratorio no la haya medido). */
-export const selloDe = (tipo: TipoOferta, id: string): Sello => TABLA[clavePieza(tipo, id)] ?? 'A';
+/** La nota de laboratorio de una pieza (A mientras no se haya medido). Solo para el bot. */
+export const notaDe = (tipo: TipoOferta, id: string): Nota => TABLA[clavePieza(tipo, id)] ?? 'A';
 
 /** Amuletos que brillan con un Mazo en particular. */
 const AMULETO_MAZO: Partial<Record<AmuletoId, MazoId[]>> = {
@@ -56,11 +57,4 @@ export function sinergia(p: Partida, tipo: TipoOferta, id: string): L | null {
   }
   const def = AUMENTO[id as AumentoId];
   return def.mazos?.includes(p.mazoId) ? para(p.mazoId) : null;
-}
-
-/** El sello tal como se enseña: la letra del laboratorio, «S+» si además hay sinergia, y la micro-etiqueta. */
-export function selloVivo(p: Partida, tipo: TipoOferta, id: string): { letra: Sello | 'S+'; sinergia: L | null } {
-  const s = sinergia(p, tipo, id);
-  const base = selloDe(tipo, id);
-  return { letra: s && base === 'S' ? 'S+' : base, sinergia: s };
 }

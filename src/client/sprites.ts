@@ -8,7 +8,7 @@ import type { TipoOferta } from '../rules/estado';
 import type { MazoId } from '../rules/mazos';
 import type { BendicionId } from '../rules/reyes';
 import { cifraMapa, type TonoCifra } from './pixel/cifras';
-import { amuletoMapa, aumentoMapa, bendicionMapa, hudMapa, inmuneMapa, nodoMapa, paloMapa, selloMapa, type HudPx, type NodoPx } from './pixel/iconos';
+import { amuletoMapa, aumentoMapa, bendicionMapa, hudMapa, inmuneMapa, nodoMapa, paloMapa, estrellaMapa, type HudPx, type NodoPx } from './pixel/iconos';
 import { logoMapa } from './pixel/logo';
 import { BARRAS, barraMapa, marcoMapa, panoMapa, type Estilo } from './pixel/marcos';
 import { comodinMapa, dorsoNaipe, naipeMapa } from './pixel/naipes';
@@ -67,7 +67,7 @@ export const pxNodo = (id: NodoPx, cls = '') => px(`n:${id}`, () => nodoMapa(id)
 export const pxHud = (id: HudPx, cls = '') => px(`h:${id}`, () => hudMapa(id), `icono ${cls}`);
 export const pxPalo = (s: Palo, cls = '') => px(`palo:${s}`, () => paloMapa(s), `pinta ${cls}`);
 export const pxInmune = (s: Palo, cls = '') => px(`inmune:${s}`, () => inmuneMapa(s), `inmune ${cls}`);
-export const pxSello = (letra: 'S' | 'A' | 'B' | 'estrella', cls = '') => px(`sello:${letra}`, () => selloMapa(letra), `sello ${cls}`);
+export const pxEstrella = (cls = '') => px('estrella', estrellaMapa, `estrella ${cls}`);
 export const pxLogo = (cls = '') => px('logo', logoMapa, `logo ${cls}`);
 export const pxPano = (cls = '') => px('pano', panoMapa, `pano ${cls}`);
 export const claveRetrato = (mazo: MazoId, c: Cuadro) => `pj:${mazo}|${c.mirada}|${c.gesto}|${c.herida}`;

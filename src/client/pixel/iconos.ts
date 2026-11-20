@@ -733,24 +733,17 @@ export function inmuneMapa(s: Palo): Mapa {
   return m;
 }
 
-/** Los sellos del oráculo: una chapa heráldica con su letra (S, A, B) y la estrella de la sinergia. 18 × 18 celdas. */
-export function selloMapa(letra: 'S' | 'A' | 'B' | 'estrella'): Mapa {
-  const clave = `sello:${letra}`;
+/** La estrella de la sinergia: una chapa dorada con su estrella. 18 × 18 celdas. */
+export function estrellaMapa(): Mapa {
+  const clave = 'estrella';
   const hecho = cache.get(clave);
   if (hecho) return hecho;
   const l = new Lienzo(18, 18);
-  const rampa = letra === 'S' || letra === 'estrella' ? ORO : letra === 'A' ? PLATA : '9Nndx';
-  const clara = letra === 'S' || letra === 'estrella' ? 'Y' : letra === 'A' ? 'w' : 'x';
   l.rect(1, 0, 16, 18, '¤').rect(0, 1, 18, 16, '¤');
-  vol(l, rampa, { borde: 2, fuerzaBorde: 0.45, base: 0.62 });
+  vol(l, ORO, { borde: 2, fuerzaBorde: 0.45, base: 0.62 });
   l.rect(2, 2, 14, 14, '0').rect(3, 3, 12, 12, '9');
-  const G: Record<string, string[]> = {
-    S: ['.XXXX', 'X....', 'X....', '.XXX.', '....X', '....X', 'XXXX.'],
-    A: ['.XXX.', 'X...X', 'X...X', 'XXXXX', 'X...X', 'X...X', 'X...X'],
-    B: ['XXXX.', 'X...X', 'X...X', 'XXXX.', 'X...X', 'X...X', 'XXXX.'],
-    estrella: ['..X..', '..X..', 'XXXXX', '.XXX.', '.XXX.', 'XX.XX', 'X...X'],
-  };
-  G[letra].forEach((fila, y) => [...fila].forEach((c, x) => c === 'X' && l.rect(4 + x * 2, 2 + y * 2, 2, 2, clara)));
+  const G = ['..X..', '..X..', 'XXXXX', '.XXX.', '.XXX.', 'XX.XX', 'X...X'];
+  G.forEach((fila, y) => [...fila].forEach((c, x) => c === 'X' && l.rect(4 + x * 2, 2 + y * 2, 2, 2, 'Y')));
   const m = l.mapa();
   cache.set(clave, m);
   return m;

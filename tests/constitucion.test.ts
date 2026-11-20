@@ -187,6 +187,11 @@ describe('lo que CÁBALA ya no tiene', () => {
     }
     expect(malos).toEqual([]);
   });
+  it('las piezas no enseñan tier: ni letra S / A / B ni «S+» en la interfaz (decisión del 2026-11-20)', () => {
+    const malos: string[] = [];
+    for (const f of archivos(join(raiz, 'src', 'client'))) if (/notaDe|selloHtml|pxSello|sello-vivo/.test(readFileSync(f, 'utf8'))) malos.push(f.replace(raiz, ''));
+    expect(malos).toEqual([]);
+  });
   it('no hay servidor de salas, ni envoltura de escritorio, ni estilos heredados', () => {
     const src = readdirSync(join(raiz, 'src'));
     expect(src.sort()).toEqual(['client', 'rules', 'shared']);

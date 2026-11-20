@@ -11,7 +11,7 @@ Tu mano contra la Corte: cada golpe es `DAÑO × MULTI = TOTAL`.
 - **5 Mazos con su Personaje**: Escoba, Truco, Chinchón, El Mentiroso y Chancho Va.
 - **4 Reyes vivos** que te cortejan con Bendiciones que se acumulan y después te enfrentan.
 - **El Bufón**, único anfitrión: te ofrece Cábalas (Aumentos pasivos) y su humor cambia cómo te trata.
-- **15 Amuletos**, ni uno más, cada uno con su sello S / A / B medido con victorias reales.
+- **15 Amuletos**, ni uno más. Sin tiers a la vista: cada pieza se elige por lo que hace, con la etiqueta ★ SINERGIA cuando potencia lo que llevás.
 - **Arrastrá las cartas sobre el enemigo** para golpear. También con clic, teclado o mando.
 - Español e inglés. Se guarda solo en tu navegador.
 
@@ -37,7 +37,7 @@ npm run dev          # http://localhost:5183
 | `npm test` | Pruebas (la constitución incluida) |
 | `npm run forja` | Láminas PNG de todo el pixel-art en `artifacts/forja/` |
 | `npm run pixel-lint` | Linter de pixel-art sobre el catálogo |
-| `npm run analyze:meta` | Laboratorio de balance: sellos S / A / B y victorias por Mazo (`-- --fast` para iterar) |
+| `npm run analyze:meta` | Laboratorio de balance: nota interna de cada pieza (para el bot) y victorias por Mazo (`-- --fast` para iterar) |
 | `npm run docs` | Regenera `REGLAS.md` |
 | `npm run qa:visual` | Capturas y auditoría del DOM en 4 ventanas (`-- --lang=en` para el inglés) |
 | `npm run qa:smoke` | Una partida entera por la interfaz, con arrastrar y soltar |

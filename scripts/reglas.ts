@@ -11,7 +11,6 @@ import { MAZO, MAZOS } from '../src/rules/mazos';
 import { MEJORAS, costeMejora } from '../src/rules/perfil';
 import { REINADOS } from '../src/rules/reinados';
 import { BENDICION, BENDICIONES, REY_DEF } from '../src/rules/reyes';
-import { selloDe } from '../src/rules/sellos';
 import { MARCA, VERSION } from '../src/shared/brand';
 import { OBJETIVOS } from './objetivos';
 
@@ -61,21 +60,21 @@ tabla(['Rey', 'Apodo', 'Carga', 'Lo que da cada punto', 'Rasgo de jefe'], PALOS.
 p('### Bendiciones');
 p('Tras cada combate de Guardia, tres Reyes ofrecen un don cada uno: te quedás con uno. Repetir un don **sube su nivel** (hasta 3). Los **Pactos Duales** solo aparecen si ya llevás un don de cada uno de sus dos Reyes.');
 tabla(
-  ['Bendición', 'Rey', 'Nivel 1', 'Nivel 2', 'Nivel 3', 'Sello'],
+  ['Bendición', 'Rey', 'Nivel 1', 'Nivel 2', 'Nivel 3'],
   BENDICIONES.map((id) => {
     const d = BENDICION[id];
-    return [`**${d.nombre.es}**`, d.dual ? `${REY_DEF[d.rey].apodo.es} + ${REY_DEF[d.dual].apodo.es}` : REY_DEF[d.rey].apodo.es, d.desc(1).es, d.niveles > 1 ? d.desc(2).es : '—', d.niveles > 2 ? d.desc(3).es : '—', selloDe('bendicion', id)];
+    return [`**${d.nombre.es}**`, d.dual ? `${REY_DEF[d.rey].apodo.es} + ${REY_DEF[d.dual].apodo.es}` : REY_DEF[d.rey].apodo.es, d.desc(1).es, d.niveles > 1 ? d.desc(2).es : '—', d.niveles > 2 ? d.desc(3).es : '—'];
   }),
 );
 
 p('## Amuletos');
 p(`Exactamente **${OBJETIVOS.amuletos}**: tres por palo (uno Común, uno Raro, uno Épico) y tres del Bufón, todos Legendarios. Llevás hasta **${B.jugador.huecos}** (uno más con el Altar). Salen de la Guardia Brava, de los Reyes y de la Pulpería.`);
-tabla(['Amuleto', 'De', 'Rareza', 'Efecto', 'Precio', 'Sello'], AMULETOS.map((id) => [`**${AMULETO[id].nombre.es}**`, AMULETO[id].palo === 'X' ? 'El Bufón' : PALO_NOMBRE[AMULETO[id].palo as 'S'].es, RAREZA_NOMBRE[AMULETO[id].rareza].es, AMULETO[id].desc.es, precioBase(id), selloDe('amuleto', id)]));
-p('**El sello** (S · A · B) de cada pieza sale del laboratorio (`npm run analyze:meta`): en miles de partidas con elecciones al azar se compara ganar habiéndola elegido contra ganar habiéndola visto y dejado pasar. El tercio que más sube la victoria lleva S; el que menos, B. En la mesa el sello se enciende a **S+** o **★ SINERGIA** con una micro-etiqueta cuando la pieza potencia tu Mazo o lo que ya llevás.');
+tabla(['Amuleto', 'De', 'Rareza', 'Efecto', 'Precio'], AMULETOS.map((id) => [`**${AMULETO[id].nombre.es}**`, AMULETO[id].palo === 'X' ? 'El Bufón' : PALO_NOMBRE[AMULETO[id].palo as 'S'].es, RAREZA_NOMBRE[AMULETO[id].rareza].es, AMULETO[id].desc.es, precioBase(id)]));
+p('Las piezas no llevan nota ni nivel: se eligen por lo que hacen. Cuando una potencia tu Mazo o algo que ya llevás, la mesa le pone la etiqueta **★ SINERGIA** con una línea que dice por qué.');
 
 p('## Aumentos del Bufón');
 p(`Son **${AUMENTOS.length}**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la pantalla **«ELEGÍ UNA CÁBALA»**: una de Plata al empezar, una de Oro tras el primer Rey y una Prismática tras el segundo (ahí también viven las Maldiciones: mucho poder con su precio).`);
-tabla(['Aumento', 'Nivel', 'Efecto', 'Sello'], AUMENTOS.map((id) => [`**${AUMENTO[id].nombre.es}**`, AUMENTO[id].maldicion ? 'Prismático · Maldición' : NIVEL_NOMBRE[AUMENTO[id].nivel].es, AUMENTO[id].desc.es, selloDe('aumento', id)]));
+tabla(['Aumento', 'Nivel', 'Efecto'], AUMENTOS.map((id) => [`**${AUMENTO[id].nombre.es}**`, AUMENTO[id].maldicion ? 'Prismático · Maldición' : NIVEL_NOMBRE[AUMENTO[id].nivel].es, AUMENTO[id].desc.es]));
 
 p('## Los 5 Mazos');
 tabla(

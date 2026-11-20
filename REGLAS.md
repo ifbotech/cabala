@@ -89,75 +89,75 @@ Cada Rey te corteja con Bendiciones y, si es el jefe de un tramo, te enfrenta co
 
 Tras cada combate de Guardia, tres Reyes ofrecen un don cada uno: te quedás con uno. Repetir un don **sube su nivel** (hasta 3). Los **Pactos Duales** solo aparecen si ya llevás un don de cada uno de sus dos Reyes.
 
-| Bendición | Rey | Nivel 1 | Nivel 2 | Nivel 3 | Sello |
-|---|---|---|---|---|---|
-| **Degüello** | El Caudillo | El enemigo que queda con 12 % de Vida o menos, cae. | El enemigo que queda con 16 % de Vida o menos, cae. | El enemigo que queda con 20 % de Vida o menos, cae. | S |
-| **Punta y hacha** | El Caudillo | Uno de cada 4 golpes es Crítico: ×2 de Multi. | Uno de cada 3 golpes es Crítico: ×2 de Multi. | Uno de cada 2 golpes es Crítico: ×2 de Multi. | S |
-| **Primera sangre** | El Caudillo | +8 de Daño en tu primer golpe contra cada enemigo. | +12 de Daño en tu primer golpe contra cada enemigo. | +16 de Daño en tu primer golpe contra cada enemigo. | S |
-| **Empalizada** | El Cacique | Cada carta de Bastos da +1 de Escudo más. | Cada carta de Bastos da +2 de Escudo más. | Cada carta de Bastos da +3 de Escudo más. | A |
-| **Contragolpe** | El Cacique | Si tu Escudo frena entero un Contraataque, el enemigo recibe 10 más tu Coraza. | Si tu Escudo frena entero un Contraataque, el enemigo recibe 16 más tu Coraza. | Si tu Escudo frena entero un Contraataque, el enemigo recibe 22 más tu Coraza. | B |
-| **Palo y palo** | El Cacique | +1 de Daño por cada 2 de Escudo que tengas. | +2 de Daño por cada 2 de Escudo que tengas. | +3 de Daño por cada 2 de Escudo que tengas. | A |
-| **Interés compuesto** | El Caudal | Al ganar un combate: +1 de oro por cada 10 que tengas (tope 5). | Al ganar un combate: +1 de oro por cada 8 que tengas (tope 7). | Al ganar un combate: +1 de oro por cada 6 que tengas (tope 9). | B |
-| **Peso fuerte** | El Caudal | +1 de Multi por cada 40 de oro en tu bolsa (tope +2). | +1 de Multi por cada 30 de oro en tu bolsa (tope +2). | +1 de Multi por cada 25 de oro en tu bolsa (tope +2). | S |
-| **Taba cargada** | El Caudal | Cada turno tirás un dado: tu golpe suma 2 × el dado de Daño. | Cada turno tirás un dado: tu golpe suma 3 × el dado de Daño. | Cada turno tirás un dado: tu golpe suma 4 × el dado de Daño. | S |
-| **Copa rebosante** | El Bacanal | Cada 4 de curación que no te cabe en un golpe: +1 de Multi a ese golpe. | Cada 3 de curación que no te cabe en un golpe: +1 de Multi a ese golpe. | Cada 2 de curación que no te cabe en un golpe: +1 de Multi a ese golpe. | B |
-| **Sangre por sangre** | El Bacanal | Con tu Vida al 50 % o menos: +1 de Multi. | Con tu Vida al 50 % o menos: +2 de Multi. | Con tu Vida al 50 % o menos: +3 de Multi. | A |
-| **Otra ronda** | El Bacanal | Cada carta de Copas cura +1 más. | Cada carta de Copas cura +2 más. | Cada carta de Copas cura +3 más. | A |
-| **Hoja y broquel** | El Caudillo + El Cacique | Cada Golpe exacto: +5 de Escudo y +1 de Filo. | — | — | B |
-| **Filo dorado** | El Caudillo + El Caudal | +1 de Daño por cada 5 de oro que tengas (tope +12). | — | — | S |
-| **Sangría** | El Caudillo + El Bacanal | Cada enemigo abatido te cura 3. | — | — | A |
-| **Peaje** | El Cacique + El Caudal | Cada Contraataque que tu Escudo frena entero: +2 de oro. | — | — | B |
-| **Rescoldo** | El Cacique + El Bacanal | Al ganar un combate, cada 2 de Escudo que te queda te cura 1. | — | — | B |
-| **Convite** | El Caudal + El Bacanal | Al ganar un combate: +1 de Vida máxima por cada 15 de oro (tope +3). | — | — | A |
+| Bendición | Rey | Nivel 1 | Nivel 2 | Nivel 3 |
+|---|---|---|---|---|
+| **Degüello** | El Caudillo | El enemigo que queda con 12 % de Vida o menos, cae. | El enemigo que queda con 16 % de Vida o menos, cae. | El enemigo que queda con 20 % de Vida o menos, cae. |
+| **Punta y hacha** | El Caudillo | Uno de cada 4 golpes es Crítico: ×2 de Multi. | Uno de cada 3 golpes es Crítico: ×2 de Multi. | Uno de cada 2 golpes es Crítico: ×2 de Multi. |
+| **Primera sangre** | El Caudillo | +8 de Daño en tu primer golpe contra cada enemigo. | +12 de Daño en tu primer golpe contra cada enemigo. | +16 de Daño en tu primer golpe contra cada enemigo. |
+| **Empalizada** | El Cacique | Cada carta de Bastos da +1 de Escudo más. | Cada carta de Bastos da +2 de Escudo más. | Cada carta de Bastos da +3 de Escudo más. |
+| **Contragolpe** | El Cacique | Si tu Escudo frena entero un Contraataque, el enemigo recibe 10 más tu Coraza. | Si tu Escudo frena entero un Contraataque, el enemigo recibe 16 más tu Coraza. | Si tu Escudo frena entero un Contraataque, el enemigo recibe 22 más tu Coraza. |
+| **Palo y palo** | El Cacique | +1 de Daño por cada 2 de Escudo que tengas. | +2 de Daño por cada 2 de Escudo que tengas. | +3 de Daño por cada 2 de Escudo que tengas. |
+| **Interés compuesto** | El Caudal | Al ganar un combate: +1 de oro por cada 10 que tengas (tope 5). | Al ganar un combate: +1 de oro por cada 8 que tengas (tope 7). | Al ganar un combate: +1 de oro por cada 6 que tengas (tope 9). |
+| **Peso fuerte** | El Caudal | +1 de Multi por cada 40 de oro en tu bolsa (tope +2). | +1 de Multi por cada 30 de oro en tu bolsa (tope +2). | +1 de Multi por cada 25 de oro en tu bolsa (tope +2). |
+| **Taba cargada** | El Caudal | Cada turno tirás un dado: tu golpe suma 2 × el dado de Daño. | Cada turno tirás un dado: tu golpe suma 3 × el dado de Daño. | Cada turno tirás un dado: tu golpe suma 4 × el dado de Daño. |
+| **Copa rebosante** | El Bacanal | Cada 4 de curación que no te cabe en un golpe: +1 de Multi a ese golpe. | Cada 3 de curación que no te cabe en un golpe: +1 de Multi a ese golpe. | Cada 2 de curación que no te cabe en un golpe: +1 de Multi a ese golpe. |
+| **Sangre por sangre** | El Bacanal | Con tu Vida al 50 % o menos: +1 de Multi. | Con tu Vida al 50 % o menos: +2 de Multi. | Con tu Vida al 50 % o menos: +3 de Multi. |
+| **Otra ronda** | El Bacanal | Cada carta de Copas cura +1 más. | Cada carta de Copas cura +2 más. | Cada carta de Copas cura +3 más. |
+| **Hoja y broquel** | El Caudillo + El Cacique | Cada Golpe exacto: +5 de Escudo y +1 de Filo. | — | — |
+| **Filo dorado** | El Caudillo + El Caudal | +1 de Daño por cada 5 de oro que tengas (tope +12). | — | — |
+| **Sangría** | El Caudillo + El Bacanal | Cada enemigo abatido te cura 3. | — | — |
+| **Peaje** | El Cacique + El Caudal | Cada Contraataque que tu Escudo frena entero: +2 de oro. | — | — |
+| **Rescoldo** | El Cacique + El Bacanal | Al ganar un combate, cada 2 de Escudo que te queda te cura 1. | — | — |
+| **Convite** | El Caudal + El Bacanal | Al ganar un combate: +1 de Vida máxima por cada 15 de oro (tope +3). | — | — |
 
 ## Amuletos
 
 Exactamente **15**: tres por palo (uno Común, uno Raro, uno Épico) y tres del Bufón, todos Legendarios. Llevás hasta **4** (uno más con el Altar). Salen de la Guardia Brava, de los Reyes y de la Pulpería.
 
-| Amuleto | De | Rareza | Efecto | Precio | Sello |
-|---|---|---|---|---|---|
-| **Cuchillo criollo** | Espadas | Común | +3 de Daño por cada carta de Espadas del golpe. | 10 | A |
-| **Facón de plata** | Espadas | Raro | Abatir a un enemigo con Espadas en el golpe: +1 de Multi en tu próximo golpe. | 16 | B |
-| **Lanza del Caudillo** | Espadas | Épico | Todos tus golpes Perforan, y lo que sobra pasa ×2 al siguiente. | 24 | S |
-| **Rebenque** | Bastos | Común | +3 de Daño por cada carta de Bastos del golpe. | 10 | A |
-| **Boleadoras** | Bastos | Raro | Golpe con 2 o más Bastos: el enemigo queda Aturdido (una vez por enemigo). | 16 | S |
-| **Poncho del Cacique** | Bastos | Épico | Con 6 o más de Escudo: +2 de Multi. | 24 | B |
-| **Moneda falsa** | Oros | Común | +3 de Daño por cada carta de Oros del golpe. | 10 | A |
-| **Taba** | Oros | Raro | Cada turno se tira la taba: con 4 o más, +1 de Multi. | 16 | B |
-| **Cofre del Caudal** | Oros | Épico | +1 de Multi por cada 30 de oro que tengas (tope +2). | 24 | S |
-| **Mate curado** | Copas | Común | +3 de Daño por cada carta de Copas del golpe. | 10 | A |
-| **Bota de vino** | Copas | Raro | Al empezar cada combate curás 8 de Vida. | 16 | B |
-| **Cáliz del Bacanal** | Copas | Épico | Con 80 % de Vida o más: +2 de Multi. | 24 | A |
-| **Cascabel del Bufón** | El Bufón | Legendario | Los cantos de tu Mazo valen doble. | 40 | S |
-| **Naipe de dos caras** | El Bufón | Legendario | Nada es Inmune a tus cartas. | 40 | B |
-| **Cetro del Bufón** | El Bufón | Legendario | Tu primer golpe de cada combate pega ×3. | 40 | S |
+| Amuleto | De | Rareza | Efecto | Precio |
+|---|---|---|---|---|
+| **Cuchillo criollo** | Espadas | Común | +3 de Daño por cada carta de Espadas del golpe. | 10 |
+| **Facón de plata** | Espadas | Raro | Abatir a un enemigo con Espadas en el golpe: +1 de Multi en tu próximo golpe. | 16 |
+| **Lanza del Caudillo** | Espadas | Épico | Todos tus golpes Perforan, y lo que sobra pasa ×2 al siguiente. | 24 |
+| **Rebenque** | Bastos | Común | +3 de Daño por cada carta de Bastos del golpe. | 10 |
+| **Boleadoras** | Bastos | Raro | Golpe con 2 o más Bastos: el enemigo queda Aturdido (una vez por enemigo). | 16 |
+| **Poncho del Cacique** | Bastos | Épico | Con 6 o más de Escudo: +2 de Multi. | 24 |
+| **Moneda falsa** | Oros | Común | +3 de Daño por cada carta de Oros del golpe. | 10 |
+| **Taba** | Oros | Raro | Cada turno se tira la taba: con 4 o más, +1 de Multi. | 16 |
+| **Cofre del Caudal** | Oros | Épico | +1 de Multi por cada 30 de oro que tengas (tope +2). | 24 |
+| **Mate curado** | Copas | Común | +3 de Daño por cada carta de Copas del golpe. | 10 |
+| **Bota de vino** | Copas | Raro | Al empezar cada combate curás 8 de Vida. | 16 |
+| **Cáliz del Bacanal** | Copas | Épico | Con 80 % de Vida o más: +2 de Multi. | 24 |
+| **Cascabel del Bufón** | El Bufón | Legendario | Los cantos de tu Mazo valen doble. | 40 |
+| **Naipe de dos caras** | El Bufón | Legendario | Nada es Inmune a tus cartas. | 40 |
+| **Cetro del Bufón** | El Bufón | Legendario | Tu primer golpe de cada combate pega ×3. | 40 |
 
-**El sello** (S · A · B) de cada pieza sale del laboratorio (`npm run analyze:meta`): en miles de partidas con elecciones al azar se compara ganar habiéndola elegido contra ganar habiéndola visto y dejado pasar. El tercio que más sube la victoria lleva S; el que menos, B. En la mesa el sello se enciende a **S+** o **★ SINERGIA** con una micro-etiqueta cuando la pieza potencia tu Mazo o lo que ya llevás.
+Las piezas no llevan nota ni nivel: se eligen por lo que hacen. Cuando una potencia tu Mazo o algo que ya llevás, la mesa le pone la etiqueta **★ SINERGIA** con una línea que dice por qué.
 
 ## Aumentos del Bufón
 
 Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la pantalla **«ELEGÍ UNA CÁBALA»**: una de Plata al empezar, una de Oro tras el primer Rey y una Prismática tras el segundo (ahí también viven las Maldiciones: mucho poder con su precio).
 
-| Aumento | Nivel | Efecto | Sello |
-|---|---|---|---|
-| **Seña Falsa** | Plata | Tu primer descarte de cada combate convierte tu carta más baja en un 7, para siempre. | S |
-| **Dar de Abajo** | Plata | Robás +2 cartas en el turno 1 de cada combate. | A |
-| **Corte de Mazo** | Plata | +1 descarte por combate. | B |
-| **Vuelto de Más** | Plata | +4 de oro al ganar cada combate. | B |
-| **Ser Mano** | Plata | Tu primer golpe de cada combate: +1 de Multi. | A |
-| **Mesa Servida** | Plata | Empezás cada combate con 6 de Escudo. | A |
-| **Carta Marcada** | Oro | Sumás un 1 de Espadas marcado: no ocupa lugar y vuelve a tu mano al jugarlo. | B |
-| **Mano Caliente** | Oro | Cada canto de tu Mazo: +1 de Multi por el resto del combate (tope +4). | S |
-| **Chamuyo** | Oro | La Pulpería te cobra 25 % menos y el humor del Bufón nunca baja de neutral. | B |
-| **Retruco** | Oro | Si el enemigo sobrevivió a tu golpe anterior: +1 de Multi. | A |
-| **Cara de Póker** | Oro | El primer Contraataque de cada combate no llega. | S |
-| **Irse al Mazo** | Oro | Una vez por partida, el golpe que te mataría no llega y curás 30 % de tu Vida. | A |
-| **Falta Envido** | Prismático | Al golpear con 40 % de Vida o menos: ×2 de Multi. | S |
-| **Vale Cuatro** | Prismático | Tus golpes de 4 cartas o más: +3 de Multi. | S |
-| **Baraja Cargada** | Prismático | Los 2 y los 3 de tu Mazo se vuelven 9. | A |
-| **Pacto Garca** | Prismático · Maldición | +40 de oro ya, pero el próximo Rey arranca con +2 de Furia. | B |
-| **Contraflor al Resto** | Prismático · Maldición | ×2 de Multi en todos tus golpes, pero perdés el 60 % de tu Vida máxima. | S |
-| **Vender el Alma** | Prismático · Maldición | +1 carta en la mano, pero el Bufón se queda con 6 de tu Vida máxima. | B |
+| Aumento | Nivel | Efecto |
+|---|---|---|
+| **Seña Falsa** | Plata | Tu primer descarte de cada combate convierte tu carta más baja en un 7, para siempre. |
+| **Dar de Abajo** | Plata | Robás +2 cartas en el turno 1 de cada combate. |
+| **Corte de Mazo** | Plata | +1 descarte por combate. |
+| **Vuelto de Más** | Plata | +4 de oro al ganar cada combate. |
+| **Ser Mano** | Plata | Tu primer golpe de cada combate: +1 de Multi. |
+| **Mesa Servida** | Plata | Empezás cada combate con 6 de Escudo. |
+| **Carta Marcada** | Oro | Sumás un 1 de Espadas marcado: no ocupa lugar y vuelve a tu mano al jugarlo. |
+| **Mano Caliente** | Oro | Cada canto de tu Mazo: +1 de Multi por el resto del combate (tope +4). |
+| **Chamuyo** | Oro | La Pulpería te cobra 25 % menos y el humor del Bufón nunca baja de neutral. |
+| **Retruco** | Oro | Si el enemigo sobrevivió a tu golpe anterior: +1 de Multi. |
+| **Cara de Póker** | Oro | El primer Contraataque de cada combate no llega. |
+| **Irse al Mazo** | Oro | Una vez por partida, el golpe que te mataría no llega y curás 30 % de tu Vida. |
+| **Falta Envido** | Prismático | Al golpear con 40 % de Vida o menos: ×2 de Multi. |
+| **Vale Cuatro** | Prismático | Tus golpes de 4 cartas o más: +3 de Multi. |
+| **Baraja Cargada** | Prismático | Los 2 y los 3 de tu Mazo se vuelven 9. |
+| **Pacto Garca** | Prismático · Maldición | +40 de oro ya, pero el próximo Rey arranca con +2 de Furia. |
+| **Contraflor al Resto** | Prismático · Maldición | ×2 de Multi en todos tus golpes, pero perdés el 60 % de tu Vida máxima. |
+| **Vender el Alma** | Prismático · Maldición | +1 carta en la mano, pero el Bufón se queda con 6 de tu Vida máxima. |
 
 ## Los 5 Mazos
 

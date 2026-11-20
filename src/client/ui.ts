@@ -1,5 +1,5 @@
 // Ayudas de la interfaz: montar una pantalla, repartir los clics por `data-accion`, la inspección al pasar el cursor
-// o el foco (`data-tip`), los modales, el Bufón, los Reyes y los sellos del oráculo.
+// o el foco (`data-tip`), los modales, el Bufón, los Reyes y la etiqueta de sinergia.
 import { AMULETO, RAREZA_NOMBRE } from '../rules/amuletos';
 import type { AmuletoId } from '../rules/amuletos';
 import { AUMENTO, NIVEL_NOMBRE } from '../rules/aumentos';
@@ -8,11 +8,11 @@ import type { Palo } from '../rules/cartas';
 import type { Partida, TipoOferta } from '../rules/estado';
 import { BENDICION, REY_DEF } from '../rules/reyes';
 import type { BendicionId } from '../rules/reyes';
-import { selloDe, selloVivo } from '../rules/sellos';
+import { sinergia } from '../rules/notas';
 import { ajustes, t, tx } from './almacen';
 import { bufonCapas, type Expresion } from './pixel/bufon';
 import { REY_PX, reyFondo, reyMapa, type Animo } from './pixel/reyes';
-import { px, pxSello } from './sprites';
+import { px, pxEstrella } from './sprites';
 
 export type Accion = (el: HTMLElement, ev: Event) => void;
 
@@ -162,7 +162,7 @@ export function reyHtml(palo: Palo, animo: Animo = 'calma', cls = ''): string {
   return `<div class="rey ${cls}" data-rey="${palo}" style="--aura:${AURA[palo]}" aria-hidden="true">${px(`rey:fondo:${id}:${animo === 'vencido' ? 'v' : 'c'}`, () => reyFondo(id, animo === 'vencido' ? 'vencido' : 'calma'), 'r-fondo')}<i class="r-aura"></i>${px(`rey:${id}:${animo}`, () => reyMapa(id, animo), 'r-busto')}</div>`;
 }
 
-// ───────────── piezas: nombre, efecto y sello ─────────────
+// ───────────── piezas: nombre, efecto y sinergia ─────────────
 
 export interface FichaPieza {
   nombre: string;
@@ -189,13 +189,10 @@ export function fichaDe(tipo: TipoOferta, id: string, p?: Partida): FichaPieza {
   return { nombre: tx(d.nombre), desc: tx(d.desc(nivel)), clase: d.dual ? `${t('pactoDual')} · ${rey}` : `${rey} · ${t('nivel', { n: nivel })}`, marco: `palo${d.rey}` };
 }
 
-/** El sello S / A / B de una pieza, encendido a «S+» y con su micro-etiqueta si hay sinergia con lo que llevás. */
-export function selloHtml(tipo: TipoOferta, id: string, p?: Partida): string {
-  const vivo = p ? selloVivo(p, tipo, id) : { letra: selloDe(tipo, id), sinergia: null };
-  const letra = vivo.letra === 'S+' ? 'S' : vivo.letra;
-  const mas = vivo.letra === 'S+' ? `<b class="mas">+</b>` : '';
-  const sin = vivo.sinergia ? `<span class="sinergia-caja"><span class="chip sinergia">${pxSello('estrella')} ${t('sinergia')}</span><span class="micro">${esc(tx(vivo.sinergia))}</span></span>` : '';
-  return `<span class="sello-vivo" aria-label="${vivo.letra}">${pxSello(letra)}${mas}</span>${sin}`;
+/** La etiqueta «★ SINERGIA» de una pieza, con su micro-línea, si potencia tu Mazo o lo que ya llevás (si no, nada). */
+export function sinergiaHtml(tipo: TipoOferta, id: string, p?: Partida): string {
+  const s = p ? sinergia(p, tipo, id) : null;
+  return s ? `<span class="sinergia-caja"><span class="chip sinergia">${pxEstrella()} ${t('sinergia')}</span><span class="micro">${esc(tx(s))}</span></span>` : '';
 }
 
 /** Espera `ms` milisegundos (0 con «Reducir movimiento» si `saltable`). */

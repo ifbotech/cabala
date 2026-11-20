@@ -1,6 +1,6 @@
 {
   "fecha": "2026-11-20",
-  "huella": "e5b29b889173d71d",
+  "huella": "a43023cfe583f590",
   "rapido": false,
   "partidasPorCelda": 6000,
   "objetivos": {
@@ -155,6 +155,6 @@
       "minutos": 16.4
     }
   ],
-  "sellos": [],
+  "notas": [],
   "avisos": []
 }

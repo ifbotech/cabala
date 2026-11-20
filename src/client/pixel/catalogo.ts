@@ -4,7 +4,7 @@ import { MAZOS } from '../../rules/mazos';
 import { EXPRESIONES, bufonMapa } from './bufon';
 import { MAZOS as DORSOS } from './dorsos';
 import { GLIFOS, TONO_CIFRA, cifraMapa, type TonoCifra } from './cifras';
-import { AMULETOS_PX, AUMENTOS_PX, BENDICIONES_PX, HUD_PX, NODOS_PX, amuletoMapa, aumentoMapa, bendicionMapa, hudMapa, inmuneMapa, nodoMapa, selloMapa } from './iconos';
+import { AMULETOS_PX, AUMENTOS_PX, BENDICIONES_PX, HUD_PX, NODOS_PX, amuletoMapa, aumentoMapa, bendicionMapa, hudMapa, inmuneMapa, nodoMapa, estrellaMapa } from './iconos';
 import { logoMapa } from './logo';
 import { BARRAS, barraMapa, marcoMapa, panoMapa, type Estilo } from './marcos';
 import { comodinMapa, dorsoNaipe, naipeMapa } from './naipes';
@@ -34,7 +34,7 @@ export function catalogo(): Pieza[] {
   for (const id of NODOS_PX) out.push({ grupo: 'interfaz', id: `nodo-${id}`, m: nodoMapa(id), k: 4 });
   for (const id of HUD_PX) out.push({ grupo: 'interfaz', id: `hud-${id}`, m: hudMapa(id), k: 4 });
   for (const s of PALOS) out.push({ grupo: 'interfaz', id: `inmune-${s}`, m: inmuneMapa(s), k: 4 });
-  for (const l of ['S', 'A', 'B', 'estrella'] as const) out.push({ grupo: 'interfaz', id: `sello-${l}`, m: selloMapa(l), k: 4 });
+  out.push({ grupo: 'interfaz', id: 'estrella', m: estrellaMapa(), k: 4 });
   for (const e of ['madera', 'hierro', 'oro', 'dorado', 'hueso', 'hundido', 'plata', 'prisma', 'tinta', 'paloS', 'paloC', 'paloD', 'paloH'] as Estilo[]) {
     out.push({ grupo: 'marcos', id: e, m: marcoMapa(e), k: 6 });
     if (e === 'madera' || e === 'hierro' || e === 'oro') out.push({ grupo: 'marcos', id: `${e}-viva`, m: marcoMapa(e, true), k: 6 });

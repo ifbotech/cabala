@@ -1,12 +1,12 @@
 // El laboratorio de balance. Juega miles de partidas con el bot, en procesos paralelos, y deja:
-//   · src/rules/sellos.json  — el sello S / A / B de cada Amuleto, Bendición y Aumento, sacado de victorias reales:
+//   · src/rules/notas.json  — la nota S / A / B (interna, para el bot) de cada Amuleto, Bendición y Aumento, sacada de victorias reales:
 //     en partidas donde cada «ELEGÍ UNA» se resuelve al azar, se compara ganar habiendo elegido la pieza contra ganar
 //     habiéndola visto ofrecida y no elegida (así no hay sesgo de quién llega lejos);
 //   · scripts/meta-report.json — victorias por Mazo con el Altar vacío y lleno, ritmo y avisos contra los objetivos.
 //
 //   npm run analyze:meta              informe completo (certificación)
 //   npm run analyze:meta -- --fast    muestras cortas (para iterar)
-//   npm run analyze:meta -- --solo-sellos | --sin-sellos
+//   npm run analyze:meta -- --solo-notas | --sin-notas
 import { spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { cpus } from 'node:os';
@@ -20,7 +20,7 @@ guardian('analyze:meta', 590);
 const args = process.argv.slice(2);
 const FAST = args.includes('--fast');
 const N = FAST ? 500 : 6000;
-const N_SELLOS = FAST ? 800 : 8000;
+const N_NOTAS = FAST ? 800 : 8000;
 
 /** Corre una celda en su propio proceso. */
 function celda(c: Celda): Promise<Resultado> {
@@ -51,12 +51,12 @@ async function tanda(celdas: Celda[]): Promise<Resultado[]> {
 const pct = (a: number, b: number) => (b ? Math.round((1000 * a) / b) / 10 : 0);
 const t0 = Date.now();
 
-// ───────────── 1 · sellos ─────────────
-let sellos: Record<string, 'S' | 'A' | 'B'> = {};
-let tablaSellos: { clave: string; ofrecida: number; elegida: number; con: number; sin: number; delta: number; sello: string }[] = [];
-if (!args.includes('--sin-sellos')) {
+// ───────────── 1 · notas de las piezas ─────────────
+let notas: Record<string, 'S' | 'A' | 'B'> = {};
+let tablaNotas: { clave: string; ofrecida: number; elegida: number; con: number; sin: number; delta: number; nota: string }[] = [];
+if (!args.includes('--sin-notas')) {
   const partes = 4;
-  const rs = await tanda(MAZOS.flatMap((mazo) => Array.from({ length: partes }, (_, i) => ({ mazo, altar: 'vacio' as const, reinado: 1, n: Math.ceil(N_SELLOS / partes), ofertasAlAzar: true, semilla: `SELLO${i}-` }))));
+  const rs = await tanda(MAZOS.flatMap((mazo) => Array.from({ length: partes }, (_, i) => ({ mazo, altar: 'vacio' as const, reinado: 1, n: Math.ceil(N_NOTAS / partes), ofertasAlAzar: true, semilla: `SELLO${i}-` }))));
   const suma: Record<string, Pieza> = {};
   for (const r of rs)
     for (const [k, p] of Object.entries(r.piezas)) {
@@ -66,23 +66,23 @@ if (!args.includes('--sin-sellos')) {
       z.ganaCon += p.ganaCon;
       z.ganaSin += p.ganaSin;
     }
-  tablaSellos = Object.entries(suma).map(([clave, p]) => {
+  tablaNotas = Object.entries(suma).map(([clave, p]) => {
     const con = pct(p.ganaCon, p.elegida);
     const sin = pct(p.ganaSin, p.ofrecida - p.elegida);
-    return { clave, ofrecida: p.ofrecida, elegida: p.elegida, con, sin, delta: Math.round((con - sin) * 10) / 10, sello: 'A' };
+    return { clave, ofrecida: p.ofrecida, elegida: p.elegida, con, sin, delta: Math.round((con - sin) * 10) / 10, nota: 'A' };
   });
   // por familia (Amuletos, Bendiciones, Aumentos): el tercio que más sube la victoria es S; el que menos, B
   for (const pre of ['a', 'b', 'u']) {
-    const fam = tablaSellos.filter((x) => x.clave.startsWith(`${pre}:`)).sort((x, y) => y.delta - x.delta);
+    const fam = tablaNotas.filter((x) => x.clave.startsWith(`${pre}:`)).sort((x, y) => y.delta - x.delta);
     const tercio = Math.round(fam.length / 3);
-    fam.forEach((x, i) => (x.sello = i < tercio ? 'S' : i >= fam.length - tercio ? 'B' : 'A'));
+    fam.forEach((x, i) => (x.nota = i < tercio ? 'S' : i >= fam.length - tercio ? 'B' : 'A'));
   }
-  sellos = Object.fromEntries(tablaSellos.sort((a, b) => a.clave.localeCompare(b.clave)).map((x) => [x.clave, x.sello as 'S' | 'A' | 'B']));
-  writeFileSync('src/rules/sellos.json', JSON.stringify(sellos, null, 2) + '\n');
-  console.log(`sellos · ${tablaSellos.length} piezas medidas en ${rs.reduce((s, r) => s + r.celda.n, 0)} partidas al azar → src/rules/sellos.json (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
-  for (const pre of ['a', 'b', 'u']) console.log(`  ${pre}: ${tablaSellos.filter((x) => x.clave.startsWith(`${pre}:`)).sort((x, y) => y.delta - x.delta).map((x) => `${x.clave.slice(2)} ${x.sello}${x.delta >= 0 ? '+' : ''}${x.delta}`).join(' · ')}`);
+  notas = Object.fromEntries(tablaNotas.sort((a, b) => a.clave.localeCompare(b.clave)).map((x) => [x.clave, x.nota as 'S' | 'A' | 'B']));
+  writeFileSync('src/rules/notas.json', JSON.stringify(notas, null, 2) + '\n');
+  console.log(`notas · ${tablaNotas.length} piezas medidas en ${rs.reduce((s, r) => s + r.celda.n, 0)} partidas al azar → src/rules/notas.json (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
+  for (const pre of ['a', 'b', 'u']) console.log(`  ${pre}: ${tablaNotas.filter((x) => x.clave.startsWith(`${pre}:`)).sort((x, y) => y.delta - x.delta).map((x) => `${x.clave.slice(2)} ${x.nota}${x.delta >= 0 ? '+' : ''}${x.delta}`).join(' · ')}`);
 }
-if (args.includes('--solo-sellos')) process.exit(0);
+if (args.includes('--solo-notas')) process.exit(0);
 
 // ───────────── 2 · victorias por Mazo ─────────────
 const celdas: Celda[] = [];
@@ -130,7 +130,7 @@ const filas = MAZOS.map((mazo) => {
   };
 });
 
-const informe = { fecha: new Date().toISOString().slice(0, 10), huella: huella(), rapido: FAST, partidasPorCelda: N, objetivos: OBJETIVOS, mazos: filas, sellos: tablaSellos, avisos };
+const informe = { fecha: new Date().toISOString().slice(0, 10), huella: huella(), rapido: FAST, partidasPorCelda: N, objetivos: OBJETIVOS, mazos: filas, notas: tablaNotas, avisos };
 writeFileSync(FAST ? 'scripts/meta-fast.json' : 'scripts/meta-report.json', JSON.stringify(informe, null, 2) + '\n');
 
 console.log(`\nMazo        vacío   lleno   R8     Guardia  Rey   min   golpe medio por tramo`);

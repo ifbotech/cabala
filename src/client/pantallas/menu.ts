@@ -11,14 +11,13 @@ import { MEJORAS, avanceMazo, costeMejora, mazoAbierto, mejorar, reinadoMax } fr
 import type { MejoraId } from '../../rules/perfil';
 import { REINADOS } from '../../rules/reinados';
 import { BENDICION, BENDICIONES, REY_DEF } from '../../rules/reyes';
-import { selloDe } from '../../rules/sellos';
 import { MARCA, VERSION } from '../../shared/brand';
 import { ajustes, alAzar, borrarTodo, fijarIdioma, guardarAjustes, guardarPartida, guardarPerfil, idioma, perfil, t, tx } from '../almacen';
 import { sonar } from '../audio';
 import { enFoto } from '../fx/motor';
 import { continuar, empezar, hayPartida, irAjustes, irAltar, irColeccion, irCronica, irMazo, irPortada, sesion } from '../juego';
 import { CUADRO0 } from '../pixel/personajes';
-import { cifra, pxAmuleto, pxAumento, pxBendicion, pxDorso, pxHud, pxLogo, pxSello, urlRetrato } from '../sprites';
+import { cifra, pxAmuleto, pxAumento, pxBendicion, pxDorso, pxHud, pxLogo, urlRetrato } from '../sprites';
 import { TRAMO_NOMBRE } from '../textos';
 import { VOZ } from '../voces';
 import { abrirModal, anfitrion, cerrarModal, esc, repintar, reyHtml, tip, type Pantalla } from '../ui';
@@ -216,7 +215,7 @@ export function pantallaColeccion(): Pantalla {
   const visto = (clave: string) => perfil.vistos.includes(clave);
   const item = (clave: string, icono: string, nombre: string, desc: string, pie: string): string =>
     visto(clave)
-      ? `<button class="col-item" ${tip(nombre, desc, pie)}>${icono}<span class="col-nombre">${esc(nombre)}</span>${pxSello(selloDe(clave[0] === 'a' ? 'amuleto' : clave[0] === 'u' ? 'aumento' : 'bendicion', clave.slice(2)))}</button>`
+      ? `<button class="col-item" ${tip(nombre, desc, pie)}>${icono}<span class="col-nombre">${esc(nombre)}</span></button>`
       : `<button class="col-item sin-ver" ${tip(t('sinVer'), t('sinVerDesc'))}><span class="col-icono-oculto">${icono}</span><span class="col-nombre">${t('sinVer')}</span></button>`;
   const cuerpo = (): string => {
     if (pestana === 'mazos')

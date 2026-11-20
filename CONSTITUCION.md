@@ -47,8 +47,8 @@ baraja española para un jugador, en pixel-art oscuro, que se juega en el navega
 - Lleva un estado vivo de **humor (Afinidad)**: a veces es un garca que ayuda a los Reyes (apuestas trampa, le sopla tu
   juego al próximo Rey si rechazás su truco) y otras te tira la buena. *Todo es cuestión de Cábala.*
 - **16 a 18 Aumentos del Bufón**, **100 % pasivos** (jamás entran como cartas en la mano), en tres niveles —Plata, Oro y
-  Prismático (con sus Maldiciones)— y ofrecidos de a tres en la pantalla gigante **«ELEGÍ UNA CÁBALA»**, cada uno con
-  su sello `S / A / B` y `★ SINERGIA`.
+  Prismático (con sus Maldiciones)— y ofrecidos de a tres en la pantalla gigante **«ELEGÍ UNA CÁBALA»**, con la
+  etiqueta `★ SINERGIA` cuando potencian tu Mazo o lo que ya llevás.
 
 ### 1.4 Los 4 Reyes vivos
 
@@ -63,9 +63,11 @@ baraja española para un jugador, en pixel-art oscuro, que se juega en el navega
 ### 1.5 Exactamente 15 Amuletos y el oráculo nativo
 
 - **3 Amuletos por palo** (1 Común, 1 Raro, 1 Épico) y **3 del Bufón, todos Legendarios**. Ni uno más.
-- Cada Amuleto, Bendición y Aumento enseña su **sello `S / A / B`**, calculado con victorias reales por
-  `npm run analyze:meta`, que se enciende a **`S+` / `★ SINERGIA`** con una micro-etiqueta de 2–3 palabras cuando potencia
-  tu Mazo o lo que ya llevás.
+- **Las piezas no enseñan tier** (ni `S / A / B` ni `S+`): decisión del dueño del proyecto del 2026-11-20, porque
+  confundían. Un Amuleto, una Bendición o un Aumento se elige por lo que hace; solo lleva la etiqueta **`★ SINERGIA`**,
+  con una micro-línea de 2–3 palabras, cuando potencia tu Mazo o lo que ya llevás. El laboratorio
+  (`npm run analyze:meta`) sigue midiendo cada pieza con victorias reales, pero esa nota es interna: la usa el bot que
+  certifica el balance y no se le muestra al jugador.
 
 ### 1.6 Los 5 Mazos y sus 5 Personajes
 
@@ -173,6 +175,6 @@ Antes de publicar cualquier versión, todo en verde:
 - Los números no se tocan a ciegas: primero el laboratorio rápido (`npm run analyze:meta -- --fast`), después el
   completo. Lo que propone el panel simulado se mide antes de aplicarlo.
 - El panel es **simulado**: se dice siempre, con su ruido.
-- Inspiraciones de diseño (mesa centrada con anfitrión, dones que escalan, sellos de nivel, barra de estado con
+- Inspiraciones de diseño (mesa centrada con anfitrión, dones que escalan, barra de estado con
   retrato): son mecánicas y estructuras de género. **Ningún nombre, texto, personaje ni arte de otro juego entra en
   CÁBALA**: todo el arte es original y se forja por código.

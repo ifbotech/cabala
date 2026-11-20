@@ -20,7 +20,6 @@ import * as juego from '../src/rules/partida';
 import { MEJORAS, costeMejora } from '../src/rules/perfil';
 import { REINADOS } from '../src/rules/reinados';
 import { BENDICION, BENDICIONES, REY_DEF } from '../src/rules/reyes';
-import { selloDe } from '../src/rules/sellos';
 import { MARCA, SLUG, VERSION } from '../src/shared/brand';
 
 /** Qué trae la interfaz (se actualiza con cada versión que cambia algo de esto). */
@@ -37,6 +36,8 @@ const FUNCIONES = {
   comodinMuestra: true,
   /** Hay capturas con el foco del mando a la vista (`mesa-mando`, `mapa-mando`). */
   capturasMando: true,
+  /** Las piezas enseñan una nota S / A / B (desde la 0.6.0, no: solo la etiqueta de sinergia). */
+  sellosVisibles: false,
 };
 
 const c = (palo: PaloCarta, n: number): Carta => ({ id: `${palo}${n}`, palo, n });
@@ -71,10 +72,10 @@ const datos = {
   reyes: PALOS.map((s) => ({ palo: s, nombre: REY_DEF[s].nombre, apodo: REY_DEF[s].apodo, carga: REY_DEF[s].carga, cargaDa: REY_DEF[s].cargaDa, rasgo: REY_DEF[s].rasgo, rasgoDesc: REY_DEF[s].rasgoDesc })),
   bendiciones: BENDICIONES.map((id) => {
     const d = BENDICION[id];
-    return { id, nombre: d.nombre, rey: d.rey, dual: d.dual ?? null, niveles: Array.from({ length: d.niveles }, (_, i) => d.desc(i + 1)), sello: selloDe('bendicion', id) };
+    return { id, nombre: d.nombre, rey: d.rey, dual: d.dual ?? null, niveles: Array.from({ length: d.niveles }, (_, i) => d.desc(i + 1)) };
   }),
-  amuletos: AMULETOS.map((id) => ({ id, nombre: AMULETO[id].nombre, palo: AMULETO[id].palo, rareza: RAREZA_NOMBRE[AMULETO[id].rareza], desc: AMULETO[id].desc, precio: precioBase(id), sello: selloDe('amuleto', id) })),
-  aumentos: AUMENTOS.map((id) => ({ id, nombre: AUMENTO[id].nombre, nivel: NIVEL_NOMBRE[AUMENTO[id].nivel], maldicion: !!AUMENTO[id].maldicion, desc: AUMENTO[id].desc, sello: selloDe('aumento', id) })),
+  amuletos: AMULETOS.map((id) => ({ id, nombre: AMULETO[id].nombre, palo: AMULETO[id].palo, rareza: RAREZA_NOMBRE[AMULETO[id].rareza], desc: AMULETO[id].desc, precio: precioBase(id) })),
+  aumentos: AUMENTOS.map((id) => ({ id, nombre: AUMENTO[id].nombre, nivel: NIVEL_NOMBRE[AUMENTO[id].nivel], maldicion: !!AUMENTO[id].maldicion, desc: AUMENTO[id].desc })),
   cabalas: CABALAS.map((k) => ({ id: k.id, titulo: k.titulo, humor: k.humor, opciones: k.opciones.map((o) => ({ texto: o.texto, detalle: o.detalle })) })),
   mejoras: MEJORAS.map((m) => ({ id: m.id, nombre: m.nombre, desc: m.desc, max: m.max, costes: Array.from({ length: m.max }, (_, i) => costeMejora(m.id, i)) })),
   reinados: REINADOS,

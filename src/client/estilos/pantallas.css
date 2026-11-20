@@ -441,7 +441,7 @@
   font-size: var(--fs);
   line-height: 1.25;
 }
-.op-sellos {
+.op-sinergia {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -449,9 +449,6 @@
   gap: calc(var(--u) * 0.5);
   margin-top: auto;
   min-height: calc(18px * var(--k2));
-}
-.op-sellos .sello-vivo > .sello {
-  --k: var(--k2);
 }
 .opciones.chicas .opcion {
   width: calc(170px * var(--k) * 0.5 + 85px);
@@ -745,9 +742,6 @@ button.visor-carta:disabled {
     inset calc(1px * var(--k)) calc(1px * var(--k)) 0 #3a1426,
     inset calc(-1px * var(--k)) calc(-1px * var(--k)) 0 #6b2e1a;
 }
-.col-item .sello {
-  --k: 1;
-}
 .col-nombre {
   font-size: var(--fs-s);
   text-align: center;
@@ -1018,7 +1012,7 @@ button.visor-carta:disabled {
   .opcion .op-clase,
   .opcion .op-nombre,
   .opcion .op-desc,
-  .opcion .op-sellos {
+  .opcion .op-sinergia {
     grid-column: 2;
   }
   .op-arte .op-icono:only-child,
@@ -1026,7 +1020,7 @@ button.visor-carta:disabled {
   .op-icono {
     --k: 2;
   }
-  .op-sellos {
+  .op-sinergia {
     justify-content: flex-start;
   }
   .pul-cuerpo {
@@ -1058,7 +1052,7 @@ button.visor-carta:disabled {
     width: 100%;
   }
   .venta .op-clase,
-  .venta .op-sellos .chip {
+  .venta .op-sinergia .chip {
     display: none;
   }
   .venta .precio {
@@ -1165,9 +1159,6 @@ button.visor-carta:disabled {
   margin: 0;
   font-size: var(--fs-s);
   color: var(--hueso);
-}
-.pieza-fila > .sello {
-  flex: none;
 }
 .jugadas-cuerpo {
   display: grid;
