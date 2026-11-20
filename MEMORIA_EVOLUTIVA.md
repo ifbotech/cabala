@@ -331,3 +331,31 @@ matar con dibujo las dudas del Comodín y la Furia, y jugo de conteo con racha e
 - El laboratorio completo ya no entra en 298 s con las notas: se corre en dos (`--sin-notas`, `--solo-notas`).
 - La Diversión se movió por primera vez fuera de su banda (7,57), sin llegar a ser significativa. Es la primera
   versión cuyas escenas cuentan cosas que pasan en el golpe (conteo, racha, piezas que escalan).
+
+## 0.13.0 · Leer a 40 cm (publicada; empate con el Campeón)
+
+**Método.** Abrir las capturas de 1920×1080, 1280×800 y 390×844, y contar las quejas de interfaz de las 60 reseñas de
+la 0.12.0. La más repetida, por lejos: los iconos de la barra de abajo (33 menciones).
+
+**Hallazgo al mirar.** En el Fogón a 1080p la bandeja mostraba 4 iconos y «+6» con media bandeja vacía: la cuenta de
+filas comparaba el borde de arriba de cada ficha, y las de otra altura (cargas, Bendiciones), centradas, quedan unos
+píxeles más abajo. Ahora una ficha está en otra fila solo si empieza por debajo de donde termina la primera. La QA
+visual no lo veía: no hay regla que mida «espacio vacío con cosas escondidas».
+
+**Medida** (`pulso-60-20261120-175105`, snapshot `20261120-174441`): F 199,7; Aprobación 76,7 %; Claridad 6,40;
+Diversión 7,52; Steam Deck 66,7 %; Móvil 86,7 %. Empate.
+
+**Estado de las metas tras la recta 0.11 → 0.13** (panel simulado, una tirada por versión):
+
+| Meta | Pedido | 0.10.0 | 0.11.0 | 0.12.0 | 0.13.0 |
+|---|---|---|---|---|---|
+| Aprobación | ≥ 85 % | 71,7 | 75,0 | 75,0 | 76,7 |
+| Claridad | ≥ 8,0 | 6,15 | 6,30 | 6,33 | 6,40 |
+| Diversión | ≥ 8,4 | 7,47 | 7,48 | 7,57 | 7,52 |
+| Críticos | ≥ 60 % | 50 | 50 | 55 | 40 |
+| Steam Deck | ≥ 85 % | 66,7 | 66,7 | 55,6 | 66,7 |
+| Móvil | ≥ 85 % | 80,0 | 80,0 | 93,3 | 86,7 |
+
+Tres versiones seguidas suben un poco la Aprobación y la Claridad, siempre dentro del ruido de una tirada. El Móvil
+cumple su meta en las dos últimas. Ninguna versión se despega del Campeón de forma significativa: con este instrumento,
+F ronda 200 desde la 0.6.0.

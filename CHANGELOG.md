@@ -3,6 +3,22 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.13.0 · Leer a 40 cm (2026-11-20)
+
+Primera ronda de pulido por inspección de capturas y por lo que más repite el panel simulado.
+
+- **Corregido:** la bandeja del HUD escondía fichas de más. Las cargas y las Bendiciones, que son de otra altura, se
+  contaban como «segunda fila» y se iban al «+N» aunque hubiera lugar (venía de la 0.11.0).
+- En portátil y Steam Deck los iconos de la bandeja van al doble (60 px): era la queja más repetida («los iconos de
+  la barra de abajo no se leen a 40 cm», 33 menciones en 60 reseñas).
+- El botón de descartar muestra cuántos descartes quedan en una cifra más grande y dorada.
+- El número grande de la esquina del naipe ya no toca el borde.
+
+**Medido**
+- 61 pruebas, QA visual ES y EN sin fallos, humo, 60 fps. Reglas sin cambios (el laboratorio de la 0.12.0 vale).
+- Panel simulado (una tirada contra una tirada): **Aprobación 76,7 %** y **Claridad 6,40** (las más altas medidas),
+  Diversión 7,52, Críticos 40 %, Steam Deck 66,7 %, Móvil 86,7 %. F 199,7 contra 200,7 del Campeón: **empate**.
+
 ## 0.12.0 · Romper el juego (2026-11-20)
 
 Las cinco reglas de adicción que pidió el dueño del proyecto.
