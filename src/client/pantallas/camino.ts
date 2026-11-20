@@ -18,9 +18,9 @@ import type { BendicionId } from '../../rules/reyes';
 import { clavePieza } from '../../rules/notas';
 import { alAzar, idioma, perfil, t, tx } from '../almacen';
 import { sonar } from '../audio';
-import { chispas, destello, haloRey, humo, lluviaDeMonedas, numero, partirNaipe } from '../fx/efectos';
+import { chispas, destello, haloRey, humo, lluviaDeMonedas, monedas, numero, partirNaipe } from '../fx/efectos';
 import { teclear } from '../habla';
-import { pausa, quieto } from '../ritmo';
+import { RAPIDO, pausa, quieto } from '../ritmo';
 import { enFoto } from '../fx/motor';
 import { avivarRetrato, hudHtml } from '../hud';
 import { avanzar, guardar, irPortada, sesion, soltarPartida } from '../juego';
@@ -345,9 +345,11 @@ export function pantallaBotin(p: Partida): Pantalla {
     juego.seguir(p);
     avanzar();
   };
+  // elegida la última oferta, la partida sigue sola: nada de volver a una lista para tocar «SEGUIR»
   const trasElegir = () => {
     guardar();
-    if (directo && pendiente() < 0) cerrarBotin();
+    if (pendiente() < 0) cerrarBotin();
+    else if (directo || !quieto() || RAPIDO) modalOferta(p, pendiente(), trasElegir);
     else repintar();
   };
   const fila = (it: ItemBotin, i: number): string => {
@@ -377,9 +379,15 @@ export function pantallaBotin(p: Partida): Pantalla {
     alMontar: () => {
       avivarRetrato(p);
       if (directo && pendiente() >= 0) modalOferta(p, pendiente(), trasElegir);
-      else if (!directo && !enFoto() && botin.items.some((i) => i.t === 'oro')) {
+      else if (!directo && !enFoto()) {
+        // el botín pasa sobre la mesa: el oro vuela al HUD y la primera oferta brota sin cambiar de pantalla
         const r = $('.botin-panel')?.getBoundingClientRect();
-        if (r) lluviaDeMonedas(r.left, r.right, r.top - 40);
+        const a = $('[data-hud-oro]')?.getBoundingClientRect();
+        if (r && a && !quieto() && botin.items.some((i) => i.t === 'oro')) {
+          monedas(r.left + r.width / 2, r.top + r.height * 0.3, a.left + a.width / 2, a.top + a.height / 2, 10, () => sonar('oro'));
+          lluviaDeMonedas(r.left, r.right, r.top - 40, 12);
+        }
+        if (pendiente() >= 0) void pausa(420).then(() => p.botin === botin && pendiente() >= 0 && !$('.velo') && modalOferta(p, pendiente(), trasElegir));
       }
     },
     acciones: {

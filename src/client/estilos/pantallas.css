@@ -1470,3 +1470,116 @@ button.visor-carta:disabled {
 .fuego-carta.ceniza {
   visibility: hidden;
 }
+
+/* ───────────── 0.11.0: todo centrado y sin espacio muerto ───────────── */
+
+/* la portada: el Bufón a un lado del menú y la pila de Mazos al otro */
+.portada-pila {
+  --k: var(--k-mazo);
+  justify-self: start;
+  position: relative;
+  width: calc(100px * var(--k) + 28px * var(--k));
+  height: calc(140px * var(--k) + 20px * var(--k));
+}
+.pila-dorso {
+  position: absolute;
+  left: calc(var(--i) * 14px * var(--k));
+  top: calc((2 - var(--i)) * 10px * var(--k));
+  line-height: 0;
+}
+/* el botín pasa sobre la misma mesa: un fundido corto, sin corte */
+#app.recien.p-botin > main {
+  animation: fundido 0.2s steps(4) both;
+}
+@keyframes fundido {
+  from {
+    opacity: 0;
+  }
+}
+/* la Colección: la caja abraza lo que muestra */
+.col-cuerpo {
+  flex: 0 1 auto;
+  width: min(100%, calc(1160px * var(--k) * 0.5 + 580px));
+}
+.col-ficha {
+  margin: 0;
+  max-width: 30ch;
+  font-size: var(--fs-s);
+  line-height: 1.35;
+  text-align: center;
+}
+.col-carga {
+  color: var(--hueso-2);
+}
+.col-carga {
+  --k: 1;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.75);
+  text-align: left;
+}
+.col-carga .px {
+  flex: none;
+}
+.col-rey {
+  gap: calc(var(--u) * 0.5);
+}
+@media (min-width: 701px) {
+  .portada-medio .anfitrion {
+    justify-self: end;
+  }
+  /* el Mapa va en el eje de la pantalla; el Bufón, a un costado, no lo corre */
+  .pantalla .mapa-bufon {
+    position: absolute;
+    left: calc(var(--u) * 1.5);
+    top: 50%;
+    translate: 0 -50%;
+    width: calc(120px * var(--k-bufon));
+    z-index: 3;
+    pointer-events: none;
+  }
+  /* la Pulpería: el Bufón detrás de su mostrador, pegado a las bandejas; todo el grupo, centrado */
+  .pantalla .pul-bufon {
+    flex: none;
+  }
+  .pul-cuerpo {
+    gap: calc(var(--u) * 3);
+  }
+  .pul-bufon::after {
+    content: '';
+    order: 1;
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: calc(14px * var(--k));
+    margin-top: calc(-30px * var(--k-bufon));
+    /* el mostrador: un tablón de madera con su canto claro arriba y su sombra abajo */
+    background: #6b2e1a;
+    box-shadow:
+      inset 0 calc(3px * var(--k)) 0 #a8502a,
+      inset 0 calc(-3px * var(--k)) 0 #3a1426,
+      0 calc(3px * var(--k)) 0 #120a24;
+  }
+  .pul-bufon .bocadillo {
+    order: 2;
+  }
+  /* los 5 Mazos en una sola fila; los Reyes con su ficha debajo */
+  .col-mazos {
+    flex-wrap: nowrap;
+    gap: var(--u);
+  }
+  .col-reyes {
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: calc(var(--u) * 1.5);
+  }
+  .col-rey {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+@media (max-width: 700px) {
+  .portada-pila {
+    display: none;
+  }
+}

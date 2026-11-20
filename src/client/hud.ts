@@ -61,7 +61,7 @@ function tiras(p: Partida): string {
     })
     .join('');
   if (!amuletos && !aumentos && !cargas && !bendiciones) return `<span class="sub hud-nada">${t('llevas')}: ${t('nada')}</span>`;
-  return `<div class="hud-tira" data-tira="amuletos">${amuletos}${aumentos}</div><div class="hud-tira" data-tira="reyes">${cargas}${bendiciones}</div>`;
+  return `<div class="hud-tira" data-tira="amuletos">${amuletos}${aumentos}</div><div class="hud-tira" data-tira="reyes">${cargas}${bendiciones}</div><span class="hud-mas" data-mas hidden></span>`;
 }
 
 /** El HTML del HUD. */
@@ -101,6 +101,7 @@ export function actualizarTiras(p: Partida, sube?: Palo): void {
   if (!el) return;
   el.innerHTML = tiras(p);
   if (sube) $(`[data-carga="${sube}"]`, el)?.classList.add('sube');
+  ajustarBandeja();
 }
 
 /** Pone un número del HUD (y la barra de Vida). */
@@ -218,4 +219,68 @@ export function gritar(mazo: MazoId, texto: string): void {
   void retrato.offsetWidth;
   retrato.classList.add('grita');
   window.setTimeout(() => b.remove(), 1500);
+}
+
+/**
+ * La bandeja del HUD es una sola fila: lo que no entra no se apila ni se corta, se cuenta en un «+N» al final (todo
+ * está en «LO QUE LLEVÁS», que se abre al tocarla).
+ */
+export function ajustarBandeja(): void {
+  const el = $('[data-tiras]');
+  const mas = el ? $('[data-mas]', el) : null;
+  if (!el || !mas) return;
+  const fichas = [...el.querySelectorAll<HTMLElement>('.ficha')];
+  fichas.forEach((f) => (f.hidden = false));
+  mas.hidden = true;
+  el.classList.remove('con-mas');
+  if (!fichas.length) return;
+  const sobran = (): HTMLElement[] => fichas.filter((f) => !f.hidden && f.offsetTop > fichas[0].offsetTop + 4);
+  let fuera = sobran();
+  if (!fuera.length) return;
+  // se reserva el sitio del «+N» y se esconden las que ya no entran en la primera fila
+  el.classList.add('con-mas');
+  mas.hidden = false;
+  let n = 0;
+  for (let i = 0; i < 40 && (fuera = sobran()).length; i++) {
+    fuera.forEach((f) => (f.hidden = true));
+    n += fuera.length;
+    mas.textContent = `+${n}`;
+    // si el «+N» quedó en la segunda fila, se le hace sitio quitando una más
+    if (mas.offsetTop > fichas[0].offsetTop + 4) {
+      const ultima = [...fichas].reverse().find((f) => !f.hidden);
+      if (!ultima) break;
+      ultima.hidden = true;
+      n++;
+      mas.textContent = `+${n}`;
+    }
+  }
+  if (mas.offsetTop > fichas[0].offsetTop + 4) {
+    const ultima = [...fichas].reverse().find((f) => !f.hidden);
+    if (ultima) {
+      ultima.hidden = true;
+      mas.textContent = `+${n + 1}`;
+    }
+  }
+}
+// la bandeja se vuelve a medir cuando cambia de tamaño (la pantalla recién montada todavía se está acomodando)
+if (typeof document !== 'undefined') {
+  // solo importa el ancho: al esconder fichas la bandeja puede cambiar de alto, y eso no es motivo para volver a medir
+  let ancho = -1;
+  const mira =
+    typeof ResizeObserver === 'function'
+      ? new ResizeObserver((xs) => {
+          const w = Math.round(xs[0]?.contentRect.width ?? 0);
+          if (w === ancho) return;
+          ancho = w;
+          ajustarBandeja();
+        })
+      : null;
+  document.addEventListener('cabala:pantalla', () => {
+    ajustarBandeja();
+    mira?.disconnect();
+    const el = $('[data-tiras]');
+    if (el) mira?.observe(el);
+    requestAnimationFrame(() => ajustarBandeja());
+  });
+  addEventListener('resize', () => ajustarBandeja());
 }

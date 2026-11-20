@@ -97,7 +97,10 @@ function forjado(l: Lienzo, r: Receta, viva: boolean, irisado: boolean): void {
   }
 }
 
-/** El bocadillo: papel hueso con el canto de tinta y su sombra tramada abajo y a la derecha. */
+/**
+ * El bocadillo: papel hueso con canto de tinta, filete de oro y otra línea de tinta por dentro (se recorta sobre
+ * cualquier fondo, también los oscuros), esquinas en chaflán y la sombra tramada del papel abajo y a la derecha.
+ */
 function hueso(l: Lienzo): void {
   const N = MARCO;
   for (let y = 0; y < N; y++)
@@ -109,10 +112,12 @@ function hueso(l: Lienzo): void {
       if (esquina < 3) continue;
       let k = 'm';
       if (d === 0 || esquina === 3) k = '0';
-      else if (d === 1 || esquina === 4) k = luz ? 'w' : 'h';
-      else if (d <= 3 && !luz && umbral(x, y, 4) < 0.5) k = 'h';
+      else if (d === 1 || esquina === 4) k = luz ? 'Y' : 'o';
+      else if (d === 2 || esquina === 5) k = '0';
+      else if (d === 3 || esquina === 6) k = luz ? 'w' : 'h';
+      else if (d <= 5 && !luz && umbral(x, y, 4) < 0.5) k = 'h';
       l.set(x, y, k);
-      if (d >= 1 && d <= 3) l.marcar(x, y);
+      if (d >= 1 && d <= 5) l.marcar(x, y);
     }
 }
 

@@ -115,7 +115,7 @@ export function avivar(raiz: ParentNode, entrada: boolean): void {
   const b = raiz.querySelector<HTMLElement>('[data-anfitrion] [data-voz]');
   const texto = b?.textContent?.trim() ?? '';
   // los bocadillos que flotan sobre la pantalla (cabeceras, y el Mapa del móvil) no salen en las capturas
-  const mini = !!b?.closest('.mini-anfitrion') || (!!b?.closest('.mapa-bufon') && matchMedia('(max-width: 700px)').matches);
+  const mini = (!!b?.closest('.mini-anfitrion') || !!b?.closest('.mapa-bufon')) && matchMedia('(max-width: 700px)').matches;
   if (enFoto()) {
     // la captura: todo en su sitio; el bocadillo flotante de las cabeceras no tapa la pantalla
     if (b && mini) b.hidden = true;

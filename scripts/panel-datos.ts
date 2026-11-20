@@ -56,6 +56,14 @@ const FUNCIONES = {
   fogonVivo: true,
   /** Las fotos de la mesa muestran la mano del Mazo (sin Aumentos que repartan de más). */
   fotosManoReal: true,
+  /** El HUD va en tres zonas (Vida · Escudo · oro | retrato | Mazo · bandeja de una fila con «+N»). */
+  hudSimetrico: true,
+  /** Altar, Colección, Crónica y Ajustes comparten solapas: se pasa de una a otra sin volver a la portada. */
+  solapas: true,
+  /** El botín pasa sobre la mesa: el oro vuela al HUD, la oferta brota sola y, elegida la última, la partida sigue. */
+  botinEnMesa: true,
+  /** En portátil y Steam Deck los naipes de la mano llevan el número de la esquina más grande. */
+  indiceGrande: true,
   /** El Fogón deja templar un naipe con riesgo de quemarlo (ya no «quemar un naipe»). */
   fogonTemple: true,
   /** La cuenta dice cuánto le queda al enemigo o cuánto sobra, y hay racha de Golpes exactos. */

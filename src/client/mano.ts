@@ -319,7 +319,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
         el.setAttribute('aria-pressed', 'false');
         el.setAttribute('aria-label', carta.palo === 'X' ? '★' : `${carta.n} ${carta.palo}`);
         // el Comodín lleva su nombre: sin número ni palo propios, es lo que lo distingue de una carta que no se lee
-        el.innerHTML = pxNaipe(carta) + (carta.palo === 'X' ? `<span class="c-rotulo">${t('comodin')}</span>` : '') + (carta.temple ? `<span class="c-temple">+${carta.temple}</span>` : '');
+        el.innerHTML = pxNaipe(carta) + (carta.palo === 'X' ? `<span class="c-rotulo">${t('comodin')}</span>` : `<span class="c-indice" data-palo="${carta.palo}" aria-hidden="true">${carta.n}</span>`) + (carta.temple ? `<span class="c-temple">+${carta.temple}</span>` : '');
         raiz.append(el);
         const { h } = medidas();
         const x0 = desde ? desde.x - caja.left : raiz.clientWidth / 2;

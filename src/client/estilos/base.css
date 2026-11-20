@@ -1078,3 +1078,126 @@ button.hud-tiras .ficha {
     scale: 1.08;
   }
 }
+
+/* ───────────── 0.11.0: el HUD en tres zonas (50 · retrato · 50) y la bandeja de una fila ───────────── */
+
+/* la bandeja de lo que llevás: una sola fila; lo que no entra se cuenta en «+N» (hud.ts) */
+.hud-tiras {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
+  gap: calc(6px * var(--k));
+  overflow: hidden;
+}
+.hud-tiras .hud-tira {
+  display: contents;
+}
+.hud-tiras .hud-tira + .hud-tira > :first-child {
+  margin-left: calc(6px * var(--k));
+}
+.hud-tiras .ficha[hidden],
+.hud-mas[hidden] {
+  display: none;
+}
+.hud-mas {
+  flex: none;
+  padding: 0 calc(4px * var(--k));
+  font-family: var(--rot);
+  font-size: var(--fr);
+  color: var(--oro);
+  background: var(--abismo);
+  box-shadow: inset 0 0 0 calc(1px * var(--k)) var(--oro);
+  line-height: 1.6;
+}
+@media (min-width: 701px) {
+  /* izquierda: Vida, Escudo y oro llenan su mitad; derecha: el Mazo y la bandeja llenan la suya */
+  .hud-lado.izq {
+    justify-content: stretch;
+  }
+  .hud-lado.izq > .hud-pozo {
+    flex: 1 1 0;
+  }
+  .hud-lado.izq > .hud-vida {
+    flex: 1.5 1 0;
+  }
+  .hud-lado.der > .hud-pozo {
+    flex: 0 0 auto;
+  }
+  button.hud-tiras {
+    flex: 1 1 0;
+    align-self: stretch;
+    padding: 0 calc(var(--u) * 0.75);
+    border: calc(8px * var(--kf, var(--k))) solid transparent;
+    border-image: var(--m-hundido) 8 fill / calc(8px * var(--kf, var(--k))) / 0 repeat;
+    image-rendering: pixelated;
+  }
+  button.hud-tiras:hover,
+  button.hud-tiras:focus-visible {
+    border-image-source: var(--m-tinta);
+  }
+  .hud-nada {
+    margin: 0 auto;
+  }
+
+  /* el Bufón chico de Mazos, Altar, Colección, Crónica y Ajustes va en la escena: bajo la cabecera, con lo que dice al lado */
+  .cabecera:has(.mini-anfitrion) {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    row-gap: calc(var(--u) * 0.5);
+  }
+  .cabecera:has(.mini-anfitrion) > :first-child {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+  }
+  .cabecera:has(.mini-anfitrion) > :is(.titulo, .solapas) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .cabecera > .porotos {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+  }
+  .cabecera > .mini-anfitrion {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: center;
+    justify-content: center;
+    min-width: 0;
+    gap: var(--u);
+  }
+  .cabecera > .mini-anfitrion .bocadillo {
+    position: static;
+    width: auto;
+    margin: 0;
+  }
+  .cabecera > .mini-anfitrion .bocadillo::after {
+    display: none;
+  }
+}
+@media (max-width: 700px) {
+  .cabecera:has(.solapas) {
+    flex-wrap: wrap;
+    flex: none;
+  }
+  .solapas {
+    order: 9;
+    flex-basis: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--u);
+  }
+}
+/* la cola del bocadillo, con su filete de oro */
+.bocadillo::after {
+  box-shadow:
+    calc(4px * var(--k)) 0 0 var(--hueso),
+    calc(8px * var(--k)) 0 0 var(--oro),
+    calc(-4px * var(--k)) 0 0 var(--oro),
+    0 calc(4px * var(--k)) 0 var(--hueso),
+    calc(4px * var(--k)) calc(4px * var(--k)) 0 var(--oro),
+    calc(-4px * var(--k)) calc(4px * var(--k)) 0 var(--oro),
+    0 calc(8px * var(--k)) 0 var(--oro);
+}

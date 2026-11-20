@@ -18,13 +18,20 @@ import { refrescarMusica } from '../musica';
 import { enFoto } from '../fx/motor';
 import { continuar, empezar, hayPartida, irAjustes, irAltar, irColeccion, irCronica, irMazo, irPortada, sesion } from '../juego';
 import { CUADRO0 } from '../pixel/personajes';
-import { cifra, pxAmuleto, pxAumento, pxBendicion, pxDorso, pxHud, pxLogo, urlRetrato } from '../sprites';
+import { cifra, pxAmuleto, pxAumento, pxBendicion, pxDorso, pxHud, pxLogo, pxPalo, urlRetrato } from '../sprites';
 import { TRAMO_NOMBRE } from '../textos';
 import { VOZ } from '../voces';
 import { bufonDice } from '../bufon-vivo';
 import { abrirModal, anfitrion, cerrarModal, esc, miniAnfitrion, repintar, reyHtml, tip, type Pantalla } from '../ui';
 
 // ───────────────────────── portada ─────────────────────────
+
+/** Altar, Colección, Crónica y Ajustes van en un mismo marco: se pasa de una a otra por sus solapas. */
+type Solapa = 'altar' | 'coleccion' | 'cronica' | 'ajustes';
+const SOLAPAS: Solapa[] = ['altar', 'coleccion', 'cronica', 'ajustes'];
+const solapas = (actual: Solapa): string =>
+  `<nav class="solapas fila" role="tablist" aria-label="${t(actual)}">${SOLAPAS.map((x) => `<button class="btn marco chico solapa ${x === actual ? 'oro' : ''}" role="tab" aria-selected="${x === actual}" data-accion="sol-${x}" data-foco="sol-${x}">${t(x)}</button>`).join('')}</nav>`;
+const irSolapa = { 'sol-altar': () => irAltar(), 'sol-coleccion': () => irColeccion(), 'sol-cronica': () => irCronica(), 'sol-ajustes': () => irAjustes() };
 
 export function pantallaPortada(): Pantalla {
   const hay = hayPartida();
@@ -48,6 +55,7 @@ export function pantallaPortada(): Pantalla {
             <button class="btn marco" data-accion="ajustes" data-foco="ajustes">${t('ajustes')}</button>
           </div>
         </nav>
+        <div class="portada-pila" aria-hidden="true">${(['chinchon', 'truco', 'escoba'] as MazoId[]).map((m, i) => `<span class="pila-dorso" style="--i:${i}">${pxDorso(m)}</span>`).join('')}</div>
       </div>
       <footer class="pie">
         <div class="fila idiomas" role="group" aria-label="${t('idioma')}">
@@ -190,12 +198,13 @@ export function pantallaAltar(): Pantalla {
     html: () => `<main class="pantalla altar">
       <header class="cabecera">
         <button class="btn marco chico" data-accion="volver" data-foco="volver" data-inicio>‹ ${t('volver')}</button>
-        <h1 class="titulo">${t('altarTitulo')}</h1>
+        ${solapas('altar')}
         ${miniAnfitrion(tx(alAzar(VOZ.altar, enFoto() ? 0 : undefined)))}<span class="lado porotos" ${tip(t('porotos'), idioma() === 'en' ? 'Every run leaves some, win or lose.' : 'Cada partida deja algunos, ganes o pierdas.')}>${pxHud('poroto')}${cifra(perfil.porotos, 'oro', 'grande')}</span>
       </header>
       <div class="mejoras marco">${MEJORAS.map((m) => fila(m.id)).join('')}</div>
     </main>`,
     acciones: {
+      ...irSolapa,
       volver: irPortada,
       mejorar: (el) => {
         if (mejorar(perfil, el.dataset.id as MejoraId)) {
@@ -235,7 +244,7 @@ export function pantallaColeccion(): Pantalla {
         const r = REY_DEF[s];
         const v = visto(`r:${s}`);
         return `<div class="col-rey ${v ? '' : 'sin-ver'}" ${v ? tip(`${tx(r.nombre)} · ${tx(r.apodo)}`, `${tx(r.rasgo)}: ${tx(r.rasgoDesc)}`, `${tx(r.carga)}: ${tx(r.cargaDa)}`) : tip(t('sinVer'), t('sinVerDesc'))}>
-          ${reyHtml(s, 'calma')}<b>${v ? esc(tx(r.apodo)) : t('sinVer')}</b><span class="sub">${v ? esc(tx(r.nombre)) : ''}</span>
+          ${reyHtml(s, 'calma')}<b>${v ? esc(tx(r.apodo)) : t('sinVer')}</b><span class="sub">${v ? esc(tx(r.nombre)) : esc(t('sinVerDesc'))}</span>${v ? `<span class="chip canto">${esc(tx(r.rasgo))}</span><p class="col-ficha">${esc(tx(r.rasgoDesc))}</p><p class="col-ficha col-carga">${pxPalo(s)} <b>${esc(tx(r.carga))}</b> · ${esc(tx(r.cargaDa))}</p>` : ''}
         </div>`;
       }).join('')}</div>`;
     if (pestana === 'amuletos') return `<div class="col-rejilla">${AMULETOS.map((id) => item(`a:${id}`, pxAmuleto(id), tx(AMULETO[id].nombre), tx(AMULETO[id].desc), tx(RAREZA_NOMBRE[AMULETO[id].rareza]))).join('')}</div>`;
@@ -249,13 +258,14 @@ export function pantallaColeccion(): Pantalla {
     html: () => `<main class="pantalla coleccion">
       <header class="cabecera">
         <button class="btn marco chico" data-accion="volver" data-foco="volver" data-inicio>‹ ${t('volver')}</button>
-        <h1 class="titulo">${t('coleccion')}</h1>
+        ${solapas('coleccion')}
         ${miniAnfitrion(tx(alAzar(VOZ.coleccion, enFoto() ? 0 : undefined)))}
       </header>
       <nav class="fila pestanas" role="tablist">${pestanas.map((p) => `<button class="btn marco chico ${p === pestana ? 'oro' : ''}" role="tab" aria-selected="${p === pestana}" data-accion="pestana" data-id="${p}" data-foco="tab-${p}">${t(p === 'amuletos' ? 'amuletos' : p)}</button>`).join('')}</nav>
       <section class="col-cuerpo marco">${cuerpo()}</section>
     </main>`,
     acciones: {
+      ...irSolapa,
       volver: irPortada,
       pestana: (el) => {
         pestana = el.dataset.id as Pestana;
@@ -276,7 +286,7 @@ export function pantallaCronica(): Pantalla {
     html: () => `<main class="pantalla cronica">
       <header class="cabecera">
         <button class="btn marco chico" data-accion="volver" data-foco="volver" data-inicio>‹ ${t('volver')}</button>
-        <h1 class="titulo">${t('cronica')}</h1>
+        ${solapas('cronica')}
         ${miniAnfitrion(tx(alAzar(VOZ.cronica, enFoto() ? 0 : undefined)))}
       </header>
       <div class="cr-datos marco">${dato(t('partidas'), s.partidas)}${dato(t('victorias'), s.victorias)}${dato(t('reyesVencidos'), s.reyes)}${dato(t('mejorGolpe'), s.mejorGolpe)}</div>
@@ -298,7 +308,8 @@ export function pantallaCronica(): Pantalla {
         }
       </section>
     </main>`,
-    acciones: { volver: irPortada },
+    acciones: {
+      ...irSolapa, volver: irPortada },
   };
 }
 
@@ -313,7 +324,7 @@ export function pantallaAjustes(): Pantalla {
     html: () => `<main class="pantalla ajustes-p">
       <header class="cabecera">
         <button class="btn marco chico" data-accion="volver" data-foco="volver" data-inicio>‹ ${t('volver')}</button>
-        <h1 class="titulo">${t('ajustes')}</h1>
+        ${solapas('ajustes')}
         ${miniAnfitrion(tx(alAzar(VOZ.ajustes, enFoto() ? 0 : undefined)))}
       </header>
       <section class="aj-lista marco">
@@ -326,6 +337,7 @@ export function pantallaAjustes(): Pantalla {
       </section>
     </main>`,
     acciones: {
+      ...irSolapa,
       volver: irPortada,
       es: () => {
         fijarIdioma('es');

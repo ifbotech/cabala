@@ -10,12 +10,16 @@ guardian('qa:fps', 200);
 const MIN_FPS = 57;
 const MAX_LENTOS = 0.03;
 const MAX_CUADRO = 80;
+/** El cambio de pantalla tras el último golpe (botín y «ELEGÍ UNA») puede costar un cuadro largo, no un cuelgue. */
+const MAX_CAMBIO = 250;
 
 interface Medida {
   fps: number;
   lentos: number;
   peor: number;
   cuadros: number;
+  /** El peor cuadro del cambio de pantalla que sigue a la ráfaga (0 si el combate no terminó). */
+  cambio: number;
 }
 
 const ventanas = [
@@ -48,6 +52,7 @@ await conServidor(5193, async (url) => {
             const tiempos: number[] = [];
             let ultimo = performance.now();
             let vivo = true;
+            let finRafaga = -1;
             const cuadro = (t: number) => {
               tiempos.push(t - ultimo);
               ultimo = t;
@@ -61,23 +66,31 @@ await conServidor(5193, async (url) => {
                 const m = g.__cabala.mejorGolpe(g.__cabala.sesion.partida);
                 if (!m || !document.querySelector('.mano .carta')) break;
                 await g.__mesa.golpear(m.ids);
+                // si el combate terminó, la ráfaga terminó: lo que sigue (el botín y «ELEGÍ UNA» que brota sobre la
+                // mesa) es un cambio de pantalla y se mide aparte, con su propio tope
+                if (!document.querySelector('.mano .carta')) {
+                  finRafaga = tiempos.length;
+                  break;
+                }
                 await new Promise((ok) => setTimeout(ok, 250));
               }
             }
             await new Promise((ok) => setTimeout(ok, Math.max(0, fin - performance.now())));
             vivo = false;
+            const trasRafaga = finRafaga >= 0 ? tiempos.slice(finRafaga) : [];
+            if (finRafaga >= 0) tiempos.length = finRafaga;
             const usados = tiempos.slice(2);
             const total = usados.reduce((s, x) => s + x, 0);
-            return { fps: Math.round((10000 * usados.length) / total) / 10, lentos: usados.filter((x) => x > 25).length / usados.length, peor: Math.round(Math.max(...usados)), cuadros: usados.length };
+            return { fps: Math.round((10000 * usados.length) / total) / 10, lentos: usados.filter((x) => x > 25).length / usados.length, peor: Math.round(Math.max(...usados)), cuadros: usados.length, cambio: trasRafaga.length ? Math.round(Math.max(...trasRafaga)) : 0 };
           },
           [ms, conGolpes] as const,
         );
       const reposo = await medir(3000, false);
       const golpes = await medir(4000, true);
       for (const [que, m] of [['reposo', reposo], ['golpes', golpes]] as const) {
-        const bien = m.fps >= MIN_FPS && m.lentos <= MAX_LENTOS && m.peor <= MAX_CUADRO;
+        const bien = m.fps >= MIN_FPS && m.lentos <= MAX_LENTOS && m.peor <= MAX_CUADRO && m.cambio <= MAX_CAMBIO;
         if (!bien) fallos++;
-        console.log(`${bien ? '✓' : '✗'} ${v.nombre} · ${que.padEnd(6)} ${m.fps} fps · ${(m.lentos * 100).toFixed(1)} % de cuadros de más de 25 ms · peor cuadro ${m.peor} ms · ${m.cuadros} cuadros`);
+        console.log(`${bien ? '✓' : '✗'} ${v.nombre} · ${que.padEnd(6)} ${m.fps} fps · ${(m.lentos * 100).toFixed(1)} % de cuadros de más de 25 ms · peor cuadro ${m.peor} ms · ${m.cuadros} cuadros${m.cambio ? ` · cambio de pantalla ${m.cambio} ms` : ''}`);
       }
       await ctx.close();
     }
