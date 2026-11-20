@@ -1313,3 +1313,29 @@ button.visor-carta:disabled {
     display: none;
   }
 }
+
+/* ───────────── 0.6.0: pulido guiado por la auditoría visual ───────────── */
+
+/* la tabla de JUGADAS y «LO QUE LLEVÁS»: renglones con aire */
+.palos-lista li span,
+.regla,
+.pieza-fila p,
+.jugadas-tabla td {
+  line-height: 1.5;
+}
+/* el visor del Mazo: naipes a escala entera (los números se leen), con aire entre ellos */
+.visor-carta .px {
+  width: calc(var(--w) * 1px);
+  height: calc(var(--h) * 1px);
+}
+.visor-fila {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+/* el Altar: los niveles que faltan se ven (cuadro oscuro con canto claro), los comprados brillan */
+.pip {
+  background: #1c1530;
+  box-shadow:
+    inset calc(2px * var(--k)) calc(2px * var(--k)) 0 #5c5470,
+    inset calc(-2px * var(--k)) calc(-2px * var(--k)) 0 #8a7fa6;
+}

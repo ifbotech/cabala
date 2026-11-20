@@ -882,3 +882,80 @@
   color: var(--hueso-2);
   line-height: 1.1;
 }
+
+/* ───────────── 0.6.0: pulido guiado por la auditoría visual ───────────── */
+
+/* «quedan N»: del mismo tamaño que el texto, en claro y con aire */
+.btn[data-accion='descartar'] {
+  padding-top: calc(4px * var(--k));
+  padding-bottom: calc(5px * var(--k));
+  gap: calc(2px * var(--k));
+}
+.b-quedan {
+  font-size: var(--fs);
+  color: var(--hueso);
+  line-height: 1.2;
+}
+/* la marca de Inmune va al pie de la carta: no tapa ni el número ni las pintas */
+.c-inmune {
+  top: auto;
+  bottom: calc(4px * var(--k-naipe, 1));
+  transform: translateX(-50%);
+  --k: 1;
+}
+/* el Comodín lleva su nombre */
+.c-rotulo {
+  position: absolute;
+  left: 50%;
+  top: calc(4px * var(--k-naipe, 1));
+  transform: translateX(-50%);
+  padding: 1px calc(4px * var(--k-naipe, 1));
+  background: rgba(11, 7, 17, 0.9);
+  color: var(--oro);
+  font-family: var(--rot);
+  font-size: var(--fr);
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1;
+}
+.carta:has(.c-copia) .c-rotulo {
+  display: none;
+}
+/* la cuenta, en dos renglones: arriba la fórmula; debajo, lo que pasa (cae, te pega, lo que dan los palos) */
+.cuenta .c-chips {
+  flex-basis: 100%;
+  justify-content: center;
+  margin-left: 0;
+}
+/* 1080p: la mano entera a la vista (el enemigo va un punto más chico y la mano no se mete detrás del HUD) */
+@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+  .mesa {
+    --k-enemigo: 2;
+  }
+  .mesa .mano {
+    margin-bottom: 0;
+  }
+}
+@media (max-width: 700px) {
+  /* en el móvil la tira muestra solo lo que llevás (sin huecos vacíos) y los iconos van a escala entera */
+  .hud-tira .ficha.vacia {
+    display: none;
+  }
+  .hud-pozo .icono {
+    transform: none;
+    margin: 0;
+  }
+  .hud-tira {
+    gap: 6px;
+  }
+}
+@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+  /* a 1080p el ancho sobra y el alto no: la cuenta va en un renglón y la pila de la Corte, más chica que el enemigo */
+  .cuenta .c-chips {
+    flex-basis: auto;
+  }
+  .mesa .corte {
+    --k: 1;
+  }
+}

@@ -30,11 +30,11 @@ const RECETA: Record<string, Receta> = {
   oro: { canto: 'zoyY', filete: ['Y', 'o'], centro: ['y', 'O', 0.25], remache: ['Y', 'w'] },
   dorado: { canto: 'zoyY', filete: ['Y', 'o'], centro: ['9', 'z', 0.38], remache: ['Y', 'w'] },
   plata: { canto: 'ijJu', filete: ['u', 'j'], centro: ['9', 'i', 0.38], remache: ['u', 'w'] },
-  prisma: { canto: 'fFqQ', filete: ['C', 'r'], centro: ['9', 'f', 0.5], remache: ['Y', 'w'] },
-  paloS: { canto: 'BbcC', filete: ['A', 'b'], centro: ['9', 'B', 0.5], remache: ['y', 'Y'] },
-  paloC: { canto: 'GglL', filete: ['K', 'g'], centro: ['9', 'G', 0.5], remache: ['y', 'Y'] },
-  paloD: { canto: 'zoOy', filete: ['Y', 'o'], centro: ['9', 'z', 0.5], remache: ['Y', 'w'] },
-  paloH: { canto: 'vRre', filete: ['e', 'R'], centro: ['9', 'v', 0.5], remache: ['y', 'Y'] },
+  prisma: { canto: 'fFqQ', filete: ['C', 'r'], centro: ['9', 'f', 0.25], remache: ['Y', 'w'] },
+  paloS: { canto: 'BbcC', filete: ['A', 'b'], centro: ['9', 'B', 0.25], remache: ['y', 'Y'] },
+  paloC: { canto: 'GglL', filete: ['K', 'g'], centro: ['9', 'G', 0.25], remache: ['y', 'Y'] },
+  paloD: { canto: 'zoOy', filete: ['Y', 'o'], centro: ['9', 'z', 0.25], remache: ['Y', 'w'] },
+  paloH: { canto: 'vRre', filete: ['e', 'R'], centro: ['9', 'v', 0.25], remache: ['y', 'Y'] },
 };
 
 const cache = new Map<string, Mapa>();

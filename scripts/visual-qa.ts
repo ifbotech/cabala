@@ -153,7 +153,8 @@ function medir(o: { esMovil: boolean }) {
         par = `«${rotulo(p.el)}» y «${rotulo(q.el)}»`;
       }
     }
-  const cartas = [...document.querySelectorAll('.mano .carta')].filter(visible).map((el) => el.getBoundingClientRect());
+  // (las cartas que el jugador lleva en el aire al arrastrar van juntas a propósito: no son «la mano»)
+  const cartas = [...document.querySelectorAll<HTMLElement>('.mano .carta')].filter((el) => visible(el) && Number(el.style.zIndex || 0) < 100).map((el) => el.getBoundingClientRect());
   let mano: { n: number; montadas: boolean; franjaMin: number; filas?: number; asomaMin?: number } | null = null;
   if (cartas.length) {
     // las filas de la mano (cartas con la misma altura de reposo, con margen para la que está elegida)
@@ -253,6 +254,9 @@ await conServidor(5191, async (url) => {
             await pagina.keyboard.press('Enter');
             await pagina.keyboard.press('ArrowRight');
           } else await pagina.keyboard.press('ArrowRight');
+        } else if (v.nombre === '1280x800' && estado !== 'mesa-arrastrando') {
+          // en Steam Deck se juega solo con mando: el foco siempre está a la vista (se pone como lo pondría la cruceta)
+          await pagina.keyboard.press('ArrowDown');
         }
         await pagina.waitForTimeout(120);
         const fallos = await pagina.evaluate(auditar, { esMovil: v.w < 700, idioma: lang });

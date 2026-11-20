@@ -37,11 +37,11 @@ Además tenés **3 descartes por combate**: descartar no gasta el turno. Solo se
 | **Carta sola** | 1 carta | +0 | ×1 |
 | **Par** | 2 iguales | +4 | ×2 |
 | **Doble par** | 2 pares | +6 | ×2 |
-| **Flor** | 3 a 5 del mismo palo | +6 | ×2 |
+| **Flor** | 3 a 5 cartas del mismo palo | +6 | ×2 |
 | **Pierna** | 3 iguales | +8 | ×3 |
-| **Escalera** | 3 a 5 seguidas | +8 | ×3 |
+| **Escalera** | 3 a 5 cartas de números seguidos | +8 | ×3 |
 | **Full** | Pierna y Par | +12 | ×4 |
-| **Escalera de palo** | 3 a 5 seguidas del mismo palo | +12 | ×4 |
+| **Escalera de palo** | 3 a 5 cartas seguidas del mismo palo | +12 | ×4 |
 | **Póker** | 4 iguales | +16 | ×5 |
 | **Quince** | Suman 15 (Escoba) | +0 | ×1 |
 | **Envido** | 2 del mismo palo (Truco) | +0 | ×2 |

@@ -355,7 +355,7 @@ export function pantallaBotin(p: Partida): Pantalla {
         <section class="panel botin-panel">
           <h1 class="titulo">${t('botin')}</h1>
           <div class="botin-lista">${botin.items.map(fila).join('')}</div>
-          <button class="btn marco ${pendiente() < 0 ? 'oro' : ''} grande" data-accion="seguir" data-foco="seguir" ${pendiente() < 0 ? 'data-inicio' : ''}>${t('seguir')}</button>
+          <button class="btn marco ${pendiente() < 0 ? 'oro' : 'hierro'} grande" data-accion="seguir" data-foco="seguir" ${pendiente() < 0 ? 'data-inicio' : ''}>${t('seguir')}</button>
         </section>
       </div>
       ${hudHtml(p)}
@@ -505,7 +505,7 @@ export function pantallaFogon(p: Partida): Pantalla {
             <span class="op-icono grande">${pxHud('descarte')}</span><b class="op-nombre">${t('quemar')}</b><span class="op-desc">${t('quemarDesc')}</span>
           </button>
         </div>
-        <button class="btn marco ${p.fogonHecho ? 'oro' : ''} grande" data-accion="seguir" data-foco="seguir">${t('seguir')}</button>
+        <button class="btn marco ${p.fogonHecho ? 'oro' : 'hierro'} grande" data-accion="seguir" data-foco="seguir">${t('seguir')}</button>
       </div>
       ${hudHtml(p)}
     </main>`,
