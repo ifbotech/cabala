@@ -72,3 +72,37 @@ export const VOZ = {
   gano: [P('¡Cayó la Corte! Yo siempre creí en vos. Casi siempre.', 'The Court has fallen! I always believed in you. Almost always.')],
   perdio: [P('Te limpiaron. Barajamos y damos de nuevo.', 'They cleaned you out. We shuffle and deal again.'), P('La Corte gana… esta mano.', 'The Court wins… this hand.')],
 } as const;
+
+/** Lo que grita cada Personaje (un bocadillo corto sobre su retrato, con su voz). El canto lo grita con su nombre. */
+export const GRITO: Record<MazoId, { exacto: Par[]; dolor: Par[]; rey: Par; gana: Par }> = {
+  escoba: {
+    exacto: [P('¡Limpito!', 'Spotless!'), P('¡Ni una pelusa!', 'Not a speck!')],
+    dolor: [P('¡Ay, mi espalda!', 'Ow, my back!'), P('¡Eh, más respeto!', 'Hey, some respect!')],
+    rey: P('A vos también te barro.', 'I will sweep you too.'),
+    gana: P('Barrido y a la bolsa.', 'Swept and bagged.'),
+  },
+  truco: {
+    exacto: [P('¡Justo en el ancho!', 'Dead on!'), P('¡Quiero!', 'I call!')],
+    dolor: [P('¡La pucha!', 'Blast!'), P('Eso fue de mala leche.', 'That was a low blow.')],
+    rey: P('¡Quiero retruco, patrón!', 'I raise you, boss!'),
+    gana: P('Truco ganado.', 'Trick won.'),
+  },
+  chinchon: {
+    exacto: [P('¡Cierro!', 'I close!'), P('Contadito.', 'Counted clean.')],
+    dolor: [P('¡Se me corrió el rímel!', 'You smudged my mascara!'), P('Anotá, anotá.', 'Go on, write it down.')],
+    rey: P('Te corto con menos diez.', 'I close with minus ten.'),
+    gana: P('¡Chinchón, querido!', 'Chinchón, darling!'),
+  },
+  mentiroso: {
+    exacto: [P('Te lo dije… creo.', 'Told you… I think.'), P('Ni yo me la creía.', 'Even I did not buy it.')],
+    dolor: [P('¡Eso no estaba en el trato!', 'That was not the deal!'), P('Fue sin querer, ¿no?', 'An accident, right?')],
+    rey: P('Majestad, vengo en son de paz.', 'Majesty, I come in peace.'),
+    gana: P('Y eso que mentí.', 'And I was lying.'),
+  },
+  chancho: {
+    exacto: [P('¡Mano!', 'Hand!'), P('¡Primero yo!', 'Me first!')],
+    dolor: [P('¡Auch!', 'Ouch!'), P('¡Ojo con los dedos!', 'Mind the fingers!')],
+    rey: P('¡Chancho va!', 'Pig goes!'),
+    gana: P('¡Chancho!', 'Pig!'),
+  },
+};

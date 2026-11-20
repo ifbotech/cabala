@@ -8,6 +8,7 @@ import { semillaNueva } from '../rules/rng';
 import { cargarPartida, guardarPartida, guardarPerfil, perfil } from './almacen';
 import { ponerEscena, type Escena } from './fx/motor';
 import { apagarRetrato } from './hud';
+import { ponerMusica, type PistaId } from './musica';
 import { pantallaBotin, pantallaCabala, pantallaFin, pantallaFogon, pantallaMapa, pantallaPulperia } from './pantallas/camino';
 import { pantallaAjustes, pantallaAltar, pantallaColeccion, pantallaCronica, pantallaMazo, pantallaPortada } from './pantallas/menu';
 import { pantallaMesa } from './pantallas/mesa';
@@ -24,15 +25,16 @@ export const sesion: {
   qa: boolean;
 } = { partida: null, abiertos: [], reinadoAbierto: 0, anotada: false, qa: false };
 
-function ir(p: Pantalla, escena: Escena): void {
+function ir(p: Pantalla, escena: Escena, pista: PistaId = 'portada'): void {
   apagarRetrato();
   ponerEscena(escena);
+  ponerMusica(pista);
   montar(p);
 }
 
 export const irPortada = (): void => ir(pantallaPortada(), 'portada');
 export const irMazo = (): void => ir(pantallaMazo(), 'portada');
-export const irAltar = (): void => ir(pantallaAltar(), 'altar');
+export const irAltar = (): void => ir(pantallaAltar(), 'altar', 'cabala');
 export const irColeccion = (): void => ir(pantallaColeccion(), 'portada');
 export const irCronica = (): void => ir(pantallaCronica(), 'portada');
 export const irAjustes = (): void => ir(pantallaAjustes(), 'portada');
@@ -87,26 +89,26 @@ export function pintarFase(): void {
   }
   switch (p.fase) {
     case 'botin':
-      ir(pantallaBotin(p), p.botin?.de === 'inicio' ? 'portada' : 'mesa');
+      ir(pantallaBotin(p), p.botin?.de === 'inicio' ? 'portada' : 'mesa', p.botin?.de === 'inicio' ? 'portada' : 'mapa');
       break;
     case 'mapa':
-      ir(pantallaMapa(p), 'mapa');
+      ir(pantallaMapa(p), 'mapa', 'mapa');
       break;
     case 'combate':
-      ir(pantallaMesa(p), 'mesa');
+      ir(pantallaMesa(p), 'mesa', p.combate?.tipo === 'rey' ? 'rey' : 'mesa');
       break;
     case 'pulperia':
-      ir(pantallaPulperia(p), 'pulperia');
+      ir(pantallaPulperia(p), 'pulperia', 'pulperia');
       break;
     case 'fogon':
-      ir(pantallaFogon(p), 'pulperia');
+      ir(pantallaFogon(p), 'pulperia', 'fogon');
       break;
     case 'cabala':
-      ir(pantallaCabala(p), 'altar');
+      ir(pantallaCabala(p), 'altar', 'cabala');
       break;
     case 'fin':
       anotarFin(p);
-      ir(pantallaFin(p), p.fin?.victoria ? 'portada' : 'altar');
+      ir(pantallaFin(p), p.fin?.victoria ? 'portada' : 'altar', p.fin?.victoria ? 'pulperia' : 'derrota');
       break;
   }
 }

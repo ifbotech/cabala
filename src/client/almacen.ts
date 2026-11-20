@@ -34,10 +34,11 @@ export interface Ajustes {
   /** Reducir movimiento. */
   calma: boolean;
   sonido: boolean;
+  musica: boolean;
 }
 
 const preferido = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-export const ajustes: Ajustes = { idioma: idiomaDe(typeof navigator !== 'undefined' ? navigator.language : 'es'), calma: preferido, sonido: true, ...(leer<Partial<Ajustes>>('ajustes') ?? {}) };
+export const ajustes: Ajustes = { idioma: idiomaDe(typeof navigator !== 'undefined' ? navigator.language : 'es'), calma: preferido, sonido: true, musica: true, ...(leer<Partial<Ajustes>>('ajustes') ?? {}) };
 export const guardarAjustes = (): void => escribir('ajustes', ajustes);
 
 export let perfil: Perfil = { ...perfilNuevo(), ...(leer<Perfil>('perfil') ?? {}) };

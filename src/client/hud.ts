@@ -2,6 +2,8 @@
 // lados, parpadea, se lastima según la Vida que le queda, sonríe feroz al clavar un canto y hace una mueca al
 // recibir el Contraataque) y a sus lados la Vida, el Escudo, el oro, el Mazo y las tiras de Amuletos, Cábalas y
 // Bendiciones con sus cargas. Todo se inspecciona al pasar el cursor o el foco.
+import { vocear } from './habla';
+import type { MazoId } from '../rules/mazos';
 import { AMULETO, RAREZA_NOMBRE } from '../rules/amuletos';
 import { AUMENTO, NIVEL_NOMBRE } from '../rules/aumentos';
 import { PALOS } from '../rules/cartas';
@@ -106,8 +108,15 @@ export function ponerHud(v: VistaHud): void {
   const pon = (clave: string, html: string) => {
     const el = $(`[data-hud] [data-n="${clave}"]`);
     if (el && el.dataset.v !== html) {
+      const cambia = el.dataset.v !== undefined;
       el.innerHTML = html;
       el.dataset.v = html;
+      // el número que cambia da un latido
+      if (cambia && !ajustes.calma && !enFoto()) {
+        el.classList.remove('late');
+        void el.offsetWidth;
+        el.classList.add('late');
+      }
     }
   };
   pon('vida', cifra(v.vida, 'roja', 'grande'));
@@ -188,3 +197,25 @@ export function gestoRetrato(g: Gesto, ms = 900): void {
   }
 }
 export const repintarCara = pintarCara;
+
+/** El Personaje grita algo: un bocadillo corto sobre su retrato, con su voz, que se va solo. */
+export function gritar(mazo: MazoId, texto: string): void {
+  const retrato = $('.hud-retrato');
+  if (!retrato || !texto || enFoto()) return;
+  document.querySelector('.hud-grito')?.remove();
+  const r = retrato.getBoundingClientRect();
+  const b = document.createElement('p');
+  b.className = 'bocadillo sin-cola hud-grito';
+  b.textContent = texto;
+  // dentro de la pantalla aunque el retrato esté en una esquina (móvil)
+  const x = Math.max(80, Math.min(innerWidth - 80, r.left + r.width / 2));
+  b.style.left = `${Math.round(x)}px`;
+  b.style.top = `${Math.round(r.top - 6)}px`;
+  ($('#capa') ?? document.body).append(b);
+  vocear(mazo, texto);
+  // el retrato da un salto al gritar
+  retrato.classList.remove('grita');
+  void retrato.offsetWidth;
+  retrato.classList.add('grita');
+  window.setTimeout(() => b.remove(), 1500);
+}

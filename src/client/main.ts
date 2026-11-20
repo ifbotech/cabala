@@ -9,7 +9,8 @@ import './estilos/mesa.css';
 import { MARCA } from '../shared/brand';
 import { decidir, mejorGolpe } from '../rules/bot';
 import { ajustes, alAzar, idioma, perfil, tx } from './almacen';
-import { prepararAudio, sonados } from './audio';
+import { hablaron, prepararAudio, sonados } from './audio';
+import { estadoMusica, pistasSonadas } from './musica';
 import { iniciarFx, pulso } from './fx/motor';
 import { irPortada, sesion } from './juego';
 import { ponerMuletillas } from './bufon-vivo';
@@ -30,7 +31,7 @@ prepararAudio();
 ponerMuletillas(() => tx(alAzar(VOZ.muletilla)));
 
 // para la QA de humo: el estado vivo y el consejo del bot
-(window as unknown as { __cabala?: unknown }).__cabala = { sesion, perfil: () => perfil, mejorGolpe, decidir, pulso, sonados, porForjar };
+(window as unknown as { __cabala?: unknown }).__cabala = { sesion, perfil: () => perfil, mejorGolpe, decidir, pulso, sonados, porForjar, hablaron, musica: estadoMusica, pistas: pistasSonadas };
 
 const qa = new URLSearchParams(location.search).get('qa');
 if (qa !== null) void import('./qa').then((m) => m.montarQa(qa));

@@ -1,5 +1,6 @@
 // Ayudas de la interfaz: montar una pantalla, repartir los clics por `data-accion`, la inspección al pasar el cursor
 // o el foco (`data-tip`), los modales, el Bufón, los Reyes y la etiqueta de sinergia.
+import { quieto } from './ritmo';
 import { AMULETO, RAREZA_NOMBRE } from '../rules/amuletos';
 import type { AmuletoId } from '../rules/amuletos';
 import { AUMENTO, NIVEL_NOMBRE } from '../rules/aumentos';
@@ -37,6 +38,7 @@ let actual: Pantalla | null = null;
 let modal: { acciones: Record<string, Accion>; atras?: () => void } | null = null;
 
 /** Monta una pantalla en #app. */
+let relojRecien = 0;
 export function montar(p: Pantalla, misma = false): void {
   if (!misma) esfumar();
   actual?.alSalir?.();
@@ -48,6 +50,10 @@ export function montar(p: Pantalla, misma = false): void {
   app.dataset.pantalla = p.nombre;
   app.innerHTML = p.html();
   p.alMontar?.(app);
+  // recién montada: la pantalla entra y sus opciones brotan una tras otra (no al repintar la misma)
+  clearTimeout(relojRecien);
+  app.classList.toggle('recien', !misma && !quieto());
+  if (!misma && !quieto()) relojRecien = window.setTimeout(() => app.classList.remove('recien'), 800);
   avivar(app, !misma);
   document.dispatchEvent(new CustomEvent('cabala:pantalla', { detail: p.nombre }));
 }
@@ -69,6 +75,8 @@ export function abrirModal(html: string, acciones: Record<string, Accion> = {}, 
   capa.insertAdjacentHTML('beforeend', `<div class="velo" role="dialog" aria-modal="true">${html}</div>`);
   modal = { acciones, atras };
   const velo = capa.lastElementChild as HTMLElement;
+  // las opciones del modal brotan una tras otra (en las capturas y con «Reducir movimiento», ya están en su sitio)
+  velo.classList.toggle('recien', !quieto());
   avivar(velo, true);
   requestAnimationFrame(() => (velo.querySelector<HTMLElement>('[data-inicio]') ?? velo.querySelector<HTMLElement>('button:not(:disabled)'))?.focus());
   document.dispatchEvent(new CustomEvent('cabala:pantalla', { detail: 'modal' }));

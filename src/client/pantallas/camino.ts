@@ -18,12 +18,14 @@ import type { BendicionId } from '../../rules/reyes';
 import { clavePieza } from '../../rules/notas';
 import { alAzar, idioma, perfil, t, tx } from '../almacen';
 import { sonar } from '../audio';
-import { haloRey, lluviaDeMonedas } from '../fx/efectos';
+import { chispas, destello, haloRey, humo, lluviaDeMonedas, numero, partirNaipe } from '../fx/efectos';
+import { teclear } from '../habla';
+import { pausa, quieto } from '../ritmo';
 import { enFoto } from '../fx/motor';
 import { avivarRetrato, hudHtml } from '../hud';
 import { avanzar, guardar, irPortada, sesion, soltarPartida } from '../juego';
 import type { Expresion } from '../pixel/bufon';
-import { cifra, pxAmuleto, pxAumento, pxBendicion, pxHud, pxNaipe, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
+import { lienzoNaipe, cifra, pxAmuleto, pxAumento, pxBendicion, pxHud, pxNaipe, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
 import { JUGADA_COMO, JUGADA_NOMBRE, NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, TRAMO_NOMBRE } from '../textos';
 import { VOZ } from '../voces';
 import { bufonDice } from '../bufon-vivo';
@@ -203,6 +205,7 @@ export function pantallaMapa(p: Partida): Pantalla {
     );
     return `<svg class="mapa-lineas" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">${trazos.join('')}</svg>`;
   };
+  let andando = false;
   return {
     nombre: 'mapa',
     html: () => `<main class="pantalla en-partida mapa">
@@ -224,12 +227,17 @@ export function pantallaMapa(p: Partida): Pantalla {
     },
     acciones: {
       ...accionesComunes(p),
-      nodo: (el) => {
+      nodo: async (el) => {
         const id = el.dataset.id!;
-        if (!abiertos.includes(id)) return;
+        if (andando || !abiertos.includes(id)) return;
+        andando = true;
         const n = tramo.nodos.find((x) => x.id === id)!;
         if (n.tipo === 'rey') ver(perfil, `r:${tramo.rey}`);
-        sonar(n.tipo === 'rey' ? 'rey' : 'clic');
+        sonar(n.tipo === 'rey' ? 'rey' : 'paso');
+        // el paso: el nodo elegido late y los demás se apagan
+        el.classList.add('pisado');
+        el.closest('.mapa-lienzo')?.classList.add('andando');
+        await pausa(280);
         juego.elegirNodo(p, id);
         avanzar();
       },
@@ -250,9 +258,10 @@ function modalOferta(p: Partida, indice: number, alTerminar: () => void): void {
   const reyes = oferta.tipo === 'bendicion' ? oferta.opciones.map((id) => BENDICION[id as BendicionId].rey) : [];
   for (const r of reyes) ver(perfil, `r:${r}`);
   const habla = reyes[0];
+  const fraseRey = habla ? tx(alAzar(REY_DEF[habla].voz.ofrece, fijo())) : '';
   const cabeza =
     oferta.tipo === 'bendicion' && habla
-      ? `<p class="bocadillo sin-cola oferta-voz"><b>${esc(tx(REY_DEF[habla].apodo))}:</b> ${esc(tx(alAzar(REY_DEF[habla].voz.ofrece, fijo())))}</p>`
+      ? `<p class="bocadillo sin-cola oferta-voz"><b>${esc(tx(REY_DEF[habla].apodo))}:</b> <span data-teclea>${esc(fraseRey)}</span></p>`
       : oferta.tipo === 'aumento'
         ? `<div class="oferta-bufon" data-anfitrion>${bufonHtml('brillo')}<p class="bocadillo" data-voz>${esc(tx(alAzar(VOZ.cabala, fijo())))}</p></div>`
         : '';
@@ -297,6 +306,7 @@ function modalOferta(p: Partida, indice: number, alTerminar: () => void): void {
     },
     () => undefined,
   );
+  if (oferta.tipo === 'bendicion' && habla && !quieto()) teclear($('[data-teclea]', velo), fraseRey, habla);
   // la irrupción del Rey que habla: su aura se abre desde el retrato
   if (habla) {
     const r = $('.rey', velo)?.getBoundingClientRect();
@@ -496,6 +506,21 @@ export function pantallaPulperia(p: Partida): Pantalla {
 export function pantallaFogon(p: Partida): Pantalla {
   const cura = Math.min(Math.round(p.vidaMax * B.fogon.curaPct), p.vidaMax - p.vida);
   let seQuemo = false;
+  let ocupado = false;
+  let brasas = 0;
+  const FUEGO = ['#ffffff', '#ffd500', '#ff7b00', '#7a0026'];
+  const centroDe = (sel: string): { x: number; y: number; r: DOMRect } | null => {
+    const r = $(sel)?.getBoundingClientRect();
+    return r ? { x: r.left + r.width / 2, y: r.top + r.height / 2, r } : null;
+  };
+  /** El naipe recién templado: un fogonazo y su «+4» que sube. */
+  const fogonazo = (): void => {
+    const c = centroDe('.fuego-carta');
+    if (!c || quieto()) return;
+    destello(c.x, c.y, FUEGO, 22);
+    chispas(c.x, c.y, FUEGO, 16, 90, -40);
+    numero(`+${B.fogon.temple}`, c.x, c.y - c.r.height * 0.4, 'oro', 2);
+  };
   /** La segunda opción del Fogón: templar un naipe; el naipe que ya está en el fuego (¿otra pasada?); o su ceniza. */
   const fuegoHtml = (): string => {
     const enFuego = p.fogonCarta ? p.mazo.find((k) => k.id === p.fogonCarta) : null;
@@ -526,7 +551,17 @@ export function pantallaFogon(p: Partida): Pantalla {
       </div>
       ${hudHtml(p)}
     </main>`,
-    alMontar: () => avivarRetrato(p),
+    alMontar: () => {
+      avivarRetrato(p);
+      // las brasas del Fogón suben todo el tiempo desde el fuego
+      clearInterval(brasas);
+      if (!quieto())
+        brasas = window.setInterval(() => {
+          const c = centroDe('.fogon .fuego-carta') ?? centroDe('.fogon [data-accion="descansar"] .op-icono');
+          if (c && !document.hidden) chispas(c.x + (Math.random() - 0.5) * c.r.width * 0.6, c.y + c.r.height * 0.3, FUEGO, 1, 26, -70);
+        }, 260);
+    },
+    alSalir: () => clearInterval(brasas),
     acciones: {
       ...accionesComunes(p),
       descansar: () => {
@@ -542,22 +577,44 @@ export function pantallaFogon(p: Partida): Pantalla {
           t('elegiTemple'),
           (id) => {
             const r = juego.templar(p, id);
-            if (r) sonar('canto');
+            if (r) sonar('fuego');
             guardar();
             repintar();
-            if (r) bufonDice(tx(alAzar(VOZ.templa)));
+            if (r) {
+              fogonazo();
+              bufonDice(tx(alAzar(VOZ.templa)));
+            }
           },
           p.mazo.filter((k) => k.palo !== 'X'),
           true,
         ),
-      arrimar: () => {
-        const r = p.fogonCarta ? juego.templar(p, p.fogonCarta) : null;
+      arrimar: async () => {
+        const carta = p.fogonCarta ? p.mazo.find((k) => k.id === p.fogonCarta) : null;
+        if (ocupado || !carta) return;
+        ocupado = true;
+        // el suspenso: el naipe tiembla sobre las llamas mientras sube el chisporroteo
+        const el = $('.fuego-carta');
+        el?.classList.add('al-fuego');
+        $<HTMLButtonElement>('[data-accion="arrimar"]')?.setAttribute('disabled', '');
+        sonar('suspenso');
+        await pausa(820);
+        const rect = el?.getBoundingClientRect();
+        const r = juego.templar(p, carta.id);
         if (r === 'quemada') {
           seQuemo = true;
-          sonar('cae');
+          sonar('ceniza');
+          if (rect && !quieto()) {
+            // el naipe se parte en brasas y se va en humo
+            partirNaipe(lienzoNaipe(carta.palo as Exclude<typeof carta.palo, 'X'>, carta.n), rect, FUEGO);
+            humo(rect.left + rect.width / 2, rect.top + rect.height / 2, rect.width * 0.7);
+            el?.classList.add('ceniza');
+            await pausa(520);
+          }
         } else if (r === 'templada') sonar('canto');
         guardar();
         repintar();
+        ocupado = false;
+        if (r === 'templada') fogonazo();
         if (r) bufonDice(tx(alAzar(r === 'quemada' ? VOZ.quema : VOZ.templa)));
       },
       seguir: () => {

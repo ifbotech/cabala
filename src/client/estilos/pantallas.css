@@ -1408,3 +1408,65 @@ button.visor-carta:disabled {
     width: calc(230px * var(--k) * 0.5 + 115px);
   }
 }
+
+/* ───────────── 0.10.0: el paso en el Mapa, los nodos que brotan y el Fogón vivo ───────────── */
+
+#app.recien .nodo {
+  animation: nodo-brota 0.32s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+@keyframes nodo-brota {
+  from {
+    opacity: 0;
+    scale: 0.4;
+  }
+}
+.nodo.pisado {
+  animation: nodo-pisa 0.28s steps(5) both;
+  z-index: 3;
+}
+@keyframes nodo-pisa {
+  40% {
+    scale: 1.35;
+  }
+  to {
+    scale: 1.15;
+  }
+}
+.mapa-lienzo.andando .nodo:not(.pisado) {
+  opacity: 0.35;
+  animation: none;
+}
+/* las llamas del Fogón: el ícono del fuego se mueve todo el tiempo */
+.fogon [data-accion='descansar'] .op-icono {
+  transform-origin: 50% 100%;
+  animation: llama 0.5s steps(3) infinite alternate;
+}
+@keyframes llama {
+  from {
+    scale: 1 1;
+  }
+  50% {
+    scale: 1.04 0.94;
+  }
+  to {
+    scale: 0.96 1.08;
+  }
+}
+/* el naipe arrimado otra vez tiembla sobre las llamas hasta que se sabe */
+.fuego-carta.al-fuego {
+  animation:
+    fuego-late 0.18s steps(2) infinite alternate,
+    tiembla 0.09s steps(2) infinite;
+  filter: sepia(0.6) saturate(2.2) brightness(1.15);
+}
+@keyframes tiembla {
+  from {
+    translate: calc(-1px * var(--k)) 0;
+  }
+  to {
+    translate: calc(1px * var(--k)) calc(-1px * var(--k));
+  }
+}
+.fuego-carta.ceniza {
+  visibility: hidden;
+}

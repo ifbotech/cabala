@@ -215,6 +215,11 @@ await conServidor(5192, async (url) => {
       }
     }
     exigir((await estado(p))?.fase === 'fin', `la partida no llegó al final en ${pasos} pasos`);
+    const dicho = await p.evaluate(() => {
+      const g = (window as unknown as { __cabala: { hablaron: string[]; sesion: { partida: { stats: { cantos: number } } } } }).__cabala;
+      return { hablaron: g.hablaron, cantos: g.sesion.partida.stats.cantos };
+    });
+    exigir(dicho.cantos === 0 || dicho.hablaron.includes(mazo), `hubo ${dicho.cantos} cantos y el Personaje no gritó ninguno (hablaron: ${dicho.hablaron.join(' ')})`);
     await p.waitForSelector('.fin .fin-porotos');
     const fin = await p.evaluate(() => ({ titulo: document.querySelector('.fin-titulo')?.textContent ?? '', porotos: document.querySelector('.fin-porotos')?.textContent ?? '' }));
     ok(`partida entera por la interfaz en ${pasos} pasos (${arrastres} golpes arrastrando): «${fin.titulo.trim()}» · ${fin.porotos.trim()}`);
@@ -299,7 +304,41 @@ await conServidor(5192, async (url) => {
     exigir(tras.includes('puf') && tras.lastIndexOf('bufon') > tras.indexOf('puf'), `al cambiar de pantalla el Bufón no se esfumó y reapareció (${tras})`);
     await v.waitForFunction(() => document.querySelector<HTMLElement>('.mini-anfitrion [data-voz]')?.hidden === true, undefined, { timeout: 12000 });
     ok('el Bufón te sigue: se esfuma con humo, reaparece con su sonido, escribe lo que dice y el bocadillo se va');
+
+    // la música: suena la pista de la pantalla desde el primer gesto, y el ajuste la apaga y la prende
+    type Mus = { deseada: string | null; suena: string | null; pasos: number };
+    const musica = (pg: Page): Promise<Mus> => pg.evaluate(() => (window as unknown as { __cabala: { musica: () => Mus } }).__cabala.musica());
+    const suena = (pg: Page, pista: string | null): Promise<unknown> =>
+      pg.waitForFunction((x) => (window as unknown as { __cabala: { musica: () => Mus } }).__cabala.musica().suena === x, pista, { timeout: 6000 });
+    await suena(v, 'portada');
+    const m0 = await musica(v);
+    await v.waitForFunction((n) => (window as unknown as { __cabala: { musica: () => Mus } }).__cabala.musica().pasos > n + 8, m0.pasos, { timeout: 6000 });
+    await v.click('[data-accion="volver"]');
+    await v.click('[data-accion="ajustes"]');
+    await v.click('[data-accion="musica-no"]');
+    await suena(v, null);
+    await v.click('[data-accion="musica-si"]');
+    await suena(v, 'portada');
+    ok('música: la milonga de la portada suena desde el primer gesto; Ajustes → Música la apaga y la prende');
     await vivo.close();
+
+    // las voces: el Rey que ofrece su Bendición habla letra por letra con su voz, y la pantalla cambia de pista
+    const vc = await navegador.newContext({ viewport: { width: 1366, height: 768 } });
+    await vc.addInitScript('globalThis.__name = (f) => f');
+    const pv = await vc.newPage();
+    pv.on('pageerror', (e) => errores.push(e.message));
+    await pv.goto(`${url}/?qa=elegi-bendicion&vivo&lang=${lang}`);
+    await pv.waitForFunction(() => (document.querySelector('.oferta-voz [data-teclea] .dicho')?.textContent ?? '').length > 6, undefined, { timeout: 6000 });
+    const voces = await pv.evaluate(() => (window as unknown as { __cabala: { hablaron: string[] } }).__cabala.hablaron);
+    exigir(voces.some((x) => 'SCDH'.includes(x)), `el Rey ofreció su Bendición sin voz (hablaron: ${voces.join(' ')})`);
+    await pv.mouse.click(8, 8);
+    await suena(pv, 'mapa');
+    await pv.goto(`${url}/?qa=mesa-rey&vivo&lang=${lang}`);
+    await pv.waitForSelector('[data-mano] .carta');
+    await pv.mouse.click(8, 8);
+    await suena(pv, 'rey');
+    ok(`voces y pistas: el Rey habla con su voz (${voces.filter((x) => 'SCDH'.includes(x)).join('')}); el botín suena a camino y el Rey tiene su galope`);
+    await vc.close();
   } finally {
     await navegador.close();
   }

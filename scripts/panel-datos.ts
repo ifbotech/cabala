@@ -5,7 +5,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { ESTADOS } from '../src/client/qa';
 import { EN, ES, JUGADA_COMO, JUGADA_NOMBRE, NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, RANGO_NOMBRE, TRAMO_NOMBRE } from '../src/client/textos';
-import { ENSENANZA, VOZ } from '../src/client/voces';
+import { ENSENANZA, GRITO, VOZ } from '../src/client/voces';
+import { PISTAS } from '../src/client/musica';
 import { AMULETO, AMULETOS, RAREZA_NOMBRE, precioBase } from '../src/rules/amuletos';
 import { AUMENTO, AUMENTOS, NIVEL_NOMBRE } from '../src/rules/aumentos';
 import { B } from '../src/rules/balance';
@@ -47,6 +48,14 @@ const FUNCIONES = {
   comodinRotulado: true,
   /** Cada Mazo se juega con la mano de su juego (Escoba y Truco 3, Chancho Va 4, Chinchón 7, El Mentiroso 8). */
   manosReales: true,
+  /** Hay música sintetizada, una pista por pantalla, con su ajuste propio. */
+  musica: true,
+  /** Los Reyes y los Personajes hablan con su propio timbre; el Personaje grita el canto y el canto cruza la mesa. */
+  vocesPropias: true,
+  /** El Fogón tiene brasas, suspenso al arrimar y el naipe que se parte si se quema. */
+  fogonVivo: true,
+  /** Las fotos de la mesa muestran la mano del Mazo (sin Aumentos que repartan de más). */
+  fotosManoReal: true,
   /** El Fogón deja templar un naipe con riesgo de quemarlo (ya no «quemar un naipe»). */
   fogonTemple: true,
   /** La cuenta dice cuánto le queda al enemigo o cuánto sobra, y hay racha de Golpes exactos. */
@@ -78,13 +87,15 @@ const datos = {
   B,
   ui: { es: ES, en: EN },
   voz: { ensenanza: ENSENANZA, ...VOZ },
+  gritos: GRITO,
+  musica: Object.entries(PISTAS).map(([id, p]) => ({ id, bpm: p.bpm, compas: p.pasos === 12 ? '3/4' : '4/4' })),
   palos: Object.fromEntries(PALOS.map((s) => [s, { nombre: PALO_NOMBRE[s], poder: PALO_PODER[s] }])),
   rangos: RANGO_NOMBRE,
   jugadas: [...JUGADAS, 'quince' as Jugada, 'envido' as Jugada].map((j) => ({ id: j, nombre: JUGADA_NOMBRE[j], como: JUGADA_COMO[j], d: B.jugadas[j].d, m: B.jugadas[j].m })),
   nodos: Object.fromEntries((Object.keys(NODO_NOMBRE) as (keyof typeof NODO_NOMBRE)[]).map((n) => [n, { nombre: NODO_NOMBRE[n], desc: NODO_DESC[n] }])),
   tramos: TRAMO_NOMBRE,
   mazos: MAZOS.map((m) => ({ id: m, nombre: MAZO[m].nombre, lema: MAZO[m].lema, personaje: MAZO[m].personaje, regla: MAZO[m].regla, canto: MAZO[m].canto, reglas: MAZO[m].reglas, desbloqueo: MAZO[m].desbloqueo?.texto ?? null, vida: B.mazos[m].vida, mano: B.mazos[m].mano, multiMano: (B.mazos[m] as { multiMano?: number }).multiMano ?? 0 })),
-  reyes: PALOS.map((s) => ({ palo: s, nombre: REY_DEF[s].nombre, apodo: REY_DEF[s].apodo, carga: REY_DEF[s].carga, cargaDa: REY_DEF[s].cargaDa, rasgo: REY_DEF[s].rasgo, rasgoDesc: REY_DEF[s].rasgoDesc })),
+  reyes: PALOS.map((s) => ({ palo: s, nombre: REY_DEF[s].nombre, apodo: REY_DEF[s].apodo, carga: REY_DEF[s].carga, cargaDa: REY_DEF[s].cargaDa, rasgo: REY_DEF[s].rasgo, rasgoDesc: REY_DEF[s].rasgoDesc, voz: REY_DEF[s].voz })),
   bendiciones: BENDICIONES.map((id) => {
     const d = BENDICION[id];
     return { id, nombre: d.nombre, rey: d.rey, dual: d.dual ?? null, niveles: Array.from({ length: d.niveles }, (_, i) => d.desc(i + 1)) };

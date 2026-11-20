@@ -68,7 +68,8 @@ export function montarQa(estado: string): void {
   document.documentElement.lang = ajustes.idioma;
   usarPerfil(q.get('perfil') === 'nuevo' ? perfilNuevo() : perfilMuestra());
   const mazo = (q.get('mazo') as MazoId) || 'escoba';
-  const enCombate = (p: Partida, acto = 1) => p.fase === 'combate' && p.acto >= acto && p.combate!.turno === 1 && p.combate!.golpes === 0;
+  // la mesa se fotografía con la mano de su Mazo (sin el Aumento que reparte cartas de más el primer turno)
+  const enCombate = (p: Partida, acto = 1) => p.fase === 'combate' && p.acto >= acto && p.combate!.turno === 1 && p.combate!.golpes === 0 && p.combate!.mano.length === p.manoMax;
   switch (estado as EstadoQa) {
     case 'portada':
       irPortada();

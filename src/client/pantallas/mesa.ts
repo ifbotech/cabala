@@ -16,15 +16,16 @@ import { ver } from '../../rules/perfil';
 import { REY_DEF } from '../../rules/reyes';
 import { ajustes, alAzar, guardarPerfil, idioma, perfil, t, tx } from '../almacen';
 import { sonar, vozBufon } from '../audio';
+import { teclear } from '../habla';
 import { RAMPA_CURA, RAMPA_ESCUDO, RAMPA_GOLPE, RAMPA_PALO, chispas, destello, haloRey, monedas, motas, numero, partirNaipe, tajo } from '../fx/efectos';
 import { congelar, enFoto, sacudir } from '../fx/motor';
-import { actualizarTiras, avivarRetrato, gestoRetrato, hudHtml, ponerHud, vistaDe, type VistaHud } from '../hud';
+import { actualizarTiras, avivarRetrato, gestoRetrato, gritar, hudHtml, ponerHud, vistaDe, type VistaHud } from '../hud';
 import { guardar, pintarFase } from '../juego';
 import { crearMano, type Mano, type Zona } from '../mano';
 import type { Expresion } from '../pixel/bufon';
 import { cifra, lienzoNaipe, pxHud, pxInmune, pxNaipe, pxPalo } from '../sprites';
 import { JUGADA_NOMBRE, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_NOMBRE, RANGO_NOMBRE, TRAMO_NOMBRE } from '../textos';
-import { ENSENANZA, VOZ } from '../voces';
+import { ENSENANZA, GRITO, VOZ } from '../voces';
 import { $, bufonHtml, esc, fichaDe, gestoBufon, reyHtml, tip, type Pantalla } from '../ui';
 import { porTeclado } from '../nav';
 import { pausa, quieto } from '../ritmo';
@@ -44,13 +45,14 @@ const centro = (el: Element | null): { x: number; y: number } => {
 };
 
 /** Una micro-escena que cruza la pantalla (la entrada del combate, la irrupción de un Rey). Se salta con un clic. */
-function cortina(html: string, ms: number, cls = ''): Promise<void> {
+function cortina(html: string, ms: number, cls = '', alMontar?: (el: HTMLElement) => number): Promise<void> {
   if (quieto()) return Promise.resolve();
   return new Promise((ok) => {
     const el = document.createElement('div');
     el.className = `cortina ${cls}`;
     el.innerHTML = html;
     $('#capa')!.append(el);
+    ms += alMontar?.(el) ?? 0;
     let hecho = false;
     const fin = () => {
       if (hecho) return;
@@ -274,7 +276,20 @@ export function pantallaMesa(p: Partida): Pantalla {
           sonar('canto');
           gestoRetrato('feroz', 1200);
           $('[data-cuenta] .c-canto')?.classList.add('salta');
-          voz(VOZ.canto, 'risa');
+          gritar(p.mazoId, tx(MAZO[p.mazoId].canto));
+          if (!quieto()) {
+            // el canto cruza la mesa en grande
+            const en = centro(carta());
+            const g = document.createElement('b');
+            g.className = 'canto-grande titulo';
+            g.textContent = tx(MAZO[p.mazoId].canto);
+            g.style.left = `${Math.round(en.x)}px`;
+            g.style.top = `${Math.round(en.y)}px`;
+            $('#capa')?.append(g);
+            window.setTimeout(() => g.remove(), 850);
+          }
+          if (Math.random() < 0.4) voz(VOZ.canto, 'risa');
+          else gestoBufon($('.esc-bufon')!, 'risa');
           break;
         case 'dano': {
           if (!enemigo) break;
@@ -294,6 +309,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           sonar('exacto');
           gestoRetrato('feroz', 1300);
           voz(VOZ.exacto, 'risa');
+          if (Math.random() < 0.6) gritar(p.mazoId, tx(alAzar(GRITO[p.mazoId].exacto)));
           break;
         }
         case 'escudo': {
@@ -336,6 +352,14 @@ export function pantallaMesa(p: Partida): Pantalla {
         case 'cae': {
           const el = carta();
           const r = el?.getBoundingClientRect();
+          if (enemigo?.jefe && !quieto()) {
+            const b = document.createElement('p');
+            b.className = 'bocadillo sin-cola e-dice';
+            $('[data-enemigo] .e-centro')?.append(b);
+            const ms = teclear(b, tx(REY_DEF[enemigo.palo].voz.cae), enemigo.palo);
+            await pausa(ms + 850);
+            b.remove();
+          }
           sonar('cae');
           if (r && enemigo) {
             partirNaipe(lienzoNaipe(enemigo.palo, enemigo.rango), r, RAMPA_PALO[enemigo.palo]);
@@ -360,6 +384,7 @@ export function pantallaMesa(p: Partida): Pantalla {
             haloRey(en.x, en.y, AURA[ev.palo], 200);
             await irrupcion(ev.palo);
             voz(VOZ.entraRey, 'sombria');
+            gritar(p.mazoId, tx(GRITO[p.mazoId].rey));
           } else voz(VOZ.entra, 'reposo');
           await pausa(220);
           break;
@@ -392,6 +417,7 @@ export function pantallaMesa(p: Partida): Pantalla {
             chispas(en.x, en.y, RAMPA_GOLPE, 10, 80);
             sonar('contra');
             gestoRetrato('mueca', 900);
+            if ((ev.n - ev.frenado) * 5 >= hud.vidaMax) gritar(p.mazoId, tx(alAzar(GRITO[p.mazoId].dolor)));
             sacudir($('[data-hud]'), 2);
             congelar(50);
             voz(hud.vida * 3 <= hud.vidaMax ? VOZ.pocaVida : VOZ.contra, hud.vida * 3 <= hud.vidaMax ? 'sombria' : 'burla');
@@ -454,6 +480,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           break;
         case 'victoria':
           voz(VOZ.victoria, 'risa');
+          if (tipo === 'rey') gritar(p.mazoId, tx(GRITO[p.mazoId].gana));
           await pausa(650);
           break;
         case 'derrota':
@@ -472,9 +499,10 @@ export function pantallaMesa(p: Partida): Pantalla {
     const r = REY_DEF[palo];
     const linea = donesDe(p, palo) > 0 ? r.voz.aliado : r.voz.ajeno;
     return cortina(
-      `<div class="irr-banda" style="--aura:${AURA[palo]}">${reyHtml(palo, 'habla')}<div class="irr-texto"><b class="titulo">${esc(tx(r.apodo))}</b><span class="sub">${esc(tx(r.nombre))} · ${esc(tx(r.rasgo))}</span><p class="bocadillo sin-cola">${esc(tx(linea))}</p></div></div>`,
+      `<div class="irr-banda" style="--aura:${AURA[palo]}">${reyHtml(palo, 'habla')}<div class="irr-texto"><b class="titulo">${esc(tx(r.apodo))}</b><span class="sub">${esc(tx(r.nombre))} · ${esc(tx(r.rasgo))}</span><p class="bocadillo sin-cola" data-teclea>${esc(tx(linea))}</p></div></div>`,
       1500,
       'irrupcion',
+      (el) => teclear($('[data-teclea]', el), tx(linea), palo),
     );
   }
   /** La aparición chanta del Bufón cuando una de sus Cábalas hace de las suyas. */
@@ -618,13 +646,14 @@ export function pantallaMesa(p: Partida): Pantalla {
           ocupado = false;
           repartir();
           if (!ensena) voz(tipo === 'rey' ? VOZ.entraRey : VOZ.entra, 'reposo');
+          if (tipo === 'rey' && c().fila[0]?.jefe) gritar(p.mazoId, tx(GRITO[p.mazoId].rey));
         });
       } else {
         repartir();
         if (enFoto() && !ensena) voz(tipo === 'rey' ? VOZ.entraRey : VOZ.entra, 'reposo');
       }
       // para la QA y las pruebas: la mesa viva
-      (window as unknown as { __mesa?: unknown }).__mesa = { mano, golpear, descartar, sincronizar, decir };
+      (window as unknown as { __mesa?: unknown }).__mesa = { mano, golpear, descartar, sincronizar, decir, gritar: (texto: string) => gritar(p.mazoId, texto) };
     },
     alSalir: () => {
       clearTimeout(vozReloj);

@@ -976,3 +976,105 @@ button.hud-tiras .ficha {
     inset calc(1px * var(--k)) calc(1px * var(--k)) 0 #5c5470,
     inset calc(-1px * var(--k)) calc(-1px * var(--k)) 0 #8a7fa6;
 }
+
+/* ───────────── 0.10.0: la pantalla entra, sus opciones brotan una tras otra, los números laten ───────────── */
+
+#app.recien > main {
+  animation: pantalla-entra 0.22s steps(5) both;
+}
+@keyframes pantalla-entra {
+  from {
+    opacity: 0;
+    translate: 0 calc(5px * var(--k));
+  }
+}
+#app.recien :is(.opciones > .opcion, .botin-lista > *, .ventas > *, .portada-menu > .btn, .portada-menu > .fila > .btn, .mazos > .mazo-op, .altar-lista > *, .cr-lista > *),
+.velo.recien .opciones > .opcion {
+  animation: brota 0.3s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+  animation-delay: calc(var(--orden, 0) * 55ms + 60ms);
+}
+:is(.opciones, .botin-lista, .ventas, .portada-menu, .fila, .mazos, .altar-lista, .cr-lista) > :nth-child(2) {
+  --orden: 1;
+}
+:is(.opciones, .botin-lista, .ventas, .portada-menu, .fila, .mazos, .altar-lista, .cr-lista) > :nth-child(3) {
+  --orden: 2;
+}
+:is(.opciones, .botin-lista, .ventas, .portada-menu, .fila, .mazos, .altar-lista, .cr-lista) > :nth-child(4) {
+  --orden: 3;
+}
+:is(.opciones, .botin-lista, .ventas, .portada-menu, .fila, .mazos, .altar-lista, .cr-lista) > :nth-child(5) {
+  --orden: 4;
+}
+:is(.opciones, .botin-lista, .ventas, .portada-menu, .fila, .mazos, .altar-lista, .cr-lista) > :nth-child(n + 6) {
+  --orden: 5;
+}
+@keyframes brota {
+  from {
+    opacity: 0;
+    scale: 0.7;
+    translate: 0 calc(6px * var(--k));
+  }
+}
+/* el logotipo cae y rebota al llegar a la portada */
+#app.recien .logo-caja {
+  animation: logo-cae 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+@keyframes logo-cae {
+  from {
+    opacity: 0;
+    translate: 0 calc(-28px * var(--k));
+    scale: 1.15;
+  }
+}
+/* un número del HUD que cambia da un latido */
+[data-hud] [data-n].late {
+  animation: n-late 0.28s steps(4);
+}
+@keyframes n-late {
+  from {
+    scale: 1.35;
+  }
+}
+/* el grito del Personaje: un bocadillo corto sobre su retrato */
+.hud-grito {
+  position: fixed;
+  z-index: 60;
+  translate: -50% -100%;
+  margin: 0;
+  max-width: none;
+  white-space: nowrap;
+  pointer-events: none !important;
+  font-family: var(--rot);
+  text-transform: uppercase;
+  animation: grito 1.5s steps(12) both;
+}
+@keyframes grito {
+  0% {
+    opacity: 0;
+    scale: 0.5;
+  }
+  8% {
+    opacity: 1;
+    scale: 1.2;
+  }
+  14% {
+    scale: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: -50% calc(-100% - 8px * var(--k));
+  }
+}
+
+.hud-retrato.grita {
+  animation: retrato-grita 0.3s steps(4);
+}
+@keyframes retrato-grita {
+  40% {
+    translate: 0 calc(-5px * var(--k));
+    scale: 1.08;
+  }
+}

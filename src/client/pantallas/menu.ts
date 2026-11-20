@@ -14,6 +14,7 @@ import { BENDICION, BENDICIONES, REY_DEF } from '../../rules/reyes';
 import { MARCA, VERSION } from '../../shared/brand';
 import { ajustes, alAzar, borrarTodo, fijarIdioma, guardarAjustes, guardarPartida, guardarPerfil, idioma, perfil, t, tx } from '../almacen';
 import { sonar } from '../audio';
+import { refrescarMusica } from '../musica';
 import { enFoto } from '../fx/motor';
 import { continuar, empezar, hayPartida, irAjustes, irAltar, irColeccion, irCronica, irMazo, irPortada, sesion } from '../juego';
 import { CUADRO0 } from '../pixel/personajes';
@@ -319,6 +320,7 @@ export function pantallaAjustes(): Pantalla {
         <div class="aj-fila"><b>${t('idioma')}</b><div class="fila"><button class="btn marco chico ${idioma() === 'es' ? 'oro' : ''}" data-accion="es" data-foco="aj-es" aria-pressed="${idioma() === 'es'}">Español</button><button class="btn marco chico ${idioma() === 'en' ? 'oro' : ''}" data-accion="en" data-foco="aj-en" aria-pressed="${idioma() === 'en'}">English</button></div></div>
         <div class="aj-fila"><b>${t('calma')}</b>${conmuta('calma', ajustes.calma, 'aj-calma')}</div>
         <div class="aj-fila"><b>${t('sonido')}</b>${conmuta('sonido', ajustes.sonido, 'aj-sonido')}</div>
+        <div class="aj-fila"><b>${t('musica')}</b>${conmuta('musica', ajustes.musica, 'aj-musica')}</div>
         <div class="aj-fila"><b>${t('borrar')}</b><button class="btn marco chico" data-accion="borrar" data-foco="aj-borrar">${t('borrar')}</button></div>
         <p class="sub aj-creditos">${t('creditos')} · v${VERSION}</p>
       </section>
@@ -341,6 +343,18 @@ export function pantallaAjustes(): Pantalla {
       'calma-no': () => {
         ajustes.calma = false;
         guardarAjustes();
+        repintar();
+      },
+      'musica-si': () => {
+        ajustes.musica = true;
+        guardarAjustes();
+        refrescarMusica();
+        repintar();
+      },
+      'musica-no': () => {
+        ajustes.musica = false;
+        guardarAjustes();
+        refrescarMusica();
         repintar();
       },
       'sonido-si': () => {
