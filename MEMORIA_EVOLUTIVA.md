@@ -81,7 +81,7 @@ dianas de 32 px a 2–4 px entre sí (el auditor lo marca como P0 en casi todas 
 en el juego; la salpicadura de Oros, el Comodín y la Furia se entendían mal; y la letra de texto dibujaba el «5» como
 una «S» («Suman 1S»).
 
-## 0.2.0 · en curso (rama `v0.2`, sin publicar)
+## 0.2.0 · La mesa se toca y se entiende (aceptada)
 
 **Hipótesis.** Las reseñas bajan por fricción de lectura y de toque: si cada cosa que se toca mide lo que debe y cada
 regla que se aplica se ve en la mesa, sube la Claridad.
@@ -92,7 +92,16 @@ de Pixelify Sans; reglas de dianas en la QA visual (chica, pegada, pisada); Chin
 Puertas en verde: tipos, 51 pruebas, forja y linter, laboratorio sin avisos (29,9–32,6 % / 45,0–48,7 %), QA visual
 ES y EN (100 capturas cada una, 0 fallos), humo ES y EN, build.
 
-**Pendiente antes de publicar:** la puerta de FPS falla en la primera tanda de golpes (un cuadro de ~125 ms en el
-primer golpe a 1366×768). No es la tipografía, ni el filtro, ni la VRAM: el navegador lo atribuye al temporizador de
-`volar()` en `src/client/mano.ts`, es decir, al código que sigue al vuelo de las cartas en el primer golpe. Después:
-medir la 0.2.0 con el panel contra el listón de arriba.
+**El tirón del primer golpe.** La puerta de FPS fallaba con un cuadro de ~125 ms en el primer golpe. No era la
+tipografía, ni el filtro de CSS, ni la VRAM ocupada por el panel: el perfilador de CPU lo puso en `sonar()`. Abrir el
+dispositivo de audio (`new AudioContext()`) cuesta más de 100 ms la primera vez en el proceso; ahora se abre con el
+primer gesto del jugador, en la portada. **Lección:** ante un tirón, perfilar antes de suponer (tres hipótesis
+descartadas a mano; el perfilador lo resolvió en una corrida).
+
+**Veredicto del panel simulado** (`pulso-60-20261120-000052` contra el listón de la 0.1.0): F 169,07 contra 145,84
+(+23,2, más que el ruido de 13); Aprobación 60,0 % (45,6); Claridad 6,37 (5,98; t pareada p = 0,009); Diversión 7,33
+(7,31, sin cambio); Críticos 30 % (30); Steam Deck 44,4 % (40,7); Móvil 66,7 % (53,3). Suben el pulgar 14 personas y
+lo bajan 4 (McNemar p = 0,03). **Aceptada.**
+
+**Lo que no movió:** la Diversión y los Críticos. Quitar fricción sube la Claridad y la aprobación general, pero al
+jugador exigente no le da nada nuevo que hacer.
