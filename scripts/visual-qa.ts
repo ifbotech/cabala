@@ -120,9 +120,15 @@ function medir(o: { esMovil: boolean }) {
   const dianas = [...document.querySelectorAll('#app button:not(:disabled), #capa button:not(:disabled), #app [data-accion]:not(button), #capa [data-accion]:not(button), #app [data-soltar="descarte"]')]
     .filter((el) => visible(el) && !el.closest('.mano'))
     .map((el) => ({ el, c: caja(el) }))
-    .filter((x) => x.c.w >= 8 && x.c.h >= 8 && tocable(x.el, x.c));
+    .filter((x) => x.c.w >= 8 && x.c.h >= 8 && tocable(x.el, x.c))
+    // lo que asoma cortado por una zona que se desplaza se termina de ver al desplazar: su tamaño es el entero
+    .map((x) => {
+      const r = x.el.getBoundingClientRect();
+      const cortada = x.c.w < r.width - 1 || x.c.h < r.height - 1;
+      return { ...x, lado: cortada ? Math.min(r.width, r.height) : Math.min(x.c.w, x.c.h), ancho: cortada ? r.width : x.c.w, alto: cortada ? r.height : x.c.h };
+    });
   let menor: (typeof dianas)[number] | null = null;
-  for (const x of dianas) if (!menor || Math.min(x.c.w, x.c.h) < Math.min(menor.c.w, menor.c.h)) menor = x;
+  for (const x of dianas) if (!menor || x.lado < menor.lado) menor = x;
   let separacion: number | null = null;
   let par = '';
   const chicas: string[] = [];
@@ -214,7 +220,7 @@ function medir(o: { esMovil: boolean }) {
   }
   return {
     medidas: {
-      dianas: menor ? { n: dianas.length, minW: Math.round(menor.c.w), minH: Math.round(menor.c.h), minQue: rotulo(menor.el), separacionMin: separacion, solapes: pisadas.length } : { n: 0 },
+      dianas: menor ? { n: dianas.length, minW: Math.round(menor.ancho), minH: Math.round(menor.alto), minQue: rotulo(menor.el), separacionMin: separacion, solapes: pisadas.length } : { n: 0 },
       mano,
       texto: n ? { n, minPx: Math.round(minPx), minQue, bajo14 } : { n: 0 },
       ...(foco ? { foco } : {}),

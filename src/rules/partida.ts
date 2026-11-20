@@ -122,6 +122,7 @@ export function nuevaPartida(o: OpcionesPartida): Partida {
     purgas: 0,
     curas: 0,
     altar,
+    racha: 0,
     stats: { combates: 0, elites: 0, reyes: 0, abatidos: 0, exactos: 0, cantos: 0, pokers: 0, golpes: 0, mejorGolpe: 0, turnos: 0, danoRecibido: 0 },
   };
   const reyes = sortearReyes(p);

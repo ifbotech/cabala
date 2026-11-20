@@ -1,5 +1,5 @@
 # CÁBALA — Reglas
-> Versión 0.6.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
+> Versión 0.8.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
 
 *Todo es cuestión de cábala.* Roguelike de baraja española para un jugador. Elegís un Mazo, el Bufón te lleva por tres tramos de caminos y al fondo de cada uno te espera un Rey. Tu mano contra la Corte: cada golpe es **DAÑO × MULTI**.
 
@@ -37,11 +37,11 @@ Además tenés **3 descartes por combate**: descartar no gasta el turno. Solo se
 | **Carta sola** | 1 carta | +0 | ×1 |
 | **Par** | 2 iguales | +4 | ×2 |
 | **Doble par** | 2 pares | +6 | ×2 |
-| **Flor** | 3 a 5 cartas del mismo palo | +6 | ×2 |
+| **Flor** | 3 a 5 del mismo palo | +6 | ×2 |
 | **Pierna** | 3 iguales | +8 | ×3 |
-| **Escalera** | 3 a 5 cartas de números seguidos | +8 | ×3 |
+| **Escalera** | 3 a 5 números seguidos | +8 | ×3 |
 | **Full** | Pierna y Par | +12 | ×4 |
-| **Escalera de palo** | 3 a 5 cartas seguidas del mismo palo | +12 | ×4 |
+| **Escalera de palo** | 3 a 5 seguidos, mismo palo | +12 | ×4 |
 | **Póker** | 4 iguales | +16 | ×5 |
 | **Quince** | Suman 15 (Escoba) | +0 | ×1 |
 | **Envido** | 2 del mismo palo (Truco) | +0 | ×2 |
@@ -52,7 +52,7 @@ Una sola regla: **cada enemigo es Inmune a su propio palo**: las cartas de ese p
 
 ### Golpe exacto
 
-Abatir a un enemigo con un TOTAL **igual a su Vida** es ¡EXACTO!: cobrás **3 de oro** y tu próximo golpe lleva **+1 de Multi**.
+Abatir a un enemigo con un TOTAL **igual a su Vida** es ¡EXACTO!: cobrás **3 de oro** y tu próximo golpe lleva **+1 de Multi**. La mesa te dice cuánto le queda al enemigo o cuánto te sobra. **Racha:** cada exacto seguido sube el premio (+2 con el segundo, +3 con el tercero, que es el tope); se corta al abatir a un enemigo sin exactitud.
 
 ### Aturdido y Furia
 

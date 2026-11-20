@@ -125,9 +125,9 @@ await conServidor(5192, async (url) => {
     await p.locator(`.carta[data-id="${primera}"]`).focus();
     await p.keyboard.press('Enter');
     exigir((await p.locator(`.carta[data-id="${primera}"]`).getAttribute('aria-pressed')) === 'true', 'Enter no eligió la carta enfocada');
-    exigir(await p.locator('[data-cuenta] .cuenta').count(), 'al elegir una carta no aparece la cuenta');
+    exigir(await p.locator('[data-cuenta] .cuenta:not(.reposo)').count(), 'al elegir una carta no aparece la cuenta');
     await p.keyboard.press('Enter');
-    exigir((await p.locator('[data-cuenta] .cuenta').count()) === 0, 'en reposo la cuenta no se calla');
+    exigir((await p.locator('[data-cuenta] .cuenta:not(.reposo)').count()) === 0, 'en reposo la cuenta no se calla');
     ok('teclado: Enter elige y suelta; la cuenta DAÑO × MULTI aparece y se calla');
 
     // arrastrar al descarte

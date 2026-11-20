@@ -1339,3 +1339,10 @@ button.visor-carta:disabled {
     inset calc(2px * var(--k)) calc(2px * var(--k)) 0 #5c5470,
     inset calc(-2px * var(--k)) calc(-2px * var(--k)) 0 #8a7fa6;
 }
+
+/* ───────────── 0.8.0: los caminos del Mapa se siguen de un vistazo ───────────── */
+
+.mapa-lineas line {
+  stroke: #9a8fb8;
+  stroke-width: calc(4px * var(--k));
+}

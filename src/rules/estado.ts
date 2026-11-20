@@ -167,6 +167,8 @@ export interface Partida {
   /** Los niveles del Altar con los que empezó la partida. */
   altar: Record<string, number>;
   stats: Stats;
+  /** Golpes exactos seguidos (de 0 al tope): cada uno sube el premio del siguiente. Se corta al abatir sin exactitud. */
+  racha: number;
   fin?: { victoria: boolean; porotos: number };
 }
 

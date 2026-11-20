@@ -33,9 +33,8 @@ export const vistaDe = (p: Partida): VistaHud => ({ vida: p.vida, vidaMax: p.vid
 export const heridaDe = (vida: number, max: number): Herida => (vida * 3 <= max ? 2 : vida * 3 <= max * 2 ? 1 : 0);
 
 function tiras(p: Partida): string {
-  const amuletos = Array.from({ length: p.huecos }, (_, i) => {
-    const id = p.amuletos[i];
-    if (!id) return `<span class="ficha vacia" ${tip(t('huecos', { a: p.amuletos.length, b: p.huecos }))}></span>`;
+  // solo lo que llevás (los huecos libres se cuentan en «LO QUE LLEVÁS»: un cuadro vacío parecía un error de carga)
+  const amuletos = p.amuletos.map((id) => {
     const d = AMULETO[id];
     return `<span class="ficha" data-pieza="a:${id}" ${tip(tx(d.nombre), tx(d.desc), tx(RAREZA_NOMBRE[d.rareza]))}>${pxAmuleto(id)}</span>`;
   }).join('');
@@ -59,6 +58,7 @@ function tiras(p: Partida): string {
       return `<span class="ficha" data-pieza="b:${id}" ${tip(tx(d.nombre), tx(d.desc(n)), `${tx(REY_DEF[d.rey].apodo)}${d.niveles > 1 ? ` · ${t('nivel', { n })}` : ''}`)}>${pxBendicion(id)}${d.niveles > 1 && n > 1 ? `<span class="cuenta">${cifra(n, 'hueso')}</span>` : ''}</span>`;
     })
     .join('');
+  if (!amuletos && !aumentos && !cargas && !bendiciones) return `<span class="sub hud-nada">${t('llevas')}: ${t('nada')}</span>`;
   return `<div class="hud-tira" data-tira="amuletos">${amuletos}${aumentos}</div><div class="hud-tira" data-tira="reyes">${cargas}${bendiciones}</div>`;
 }
 

@@ -62,7 +62,8 @@
   },
   "exacto": {
     "oro": 3,
-    "multi": 1
+    "multi": 1,
+    "rachaTope": 3
   },
   "furia": {
     "mazoAgotado": 3,

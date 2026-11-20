@@ -150,14 +150,18 @@ export function pantallaMesa(p: Partida): Pantalla {
     return PASO_NOMBRE[de] ? tx(PASO_NOMBRE[de]) : de;
   }
   function cuentaHtml(q: Cuenta, sel: Carta[]): string {
-    if (!sel.length) return '';
+    // en reposo, la zona de la cuenta dice qué hacer
+    if (!sel.length) return `<div class="cuenta reposo"><span class="sub">${t('elegiCartas')}</span></div>`;
     if (!q.ok) {
       const motivo = q.motivo === 'comodines' ? t('soloComodines') : q.motivo === 'muchas' ? t('muchas') : t('noJugada');
       return `<div class="cuenta invalida"><span class="chip">${motivo}</span></div>`;
     }
     const d = q.pasos.filter((x) => x.tipo === 'd').map((x) => `${pasoNombre(x.de)} +${x.v}`).join(' · ');
     const m = q.pasos.filter((x) => x.tipo !== 'd').map((x) => `${pasoNombre(x.de)} ${x.tipo === 'x' ? '×' : '+'}${x.v}`).join(' · ');
-    const destino = q.abate ? (q.exacto ? `<span class="chip canto c-exacto">${t('exacto')}</span>` : `<span class="chip verde">${t('cae')}</span>`) : q.ejecuta ? `<span class="chip verde">${t('ejecuta')}</span>` : q.contra && q.contra > 0 ? `<span class="chip rojo">${t('tePega', { n: q.contra })}</span>` : `<span class="chip azul">${t('noTePega')}</span>`;
+    // cuánto sobra o cuánto le queda: lo que hace falta para buscar el Golpe exacto
+    const vidaE = enemigo?.vida ?? 0;
+    const queda = !q.abate && !q.ejecuta && enemigo ? `<span class="chip c-queda">${t('leQuedan', { n: Math.max(0, vidaE - q.aVida) })}</span>` : '';
+    const destino = (q.abate ? (q.exacto ? `<span class="chip canto c-exacto">${t('exacto')}</span>` : `<span class="chip verde">${t('cae')} · ${t('sobran', { n: q.aVida - vidaE })}</span>`) : q.ejecuta ? `<span class="chip verde">${t('ejecuta')}</span>` : q.contra && q.contra > 0 ? `<span class="chip rojo">${t('tePega', { n: q.contra })}</span>` : `<span class="chip azul">${t('noTePega')}</span>`) + queda;
     const efectos = `${q.escudo ? `<span class="c-efecto">${pxHud('escudo')}${cifra(`+${q.escudo}`, 'azul')}</span>` : ''}${q.cura ? `<span class="c-efecto">${pxHud('vida')}${cifra(`+${q.cura}`, 'verde')}</span>` : ''}${q.oro ? `<span class="c-efecto">${pxHud('oro')}${cifra(`+${q.oro}`, 'oro')}</span>` : ''}`;
     return `<div class="cuenta ${q.abate || q.ejecuta ? 'abate' : ''}" ${tip(`${t('dano')} ${q.dano} × ${t('multi')} ${q.multi} = ${q.total}`, d, m)}>
       <span class="chip c-jugada">${esc(tx(JUGADA_NOMBRE[q.jugada]))}</span>
@@ -212,7 +216,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     const modo = puedeDescartar(p, sel.length);
     if (d) {
       d.disabled = ocupado || !sel.length || !modo;
-      d.innerHTML = `${modo === 'gratis' || (c().pasar && !sel.length) ? `${pxHud('pasar')} ${t('pasar')}` : `<span>${t('descartar')}</span><span class="b-quedan">${t('quedan', { n: c().descartes })}</span>`}`;
+      d.innerHTML = `${modo === 'gratis' || (c().pasar && !sel.length) ? `${pxHud('pasar')} ${t('pasar')}` : `${t('descartar')} <span class="b-quedan">(${c().descartes})</span>`}`;
     }
     const e = $<HTMLButtonElement>('[data-accion="engano"]');
     if (e) {
@@ -229,7 +233,8 @@ export function pantallaMesa(p: Partida): Pantalla {
   }
   function pintarArriba(): void {
     const el = $('[data-turno]');
-    if (el) el.innerHTML = `${t('turno', { n: c().turno })}${c().dado ? ` <span class="dado" ${tip(idioma() === 'en' ? `Die: ${c().dado}` : `Dado: ${c().dado}`)}>${pxHud(`dado${c().dado}` as 'dado1')}</span>` : ''}`;
+    const racha = (p.racha ?? 0) > 0 ? ` <span class="chip canto" ${tip(t('racha', { n: p.racha }), idioma() === 'en' ? `Exact hits in a row. Your next exact hit gives +${Math.min(B.exacto.rachaTope, p.racha + 1)} Mult.` : `Golpes exactos seguidos. Tu próximo exacto da +${Math.min(B.exacto.rachaTope, p.racha + 1)} de Multi.`)}>${t('racha', { n: p.racha })}</span>` : '';
+    if (el) el.innerHTML = `${t('turno', { n: c().turno })}${racha}${c().dado ? ` <span class="dado" ${tip(idioma() === 'en' ? `Die: ${c().dado}` : `Dado: ${c().dado}`)}>${pxHud(`dado${c().dado}` as 'dado1')}</span>` : ''}`;
   }
   /** Pone toda la vista de acuerdo con el estado real (al empezar y al terminar cada acción). */
   function sincronizar(): void {

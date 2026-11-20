@@ -114,6 +114,25 @@ describe('la cuenta', () => {
     // abatir no deja Contraataque ese turno
     expect(evs.some((e) => e.t === 'contra')).toBe(false);
   });
+  it('la racha: cada Golpe exacto seguido sube el premio hasta el tope, y se corta al abatir sin exactitud', () => {
+    const exacta = (racha: number) => {
+      const mano = [c('S', 7), c('C', 7), c('D', 2)];
+      const p = mesa('chinchon', mano, { vida: (B.jugadas.par.d + 14) * B.jugadas.par.m });
+      p.racha = racha;
+      golpear(p, [mano[0].id, mano[1].id]);
+      return p;
+    };
+    expect(exacta(0).racha).toBe(1);
+    expect(exacta(0).combate!.proxMulti).toBe(B.exacto.multi);
+    expect(exacta(1).combate!.proxMulti).toBe(B.exacto.multi * 2);
+    expect(exacta(B.exacto.rachaTope).racha).toBe(B.exacto.rachaTope);
+    // abatir sin exactitud la corta
+    const mano = [c('S', 9), c('C', 9), c('H', 9)];
+    const p = mesa('chinchon', mano, { palo: 'D', vida: 10 });
+    p.racha = 2;
+    golpear(p, mano.map((k) => k.id));
+    expect(p.racha).toBe(0);
+  });
   it('si el enemigo sigue en pie, contraataca: el Escudo frena primero', () => {
     const mano = [c('S', 2), c('C', 3), c('D', 9)];
     const p = mesa('chinchon', mano);

@@ -379,7 +379,9 @@ function abatir(p: Partida, evs: Ev[], o: { exacto: boolean; ejecutado: boolean;
   if (o.exacto) {
     p.stats.exactos++;
     p.oro += B.exacto.oro;
-    c.proxMulti += B.exacto.multi;
+    // la racha: cada Golpe exacto seguido sube el premio (+1, +2, +3 de Multi al golpe siguiente)
+    p.racha = Math.min(B.exacto.rachaTope, (p.racha ?? 0) + 1);
+    c.proxMulti += B.exacto.multi * p.racha;
     evs.push({ t: 'exacto' }, { t: 'oro', n: B.exacto.oro });
     if (nivelBend(p, 'hojabroquel')) {
       const hb = B.bendiciones.hojabroquel;
@@ -388,6 +390,7 @@ function abatir(p: Partida, evs: Ev[], o: { exacto: boolean; ejecutado: boolean;
       evs.push({ t: 'escudo', n: hb.escudo }, { t: 'carga', rey: 'S', n: hb.filo });
     }
   }
+  if (!o.exacto) p.racha = 0;
   // la regla única de las cargas: cada enemigo abatido con el palo de un Rey en el golpe, +1 (si llevás dones suyos)
   for (const palo of o.palos) {
     if (!sirveA(p, palo)) continue;

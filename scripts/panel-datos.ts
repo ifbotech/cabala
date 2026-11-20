@@ -45,6 +45,10 @@ const FUNCIONES = {
   bufonVivo: true,
   /** El naipe del Comodín lleva su nombre escrito. */
   comodinRotulado: true,
+  /** La cuenta dice cuánto le queda al enemigo o cuánto sobra, y hay racha de Golpes exactos. */
+  rachaExactos: true,
+  /** En reposo, la zona de la cuenta dice qué hacer. */
+  pistaEnReposo: true,
 };
 
 const c = (palo: PaloCarta, n: number): Carta => ({ id: `${palo}${n}`, palo, n });

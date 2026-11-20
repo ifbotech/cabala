@@ -46,7 +46,7 @@ tabla(['Jugada', 'Cartas', 'Daño base', 'Multi'], [...JUGADAS, 'quince' as Juga
 p('### Inmune');
 p('Una sola regla: **cada enemigo es Inmune a su propio palo**: las cartas de ese palo no le hacen Daño. En tu mano se ven oscurecidas mientras ese enemigo está activo, y el Mapa te muestra de antemano los palos que te esperan.');
 p('### Golpe exacto');
-p(`Abatir a un enemigo con un TOTAL **igual a su Vida** es ¡EXACTO!: cobrás **${B.exacto.oro} de oro** y tu próximo golpe lleva **+${B.exacto.multi} de Multi**.`);
+p(`Abatir a un enemigo con un TOTAL **igual a su Vida** es ¡EXACTO!: cobrás **${B.exacto.oro} de oro** y tu próximo golpe lleva **+${B.exacto.multi} de Multi**. La mesa te dice cuánto le queda al enemigo o cuánto te sobra. **Racha:** cada exacto seguido sube el premio (+2 con el segundo, +${B.exacto.rachaTope} con el tercero, que es el tope); se corta al abatir a un enemigo sin exactitud.`);
 p('### Aturdido y Furia');
 p(`Un enemigo **Aturdido** se salta su próximo Contraataque. La **Furia** es Ataque de más de la Corte durante un combate, y se ve sumada junto al Ataque del enemigo. Sube por dos motivos: **+${B.furia.reyPorTurno}** cada turno que un Rey sigue en pie, y **+${B.furia.mazoAgotado}** cada vez que se te acaba el Mazo y se baraja el Descarte.`);
 

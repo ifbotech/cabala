@@ -942,10 +942,6 @@
   .hud-tira .ficha.vacia {
     display: none;
   }
-  .hud-pozo .icono {
-    transform: none;
-    margin: 0;
-  }
   .hud-tira {
     gap: 6px;
   }
@@ -957,5 +953,69 @@
   }
   .mesa .corte {
     --k: 1;
+  }
+}
+
+/* ───────────── 0.8.0: el Golpe exacto a la vista y segunda pasada de pulido ───────────── */
+
+.cuenta {
+  padding: calc(var(--u) * 0.5) calc(var(--u) * 1.5);
+  row-gap: calc(var(--u) * 0.5);
+}
+.cuenta.reposo {
+  border: 0;
+  border-image: none;
+  cursor: default;
+  animation: none;
+}
+.cuenta .c-queda {
+  color: var(--hueso);
+}
+/* «DESCARTAR (N)»: una sola línea, el número con la misma letra que el rótulo */
+.btn[data-accion='descartar'] {
+  flex-direction: row;
+  gap: calc(6px * var(--k));
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.b-quedan {
+  font-family: var(--rot);
+  font-size: var(--fr);
+  color: var(--oro);
+}
+.hud-nada {
+  align-self: center;
+}
+@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+  /* a 1080p la mano usa todo el ancho: la zona de descarte aparece solo mientras arrastrás */
+  .mesa .mano-zona {
+    grid-template-columns: minmax(0, 1fr) auto;
+    position: relative;
+  }
+  .mesa .descarte-zona {
+    position: absolute;
+    left: 0;
+    bottom: 100%;
+    width: calc(130px * var(--k));
+    height: calc(56px * var(--k));
+    max-height: none;
+    flex-direction: row;
+    display: none;
+    background: rgba(9, 7, 15, 0.9);
+    z-index: 4;
+  }
+  .arrastrando .descarte-zona {
+    display: flex;
+  }
+}
+
+@media (max-width: 700px) {
+  /* la tira del móvil arranca por la izquierda: si no entra todo, se corta por un solo lado (el resto está en «LO QUE LLEVÁS») */
+  button.hud-tiras {
+    justify-content: flex-start;
+    overflow: hidden;
+  }
+  .hud-tiras .hud-tira {
+    flex: none;
   }
 }

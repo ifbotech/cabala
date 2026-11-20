@@ -1,6 +1,6 @@
 {
   "fecha": "2026-11-20",
-  "huella": "503e74594afcaa08",
+  "huella": "9938f33ba4145369",
   "rapido": false,
   "partidasPorCelda": 6000,
   "objetivos": {
@@ -41,16 +41,16 @@
   "mazos": [
     {
       "mazo": "escoba",
-      "vacio": 29.7,
+      "vacio": 29.6,
       "lleno": 48.3,
-      "reinado8": 16.1,
+      "reinado8": 16.2,
       "caidas": [
-        801,
-        1594,
-        1823
+        789,
+        1595,
+        1840
       ],
       "golpesGuardia": 3.3,
-      "golpesRey": 5.1,
+      "golpesRey": 5,
       "golpeMedio": [
         106,
         338,
@@ -64,20 +64,20 @@
     },
     {
       "mazo": "truco",
-      "vacio": 30.9,
+      "vacio": 30.7,
       "lleno": 47.5,
       "reinado8": 19.7,
       "caidas": [
         60,
-        1232,
-        2857
+        1218,
+        2883
       ],
       "golpesGuardia": 3.3,
       "golpesRey": 5.2,
       "golpeMedio": [
-        125,
+        126,
         330,
-        852
+        849
       ],
       "exactos": 1.9,
       "cantos": 33,
@@ -87,13 +87,13 @@
     },
     {
       "mazo": "chinchon",
-      "vacio": 31.9,
+      "vacio": 31.7,
       "lleno": 47.8,
-      "reinado8": 17.7,
+      "reinado8": 17.8,
       "caidas": [
-        397,
-        1537,
-        2154
+        392,
+        1547,
+        2157
       ],
       "golpesGuardia": 3.6,
       "golpesRey": 5.4,
@@ -110,20 +110,20 @@
     },
     {
       "mazo": "mentiroso",
-      "vacio": 30.4,
-      "lleno": 45.3,
+      "vacio": 30.5,
+      "lleno": 45.2,
       "reinado8": 20.8,
       "caidas": [
-        105,
-        615,
-        3457
+        104,
+        616,
+        3453
       ],
       "golpesGuardia": 2.3,
       "golpesRey": 4.5,
       "golpeMedio": [
         219,
         422,
-        835
+        836
       ],
       "exactos": 0.8,
       "cantos": 22.7,
@@ -133,20 +133,20 @@
     },
     {
       "mazo": "chancho",
-      "vacio": 32.5,
+      "vacio": 32.7,
       "lleno": 45.4,
-      "reinado8": 21.2,
+      "reinado8": 21.3,
       "caidas": [
-        591,
-        2038,
-        1421
+        588,
+        2032,
+        1420
       ],
       "golpesGuardia": 3.2,
       "golpesRey": 4.8,
       "golpeMedio": [
         121,
-        331,
-        1133
+        332,
+        1132
       ],
       "exactos": 1.6,
       "cantos": 5.4,
