@@ -79,7 +79,25 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
     const x0 = Math.round((ancho - total) / 2);
     const base = alto - h;
     const out = new Map<string, { x: number; y: number }>();
-    naipes.forEach((c, i) => out.set(c.carta.id, { x: Math.round(x0 + i * paso), y: base - (c.elegida ? Math.round(18 * k) : 0) }));
+    const sube = Math.round(18 * k);
+    // si en una fila las cartas se montarían mucho (el móvil) y hay alto, van en dos filas: de la de atrás asoma la
+    // parte de arriba de cada naipe (su número y sus primeras pintas) y ninguna tapa de costado a otra
+    if (n > 1 && paso < w * 0.8 && alto >= h * 1.4) {
+      const atras = Math.ceil(n / 2);
+      const fila = (cuantas: number, desde: number, y: number): void => {
+        const p2 = cuantas > 1 ? Math.min(w + hueco, (ancho - w) / (cuantas - 1)) : 0;
+        const t2 = cuantas > 1 ? p2 * (cuantas - 1) + w : w;
+        const x2 = Math.round((ancho - t2) / 2);
+        for (let j = 0; j < cuantas; j++) {
+          const c = naipes[desde + j];
+          out.set(c.carta.id, { x: Math.round(x2 + j * p2), y: y - (c.elegida ? sube : 0) });
+        }
+      };
+      fila(atras, 0, sube);
+      fila(n - atras, atras, base);
+      return out;
+    }
+    naipes.forEach((c, i) => out.set(c.carta.id, { x: Math.round(x0 + i * paso), y: base - (c.elegida ? sube : 0) }));
     return out;
   }
 

@@ -31,6 +31,12 @@ const FUNCIONES = {
   panelPiezas: true,
   /** Las cartas a las que el enemigo es Inmune se marcan en la mano. */
   inmuneEnMano: true,
+  /** En el móvil la mano va en dos filas (ninguna carta montada de costado). */
+  manoDosFilas: true,
+  /** El Comodín elegido muestra el número y el palo que copia. */
+  comodinMuestra: true,
+  /** Hay capturas con el foco del mando a la vista (`mesa-mando`, `mapa-mando`). */
+  capturasMando: true,
 };
 
 const c = (palo: PaloCarta, n: number): Carta => ({ id: `${palo}${n}`, palo, n });

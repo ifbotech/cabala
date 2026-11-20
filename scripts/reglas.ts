@@ -27,7 +27,7 @@ p('## La baraja');
 p(`Tu Mazo lleva las cartas del **1 al 9** de los cuatro palos (36) y **${B.jugador.comodines} Comodines**. La Corte —**Sota (10)**, **Caballo (11)** y **Rey (12)** de cada palo— son los enemigos y nunca entran en tu mano.`);
 tabla(['Palo', 'Poder'], PALOS.map((s) => [`**${PALO_NOMBRE[s].es}**`, PALO_PODER[s].es]));
 p(`Cifras: cada Basto da **${B.palos.escudoPorBasto} de Escudo**, cada Copa cura **${B.palos.curaPorCopa} de Vida**, cada Oro paga **${B.palos.oroPorOro} de oro**. El Escudo frena el Contraataque antes que tu Vida (tope ${B.jugador.escudoMax}).`);
-p(`**El Comodín** vale como una copia de tu carta más alta del golpe: mismo número y mismo palo. Solo, no es jugada.`);
+p(`**El Comodín** vale como una copia de tu carta más alta del golpe: mismo número y mismo palo. Al elegirlo, el naipe muestra qué número y qué palo copia. Necesita al menos otra carta a su lado.`);
 
 p('## El turno');
 p(
@@ -44,11 +44,11 @@ p(`**Daño**: la base de la jugada más el número de cada carta, más lo que su
 tabla(['Jugada', 'Cartas', 'Daño base', 'Multi'], [...JUGADAS, 'quince' as Jugada, 'envido' as Jugada].map((j) => [`**${JUGADA_NOMBRE[j].es}**`, JUGADA_COMO[j].es, `+${B.jugadas[j].d}`, `×${B.jugadas[j].m}`]));
 
 p('### Inmune');
-p('Una sola regla: **cada enemigo es Inmune a su propio palo**. Contra él, las cartas de ese palo no hacen Daño (pero igual dan su poder). El Mapa te muestra de antemano los palos que te esperan.');
+p('Una sola regla: **cada enemigo es Inmune a su propio palo**: las cartas de ese palo no le hacen Daño. En tu mano se ven oscurecidas mientras ese enemigo está activo, y el Mapa te muestra de antemano los palos que te esperan.');
 p('### Golpe exacto');
 p(`Abatir a un enemigo con un TOTAL **igual a su Vida** es ¡EXACTO!: cobrás **${B.exacto.oro} de oro** y tu próximo golpe lleva **+${B.exacto.multi} de Multi**.`);
 p('### Aturdido y Furia');
-p(`Un enemigo **Aturdido** se salta su próximo Contraataque. La **Furia** es Ataque de más para toda la Corte en ese combate: sube **${B.furia.mazoAgotado}** cada vez que se agota tu Mazo (y se baraja el Descarte) y **${B.furia.reyPorTurno}** por cada turno que un Rey sigue en pie. Se ve junto al Ataque del enemigo.`);
+p(`Un enemigo **Aturdido** se salta su próximo Contraataque. La **Furia** es Ataque de más de la Corte durante un combate, y se ve sumada junto al Ataque del enemigo. Sube por dos motivos: **+${B.furia.reyPorTurno}** cada turno que un Rey sigue en pie, y **+${B.furia.mazoAgotado}** cada vez que se te acaba el Mazo y se baraja el Descarte.`);
 
 p('## La Corte');
 tabla(['Enemigo', 'Vida', 'Ataque', 'Escudo'], ([10, 11, 12] as const).map((r) => [`${RANGO_NOMBRE[r].es} (${r})`, (en.vida as Record<string, number>)[r], `⚔ ${(en.ataque as Record<string, number>)[r]}`, r === 11 ? en.escudoCaballo : '—']));

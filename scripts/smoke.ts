@@ -246,7 +246,8 @@ await conServidor(5192, async (url) => {
     const antes = (await estado(m))!;
     const c = (await consejo(m))!;
     const ids = c.t === 'golpe' ? c.ids : [antes.mano[0]];
-    for (const id of ids) await m.locator(`.carta[data-id="${id}"]`).tap();
+    // se toca la parte de arriba de cada carta: en la mano de dos filas es lo que asoma de las de atrás
+    for (const id of ids) await m.locator(`.carta[data-id="${id}"]`).tap({ position: { x: 24, y: 18 } });
     await m.locator('[data-accion="golpear"]').tap();
     await m.waitForFunction((g) => ((window as unknown as { __cabala: { sesion: { partida: { stats: { golpes: number } } } } }).__cabala.sesion.partida.stats.golpes ?? 0) > g, antes.golpes, { timeout: 8000 });
     const desborde = await m.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);

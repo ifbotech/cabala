@@ -44,6 +44,10 @@ export function mover(dx: number, dy: number): void {
   mejor?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 
+let conTeclado = false;
+/** Si se viene jugando con teclado o mando (sin ratón ni dedo): entonces el foco va solo a lo principal de cada pantalla. */
+export const porTeclado = (): boolean => conTeclado;
+
 /** Activa lo que tiene el foco (una carta se alterna; un botón se pulsa). */
 function activar(): void {
   const el = document.activeElement as HTMLElement | null;
@@ -78,7 +82,6 @@ export function iniciarNav(): void {
     }
   });
   // al cambiar de pantalla, el foco va a lo principal (si se viene jugando sin ratón)
-  let conTeclado = false;
   document.addEventListener('keydown', () => (conTeclado = true), true);
   document.addEventListener('pointerdown', () => (conTeclado = false), true);
   document.addEventListener('cabala:pantalla', () => {

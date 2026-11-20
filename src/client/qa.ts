@@ -13,7 +13,7 @@ import { $ } from './ui';
 
 export const ESTADOS = [
   'portada', 'elegir-mazo', 'elegi-una', 'mapa', 'mesa', 'mesa-seleccion', 'mesa-arrastrando', 'mesa-rey', 'mesa-mentiroso', 'botin', 'elegi-bendicion', 'elegi-amuleto',
-  'pulperia', 'fogon', 'cabala', 'mazo', 'jugadas', 'piezas', 'altar', 'coleccion', 'coleccion-amuletos', 'cronica', 'ajustes', 'fin-victoria', 'fin-derrota',
+  'pulperia', 'fogon', 'cabala', 'mazo', 'jugadas', 'piezas', 'mesa-mando', 'mapa-mando', 'altar', 'coleccion', 'coleccion-amuletos', 'cronica', 'ajustes', 'fin-victoria', 'fin-derrota',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
 
@@ -99,7 +99,11 @@ export function montarQa(estado: string): void {
       montar(partida(mazo, (p) => p.fase === 'mapa' && p.camino.length >= 2));
       break;
     case 'mesa':
+    case 'mesa-mando': // el foco lo pone la QA visual con el teclado, como lo pondría el mando
       montar(partida(mazo, (p) => enCombate(p)));
+      break;
+    case 'mapa-mando':
+      montar(partida(mazo, (p) => p.fase === 'mapa' && p.camino.length >= 2));
       break;
     case 'mesa-seleccion':
     case 'mesa-arrastrando': {

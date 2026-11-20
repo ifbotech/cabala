@@ -22,10 +22,11 @@ import { actualizarTiras, avivarRetrato, gestoRetrato, hudHtml, ponerHud, vistaD
 import { guardar, pintarFase } from '../juego';
 import { crearMano, type Mano, type Zona } from '../mano';
 import type { Expresion } from '../pixel/bufon';
-import { cifra, lienzoNaipe, pxHud, pxInmune, pxNaipe } from '../sprites';
+import { cifra, lienzoNaipe, pxHud, pxInmune, pxNaipe, pxPalo } from '../sprites';
 import { JUGADA_NOMBRE, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_NOMBRE, RANGO_NOMBRE, TRAMO_NOMBRE } from '../textos';
 import { ENSENANZA, VOZ } from '../voces';
 import { $, bufonHtml, esc, fichaDe, gestoBufon, reyHtml, tip, type Pantalla } from '../ui';
+import { porTeclado } from '../nav';
 import { pausa, quieto } from '../ritmo';
 import { accionesComunes, modalJugadas } from './camino';
 
@@ -177,6 +178,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     ataque?.classList.toggle('inminente', !!enemigo && enemigo.aturdido <= 0 && !(q.ok && (q.abate || q.ejecuta)));
     ataque?.classList.toggle('mortal', q.ok && q.contra !== null && q.contra >= hud.vida);
     marcarInmunes();
+    marcarCopias(q);
     pintarBotones();
   }
   /** Las cartas a las que el enemigo activo es Inmune llevan su marca en la mano (salvo con el Engaño armado). */
@@ -189,6 +191,17 @@ export function pantallaMesa(p: Partida): Pantalla {
       el.classList.toggle('inmune', si);
     }
   }
+  /** El Comodín elegido (y toda carta con el Engaño armado) muestra el número y el palo que copia. */
+  function marcarCopias(q: Cuenta): void {
+    const copias = new Map(q.ok ? q.ef.filter((x) => x.copia).map((x) => [x.de.id, x] as const) : []);
+    for (const el of document.querySelectorAll<HTMLElement>('[data-mano] .carta')) {
+      const x = copias.get(el.dataset.id ?? '');
+      const clave = x ? `${x.n}${x.palo}` : '';
+      const ya = el.querySelector<HTMLElement>('.c-copia');
+      if (ya && ya.dataset.v !== clave) ya.remove();
+      if (x && (!ya || ya.dataset.v !== clave)) el.insertAdjacentHTML('beforeend', `<span class="c-copia" data-v="${clave}" title="${t('copia')}">${cifra(x.n, 'hueso')}${pxPalo(x.palo)}</span>`);
+    }
+  }
   function pintarBotones(): void {
     const sel = seleccion();
     const q = cuenta(p, sel);
@@ -198,7 +211,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     const modo = puedeDescartar(p, sel.length);
     if (d) {
       d.disabled = ocupado || !sel.length || !modo;
-      d.innerHTML = `${modo === 'gratis' || (c().pasar && !sel.length) ? `${pxHud('pasar')} ${t('pasar')}` : `${t('descartar')} ${cifra(c().descartes, 'hueso')}`}`;
+      d.innerHTML = `${modo === 'gratis' || (c().pasar && !sel.length) ? `${pxHud('pasar')} ${t('pasar')}` : `<span>${t('descartar')}</span><span class="b-quedan">${t('quedan', { n: c().descartes })}</span>`}`;
     }
     const e = $<HTMLButtonElement>('[data-accion="engano"]');
     if (e) {
@@ -590,6 +603,8 @@ export function pantallaMesa(p: Partida): Pantalla {
         mano?.poner(c().mano, nuevo ? centro($('[data-accion="ver-mazo"]', raiz)) : undefined);
         pintarCuenta();
         ensenar();
+        // con mando o teclado, el foco va a la mano (y no al primer botón de la cabecera)
+        if (porTeclado() && !document.activeElement?.closest('.mano')) $<HTMLElement>('.mano .carta', raiz)?.focus();
       };
       if (nuevo && !enFoto()) {
         ocupado = true;

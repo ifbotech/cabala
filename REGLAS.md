@@ -1,5 +1,5 @@
 # CÁBALA — Reglas
-> Versión 0.2.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
+> Versión 0.3.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
 
 *Todo es cuestión de cábala.* Roguelike de baraja española para un jugador. Elegís un Mazo, el Bufón te lleva por tres tramos de caminos y al fondo de cada uno te espera un Rey. Tu mano contra la Corte: cada golpe es **DAÑO × MULTI**.
 
@@ -16,7 +16,7 @@ Tu Mazo lleva las cartas del **1 al 9** de los cuatro palos (36) y **2 Comodines
 
 Cifras: cada Basto da **2 de Escudo**, cada Copa cura **2 de Vida**, cada Oro paga **1 de oro**. El Escudo frena el Contraataque antes que tu Vida (tope 20).
 
-**El Comodín** vale como una copia de tu carta más alta del golpe: mismo número y mismo palo. Solo, no es jugada.
+**El Comodín** vale como una copia de tu carta más alta del golpe: mismo número y mismo palo. Al elegirlo, el naipe muestra qué número y qué palo copia. Necesita al menos otra carta a su lado.
 
 ## El turno
 
@@ -48,7 +48,7 @@ Además tenés **3 descartes por combate**: descartar no gasta el turno. Solo se
 
 ### Inmune
 
-Una sola regla: **cada enemigo es Inmune a su propio palo**. Contra él, las cartas de ese palo no hacen Daño (pero igual dan su poder). El Mapa te muestra de antemano los palos que te esperan.
+Una sola regla: **cada enemigo es Inmune a su propio palo**: las cartas de ese palo no le hacen Daño. En tu mano se ven oscurecidas mientras ese enemigo está activo, y el Mapa te muestra de antemano los palos que te esperan.
 
 ### Golpe exacto
 
@@ -56,7 +56,7 @@ Abatir a un enemigo con un TOTAL **igual a su Vida** es ¡EXACTO!: cobrás **3 d
 
 ### Aturdido y Furia
 
-Un enemigo **Aturdido** se salta su próximo Contraataque. La **Furia** es Ataque de más para toda la Corte en ese combate: sube **3** cada vez que se agota tu Mazo (y se baraja el Descarte) y **1** por cada turno que un Rey sigue en pie. Se ve junto al Ataque del enemigo.
+Un enemigo **Aturdido** se salta su próximo Contraataque. La **Furia** es Ataque de más de la Corte durante un combate, y se ve sumada junto al Ataque del enemigo. Sube por dos motivos: **+1** cada turno que un Rey sigue en pie, y **+3** cada vez que se te acaba el Mazo y se baraja el Descarte.
 
 ## La Corte
 
