@@ -3,6 +3,33 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.3.0 · La mano se lee de un vistazo (2026-11-20)
+
+**Hipótesis.** Lo que más bajaba el pulgar en el móvil y en Steam Deck era no reconocer las cartas ni ver dónde está
+el foco; y en todas partes, no saber qué copia el Comodín.
+
+**Interfaz**
+- **Móvil: la mano va en dos filas.** Ninguna carta tapa de costado a otra; de las de atrás asoma la parte de arriba,
+  con su número y el comienzo de sus pintas. El naipe del enemigo asoma por detrás de su barra de Vida para hacerle
+  lugar.
+- **El Comodín muestra lo que copia**: al elegirlo con otras cartas, lleva arriba el número y el palo. Lo mismo con el
+  Engaño de El Mentiroso.
+- **Foco del mando y del teclado**: marco claro, halo dorado y la carta enfocada un punto más grande. Al entrar a un
+  combate con mando, el foco va solo a la mano.
+- Botones de 48 px o más. «DESCARTAR» dice debajo cuántos quedan («quedan 3»). Las cifras de Vida del enemigo van
+  sobre una placa oscura. Más aire entre las líneas del bocadillo del Bufón.
+- Reglamento: Inmune y Furia redactados en una frase cada uno; el Comodín dice que necesita otra carta a su lado.
+
+**Puertas**
+- Dos estados nuevos con el foco a la vista (`mesa-mando`, `mapa-mando`): 108 capturas por idioma, 0 fallos. La QA
+  visual mide ahora las filas de la mano y el foco (marco, halo, escala).
+
+**Medido**
+- Laboratorio: sin cambios de reglas (el informe de la 0.2.0 sigue vigente).
+- Panel simulado (`pulso-60`, una tirada contra la media de tres del listón de la 0.2.0): Aprobación 76,7 % (63,3),
+  Críticos 50 % (30), Claridad 6,28 (6,32), Diversión 7,45 (7,34), Steam Deck 77,8 % (59,3), Móvil 80,0 % (71,1).
+  F 204,98 contra 177,24.
+
 ## 0.2.0 · La mesa se toca y se entiende (2026-11-20)
 
 **Hipótesis.** Las reseñas bajaban por fricción de lectura y de toque, no por el diseño: si cada cosa que se toca mide

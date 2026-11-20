@@ -105,3 +105,31 @@ lo bajan 4 (McNemar p = 0,03). **Aceptada.**
 
 **Lo que no movió:** la Diversión y los Críticos. Quitar fricción sube la Claridad y la aprobación general, pero al
 jugador exigente no le da nada nuevo que hacer.
+
+**Listón de la 0.2.0** (la medida y dos placebos nulos): F 169,07 · 170,42 · 192,23 (media 177,24); Aprobación 63,3 %;
+Críticos 30 %; Claridad 6,32; Diversión 7,34; Steam Deck 59,3 %; Móvil 71,1 %. Un placebo dio 23 puntos de F más que
+la medida: el ruido de una tirada es grande, y por eso el listón es la media.
+
+## 0.3.0 · La mano se lee de un vistazo (aceptada)
+
+**Hipótesis.** En el móvil y en Steam Deck el pulgar bajaba por no reconocer las cartas montadas ni ver el foco; y en
+todos los dispositivos, por no saber qué copia el Comodín.
+
+**Qué se hizo.** Mano del móvil en dos filas; el Comodín (y el Engaño) muestran sobre el naipe el número y el palo que
+copian; foco con marco claro, halo y escala; botones de 48 px; «DESCARTAR» con «quedan N»; cifras de Vida del enemigo
+sobre placa; Inmune y Furia en una frase cada uno. Sin cambios de reglas.
+
+**Veredicto del panel simulado** (`pulso-60-20261120-010033` contra el listón de la 0.2.0): F 204,98 contra 177,24
+(+27,3, por encima también de la mejor tirada del listón); Aprobación 76,7 % (63,3); Críticos 50 % (30); Steam Deck
+77,8 % (59,3); Móvil 80,0 % (71,1); Diversión 7,45 (7,34; p = 0,07). Suben el pulgar 13 y lo bajan 3 (p = 0,02).
+**Aceptada.**
+
+**Lo que no movió:** la Claridad (6,28 contra 6,32). Dos versiones seguidas subieron el pulgar sin subir esa nota: las
+personas simuladas aprueban más, pero siguen declarando dudas de reglas (el Comodín, la Furia, Inmune). La nota de
+Claridad parece depender del largo y de las excepciones del reglamento que leen, más que de la pantalla.
+
+**Lecciones de herramienta**
+- La mano de dos filas rompió la prueba de humo del móvil: tocaba el centro de la carta, que ahora tapa la fila de
+  adelante. Un jugador toca lo que ve; la prueba ahora también.
+- La guardia de las escenas marcó «comodín» como palabra valorativa (por «cómodo»): los patrones de la guardia van
+  con terminación explícita.
