@@ -178,3 +178,16 @@ Antes de publicar cualquier versión, todo en verde:
 - Inspiraciones de diseño (mesa centrada con anfitrión, dones que escalan, barra de estado con
   retrato): son mecánicas y estructuras de género. **Ningún nombre, texto, personaje ni arte de otro juego entra en
   CÁBALA**: todo el arte es original y se forja por código.
+
+## 6. Decisiones del dueño del proyecto (2026-11-20)
+
+Lo que sigue lo pidió el dueño del proyecto después de jugar la 0.3.0, y manda sobre lo que diga más arriba:
+
+- **Sin tiers a la vista.** Las piezas no enseñan `S / A / B`; solo la etiqueta `★ SINERGIA`.
+- **El Bufón vivo.** El anfitrión está en todas las pantallas y te sigue: al cambiar de pantalla se esfuma en una nube
+  de humo y reaparece en la siguiente, con su sonido; se mueve todo el tiempo (flota, respira, parpadea); cuando
+  habla, el bocadillo aparece, suena y después se va; reacciona a lo que hacés y, si lo dejás solo, cada tanto dice
+  algo. En la Pulpería va grande, centrado en su mitad, con el texto debajo.
+- **El Mapa es vertical.** Se sube desde abajo hasta el Rey y se navega hacia arriba y hacia abajo. La red de caminos
+  es irregular (no siempre tres opciones) y su azar está domado por reglas de balance que vigilan las pruebas
+  (`REGLAS_MAPA` en `src/rules/mapa.ts`).

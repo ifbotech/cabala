@@ -828,3 +828,118 @@ button.hud-tiras .ficha {
     display: none;
   }
 }
+
+/* ───────────── 0.6.0: el Bufón vivo ───────────── */
+
+:root {
+  /* el Bufón grande de la Pulpería: un punto más que en el resto */
+  --kb1: 3;
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  :root {
+    --kb1: 4;
+  }
+}
+/* flota todo el tiempo; cuando llega, crece de golpe; cuando habla, cabecea */
+.bufon {
+  animation: bf-flota 3.4s steps(8) infinite alternate;
+}
+@keyframes bf-flota {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(calc(-4px * var(--k)));
+  }
+}
+.bufon .bf-parpado {
+  opacity: 0;
+}
+.bufon.parpadea .bf-parpado {
+  opacity: 1;
+}
+.bufon.ausente {
+  visibility: hidden;
+}
+.bufon.llega {
+  animation: bf-llega 0.34s steps(5);
+}
+@keyframes bf-llega {
+  0% {
+    transform: scale(0.55) translateY(12%);
+  }
+  60% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.bufon.habla .bf-cuerpo {
+  animation: bf-habla 0.22s steps(2) infinite;
+}
+@keyframes bf-habla {
+  50% {
+    transform: translateY(calc(-2px * var(--k)));
+  }
+}
+/* lo que falta decir ocupa su lugar sin verse; el bocadillo se va en tres tiempos */
+.bocadillo .por-decir {
+  visibility: hidden;
+}
+.bocadillo.se-va {
+  animation: boc-se-va 0.26s steps(3) forwards;
+}
+@keyframes boc-se-va {
+  to {
+    opacity: 0;
+    transform: translateY(calc(-4px * var(--k)));
+  }
+}
+/* el bocadillo que se fue deja su lugar: nada salta alrededor */
+.anfitrion .bocadillo[hidden] {
+  display: block;
+  visibility: hidden;
+}
+
+/* el Bufón chico de las cabeceras: asoma la cabeza; su bocadillo flota debajo y no empuja nada */
+.mini-anfitrion {
+  position: relative;
+  justify-content: flex-end;
+  min-width: calc(110px * var(--k) * 0.5 + 55px);
+  --k-bufon: 1;
+}
+.mini-anfitrion .bufon {
+  width: 64px;
+  height: 60px;
+  overflow: hidden;
+}
+.mini-anfitrion .bocadillo {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 12px);
+  width: max-content;
+  max-width: min(36ch, 74vw);
+  z-index: 6;
+  pointer-events: none;
+}
+.mini-anfitrion .bocadillo::after {
+  left: auto;
+  right: 24px;
+  bottom: auto;
+  top: calc(-12px * var(--k));
+  transform: scaleY(-1);
+}
+@media (max-width: 700px) {
+  .mini-anfitrion {
+    min-width: 0;
+  }
+  .mini-anfitrion .bufon {
+    width: 52px;
+    height: 56px;
+  }
+  .altar .cabecera .titulo {
+    font-size: var(--fr);
+    white-space: nowrap;
+  }
+}

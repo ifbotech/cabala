@@ -386,6 +386,20 @@ export function lluviaDeMonedas(x0: number, x1: number, y0: number, n = 26): voi
   efecto(new Particulas(ps));
 }
 
+/** La nube de humo del Bufón: copos claros que se abren, suben despacio y se apagan al violeta. */
+export function humo(x: number, y: number, radio = 60): void {
+  const RAMPA = ['#f4efe2', '#d9ceb4', '#b9aacb', '#6b5a86', '#2a1f3d'];
+  const ps: Particula[] = [];
+  const n = Math.round(18 + radio / 6);
+  for (let i = 0; i < n; i++) {
+    const a = entre(0, Math.PI * 2);
+    const d = entre(0, aCelda(radio) * 0.8);
+    const v = entre(8, 34);
+    ps.push({ x: aCelda(x) + Math.cos(a) * d, y: aCelda(y) + Math.sin(a) * d, vx: Math.cos(a) * v, vy: Math.sin(a) * v * 0.6 - 14, g: -22, vida: -entre(0, 0.06), max: entre(0.35, 0.75), tam: azar() < 0.35 ? 4 : azar() < 0.6 ? 3 : 2, rampa: RAMPA, freno: 2.2 });
+  }
+  efecto(new Particulas(ps));
+}
+
 /** Motas que suben (la cura en verde lima, el Escudo en cian). */
 export function motas(x: number, y: number, rampa: string[], n = 10, ancho = 40): void {
   const ps: Particula[] = [];

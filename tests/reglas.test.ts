@@ -8,7 +8,7 @@ import { clasificar, resolver } from '../src/rules/cartas';
 import type { Carta, PaloCarta } from '../src/rules/cartas';
 import { crearEnemigo, cuenta, descartar, golpear, iniciarCombate } from '../src/rules/combate';
 import type { Enemigo, Partida } from '../src/rules/estado';
-import { COLUMNAS, PISOS, TRAMOS } from '../src/rules/mapa';
+import { COLUMNAS, PISOS, REGLAS_MAPA, TRAMOS, cumple, generarTramo } from '../src/rules/mapa';
 import { MAZOS } from '../src/rules/mazos';
 import type { MazoId } from '../src/rules/mazos';
 import * as juego from '../src/rules/partida';
@@ -211,28 +211,51 @@ describe('una partida entera', () => {
     jugarEntera(copia, botCopia);
     expect(JSON.stringify(copia)).toBe(JSON.stringify(p));
   });
-  it('el Mapa: tres tramos de cinco pisos de tres nodos y un Rey, todos alcanzables y sin caminos cruzados', () => {
+  it('el Mapa: tres tramos, cada uno una red irregular de seis pisos y un Rey, toda alcanzable y sin caminos cruzados', () => {
     const p = juego.nuevaPartida({ mazo: 'escoba', semilla: 'MAPA' });
     expect(p.tramos).toHaveLength(TRAMOS);
     expect(new Set(p.tramos.map((t) => t.rey)).size).toBe(TRAMOS);
     for (const t of p.tramos) {
-      expect(t.nodos).toHaveLength(PISOS * COLUMNAS + 1);
+      const rey = t.nodos.filter((n) => n.tipo === 'rey');
+      expect(rey).toHaveLength(1);
+      for (let piso = 0; piso < PISOS; piso++) {
+        const fila = t.nodos.filter((n) => n.piso === piso);
+        expect(fila.length).toBeGreaterThanOrEqual(1);
+        expect(fila.length).toBeLessThanOrEqual(COLUMNAS);
+      }
       const llegan = new Set(t.nodos.filter((n) => n.piso === 0).map((n) => n.id));
       for (const n of t.nodos) {
         if (n.tipo !== 'rey') expect(n.sig.length).toBeGreaterThan(0);
         if (llegan.has(n.id)) for (const s of n.sig) llegan.add(s);
       }
       expect(llegan.size).toBe(t.nodos.length);
-      for (let piso = 0; piso < PISOS - 1; piso++)
-        for (let col = 0; col < COLUMNAS - 1; col++) {
-          const a = t.nodos.find((n) => n.piso === piso && n.col === col)!;
-          const b = t.nodos.find((n) => n.piso === piso && n.col === col + 1)!;
-          const cruza = a.sig.some((s) => s.endsWith(`-${col + 1}`)) && b.sig.some((s) => s.endsWith(`-${col}`));
-          expect(cruza).toBe(false);
-        }
-      const tipos = new Set(t.nodos.map((n) => n.tipo));
-      for (const tipo of ['guardia', 'elite', 'pulperia', 'cabala', 'fogon', 'rey']) expect(tipos.has(tipo as never)).toBe(true);
+      // dos caminos del mismo piso nunca se cruzan
+      const col = (id: string) => t.nodos.find((n) => n.id === id)!.col;
+      for (const a of t.nodos) for (const b of t.nodos) if (a.piso === b.piso && a.col < b.col) for (const sa of a.sig) for (const sb of b.sig) expect(col(sa) > col(sb), `${a.id}→${sa} cruza ${b.id}→${sb}`).toBe(false);
     }
+  });
+  it('el azar del Mapa está domado: 400 tramos cumplen las reglas de balance y casi ninguno repite la forma', () => {
+    const formas = new Set<string>();
+    const entradas = new Set<number>();
+    for (let i = 0; i < 400; i++) {
+      const t = generarTramo({ rng: (i * 2654435761) >>> 0 }, i % TRAMOS, 'S');
+      expect(cumple(t.nodos), `semilla ${i}`).toBe(true);
+      const nodos = t.nodos.filter((n) => n.tipo !== 'rey');
+      // lo esencial, dicho aparte: se empieza con una Guardia, se llega al Rey desde un Fogón o una Pulpería, y la
+      // Guardia Brava nunca es obligatoria ni aparece antes del piso que dicen las reglas
+      for (const n of nodos) {
+        if (n.piso === 0) expect(n.tipo).toBe('guardia');
+        if (n.piso === PISOS - 1) expect(['fogon', 'pulperia']).toContain(n.tipo);
+        if (n.tipo === 'elite') expect(n.piso).toBeGreaterThanOrEqual(REGLAS_MAPA.pisoElite);
+      }
+      const elites = nodos.filter((n) => n.tipo === 'elite').length;
+      expect(elites).toBeGreaterThanOrEqual(REGLAS_MAPA.elites[0]);
+      expect(elites).toBeLessThanOrEqual(REGLAS_MAPA.elites[1]);
+      formas.add(nodos.map((n) => `${n.piso}${n.col}${n.sig.length}`).join(''));
+      entradas.add(nodos.filter((n) => n.piso === 0).length);
+    }
+    expect(formas.size).toBeGreaterThan(380);
+    expect(entradas.size).toBeGreaterThanOrEqual(3); // no siempre hay tres opciones para empezar
   });
   it('el bot termina cualquier partida con los 5 Mazos, y los invariantes se cumplen en cada paso', () => {
     for (const mazo of MAZOS)

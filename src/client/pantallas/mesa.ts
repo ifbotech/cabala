@@ -15,7 +15,7 @@ import { donesDe } from '../../rules/estado';
 import { ver } from '../../rules/perfil';
 import { REY_DEF } from '../../rules/reyes';
 import { ajustes, alAzar, guardarPerfil, idioma, perfil, t, tx } from '../almacen';
-import { sonar } from '../audio';
+import { sonar, vozBufon } from '../audio';
 import { RAMPA_CURA, RAMPA_ESCUDO, RAMPA_GOLPE, RAMPA_PALO, chispas, destello, haloRey, monedas, motas, numero, partirNaipe, tajo } from '../fx/efectos';
 import { congelar, enFoto, sacudir } from '../fx/motor';
 import { actualizarTiras, avivarRetrato, gestoRetrato, hudHtml, ponerHud, vistaDe, type VistaHud } from '../hud';
@@ -87,6 +87,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     clearTimeout(vozReloj);
     b.textContent = texto;
     b.hidden = false;
+    if (!enFoto()) for (let i = 0; i < 3; i++) window.setTimeout(() => vozBufon(texto.charCodeAt(i * 3) || 65), i * 70);
     gestoBufon($('.esc-bufon')!, gesto);
     if (ms > 0 && !enFoto()) vozReloj = window.setTimeout(() => {
       b.hidden = true;

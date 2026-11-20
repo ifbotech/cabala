@@ -26,6 +26,7 @@ import type { Expresion } from '../pixel/bufon';
 import { cifra, pxAmuleto, pxAumento, pxBendicion, pxHud, pxNaipe, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
 import { JUGADA_COMO, JUGADA_NOMBRE, NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, TRAMO_NOMBRE } from '../textos';
 import { VOZ } from '../voces';
+import { bufonDice } from '../bufon-vivo';
 import { $, abrirModal, anfitrion, bufonHtml, cerrarModal, esc, fichaDe, repintar, reyHtml, sinergiaHtml, tip, type Accion, type Pantalla } from '../ui';
 
 const fijo = (): number | undefined => (enFoto() ? 0 : undefined);
@@ -163,33 +164,40 @@ export function pantallaMapa(p: Partida): Pantalla {
   const abiertos = juego.nodosAlcanzables(p).map((n) => n.id);
   const rey = REY_DEF[tramo.rey];
   const voz = tx(alAzar(VOZ.mapa[humorDe(p.afinidad)], fijo()));
+  const corrimiento = (id: string): [number, number] => {
+    let h = 2166136261;
+    for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619);
+    return [(((h >>> 0) % 1000) / 1000 - 0.5) * 0.16, (((h >>> 10) % 1000) / 1000 - 0.5) * 0.24];
+  };
+  const lugar = (n: Nodo): [number, number] => {
+    const [dx, dy] = n.tipo === 'rey' ? [0, 0] : corrimiento(n.id);
+    return [(n.col + 0.5 + dx) / COLUMNAS, (PISOS + 0.5 - n.piso + dy) / (PISOS + 1)];
+  };
   const nodo = (n: Nodo): string => {
+    const [nx, ny] = lugar(n);
     const estado = n.id === p.pos ? 'actual' : p.camino.includes(n.id) ? 'hecho' : abiertos.includes(n.id) ? 'abierto' : 'lejos';
     const inmune = n.palos?.length ? t('inmuneA', { palo: n.palos.map((s) => tx(PALO_NOMBRE[s])).join(', ') }) : '';
     const nombre = n.tipo === 'rey' ? `${tx(rey.nombre)} · ${tx(rey.apodo)}` : tx(NODO_NOMBRE[n.tipo]);
     const desc = n.tipo === 'rey' ? `${tx(rey.rasgo)}: ${tx(rey.rasgoDesc)}` : tx(NODO_DESC[n.tipo]);
-    return `<button class="nodo n-${n.tipo} ${estado}" style="--p:${n.piso};--c:${n.col}" data-accion="nodo" data-id="${n.id}" data-foco="nodo-${n.id}" ${estado === 'abierto' ? '' : 'aria-disabled="true"'} ${abiertos[0] === n.id ? 'data-inicio' : ''} aria-label="${esc(nombre)}" ${tip(nombre, desc, inmune)}>
+    return `<button class="nodo n-${n.tipo} ${estado}" style="left:${(nx * 100).toFixed(2)}%;top:${(ny * 100).toFixed(2)}%" data-accion="nodo" data-id="${n.id}" data-foco="nodo-${n.id}" ${estado === 'abierto' ? '' : 'aria-disabled="true"'} ${abiertos[0] === n.id ? 'data-inicio' : ''} aria-label="${esc(nombre)}" ${tip(nombre, desc, inmune)}>
       ${pxNodo(n.tipo)}
       ${n.palos?.length ? `<span class="nodo-palos">${n.palos.map((s) => pxPalo(s)).join('')}</span>` : ''}
       ${estado === 'actual' ? `<span class="nodo-aca chip">${t('vosAca')}</span>` : ''}
     </button>`;
   };
-  // los caminos, en las dos orientaciones (la hoja de estilo enseña la que toca)
-  const lineas = (vertical: boolean): string => {
-    const en = (n: Nodo): [number, number] => (vertical ? [(n.col + 0.5) * 100, (PISOS + 0.5 - n.piso) * 100] : [(n.piso + 0.5) * 100, (n.col + 0.5) * 100]);
+  // los caminos: de cada nodo a los que siguen, piso arriba
+  const lineas = (): string => {
     const trazos = tramo.nodos.flatMap((a) =>
       a.sig.map((id) => {
         const b = tramo.nodos.find((x) => x.id === id)!;
-        const [x1, y1] = en(a);
-        const [x2, y2] = en(b);
+        const [x1, y1] = lugar(a);
+        const [x2, y2] = lugar(b);
         const hecho = p.camino.includes(a.id) && p.camino.includes(b.id);
         const vivo = a.id === p.pos && abiertos.includes(b.id);
-        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${hecho ? 'hecho' : vivo ? 'vivo' : ''}"/>`;
+        return `<line x1="${(x1 * 1000).toFixed(0)}" y1="${(y1 * 1000).toFixed(0)}" x2="${(x2 * 1000).toFixed(0)}" y2="${(y2 * 1000).toFixed(0)}" class="${hecho ? 'hecho' : vivo ? 'vivo' : ''}"/>`;
       }),
     );
-    const w = vertical ? COLUMNAS * 100 : (PISOS + 1) * 100;
-    const h = vertical ? (PISOS + 1) * 100 : COLUMNAS * 100;
-    return `<svg class="mapa-lineas ${vertical ? 'vertical' : 'horizontal'}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">${trazos.join('')}</svg>`;
+    return `<svg class="mapa-lineas" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">${trazos.join('')}</svg>`;
   };
   return {
     nombre: 'mapa',
@@ -199,7 +207,7 @@ export function pantallaMapa(p: Partida): Pantalla {
         <div class="lado"><span class="sub mapa-espera">${t('esperaRey', { rey: tx(rey.apodo) })}</span>${botonMenu()}</div>
       </header>
       <div class="mapa-zona">
-        <div class="mapa-rollo" data-rollo><div class="mapa-lienzo">${lineas(false)}${lineas(true)}${tramo.nodos.map(nodo).join('')}</div></div>
+        <div class="mapa-rollo" data-rollo><div class="mapa-lienzo" style="--pisos:${PISOS + 1}">${lineas()}${tramo.nodos.map(nodo).join('')}</div></div>
         ${anfitrion(voz, expresionDe(p), 'mapa-bufon')}
       </div>
       ${hudHtml(p)}
@@ -207,6 +215,7 @@ export function pantallaMapa(p: Partida): Pantalla {
     alMontar: (raiz) => {
       avivarRetrato(p);
       // el Mapa se desplaza: que arranque mostrando dónde estás
+      // (se sube desde abajo: al entrar a un tramo se ve el pie del Mapa)
       ($('.nodo.abierto', raiz) ?? $('.nodo.actual', raiz))?.scrollIntoView({ block: 'center', inline: 'center' });
     },
     acciones: {
@@ -241,7 +250,7 @@ function modalOferta(p: Partida, indice: number, alTerminar: () => void): void {
     oferta.tipo === 'bendicion' && habla
       ? `<p class="bocadillo sin-cola oferta-voz"><b>${esc(tx(REY_DEF[habla].apodo))}:</b> ${esc(tx(alAzar(REY_DEF[habla].voz.ofrece, fijo())))}</p>`
       : oferta.tipo === 'aumento'
-        ? `<div class="oferta-bufon">${bufonHtml('brillo')}<p class="bocadillo">${esc(tx(alAzar(VOZ.cabala, fijo())))}</p></div>`
+        ? `<div class="oferta-bufon" data-anfitrion>${bufonHtml('brillo')}<p class="bocadillo" data-voz>${esc(tx(alAzar(VOZ.cabala, fijo())))}</p></div>`
         : '';
   const opcion = (id: string, i: number): string => {
     const f = fichaDe(oferta.tipo, id, p);
@@ -269,6 +278,7 @@ function modalOferta(p: Partida, indice: number, alTerminar: () => void): void {
           sonar(oferta.tipo === 'bendicion' ? 'canto' : 'oro');
           cerrarModal();
           alTerminar();
+          bufonDice(tx(alAzar(VOZ.elige)));
         };
         if (oferta.tipo === 'amuleto' && p.amuletos.length >= p.huecos) modalReemplazo(p, id as AmuletoId, tomar, () => modalOferta(p, indice, alTerminar));
         else tomar();
@@ -278,6 +288,7 @@ function modalOferta(p: Partida, indice: number, alTerminar: () => void): void {
         sonar('clic');
         cerrarModal();
         alTerminar();
+        bufonDice(tx(alAzar(VOZ.salta)));
       },
     },
     () => undefined,
@@ -502,15 +513,19 @@ export function pantallaFogon(p: Partida): Pantalla {
     acciones: {
       ...accionesComunes(p),
       descansar: () => {
-        if (juego.descansar(p)) sonar('cura');
+        const hecho = juego.descansar(p);
+        if (hecho) sonar('cura');
         guardar();
         repintar();
+        if (hecho) bufonDice(tx(alAzar(VOZ.descansa)));
       },
       quemar: () =>
         modalMazo(p, t('elegiPurga'), (id) => {
-          if (juego.quemar(p, id)) sonar('cae');
+          const hecho = juego.quemar(p, id);
+          if (hecho) sonar('cae');
           guardar();
           repintar();
+          if (hecho) bufonDice(tx(alAzar(VOZ.quema)));
         }),
       seguir: () => {
         juego.salir(p);

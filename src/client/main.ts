@@ -8,14 +8,16 @@ import './estilos/pantallas.css';
 import './estilos/mesa.css';
 import { MARCA } from '../shared/brand';
 import { decidir, mejorGolpe } from '../rules/bot';
-import { ajustes, idioma, perfil } from './almacen';
+import { ajustes, alAzar, idioma, perfil, tx } from './almacen';
 import { prepararAudio, sonados } from './audio';
 import { iniciarFx, pulso } from './fx/motor';
 import { irPortada, sesion } from './juego';
+import { ponerMuletillas } from './bufon-vivo';
 import { iniciarNav } from './nav';
 import { precargarTodo } from './precarga';
 import { forjarCss, porForjar } from './sprites';
 import { iniciarUi } from './ui';
+import { VOZ } from './voces';
 
 document.documentElement.lang = idioma();
 document.title = `${MARCA[idioma()].titulo} · ${MARCA[idioma()].subtitulo}`;
@@ -25,6 +27,7 @@ iniciarUi();
 iniciarFx();
 iniciarNav();
 prepararAudio();
+ponerMuletillas(() => tx(alAzar(VOZ.muletilla)));
 
 // para la QA de humo: el estado vivo y el consejo del bot
 (window as unknown as { __cabala?: unknown }).__cabala = { sesion, perfil: () => perfil, mejorGolpe, decidir, pulso, sonados, porForjar };

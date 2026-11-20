@@ -51,6 +51,23 @@ export const VOZ = {
   cura: [P('Un trago y como nuevo.', 'One drink and good as new.')],
   fogon: [P('Sentate. El fuego no cobra. Yo tampoco… hoy.', 'Sit. The fire does not charge. Neither do I… tonight.')],
   altar: [P('Dejá tus porotos acá. Vuelven en suerte.', 'Leave your beans here. They come back as luck.')],
+  altarCompra: [P('Bien invertido. Creo.', 'Money well spent. I think.'), P('Eso vuelve. Tarde, pero vuelve.', 'That comes back. Late, but it does.')],
+  coleccion: [P('Mirá, mirá. Todo esto pasó por mis manos.', 'Look, look. All of this went through my hands.')],
+  cronica: [P('Acá queda todo anotado. Hasta las que perdiste.', 'It is all written down here. Even the ones you lost.')],
+  ajustes: [P('Tocá lo que quieras. Menos mi sueldo.', 'Touch whatever you like. Except my wages.')],
+  elige: [P('Buena mano.', 'Good hand.'), P('Esa era la que yo quería.', 'That was the one I wanted.')],
+  salta: [P('¿La dejás pasar? Vos sabrás.', 'Letting it go? Your call.')],
+  descansa: [P('Dormí, que yo vigilo. Más o menos.', 'Sleep, I will keep watch. More or less.')],
+  quema: [P('Al fuego. Chau, cartita.', 'Into the fire. Bye, little card.')],
+  // lo que dice cuando lo dejás solo un rato
+  muletilla: [
+    P('¿Y? ¿Jugamos o miramos?', 'Well? Are we playing or watching?'),
+    P('Yo no apuro… pero el Rey tampoco espera.', 'No rush from me… but the King will not wait either.'),
+    P('Te estoy viendo, ¿eh?', 'I am watching you, eh?'),
+    P('Ojo con lo que elegís, que después no hay vuelto.', 'Mind what you pick: no change given afterwards.'),
+    P('Si dudás, preguntame. Total, miento igual.', 'If in doubt, ask me. I will lie anyway.'),
+    P('Barajá tranquilo, que acá nadie cuenta.', 'Shuffle at ease, nobody is counting here.'),
+  ],
   gano: [P('¡Cayó la Corte! Yo siempre creí en vos. Casi siempre.', 'The Court has fallen! I always believed in you. Almost always.')],
   perdio: [P('Te limpiaron. Barajamos y damos de nuevo.', 'They cleaned you out. We shuffle and deal again.'), P('La Corte gana… esta mano.', 'The Court wins… this hand.')],
 } as const;

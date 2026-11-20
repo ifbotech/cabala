@@ -14,6 +14,7 @@ import { JUGADAS, PALOS } from '../src/rules/cartas';
 import type { Carta, Jugada, PaloCarta } from '../src/rules/cartas';
 import { crearEnemigo, cuenta, iniciarCombate } from '../src/rules/combate';
 import type { Enemigo } from '../src/rules/estado';
+import { COLUMNAS, PISOS, REGLAS_MAPA } from '../src/rules/mapa';
 import { MAZO, MAZOS } from '../src/rules/mazos';
 import type { MazoId } from '../src/rules/mazos';
 import * as juego from '../src/rules/partida';
@@ -38,6 +39,10 @@ const FUNCIONES = {
   capturasMando: true,
   /** Las piezas enseñan una nota S / A / B (desde la 0.6.0, no: solo la etiqueta de sinergia). */
   sellosVisibles: false,
+  /** El Mapa es vertical (se sube desde abajo) y su red es irregular, con reglas de balance. */
+  mapaVertical: true,
+  /** El Bufón está en todas las pantallas: llega con humo y sonido, flota, parpadea, y su bocadillo se escribe y se va. */
+  bufonVivo: true,
 };
 
 const c = (palo: PaloCarta, n: number): Carta => ({ id: `${palo}${n}`, palo, n });
@@ -80,6 +85,7 @@ const datos = {
   mejoras: MEJORAS.map((m) => ({ id: m.id, nombre: m.nombre, desc: m.desc, max: m.max, costes: Array.from({ length: m.max }, (_, i) => costeMejora(m.id, i)) })),
   reinados: REINADOS,
   estados: ESTADOS,
+  mapa: { pisos: PISOS, columnas: COLUMNAS, reglas: REGLAS_MAPA },
   // Lo que trae la interfaz de esta versión y las escenas del panel necesitan saber para no afirmar de más.
   funciones: FUNCIONES,
   lab: lab && { partidasPorCelda: lab.partidasPorCelda, mazos: lab.mazos },

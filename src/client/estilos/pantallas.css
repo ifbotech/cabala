@@ -196,12 +196,18 @@
 .mapa-rollo::-webkit-scrollbar {
   display: none;
 }
+.mapa-rollo {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+/* el Mapa sube: el piso 0 abajo, el Rey arriba. Cada piso tiene su alto; si no entra, se desplaza. */
 .mapa-lienzo {
+  /* el lado de un nodo: de él salen el ancho de las cinco columnas y el alto de cada piso */
+  --n: calc(40px * var(--k2));
   position: relative;
-  width: min(100%, calc(900px * var(--k) * 0.6 + 360px));
-  min-width: calc(600px * var(--k) * 0.5 + 300px);
-  height: 100%;
-  min-height: calc(280px * var(--k) * 0.5 + 140px);
+  flex: none;
+  width: min(100%, calc(var(--n) * 1.5 * 5));
+  height: calc(var(--pisos) * var(--n) * 1.55);
 }
 .mapa-lineas {
   position: absolute;
@@ -209,9 +215,6 @@
   width: 100%;
   height: 100%;
   shape-rendering: crispEdges;
-}
-.mapa-lineas.vertical {
-  display: none;
 }
 .mapa-lineas line {
   stroke: #5c5470;
@@ -234,8 +237,6 @@
 }
 .nodo {
   position: absolute;
-  left: calc((var(--p) + 0.5) / 6 * 100%);
-  top: calc((var(--c) + 0.5) / 3 * 100%);
   transform: translate(-50%, -50%);
   --k: var(--k2);
   display: flex;
@@ -927,21 +928,15 @@ button.visor-carta:disabled {
     display: block;
     --k: 2;
   }
-  .mapa-lineas.horizontal {
-    display: none;
-  }
-  .mapa-lineas.vertical {
-    display: block;
-  }
   .mapa-lienzo {
-    min-width: 0;
+    --n: 52px;
     width: 100%;
-    min-height: 620px;
-    height: 620px;
+    height: calc(var(--pisos) * 96px);
   }
   .nodo {
-    left: calc((var(--c) + 0.5) / 3 * 100%);
-    top: calc((5.5 - var(--p)) / 6 * 100%);
+    --k: 1;
+    width: var(--n);
+    height: var(--n);
   }
   .mapa-bufon {
     display: none;
@@ -1247,5 +1242,74 @@ button.visor-carta:disabled {
   .jugadas-cuerpo {
     grid-template-columns: 1fr;
     gap: var(--u);
+  }
+}
+
+/* ───────────── 0.6.0: el anfitrión con el texto debajo, la Pulpería y el Mapa que sube ───────────── */
+
+@media (min-width: 701px) {
+  .pantalla .anfitrion {
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--u) * 1.5);
+  }
+  .pantalla .anfitrion .bocadillo {
+    margin: 0;
+    max-width: min(34ch, 100%);
+    text-align: center;
+  }
+  .pantalla .anfitrion .bocadillo::after {
+    left: 50%;
+    bottom: auto;
+    top: calc(-12px * var(--k));
+    transform: translateX(-50%) scaleY(-1);
+  }
+  /* la Pulpería: el Bufón grande, en el centro de su mitad, con lo que dice debajo */
+  .pantalla .pul-bufon {
+    flex: 1;
+    min-width: 0;
+    align-self: center;
+    --k-bufon: var(--kb1);
+  }
+  .pantalla .mapa-bufon {
+    align-self: center;
+    width: calc(150px * var(--k-bufon));
+  }
+}
+/* el Mapa se desplaza hacia arriba y hacia abajo: sus bordes se funden para que se note que sigue */
+.mapa-rollo {
+  mask-image: linear-gradient(to bottom, transparent 0, #000 7%, #000 93%, transparent 100%);
+}
+@media (min-width: 701px) {
+  /* en el Fogón el Bufón va apilado sobre las dos opciones: un punto más chico, para que entre el botón de seguir */
+  .pantalla.fogon .anfitrion {
+    --k-bufon: 2;
+  }
+}
+@media (max-width: 700px) {
+  /* en el Mapa del móvil el Bufón asoma arriba a la izquierda; lo que dice flota al lado y se va */
+  .mapa-bufon {
+    display: flex;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 5;
+    pointer-events: none;
+    flex-direction: row;
+    align-items: flex-start;
+    width: auto;
+    --k-bufon: 1;
+  }
+  .mapa-bufon .bufon {
+    width: 56px;
+    height: 60px;
+    overflow: hidden;
+  }
+  .mapa-bufon .bocadillo {
+    max-width: 62vw;
+    margin: 0 0 0 6px;
+  }
+  .mapa-bufon .bocadillo::after {
+    display: none;
   }
 }

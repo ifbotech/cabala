@@ -1,5 +1,5 @@
 # CÁBALA — Reglas
-> Versión 0.3.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
+> Versión 0.6.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
 
 *Todo es cuestión de cábala.* Roguelike de baraja española para un jugador. Elegís un Mazo, el Bufón te lleva por tres tramos de caminos y al fondo de cada uno te espera un Rey. Tu mano contra la Corte: cada golpe es **DAÑO × MULTI**.
 
@@ -68,9 +68,9 @@ Un enemigo **Aturdido** se salta su próximo Contraataque. La **Furia** es Ataqu
 
 | Tramo | Lugar | Vida | Ataque |
 |---|---|---|---|
-| 1 | El Arrabal | ×1 | +0 |
-| 2 | El Reñidero | ×2.8 | +7 |
-| 3 | La Corte de Medianoche | ×7.5 | +17 |
+| 1 | El Arrabal | ×1.18 | +1 |
+| 2 | El Reñidero | ×3.4 | +9 |
+| 3 | La Corte de Medianoche | ×9.3 | +20 |
 
 La **Guardia Brava** (élite) tiene ×1.4 de Vida y +2 de Ataque. El **Rey** de cada tramo llega detrás de su Sota y su Caballo, con ×1.6 de Vida. Por cada Bendición suya que llevés, arranca con 5 % menos de Vida (tope 20 %).
 
@@ -163,11 +163,11 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 
 | Mazo | Personaje | Vida · mano | Regla estrella | Se abre con |
 |---|---|---|---|---|
-| **Escoba** · Escoba del 15 | La Barrendera | 62 · 6 | Sumá 15 justo: ¡ESCOBA!, Multi ×2 y más Daño para siempre. | abierto desde el principio |
-| **Truco** · Envido y Bravas | El Paisano Bravo | 81 · 6 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
-| **Chinchón** · Pierna y Escalera | La Timbera del Club | 63 · 7 | Piernas y Escaleras de palo crecen siempre y frenan el Contraataque. | Vencé a un Rey. |
-| **El Mentiroso** · Cara de Piedra | El Chamuyero | 65 · 6 | Cuatro Comodines y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
-| **Chancho Va** · Mano al Centro | El Manotazo | 57 · 6 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
+| **Escoba** · Escoba del 15 | La Barrendera | 58 · 6 | Sumá 15 justo: ¡ESCOBA!, Multi ×2 y más Daño para siempre. | abierto desde el principio |
+| **Truco** · Envido y Bravas | El Paisano Bravo | 82 · 6 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
+| **Chinchón** · Pierna y Escalera | La Timbera del Club | 56 · 7 | Piernas y Escaleras de palo crecen siempre y frenan el Contraataque. | Vencé a un Rey. |
+| **El Mentiroso** · Cara de Piedra | El Chamuyero | 74 · 6 | Cuatro Comodines y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
+| **Chancho Va** · Mano al Centro | El Manotazo | 54 · 6 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
 
 **Escoba** (¡ESCOBA!)
 - Si las cartas del golpe suman 15: ¡ESCOBA!, ×2 de Multi.
@@ -196,7 +196,9 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 
 ## El camino
 
-Tres tramos (El Arrabal, El Reñidero, La Corte de Medianoche), cada uno con cinco pisos de tres nodos y su Rey al fondo. De cada nodo salen uno o dos caminos. El Bufón te presenta el Mapa.
+Tres tramos (El Arrabal, El Reñidero, La Corte de Medianoche). Cada tramo es un Mapa que **se sube desde abajo**: 6 pisos y, arriba, su Rey. La red de caminos sale de la semilla y no repite la forma: en cada piso hay de 1 a 5 lugares, y de cada uno salen hasta tres caminos hacia arriba. A veces hay dos entradas, a veces cuatro; a veces todo pasa por un solo lugar.
+
+El azar del Mapa tiene reglas, y se cumplen siempre: se empieza con una Guardia; el último piso antes del Rey es un Fogón o una Pulpería; la Guardia Brava no aparece antes del piso 3 y siempre hay un camino que la esquiva (hay de 1 a 3 por tramo); nada que no sea una Guardia se repite pegado; una bifurcación nunca ofrece dos veces lo mismo; y cualquier recorrido de un tramo tiene entre 3 y 5 combates antes del Rey.
 
 | Nodo | Qué pasa |
 |---|---|
@@ -213,7 +215,7 @@ Tres tramos (El Arrabal, El Reñidero, La Corte de Medianoche), cada uno con cin
 
 ### El Bufón y sus Cábalas
 
-El Bufón es el único anfitrión del juego y un chanta: lleva un **humor** (de garca a «de tu lado»). Seguirle un truco lo sube; rechazarlo lo baja. Cuando el truco se juega a la suerte, sale bien el 50 % de las veces, ±10 puntos por cada punto de humor. Si lo rechazás estando garca, le sopla tu juego al próximo Rey (+2 de Furia).
+El Bufón es el único anfitrión del juego y un chanta. Te sigue pantalla por pantalla: se esfuma en una nube de humo y reaparece en la siguiente; lo que dice se escribe, suena y al rato se va. Además lleva un **humor** (de garca a «de tu lado»). Seguirle un truco lo sube; rechazarlo lo baja. Cuando el truco se juega a la suerte, sale bien el 50 % de las veces, ±10 puntos por cada punto de humor. Si lo rechazás estando garca, le sopla tu juego al próximo Rey (+2 de Furia).
 
 | Cábala | Humor | Opciones |
 |---|---|---|

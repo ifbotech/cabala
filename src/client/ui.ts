@@ -12,6 +12,7 @@ import { sinergia } from '../rules/notas';
 import { ajustes, t, tx } from './almacen';
 import { bufonCapas, type Expresion } from './pixel/bufon';
 import { REY_PX, reyFondo, reyMapa, type Animo } from './pixel/reyes';
+import { avivar, esfumar } from './bufon-vivo';
 import { px, pxEstrella } from './sprites';
 
 export type Accion = (el: HTMLElement, ev: Event) => void;
@@ -36,7 +37,8 @@ let actual: Pantalla | null = null;
 let modal: { acciones: Record<string, Accion>; atras?: () => void } | null = null;
 
 /** Monta una pantalla en #app. */
-export function montar(p: Pantalla): void {
+export function montar(p: Pantalla, misma = false): void {
+  if (!misma) esfumar();
   actual?.alSalir?.();
   cerrarModal();
   ocultarTip();
@@ -46,6 +48,7 @@ export function montar(p: Pantalla): void {
   app.dataset.pantalla = p.nombre;
   app.innerHTML = p.html();
   p.alMontar?.(app);
+  avivar(app, !misma);
   document.dispatchEvent(new CustomEvent('cabala:pantalla', { detail: p.nombre }));
 }
 /** Vuelve a pintar la pantalla actual (conserva el foco si puede). */
@@ -54,7 +57,7 @@ export function repintar(): void {
   const foco = (document.activeElement as HTMLElement | null)?.dataset?.foco;
   const p = actual;
   actual = null;
-  montar(p);
+  montar(p, true);
   if (foco) $(`[data-foco="${foco}"]`)?.focus();
 }
 export const pantallaActual = (): Pantalla | null => actual;
@@ -66,6 +69,7 @@ export function abrirModal(html: string, acciones: Record<string, Accion> = {}, 
   capa.insertAdjacentHTML('beforeend', `<div class="velo" role="dialog" aria-modal="true">${html}</div>`);
   modal = { acciones, atras };
   const velo = capa.lastElementChild as HTMLElement;
+  avivar(velo, true);
   requestAnimationFrame(() => (velo.querySelector<HTMLElement>('[data-inicio]') ?? velo.querySelector<HTMLElement>('button:not(:disabled)'))?.focus());
   document.dispatchEvent(new CustomEvent('cabala:pantalla', { detail: 'modal' }));
   return velo;
@@ -142,7 +146,9 @@ export const tip = (titulo: string, cuerpo = '', pie = ''): string => `data-tip-
 
 /** El Bufón en dos capas (el cetro se mece, el cuerpo respira). */
 export function bufonHtml(e: Expresion = 'reposo', cls = ''): string {
-  return `<div class="bufon ${cls}" data-expresion="${e}" aria-hidden="true">${px(`bf:palo`, () => bufonCapas('reposo').palo, 'bf-palo')}${px(`bf:${e}`, () => bufonCapas(e).cuerpo, 'bf-cuerpo')}</div>`;
+  // tres capas: el palo que se mece, el cuerpo que respira y, encima, el mismo gesto con los ojos cerrados (el parpadeo)
+  const parpado = e === 'reposo' ? px('bf:parpadeo', () => bufonCapas('parpadeo').cuerpo, 'bf-cuerpo bf-parpado') : '';
+  return `<div class="bufon ${cls}" data-expresion="${e}" aria-hidden="true">${px(`bf:palo`, () => bufonCapas('reposo').palo, 'bf-palo')}${px(`bf:${e}`, () => bufonCapas(e).cuerpo, 'bf-cuerpo')}${parpado}</div>`;
 }
 /** Cambia la expresión de un Bufón ya montado. */
 export function gestoBufon(raiz: ParentNode, e: Expresion): void {
@@ -150,9 +156,13 @@ export function gestoBufon(raiz: ParentNode, e: Expresion): void {
   if (!b || b.dataset.expresion === e) return;
   b.outerHTML = bufonHtml(e, b.className.replace('bufon', '').trim());
 }
-/** El Bufón con su bocadillo. */
+/** El Bufón con su bocadillo debajo: lo que dice se escribe, suena y al rato se va (ver bufon-vivo.ts). */
 export function anfitrion(texto: string, e: Expresion = 'reposo', cls = ''): string {
-  return `<div class="anfitrion ${cls}">${bufonHtml(e)}<p class="bocadillo" data-voz>${esc(texto)}</p></div>`;
+  return `<div class="anfitrion ${cls}" data-anfitrion>${bufonHtml(e)}<p class="bocadillo" data-voz aria-live="polite">${esc(texto)}</p></div>`;
+}
+/** El Bufón chico de las cabeceras (Mazos, Altar, Colección, Crónica, Ajustes): asoma la cabeza y su bocadillo flota. */
+export function miniAnfitrion(texto: string, e: Expresion = 'reposo'): string {
+  return `<span class="lado mini-anfitrion" data-anfitrion>${bufonHtml(e)}<p class="bocadillo" data-voz aria-live="polite">${esc(texto)}</p></span>`;
 }
 
 const AURA: Record<Palo, string> = { S: '#00c8ff', C: '#22d95b', D: '#ffd500', H: '#ff1453' };

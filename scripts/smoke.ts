@@ -254,6 +254,26 @@ await conServidor(5192, async (url) => {
     exigir(!desborde, 'la mesa se desborda de la ventana del móvil');
     ok('móvil (390 × 844, táctil): se llega a la mesa y se golpea tocando');
     await movil.close();
+
+    // el Bufón vivo (sin el modo rápido, que lo deja quieto): llega con su nube y su sonido, escribe lo que dice,
+    // se esfuma al cambiar de pantalla y reaparece en la siguiente; el bocadillo se va solo
+    const vivo = await navegador.newContext({ viewport: { width: 1366, height: 768 } });
+    await vivo.addInitScript('globalThis.__name = (f) => f');
+    const v = await vivo.newPage();
+    v.on('pageerror', (e) => errores.push(e.message));
+    await v.goto(`${url}/?perfil=nuevo&lang=${lang}`);
+    await v.waitForSelector('.portada [data-accion="jugar"]');
+    const sonados = (): Promise<string> => v.evaluate(() => (window as unknown as { __cabala: { sonados: string[] } }).__cabala.sonados.join(' '));
+    await v.waitForFunction(() => !!document.querySelector('.portada [data-anfitrion] [data-voz] .dicho')?.textContent, undefined, { timeout: 5000 });
+    exigir((await sonados()).includes('bufon'), 'el Bufón llegó a la portada sin su sonido');
+    await v.click('[data-accion="jugar"]');
+    await v.waitForSelector('.elegir .mini-anfitrion .bufon');
+    await v.waitForFunction(() => !!document.querySelector('.mini-anfitrion [data-voz] .dicho')?.textContent, undefined, { timeout: 5000 });
+    const tras = await sonados();
+    exigir(tras.includes('puf') && tras.lastIndexOf('bufon') > tras.indexOf('puf'), `al cambiar de pantalla el Bufón no se esfumó y reapareció (${tras})`);
+    await v.waitForFunction(() => document.querySelector<HTMLElement>('.mini-anfitrion [data-voz]')?.hidden === true, undefined, { timeout: 12000 });
+    ok('el Bufón te sigue: se esfuma con humo, reaparece con su sonido, escribe lo que dice y el bocadillo se va');
+    await vivo.close();
   } finally {
     await navegador.close();
   }

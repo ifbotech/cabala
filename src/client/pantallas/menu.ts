@@ -20,7 +20,8 @@ import { CUADRO0 } from '../pixel/personajes';
 import { cifra, pxAmuleto, pxAumento, pxBendicion, pxDorso, pxHud, pxLogo, urlRetrato } from '../sprites';
 import { TRAMO_NOMBRE } from '../textos';
 import { VOZ } from '../voces';
-import { abrirModal, anfitrion, cerrarModal, esc, repintar, reyHtml, tip, type Pantalla } from '../ui';
+import { bufonDice } from '../bufon-vivo';
+import { abrirModal, anfitrion, cerrarModal, esc, miniAnfitrion, repintar, reyHtml, tip, type Pantalla } from '../ui';
 
 // ───────────────────────── portada ─────────────────────────
 
@@ -124,7 +125,7 @@ export function pantallaMazo(): Pantalla {
       <header class="cabecera">
         <button class="btn marco chico" data-accion="volver" data-foco="volver">‹ ${t('volver')}</button>
         <h1 class="titulo">${t('elegiMazo')}</h1>
-        <span class="lado hueco-volver"></span>
+        ${miniAnfitrion(tx(VOZ.mazo[mazoElegido]))}
       </header>
       <div class="mazos" role="radiogroup" aria-label="${t('elegiMazo')}">
         ${MAZOS.map((m) => {
@@ -189,7 +190,7 @@ export function pantallaAltar(): Pantalla {
       <header class="cabecera">
         <button class="btn marco chico" data-accion="volver" data-foco="volver" data-inicio>‹ ${t('volver')}</button>
         <h1 class="titulo">${t('altarTitulo')}</h1>
-        <span class="lado porotos" ${tip(t('porotos'), idioma() === 'en' ? 'Every run leaves some, win or lose.' : 'Cada partida deja algunos, ganes o pierdas.')}>${pxHud('poroto')}${cifra(perfil.porotos, 'oro', 'grande')}</span>
+        ${miniAnfitrion(tx(alAzar(VOZ.altar, enFoto() ? 0 : undefined)))}<span class="lado porotos" ${tip(t('porotos'), idioma() === 'en' ? 'Every run leaves some, win or lose.' : 'Cada partida deja algunos, ganes o pierdas.')}>${pxHud('poroto')}${cifra(perfil.porotos, 'oro', 'grande')}</span>
       </header>
       <div class="mejoras marco">${MEJORAS.map((m) => fila(m.id)).join('')}</div>
     </main>`,
@@ -200,6 +201,7 @@ export function pantallaAltar(): Pantalla {
           sonar('oro');
           guardarPerfil();
           repintar();
+          bufonDice(tx(alAzar(VOZ.altarCompra)));
         }
       },
     },
@@ -247,7 +249,7 @@ export function pantallaColeccion(): Pantalla {
       <header class="cabecera">
         <button class="btn marco chico" data-accion="volver" data-foco="volver" data-inicio>‹ ${t('volver')}</button>
         <h1 class="titulo">${t('coleccion')}</h1>
-        <span class="lado hueco-volver"></span>
+        ${miniAnfitrion(tx(alAzar(VOZ.coleccion, enFoto() ? 0 : undefined)))}
       </header>
       <nav class="fila pestanas" role="tablist">${pestanas.map((p) => `<button class="btn marco chico ${p === pestana ? 'oro' : ''}" role="tab" aria-selected="${p === pestana}" data-accion="pestana" data-id="${p}" data-foco="tab-${p}">${t(p === 'amuletos' ? 'amuletos' : p)}</button>`).join('')}</nav>
       <section class="col-cuerpo marco">${cuerpo()}</section>
@@ -274,7 +276,7 @@ export function pantallaCronica(): Pantalla {
       <header class="cabecera">
         <button class="btn marco chico" data-accion="volver" data-foco="volver" data-inicio>‹ ${t('volver')}</button>
         <h1 class="titulo">${t('cronica')}</h1>
-        <span class="lado hueco-volver"></span>
+        ${miniAnfitrion(tx(alAzar(VOZ.cronica, enFoto() ? 0 : undefined)))}
       </header>
       <div class="cr-datos marco">${dato(t('partidas'), s.partidas)}${dato(t('victorias'), s.victorias)}${dato(t('reyesVencidos'), s.reyes)}${dato(t('mejorGolpe'), s.mejorGolpe)}</div>
       <section class="cr-lista marco">
@@ -311,7 +313,7 @@ export function pantallaAjustes(): Pantalla {
       <header class="cabecera">
         <button class="btn marco chico" data-accion="volver" data-foco="volver" data-inicio>‹ ${t('volver')}</button>
         <h1 class="titulo">${t('ajustes')}</h1>
-        <span class="lado hueco-volver"></span>
+        ${miniAnfitrion(tx(alAzar(VOZ.ajustes, enFoto() ? 0 : undefined)))}
       </header>
       <section class="aj-lista marco">
         <div class="aj-fila"><b>${t('idioma')}</b><div class="fila"><button class="btn marco chico ${idioma() === 'es' ? 'oro' : ''}" data-accion="es" data-foco="aj-es" aria-pressed="${idioma() === 'es'}">Español</button><button class="btn marco chico ${idioma() === 'en' ? 'oro' : ''}" data-accion="en" data-foco="aj-en" aria-pressed="${idioma() === 'en'}">English</button></div></div>
