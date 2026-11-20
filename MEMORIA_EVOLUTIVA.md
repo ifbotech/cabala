@@ -218,3 +218,30 @@ publica (corrige además un error real del HUD del móvil que salió con la 0.6.
 **Estado de las metas tras ocho versiones medidas.** Suben con arreglos reales de interfaz la Aprobación (45 → 72–75 %),
 el móvil y Steam Deck. No se mueven la Claridad (5,98 → 6,3–6,4; meta 8,0) ni la Diversión (7,31 → 7,45–7,50; meta
 8,4): el instrumento parece tener un techo propio para esas dos notas con escenas hechas solo de hechos y cifras.
+
+## 0.9.0 · Manos de verdad y Fogón de riesgo (publicada por decisión del dueño; mide peor)
+
+**Pedido del dueño.** Que cada Mazo tenga en la mano las cartas de su juego; que los Amuletos sirvan medianamente a
+todos; que el Fogón sea una apuesta (mejorar un naipe o perderlo en el fuego).
+
+**Diseño.**
+- Manos 3 / 3 / 4 / 7 / 8. Para que una mano de 3 no sea un Mazo menor, las manos cortas llevan Multi fijo de más
+  (+4, +3, +4) y la Vida de cada Mazo se reajustó hasta certificar los cinco en la banda.
+- Vale Cuatro pasó de «golpes de 4 cartas» a «golpes con toda tu mano (o 5 cartas)»: era inútil con manos de 3.
+- Fogón: primera pasada segura (+4 de Daño al naipe), las siguientes con 50 % de quemarlo; hasta 3. El bot templa una
+  vez y se retira (el riesgo esperado de arrimar no le paga).
+
+**Medida** (`pulso-60-20261120-141348`, snapshot `20261120-140442`, contra el Campeón `…-115956`): F 183,6 contra
+200,7; Claridad 6,03 contra 6,32 (t = −1,93; p = 0,058); Diversión igual (7,45); suben 6 pulgares y bajan 9 (p = 0,61);
+Steam Deck 55,6 % (88,9); Móvil 86,7 % (66,7). Capturas nuevas: la diferencia incluye el ruido del auditor visual (el
+mismo juego re-auditado ya se movió 23 puntos de F una vez).
+
+**Lo que se vio al leer las reseñas.**
+- La Claridad bajó sobre todo en las escenas de la mesa (c04 7,3 → 6,0; c05 7,0 → 5,7). Las capturas de esas escenas
+  muestran una mano de **5** cartas (la partida de QA traía el Aumento «Dar de abajo»), mientras el texto dice que la
+  Escoba juega con 3: la foto contradice la regla, y en el móvil esa mano de 5 cae en dos filas.
+- Las dudas repetidas no cambiaron: el Comodín («copia la más alta»), la Furia y el tamaño de los números del naipe en
+  Steam Deck. Nadie nombra las manos ni el Fogón como confusos; tampoco como momento favorito.
+
+**Lección.** Las fotos de QA tienen que mostrar el caso común de la regla que cuentan las escenas. Un Aumento que
+cambia la mano en el primer turno no puede estar en la partida que se fotografía.
