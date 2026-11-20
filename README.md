@@ -13,6 +13,8 @@ Tu mano contra la Corte: cada golpe es `DAÑO × MULTI = TOTAL`.
 - **El Bufón**, único anfitrión: te ofrece Cábalas (Aumentos pasivos) y su humor cambia cómo te trata.
 - **15 Amuletos**, ni uno más. Sin tiers a la vista: cada pieza se elige por lo que hace, con la etiqueta ★ SINERGIA cuando potencia lo que llevás.
 - **Arrastrá las cartas sobre el enemigo** para golpear. También con clic, teclado o mando.
+- **Con música y con voz**: ocho pistas sintetizadas, una por lugar; el Bufón, los Reyes y los Personajes hablan cada uno con su timbre.
+- **El Fogón es una apuesta**: templá un naipe y, si te animás, arrimalo otra vez: mejora o se quema.
 - Español e inglés. Se guarda solo en tu navegador.
 
 ## Cómo se juega (30 segundos)

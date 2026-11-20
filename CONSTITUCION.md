@@ -191,3 +191,8 @@ Lo que sigue lo pidió el dueño del proyecto después de jugar la 0.3.0, y mand
 - **El Mapa es vertical.** Se sube desde abajo hasta el Rey y se navega hacia arriba y hacia abajo. La red de caminos
   es irregular (no siempre tres opciones) y su azar está domado por reglas de balance que vigilan las pruebas
   (`REGLAS_MAPA` en `src/rules/mapa.ts`).
+- **Cada Mazo, con la mano de su juego.** Escoba y Truco 3 cartas, Chancho Va 4, Chinchón 7, El Mentiroso 8. Las
+  manos cortas se compensan con Multi; los Amuletos y Aumentos tienen que servirle a todas las manos.
+- **El Fogón es una apuesta.** Templar un naipe es seguro la primera vez; arrimarlo otra vez lo mejora o lo quema.
+- **Con música y con voz.** Cada lugar tiene su pista sintetizada (con su ajuste propio); el Bufón, los Reyes y los
+  Personajes hablan cada uno con su timbre; lo que pasa en la mesa se anima.

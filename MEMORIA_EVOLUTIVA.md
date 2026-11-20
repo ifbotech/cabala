@@ -245,3 +245,44 @@ mismo juego re-auditado ya se movió 23 puntos de F una vez).
 
 **Lección.** Las fotos de QA tienen que mostrar el caso común de la regla que cuentan las escenas. Un Aumento que
 cambia la mano en el primer turno no puede estar en la partida que se fotografía.
+
+## 0.10.0 · Con música y con voz (publicada por decisión del dueño; empate dentro del ruido)
+
+**Pedido del dueño.** «Más animaciones, música, los personajes con voces.» Y llegar a la 0.10.0 para hacer él la prueba.
+
+**Qué se hizo.**
+- `src/client/musica.ts`: un secuenciador sobre WebAudio (bajo, rasgueo, canto y percusión de ruido), ocho pistas, una
+  por pantalla. El canto de cada pista se compone solo, una vez y con semilla fija: notas del acorde en los tiempos
+  fuertes y grados vecinos entre medio; la segunda mitad repite el dibujo de la primera sobre los acordes nuevos
+  (frase y respuesta). Tres pruebas cuidan que entone.
+- Voces por timbre (`audio.ts`) y habla letra por letra (`habla.ts`) para los Reyes; gritos de los Personajes
+  (`GRITO` en `voces.ts`, `gritar` en `hud.ts`).
+- Animaciones de entrada con la clase `recien` (solo al montar una pantalla nueva: repintar no las repite).
+- `scripts/mirar.ts`: fotos de momentos vivos (el grito, el Rey que cae, el Fogón en suspenso) para revisarlos a ojo.
+
+**Medida** (`pulso-60-20261120-145033`, snapshot `20261120-144650`): F 194,5 contra 200,7 del Campeón (p de
+Claridad 0,27; de Diversión 0,78; suben 6 pulgares y bajan 8) y contra 183,6 de la 0.9.0 (+10,9). Empate dentro del
+ruido. Los Críticos vuelven a 50 % (35 en la 0.9.0).
+
+**Lecciones.**
+- **El instrumento es sordo y no ve movimiento.** Lee escenas de hechos y audita fotos quietas. La música, las voces y
+  las animaciones solo le llegan como una frase («hay 8 pistas»), y eso no mueve la Diversión (7,45 → 7,47). Para
+  medir «chicha» hace falta una persona o un instrumento que mire video.
+- **Una animación con retardo rompe la QA visual** aunque el sistema pida movimiento reducido (eso acorta la duración,
+  no el retardo): las entradas van detrás de una clase que solo se pone en vivo.
+- **Corregir la foto recuperó lo perdido.** Con la mano real de 3 cartas en las capturas de la mesa, la medida volvió
+  al nivel del Campeón (183,6 → 194,5). La caída de la 0.9.0 era, al menos en parte, la foto que contradecía la regla.
+
+**Estado de las metas al cerrar el ciclo 0.1.0 → 0.10.0** (panel simulado; ninguna de las seis se cumple):
+
+| Meta | Pedido | 0.1.0 | Mejor medida | 0.10.0 |
+|---|---|---|---|---|
+| Aprobación | ≥ 85 % | 45 % | 75 % (0.6.0) | 71,7 % |
+| Claridad | ≥ 8,0 | 5,98 | 6,38 (0.8.0) | 6,15 |
+| Diversión | ≥ 8,4 | 7,31 | 7,50 (0.8.0) | 7,47 |
+| Críticos | ≥ 60 % | — | 55 % (0.6.0) | 50 % |
+| Steam Deck | ≥ 85 % | — | 88,9 % (0.6.0) | 66,7 % |
+| Móvil | ≥ 85 % | — | 86,7 % (0.9.0) | 80,0 % |
+
+Steam Deck y Móvil son grupos de 9 y 15 personas: un pulgar mueve 11 y 7 puntos. La Aprobación subió 27 puntos con
+arreglos reales de interfaz; Claridad y Diversión no salieron de una banda de ±0,2 en diez versiones.

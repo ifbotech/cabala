@@ -53,3 +53,18 @@ node scripts/con-tope.mjs 200 npm run build:web
 - Los parches grandes, como archivo `.mjs` y con `node`: los heredocs de bash con comillas se rompen.
 - `page.evaluate` con funciones de tsx necesita `ctx.addInitScript('globalThis.__name = (f) => f')`.
 - `qa:fps` lanza Chromium con la GPU real (`channel: 'chromium'`, ANGLE/D3D11); sin GPU mide menos y no vale.
+
+## Desde la 0.10.0: música, voces y momentos vivos
+
+- La QA de humo tiene 15 comprobaciones: suma la música (la pista de la portada suena desde el primer gesto; Ajustes →
+  «Música» la apaga y la prende) y las voces (el Rey que ofrece su Bendición habla con su timbre; el botín y el Rey
+  cambian de pista). Lo lee de `window.__cabala.musica()`, `.pistas` y `.hablaron`: la QA no oye.
+- `npx tsx scripts/mirar.ts` deja en `artifacts/mirar` fotos de lo que la QA visual no ve porque fotografía todo
+  quieto: la portada entrando, el grito del Personaje, el Rey que cae y habla, el Fogón en suspenso y el naipe que se
+  quema. Mirarlas a ojo después de tocar animaciones.
+- Una animación de entrada nunca va suelta en el CSS: va detrás de la clase `recien` (`#app.recien`, `.velo.recien`),
+  que solo se pone en vivo. El movimiento reducido acorta la duración, no el retardo, y una foto tomada durante el
+  retardo sale con las opciones corridas («dianas-pegadas»).
+- `tests/musica.test.ts` cuida las pistas: ritmos del largo del compás, canto en la escala o el acorde, en su
+  registro y sin saltos de más de una octava. Al tocar una pista, correr `npx tsx artifacts/ver-musica.ts` no hace
+  falta: la prueba alcanza.

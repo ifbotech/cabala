@@ -3,6 +3,45 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.10.0 · Con música y con voz (2026-11-20)
+
+Pedido del dueño del proyecto: más animaciones, música y personajes con voz.
+
+**Música**
+- Cada lugar tiene su pista, sintetizada en el navegador (sin archivos): milonga en la portada, un paseo en el Mapa,
+  corcheas que empujan en el combate, galope contra los Reyes, vals criollo en la Pulpería, una guitarra lenta en el
+  Fogón, campanitas en la Cábala y el Altar, y un lamento en la derrota. Ocho pistas.
+- Ajustes → «Música» la apaga sin apagar los efectos.
+
+**Voces**
+- Cada uno habla con su timbre: el Bufón, los cuatro Reyes (graves, cada uno distinto) y los cinco Personajes.
+- El Rey habla al entrar y al ofrecer su Bendición: su frase se escribe letra por letra con su voz. Al caer dice su
+  última frase antes de que se parta el naipe.
+- Tu Personaje grita desde su retrato: el canto («¡ESCOBA!»), algunos Golpes exactos, los golpes que duelen, y le
+  contesta al Rey cuando entra y cuando cae.
+
+**Animaciones**
+- El canto cruza la mesa en letras grandes.
+- Las pantallas entran y sus opciones brotan una tras otra; el logotipo cae y rebota; los números del HUD laten al
+  cambiar; el retrato salta al gritar.
+- En el Mapa, el nodo que elegís late y los demás se apagan antes de entrar.
+- El Fogón está vivo: suben brasas, el fuego se mueve, el naipe templado da un fogonazo con su «+4»; al arrimarlo otra
+  vez tiembla sobre las llamas mientras sube el chisporroteo, y si se quema se parte en brasas y humo.
+
+**Claridad**
+- Las pantallas de la mesa que se fotografían para la QA y el panel muestran la mano real del Mazo (3 cartas en la
+  Escoba). En el móvil esa mano va en una sola fila, con las cartas enteras.
+- El nombre del canto y «GOLPE EXACTO» van más grandes en la cuenta.
+
+**Medido**
+- 60 pruebas (3 nuevas, de la música: las pistas están bien escritas y el canto entona). QA de humo con 15
+  comprobaciones (música, ajuste de Música y voz de los Reyes). 60 fps con la música sonando. Reglas sin cambios.
+- Panel simulado (una tirada contra una tirada; capturas nuevas): Aprobación 71,7 % (75,0), Críticos 50 % (55),
+  Claridad 6,15 (6,32), Diversión 7,47 (7,45), Steam Deck 66,7 % (88,9), Móvil 80,0 % (66,7). F 194,5 contra 200,7 del
+  Campeón y 183,6 de la 0.9.0. **Empate dentro del ruido** con el Campeón (ninguna diferencia es significativa);
+  recupera 11 puntos sobre la 0.9.0. El panel lee textos y fotos quietas: **no oye la música ni ve las animaciones**,
+  así que esta versión hay que juzgarla jugando.
+
 ## 0.9.0 · Manos de verdad y Fogón de riesgo (2026-11-20)
 
 Dos decisiones del dueño del proyecto.
