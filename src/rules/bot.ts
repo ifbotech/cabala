@@ -191,7 +191,10 @@ function enFogon(p: Partida): void {
   // con poca Vida descansa; si no, templa su mejor naipe una sola vez (la pasada segura: no se la juega)
   const mejor = [...p.mazo].filter((k) => k.palo !== 'X').sort((a, b) => b.n + (b.temple ?? 0) - (a.n + (a.temple ?? 0)))[0];
   if (p.vida < p.vidaMax * 0.7 || !mejor) juego.descansar(p);
-  else juego.templar(p, mejor.id);
+  else if (juego.templar(p, mejor.id) && juego.puedeArrimar(p)) {
+    // la segunda pasada paga (otro tanto de Daño y +Multi contra un tercio de quemarlo): la toma; la Forja Brava, no
+    juego.templar(p, mejor.id);
+  }
   juego.salir(p);
 }
 

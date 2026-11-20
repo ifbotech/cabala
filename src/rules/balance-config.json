@@ -93,7 +93,7 @@
         "escudo": 2
       },
       {
-        "vida": 9.3,
+        "vida": 9.5,
         "ataque": 20,
         "escudo": 4
       }
@@ -143,7 +143,7 @@
       "multiMano": 4
     },
     "truco": {
-      "vida": 82,
+      "vida": 81,
       "mano": 3,
       "hasta": 7,
       "comodines": 2,
@@ -158,7 +158,7 @@
       "multiMano": 3
     },
     "chinchon": {
-      "vida": 58,
+      "vida": 53,
       "mano": 7,
       "hasta": 9,
       "comodines": 2,
@@ -167,16 +167,16 @@
       "multiMano": 0
     },
     "mentiroso": {
-      "vida": 53,
+      "vida": 56,
       "mano": 8,
       "hasta": 9,
       "comodines": 4,
-      "enganos": 2,
+      "enganos": 1,
       "furiaFallo": 3,
       "multiMano": 0
     },
     "chancho": {
-      "vida": 92,
+      "vida": 89,
       "mano": 4,
       "hasta": 9,
       "comodines": 2,
@@ -223,7 +223,12 @@
     "curaPct": 0.3,
     "temple": 4,
     "pasadas": 3,
-    "riesgo": 0.5
+    "riesgos": [
+      0,
+      0.35,
+      0.5
+    ],
+    "multiTemplada": 1
   },
   "bufon": {
     "afinidadMin": -3,
@@ -253,7 +258,9 @@
     },
     "lanza": 2,
     "cetro": 3,
-    "cascabel": 2
+    "cascabel": 2,
+    "cascabelMulti": 1,
+    "doscarasDoble": 2
   },
   "bendiciones": {
     "deguello": [
@@ -357,10 +364,10 @@
     "irsealmazo": 0.3,
     "faltaenvido": {
       "vida": 0.4,
-      "multi": 2
+      "multi": 3
     },
     "valecuatro": {
-      "multi": 3
+      "multi": 2
     },
     "barajacargada": {
       "de": [

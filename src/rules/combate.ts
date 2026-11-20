@@ -166,6 +166,10 @@ export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
   d(`j:${jugada}`, base.d);
   m(`j:${jugada}`, base.m);
   for (const k of ef) d(`c:${k.de.id}`, inmune(k.palo) ? 0 : k.n);
+  // Naipe de dos caras: nada es Inmune y, además, las cartas del palo del enemigo pegan doble
+  if (tieneAmuleto(p, 'doscaras')) d('a:doscaras', ef.reduce((t, k) => t + (k.palo === e.palo ? k.n * (B.amuletos.doscarasDoble - 1) : 0), 0));
+  // Forja Brava: el número del naipe vale doble
+  d('brava-forja', ef.reduce((t, k) => t + (!inmune(k.palo) && k.de.brava ? k.n : 0), 0));
   // los naipes templados en el Fogón pegan de más
   d('temple', ef.reduce((s, k) => s + (inmune(k.palo) ? 0 : (k.de.temple ?? 0)), 0));
   // las manos cortas (Escoba, Truco, Chancho Va) pegan con Multi de más
@@ -209,10 +213,13 @@ export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
   // ── Multi: primero lo que suma…
   m('combate', c.multiCombate);
   m('prox', c.proxMulti);
+  m('a:cascabel', c.cascabel ?? 0);
+  // los naipes Templados (segunda pasada por el Fogón) suman Multi al jugarlos
+  m('templada', ef.filter((k) => !inmune(k.palo) && k.de.templada).length * B.fogon.multiTemplada);
   const au = B.aumentos;
   if (tieneAumento(p, 'sermano') && c.golpes === 0) m('u:sermano', au.sermano);
   if (tieneAumento(p, 'retruco') && e.golpes > 0) m('u:retruco', au.retruco);
-  if (tieneAumento(p, 'valecuatro') && ef.length >= Math.min(MAX_GOLPE, c.mano.length)) m('u:valecuatro', au.valecuatro.multi);
+
   const am = B.amuletos;
   if (tieneAmuleto(p, 'poncho') && c.escudo >= am.poncho.escudo) m('a:poncho', am.poncho.multi);
   if (tieneAmuleto(p, 'taba') && c.dado >= am.taba.desde) m('a:taba', am.taba.multi);
@@ -231,7 +238,8 @@ export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
   lv = nivelBend(p, 'puntahacha');
   const critico = lv > 0 && (c.golpes + 1) % nivelDe(bn.puntahacha, lv) === 0;
   if (critico) x('b:puntahacha', 2);
-  if (tieneAmuleto(p, 'cetro') && c.golpes === 0) x('a:cetro', am.cetro);
+  if (tieneAmuleto(p, 'cetro') && (c.golpes === 0 || c.cetro)) x('a:cetro', am.cetro);
+  if (tieneAumento(p, 'valecuatro') && ef.length >= Math.min(MAX_GOLPE, c.mano.length)) x('u:valecuatro', au.valecuatro.multi);
 
   if (tieneAumento(p, 'faltaenvido') && p.vida <= p.vidaMax * au.faltaenvido.vida) x('u:faltaenvido', au.faltaenvido.multi);
   if (tieneAumento(p, 'contraflor')) x('u:contraflor', au.contraflor.multi);
@@ -386,6 +394,7 @@ function abatir(p: Partida, evs: Ev[], o: { exacto: boolean; ejecutado: boolean;
     // la racha: cada Golpe exacto seguido sube el premio (+1, +2, +3 de Multi al golpe siguiente)
     p.racha = Math.min(B.exacto.rachaTope, (p.racha ?? 0) + 1);
     c.proxMulti += B.exacto.multi * p.racha;
+    if (tieneAmuleto(p, 'cetro')) c.cetro = true;
     evs.push({ t: 'exacto' }, { t: 'oro', n: B.exacto.oro });
     if (nivelBend(p, 'hojabroquel')) {
       const hb = B.bendiciones.hojabroquel;
@@ -561,8 +570,10 @@ export function golpear(p: Partida, ids: readonly string[]): Ev[] {
     if (p.mazoId === 'escoba' || p.mazoId === 'truco') p.cantos++;
     if (p.mazoId === 'chinchon') p.cantos += doble(p);
     if (tieneAumento(p, 'manocaliente')) c.multiCombate = Math.min(B.aumentos.manocaliente.tope, c.multiCombate + B.aumentos.manocaliente.multi);
+    if (tieneAmuleto(p, 'cascabel')) c.cascabel = (c.cascabel ?? 0) + B.amuletos.cascabelMulti;
   }
   c.proxMulti = 0;
+  c.cetro = false;
   // los poderes de palo
   if (q.escudo) {
     c.escudo = Math.min(B.jugador.escudoMax, c.escudo + q.escudo);

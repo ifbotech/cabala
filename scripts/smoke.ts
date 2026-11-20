@@ -260,7 +260,7 @@ await conServidor(5192, async (url) => {
     ok('móvil (390 × 844, táctil): se llega a la mesa y se golpea tocando');
     await movil.close();
 
-    // el Fogón de riesgo: templar un naipe (la primera pasada es segura) y arrimarlo hasta que se queme o llegue al tope
+    // el Fogón de tres pasadas: templar un naipe (segura), arrimarlo (Templada) y la Forja Brava, hasta que se queme o llegue al tope
     const fg = await navegador.newContext({ viewport: { width: 1366, height: 768 } });
     await fg.addInitScript('globalThis.__name = (f) => f');
     const pf = await fg.newPage();
@@ -279,11 +279,12 @@ await conServidor(5192, async (url) => {
       pasadas++;
     }
     const finFuego = await pf.evaluate(() => {
-      const p = (window as unknown as { __cabala: { sesion: { partida: { mazo: { temple?: number }[] } } } }).__cabala.sesion.partida;
-      return { mazo: p.mazo.length, temple: Math.max(0, ...p.mazo.map((k) => k.temple ?? 0)) };
+      const p = (window as unknown as { __cabala: { sesion: { partida: { mazo: { temple?: number; templada?: boolean; brava?: boolean }[] } } } }).__cabala.sesion.partida;
+      const mejor = [...p.mazo].sort((x, y) => (y.temple ?? 0) - (x.temple ?? 0))[0];
+      return { mazo: p.mazo.length, temple: mejor?.temple ?? 0, templada: !!mejor?.templada, brava: !!mejor?.brava };
     });
-    exigir(finFuego.mazo === mazoAntes - 1 ? finFuego.temple === 0 : finFuego.temple === 12, `el Fogón de riesgo terminó raro: ${JSON.stringify(finFuego)} tras ${pasadas} pasadas`);
-    ok(`Fogón de riesgo: templar (+4 seguro) y arrimar ${pasadas - 1} vez/veces más → ${finFuego.mazo < mazoAntes ? 'se quemó (un naipe menos)' : 'llegó al tope (+12)'}`);
+    exigir(finFuego.mazo === mazoAntes - 1 ? finFuego.temple === 0 : finFuego.temple === 8 && finFuego.templada && finFuego.brava, `el Fogón de riesgo terminó raro: ${JSON.stringify(finFuego)} tras ${pasadas} pasadas`);
+    ok(`Fogón de riesgo: templar (+4 seguro) y arrimar ${pasadas - 1} vez/veces más → ${finFuego.mazo < mazoAntes ? 'se quemó (un naipe menos)' : 'llegó a la Forja Brava (+8, Templada y su número vale doble)'}`);
     await fg.close();
 
     // el Bufón vivo (sin el modo rápido, que lo deja quieto): llega con su nube y su sonido, escribe lo que dice,

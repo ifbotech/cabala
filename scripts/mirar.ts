@@ -50,6 +50,30 @@ await conServidor(5197, async (url) => {
       await p.waitForTimeout(650);
       await foto('rey-cae');
 
+      // 0.12.0: el Comodín espectral, el conteo en cadena y la racha encendida
+      await p.goto(`${url}/?qa=mesa-mentiroso&vivo`);
+      await p.waitForSelector('[data-mano] .carta');
+      await listo(p);
+      await p.waitForTimeout(600);
+      await p.evaluate(() => {
+        const g = window as unknown as { __cabala: { sesion: { partida: { racha: number; combate: { mano: { id: string; palo: string }[] } } } }; __mesa: { mano: { elegir(ids: string[]): void }; sincronizar: () => void } };
+        const mano = g.__cabala.sesion.partida.combate.mano;
+        const comodin = mano.find((k) => k.palo === 'X');
+        const otra = mano.find((k) => k.palo !== 'X');
+        g.__cabala.sesion.partida.racha = 2;
+        g.__mesa.sincronizar();
+        if (comodin && otra) g.__mesa.mano.elegir([comodin.id, otra.id]);
+      });
+      await p.waitForTimeout(450);
+      await foto('comodin-espectral-racha');
+      await p.evaluate(() => {
+        const g = window as unknown as { __mesa: { mano: { seleccion(): string[] }; golpear: (ids: string[]) => void } };
+        g.__mesa.golpear(g.__mesa.mano.seleccion());
+      });
+      await p.waitForTimeout(170);
+      await foto('conteo');
+      await p.waitForTimeout(2200);
+
       await p.goto(`${url}/?qa=fogon&vivo`);
       await p.waitForSelector('[data-accion="templar"]');
       await p.waitForTimeout(900);

@@ -1,5 +1,5 @@
 # CÁBALA — Reglas
-> Versión 0.11.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
+> Versión 0.12.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
 
 *Todo es cuestión de cábala.* Roguelike de baraja española para un jugador. Elegís un Mazo, el Bufón te lleva por tres tramos de caminos y al fondo de cada uno te espera un Rey. Tu mano contra la Corte: cada golpe es **DAÑO × MULTI**.
 
@@ -70,7 +70,7 @@ Un enemigo **Aturdido** se salta su próximo Contraataque. La **Furia** es Ataqu
 |---|---|---|---|
 | 1 | El Arrabal | ×1.18 | +1 |
 | 2 | El Reñidero | ×3.4 | +9 |
-| 3 | La Corte de Medianoche | ×9.3 | +20 |
+| 3 | La Corte de Medianoche | ×9.5 | +20 |
 
 La **Guardia Brava** (élite) tiene ×1.4 de Vida y +2 de Ataque. El **Rey** de cada tramo llega detrás de su Sota y su Caballo, con ×1.6 de Vida. Por cada Bendición suya que llevés, arranca con 5 % menos de Vida (tope 20 %).
 
@@ -128,9 +128,9 @@ Exactamente **15**: tres por palo (uno Común, uno Raro, uno Épico) y tres del 
 | **Mate curado** | Copas | Común | +3 de Daño por cada carta de Copas del golpe. | 10 |
 | **Bota de vino** | Copas | Raro | Al empezar cada combate curás 8 de Vida. | 16 |
 | **Cáliz del Bacanal** | Copas | Épico | Con 80 % de Vida o más: +2 de Multi. | 24 |
-| **Cascabel del Bufón** | El Bufón | Legendario | Los cantos de tu Mazo valen doble. | 40 |
-| **Naipe de dos caras** | El Bufón | Legendario | Nada es Inmune a tus cartas. | 40 |
-| **Cetro del Bufón** | El Bufón | Legendario | Tu primer golpe de cada combate pega ×3. | 40 |
+| **Cascabel del Bufón** | El Bufón | Legendario | Los cantos de tu Mazo valen doble, y cada canto te deja +1 de Multi para el resto del combate. | 40 |
+| **Naipe de dos caras** | El Bufón | Legendario | Nada es Inmune a tus cartas, y las del palo del enemigo pegan ×2. | 40 |
+| **Cetro del Bufón** | El Bufón | Legendario | Tu primer golpe de cada combate pega ×3. Cada Golpe exacto lo vuelve a cargar. | 40 |
 
 Las piezas no llevan nota ni nivel: se eligen por lo que hacen. Cuando una potencia tu Mazo o algo que ya llevás, la mesa le pone la etiqueta **★ SINERGIA** con una línea que dice por qué.
 
@@ -152,8 +152,8 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 | **Retruco** | Oro | Si el enemigo sobrevivió a tu golpe anterior: +1 de Multi. |
 | **Cara de Póker** | Oro | El primer Contraataque de cada combate no llega. |
 | **Irse al Mazo** | Oro | Una vez por partida, el golpe que te mataría no llega y curás 30 % de tu Vida. |
-| **Falta Envido** | Prismático | Al golpear con 40 % de Vida o menos: ×2 de Multi. |
-| **Vale Cuatro** | Prismático | Golpes con toda tu mano (o con 5 cartas): +3 de Multi. |
+| **Falta Envido** | Prismático | Al golpear con 40 % de Vida o menos: ×3 de Multi. |
+| **Vale Cuatro** | Prismático | Golpes con toda tu mano (o con 5 cartas): ×2 de Multi. |
 | **Baraja Cargada** | Prismático | Los 2 y los 3 de tu Mazo se vuelven 9. |
 | **Pacto Garca** | Prismático · Maldición | +40 de oro ya, pero el próximo Rey arranca con +2 de Furia. |
 | **Contraflor al Resto** | Prismático · Maldición | ×2 de Multi en todos tus golpes, pero perdés el 60 % de tu Vida máxima. |
@@ -164,10 +164,10 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 | Mazo | Personaje | Vida · mano | Regla estrella | Se abre con |
 |---|---|---|---|---|
 | **Escoba** · Escoba del 15 | La Barrendera | 70 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×2 y más Daño para siempre. | abierto desde el principio |
-| **Truco** · Envido y Bravas | El Paisano Bravo | 82 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
-| **Chinchón** · Pierna y Escalera | La Timbera del Club | 58 · 7 | Piernas y Escaleras de palo crecen siempre y frenan el Contraataque. | Vencé a un Rey. |
-| **El Mentiroso** · Cara de Piedra | El Chamuyero | 53 · 8 | Cuatro Comodines y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
-| **Chancho Va** · Mano al Centro | El Manotazo | 92 · 4 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
+| **Truco** · Envido y Bravas | El Paisano Bravo | 81 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
+| **Chinchón** · Pierna y Escalera | La Timbera del Club | 53 · 7 | Piernas y Escaleras de palo crecen siempre y frenan el Contraataque. | Vencé a un Rey. |
+| **El Mentiroso** · Cara de Piedra | El Chamuyero | 56 · 8 | Cuatro Comodines y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
+| **Chancho Va** · Mano al Centro | El Manotazo | 89 · 4 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
 
 **Escoba** (¡ESCOBA!)
 - Mano de 3 cartas, como en la mesa: tus golpes llevan +4 de Multi.
@@ -215,7 +215,7 @@ El azar del Mapa tiene reglas, y se cumplen siempre: se empieza con una Guardia;
 
 **Pulpería** (la atiende el Bufón): Amuletos (Común 10, Raro 16, Épico 24, Legendario 40 de oro), **Purgar** una carta (8 de oro, +4 cada vez; tu Mazo no baja de 12) y **Curar** 30 % de tu Vida (8 de oro, +3 cada vez).
 
-**Fogón**: descansar (curás 30 % de tu Vida) o **templar un naipe**: queda al rojo y hace +4 de Daño para siempre. La primera pasada por el fuego es segura. Podés arrimarlo otra vez (hasta 3 pasadas) para sumar otro tanto, pero cada pasada de más tiene 50 % de quemarlo: entonces lo perdés. **Tras un Rey** curás 30 % de tu Vida.
+**Fogón**: descansar (curás 30 % de tu Vida) o **templar un naipe**, hasta 3 pasadas por el fuego. La primera es segura: +4 de Daño para siempre. La segunda (35 % de quemarlo) suma otros +4 y lo deja **Templado**: +1 de Multi cada vez que lo jugás. La tercera (50 % de quemarlo) es la **Forja Brava**: su número vale doble en el Daño. Si se quema, lo perdés. **Tras un Rey** curás 30 % de tu Vida.
 
 ### El Bufón y sus Cábalas
 

@@ -113,6 +113,26 @@ export function voz(quien: VozId, letra: number): void {
 /** La voz del Bufón (habla en chiptune). */
 export const vozBufon = (letra: number): void => voz('bufon', letra);
 
+/** Una nota del conteo del golpe: cada paso sube un semitono. `larga` es la del total. */
+export function nota(semitono: number, larga = false): void {
+  if (!ajustes.sonido || !ctx || ctx.state !== 'running') return;
+  try {
+    const t = ctx.currentTime;
+    const dur = larga ? 0.22 : 0.07;
+    const osc = ctx.createOscillator();
+    const gan = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(523.25 * 2 ** (semitono / 12), t);
+    gan.gain.setValueAtTime(larga ? 0.09 : 0.07, t);
+    gan.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    osc.connect(gan).connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + dur + 0.02);
+  } catch {
+    // sin audio: cuenta en silencio
+  }
+}
+
 /** Toca un sonido. No hace nada si el sonido está apagado o el navegador todavía no dejó abrir el audio. */
 export function sonar(cual: Sonido): void {
   sonados.push(cual);

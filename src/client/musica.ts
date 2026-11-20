@@ -256,6 +256,11 @@ function programar(ctx: AudioContext, s: NonNullable<typeof sonando>): void {
     nota(ctx, s.sale, t, n.midi, seg * n.largo * 0.92, p.ondas[2], p.vol[2]);
     if (p.fuelle) nota(ctx, s.sale, t, n.midi, seg * n.largo * 0.92, p.ondas[2], p.vol[2] * 0.7, 9);
   }
+  // la racha encendida: palmas a contratiempo y el rasgueo doblado una octava arriba
+  if (fuego) {
+    if (k % 4 === 2) golpeRuido(ctx, s.sale, t, 0.05, 0.11, 2600, 'bandpass');
+    if (r && r !== '.') for (const m of tono(r, 24)) nota(ctx, s.sale, t, m, seg * 1.6, 'square', p.vol[1] * 0.6);
+  }
   if (p.vol[3] > 0) {
     if (p.bombo?.[k] === 'x') bombo(ctx, s.sale, t, 0.3 * p.vol[3]);
     if (p.caja?.[k] === 'x') golpeRuido(ctx, s.sale, t, 0.11, 0.16 * p.vol[3], 1800, 'bandpass');
@@ -264,6 +269,9 @@ function programar(ctx: AudioContext, s: NonNullable<typeof sonando>): void {
 }
 
 const VOLUMEN = 0.6;
+let fuego = false;
+/** Enciende o apaga la capa extra de la música (la racha de Golpes exactos). */
+export const ponerFuego = (si: boolean): void => void (fuego = si);
 
 function tic(): void {
   const ctx = contextoAudio();

@@ -1148,3 +1148,138 @@
     padding: 0 6px;
   }
 }
+
+/* ───────────── 0.12.0: el Comodín espectral, las llamas de la Furia, el conteo y la racha encendida ───────────── */
+
+/* el Comodín elegido se vuelve, a la vista, la carta que copia: un naipe espectral dorado */
+.c-espectro {
+  position: absolute;
+  inset: 0;
+  line-height: 0;
+  filter: sepia(1) saturate(2.6) hue-rotate(-12deg) brightness(1.08);
+  box-shadow: 0 0 0 calc(2px * var(--k-naipe, 1)) #ffd500;
+  animation: espectro 0.28s steps(4) both;
+  pointer-events: none;
+}
+@keyframes espectro {
+  from {
+    opacity: 0;
+    scale: 1.2;
+    filter: sepia(1) saturate(4) brightness(2.2);
+  }
+}
+.carta:has(.c-espectro) .c-copia,
+.carta:has(.c-espectro) .c-rotulo {
+  display: none;
+}
+/* la Furia arde detrás del emblema del Ataque: una, dos o tres llamas, cada vez más altas */
+.e-ataque {
+  position: relative;
+}
+.e-ataque > :not(.e-llamas) {
+  position: relative;
+  z-index: 1;
+}
+.e-llamas {
+  position: absolute;
+  left: 50%;
+  top: calc(-6px * var(--k));
+  translate: -50% 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  z-index: 0;
+  opacity: 0.9;
+  pointer-events: none;
+}
+.e-llamas > * {
+  transform-origin: 50% 100%;
+  animation: llama 0.42s steps(3) infinite alternate;
+  display: none;
+}
+.e-llamas > :nth-child(2) {
+  animation-delay: -0.2s;
+}
+.e-llamas > :nth-child(3) {
+  animation-delay: -0.33s;
+}
+.e-llamas.n1 > :nth-child(1) {
+  display: block;
+  scale: 1.6;
+}
+.e-llamas.n2 > :nth-child(-n + 2) {
+  display: block;
+  scale: 2;
+}
+.e-llamas.n3 > * {
+  display: block;
+  scale: 2.4;
+}
+/* el conteo del golpe: cada carta salta con su número; el total vibra */
+.carta.cuenta-pop {
+  animation: cuenta-pop 0.16s steps(3);
+}
+@keyframes cuenta-pop {
+  /* solo escala y brillo: la mano coloca cada carta por su cuenta y no hay que pisarle la posición */
+  50% {
+    scale: 1.14;
+    filter: brightness(1.25);
+  }
+}
+.c-parte.salta {
+  animation: canto-salta 0.3s steps(4);
+}
+[data-total].vibra {
+  animation: total-vibra 0.3s steps(6);
+}
+@keyframes total-vibra {
+  20% {
+    translate: calc(-2px * var(--k)) 0;
+    scale: 1.25;
+  }
+  40% {
+    translate: calc(2px * var(--k)) 0;
+  }
+  60% {
+    translate: calc(-1px * var(--k)) 0;
+    scale: 1.1;
+  }
+  80% {
+    translate: calc(1px * var(--k)) 0;
+  }
+}
+/* la racha de Golpes exactos enciende la mesa y el retrato */
+.mesa.racha::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 calc(3px * var(--k)) rgba(255, 213, 0, 0.75),
+    inset 0 0 0 calc(7px * var(--k)) rgba(255, 123, 0, 0.3);
+  animation: racha-late 0.7s steps(4) infinite alternate;
+}
+@keyframes racha-late {
+  to {
+    box-shadow:
+      inset 0 0 0 calc(4px * var(--k)) rgba(255, 213, 0, 0.95),
+      inset 0 0 0 calc(10px * var(--k)) rgba(255, 123, 0, 0.42);
+  }
+}
+.mesa.racha .hud-retrato {
+  box-shadow:
+    0 0 0 calc(2px * var(--k)) #ffd500,
+    0 0 0 calc(5px * var(--k)) rgba(255, 123, 0, 0.55);
+  animation: racha-retrato 0.5s steps(3) infinite alternate;
+}
+@keyframes racha-retrato {
+  to {
+    box-shadow:
+      0 0 0 calc(3px * var(--k)) #ffffff,
+      0 0 0 calc(8px * var(--k)) rgba(255, 123, 0, 0.7);
+  }
+}
+.mesa.racha .hud-cara {
+  filter: saturate(1.35) brightness(1.08);
+}

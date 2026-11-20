@@ -38,7 +38,7 @@ const expresionDe = (p: Partida): Expresion => (p.afinidad <= -2 ? 'sombria' : p
 
 /** El visor del Mazo: las cartas por palo. Con `elegir`, cada carta es un botón (purgar, templar). */
 export function modalMazo(p: Partida, titulo: string, elegir?: (id: string) => void, cartas: readonly Carta[] = p.mazo, cualquiera = false): void {
-  const cara = (c: Carta): string => pxNaipe(c) + (c.temple ? `<span class="c-temple">+${c.temple}</span>` : '');
+  const cara = (c: Carta): string => pxNaipe(c) + (c.temple ? `<span class="c-temple">+${c.temple}${c.templada ? '★' : ''}${c.brava ? ' ×2' : ''}</span>` : '');
   const grupos = (['S', 'C', 'D', 'H', 'X'] as const).map((s) => ordenar(cartas.filter((c) => c.palo === s))).filter((g) => g.length);
   const html = `<div class="panel visor">
     <header class="cabecera"><h2 class="titulo">${esc(titulo)}</h2><button class="btn marco chico" data-accion="cerrar" data-inicio>${t('cerrar')}</button></header>
@@ -92,30 +92,44 @@ export function modalPiezas(p: Partida): void {
 export function modalJugadas(p: Partida, actual?: Jugada | null): void {
   const propias: Jugada[] = p.mazoId === 'escoba' ? ['quince'] : p.mazoId === 'truco' ? ['envido'] : [];
   const PIDE: Record<Jugada, number> = { sola: 1, par: 2, doblepar: 4, flor: 3, pierna: 3, escalera: 3, full: 5, escalerapalo: 3, poker: 4, quince: 2, envido: 2 };
-  const hayLejos = JUGADAS.some((j) => PIDE[j] > p.manoMax);
-  const filas = [...JUGADAS, ...propias]
-    .map((j) => `<tr class="${j === actual ? 'actual' : ''} ${PIDE[j] > p.manoMax ? 'lejos' : ''}"><th scope="row">${esc(tx(JUGADA_NOMBRE[j]))}</th><td>${esc(tx(JUGADA_COMO[j]))}</td><td class="n">${cifra(`+${B.jugadas[j].d}`, 'roja')}</td><td class="n">${cifra(`x${B.jugadas[j].m}`, 'azul')}</td></tr>`)
-    .join('');
+  // primero las de tu Mazo (su canto arriba de todo) y las que entran en tu mano; las que piden más cartas, plegadas
+  const fila = (j: Jugada): string =>
+    `<tr class="${j === actual ? 'actual' : ''} ${propias.includes(j) ? 'propia' : ''}"><th scope="row">${esc(tx(JUGADA_NOMBRE[j]))}</th><td>${esc(tx(JUGADA_COMO[j]))}</td><td class="n">${cifra(`+${B.jugadas[j].d}`, 'roja')}</td><td class="n">${cifra(`x${B.jugadas[j].m}`, 'azul')}</td></tr>`;
+  const todas = [...propias, ...JUGADAS];
+  const cerca = todas.filter((j) => PIDE[j] <= p.manoMax);
+  const lejos = todas.filter((j) => PIDE[j] > p.manoMax);
+  const hayLejos = lejos.length > 0;
+  const filas = cerca.map(fila).join('');
+  const mz = MAZO[p.mazoId];
   const palos = PALOS.map((s) => `<li>${pxPalo(s)}<b>${esc(tx(PALO_NOMBRE[s]))}</b><span>${esc(tx(PALO_PODER[s]))}</span></li>`).join('');
   abrirModal(
     `<div class="panel jugadas">
       <header class="cabecera"><h2 class="titulo">${t('jugadas')}</h2><button class="btn marco chico" data-accion="cerrar" data-inicio>${t('cerrar')}</button></header>
       <div class="jugadas-cuerpo rollo">
-        <table class="jugadas-tabla">
+        <div class="jugadas-principal"><table class="jugadas-tabla">
           <thead><tr><th scope="col">${t('jugada')}</th><th scope="col">${t('cartas')}</th><th scope="col" class="n">${t('dano')}</th><th scope="col" class="n">${t('multi')}</th></tr></thead>
+          <caption class="jugadas-canto"><span class="rotulo">${t('tuCanto')}</span><b class="chip canto">${esc(tx(mz.canto))}</b><span>${esc(tx(mz.regla))}</span></caption>
           <tbody>${filas}</tbody>
-          ${hayLejos ? `<caption class="sub">${t('manoDe', { n: p.manoMax })}</caption>` : ''}
+          ${hayLejos ? `<tbody class="lejos" data-lejos hidden>${lejos.map(fila).join('')}</tbody>` : ''}
         </table>
+        ${hayLejos ? `<p class="sub jugadas-pie">${t('manoDe', { n: p.manoMax })} <button class="btn marco chico" data-accion="ver-lejos" data-foco="ver-lejos">${t('verLejos', { n: lejos.length })}</button></p>` : ''}
+        </div>
         <div class="jugadas-lado">
           <h3 class="rotulo">${t('palos')}</h3>
           <ul class="palos-lista">${palos}</ul>
           <p class="regla">${esc(t('inmuneRegla'))}</p>
           <p class="regla">${esc(t('comodinRegla'))}</p>
-          <p class="regla canto-regla"><b>${esc(tx(MAZO[p.mazoId].canto))}</b> ${esc(tx(MAZO[p.mazoId].regla))}</p>
         </div>
       </div>
     </div>`,
-    { cerrar: () => cerrarModal() },
+    {
+      cerrar: () => cerrarModal(),
+      'ver-lejos': (el) => {
+        const tb = $('[data-lejos]');
+        if (tb) tb.hidden = false;
+        el.closest('p')?.remove();
+      },
+    },
   );
 }
 
@@ -535,9 +549,9 @@ export function pantallaFogon(p: Partida): Pantalla {
     if (seQuemo) return `<div class="opcion marco hierro fuego"><span class="op-icono grande">${pxNodo('fogon')}</span><b class="op-nombre">${t('quemada')}</b></div>`;
     if (enFuego)
       return `<div class="opcion marco hierro fuego">
-        <span class="fuego-carta">${pxNaipe(enFuego)}<span class="c-temple">+${enFuego.temple ?? 0}</span></span>
-        <b class="op-nombre">${t('templada', { n: enFuego.temple ?? 0 })}</b>
-        ${juego.puedeArrimar(p) ? `<button class="btn marco prisma chico" data-accion="arrimar" data-foco="arrimar">${t('arrimar')}</button><span class="op-desc">${t('riesgo', { n: B.fogon.temple, p: Math.round(B.fogon.riesgo * 100) })}</span>` : ''}
+        <span class="fuego-carta">${pxNaipe(enFuego)}${`<span class="c-temple">+${enFuego.temple}${enFuego.templada ? '★' : ''}${enFuego.brava ? ' ×2' : ''}</span>`}</span>
+        <b class="op-nombre">${enFuego.brava ? t('forjada') : enFuego.templada ? t('templadaMulti', { n: enFuego.temple ?? 0, m: B.fogon.multiTemplada }) : t('templada', { n: enFuego.temple ?? 0 })}</b>
+        ${juego.puedeArrimar(p) ? `<button class="btn marco ${(p.fogonPasadas ?? 0) >= 2 ? 'oro' : 'prisma'} chico" data-accion="arrimar" data-foco="arrimar">${(p.fogonPasadas ?? 0) >= 2 ? t('forjaBrava') : t('arrimar')}</button><span class="op-desc">${(p.fogonPasadas ?? 0) >= 2 ? t('riesgoBrava', { p: Math.round(B.fogon.riesgos[2] * 100) }) : t('riesgo', { n: B.fogon.temple, m: B.fogon.multiTemplada, p: Math.round(B.fogon.riesgos[1] * 100) })}</span>` : ''}
       </div>`;
     return `<button class="opcion marco hierro" data-accion="templar" data-foco="templar" ${p.fogonHecho ? 'disabled' : ''}>
       <span class="op-icono grande">${pxHud('furia')}</span><b class="op-nombre">${t('templar')}</b><span class="op-desc">${t('templarDesc', { n: B.fogon.temple })}</span>

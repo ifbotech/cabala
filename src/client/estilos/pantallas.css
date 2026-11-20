@@ -1583,3 +1583,34 @@ button.visor-carta:disabled {
     display: none;
   }
 }
+
+/* ───────────── 0.12.0: la tabla de JUGADAS de tu Mazo ───────────── */
+
+.jugadas-tabla caption.jugadas-canto {
+  caption-side: top;
+  padding: 0 0 calc(var(--u) * 0.75);
+  text-align: left;
+}
+.jugadas-canto {
+  display: table-caption;
+}
+.jugadas-canto > * {
+  margin-right: var(--u);
+  vertical-align: middle;
+}
+.jugadas-tabla tr.propia th {
+  color: var(--oro);
+}
+.jugadas-tabla tbody.lejos tr {
+  opacity: 0.6;
+}
+.jugadas-pie {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--u);
+  margin: calc(var(--u) * 0.75) 0 0;
+}
+.jugadas-principal {
+  min-width: 0;
+}

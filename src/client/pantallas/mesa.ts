@@ -15,11 +15,12 @@ import { donesDe } from '../../rules/estado';
 import { ver } from '../../rules/perfil';
 import { REY_DEF } from '../../rules/reyes';
 import { ajustes, alAzar, guardarPerfil, idioma, perfil, t, tx } from '../almacen';
-import { sonar, vozBufon } from '../audio';
+import { nota, sonar, vozBufon } from '../audio';
+import { ponerFuego } from '../musica';
 import { teclear } from '../habla';
 import { RAMPA_CURA, RAMPA_ESCUDO, RAMPA_GOLPE, RAMPA_PALO, chispas, destello, haloRey, monedas, motas, numero, partirNaipe, tajo } from '../fx/efectos';
 import { congelar, enFoto, sacudir } from '../fx/motor';
-import { actualizarTiras, avivarRetrato, gestoRetrato, gritar, hudHtml, ponerHud, vistaDe, type VistaHud } from '../hud';
+import { actualizarTiras, avivarRetrato, gestoFijo, gestoRetrato, gritar, hudHtml, mirarHacia, ponerHud, vistaDe, type VistaHud } from '../hud';
 import { guardar, pintarFase } from '../juego';
 import { crearMano, type Mano, type Zona } from '../mano';
 import type { Expresion } from '../pixel/bufon';
@@ -116,8 +117,8 @@ export function pantallaMesa(p: Partida): Pantalla {
         <i class="e-halo" aria-hidden="true"></i>
         <span class="e-suelta chip canto">${t('soltaAca')}</span>
       </div>
-      <div class="e-ataque ${e.aturdido > 0 ? 'dormido' : ''}" data-ataque ${tip(`${t('ataque')} ${e.ataque + furia}`, idioma() === 'en' ? 'What hits you at the end of the turn if it still stands.' : 'Lo que te pega al final del turno si sigue en pie.', furia ? `${t('furia')} +${furia}` : '')}>
-        ${pxHud('ataque')}<span data-n="ataque">${cifra(e.ataque + furia, 'roja', 'grande')}</span>
+      <div class="e-ataque ${e.aturdido > 0 ? 'dormido' : ''}" data-ataque ${tip(`${t('ataque')} ${e.ataque + furia}`, idioma() === 'en' ? 'What hits you at the end of the turn if it still stands.' : 'Lo que te pega al final del turno si sigue en pie.', furia ? `${t('furia')}: ${t('furiaTip', { n: furia })}${e.jefe ? ` · ${t('furiaTurno', { n: B.furia.reyPorTurno })}` : ''}` : '')}>
+        ${furia ? `<i class="e-llamas n${furia >= 8 ? 3 : furia >= 4 ? 2 : 1}" aria-hidden="true">${pxHud('furia')}${pxHud('furia')}${pxHud('furia')}</i>` : ''}${pxHud('ataque')}<span data-n="ataque">${cifra(e.ataque + furia, 'roja', 'grande')}</span>
         ${furia ? `<span class="e-furia">${pxHud('furia')}${cifra(`+${furia}`, 'oro')}</span>` : ''}
       </div>
       <div class="e-barras">
@@ -187,6 +188,8 @@ export function pantallaMesa(p: Partida): Pantalla {
     marcarInmunes();
     marcarCopias(q);
     pintarBotones();
+    // el retrato sonríe confiado apenas la selección marca un Golpe exacto
+    gestoFijo(q.ok && q.exacto ? 'feroz' : null);
   }
   /** Las cartas a las que el enemigo activo es Inmune llevan su marca en la mano (salvo con el Engaño armado). */
   function marcarInmunes(): void {
@@ -207,6 +210,16 @@ export function pantallaMesa(p: Partida): Pantalla {
       const ya = el.querySelector<HTMLElement>('.c-copia');
       if (ya && ya.dataset.v !== clave) ya.remove();
       if (x && (!ya || ya.dataset.v !== clave)) el.insertAdjacentHTML('beforeend', `<span class="c-copia" data-v="${clave}" title="${t('copia')}">${cifra(x.n, 'hueso')}${pxPalo(x.palo)}</span>`);
+      // el Comodín: un naipe espectral dorado de lo que copia, con su destello
+      const esp = el.querySelector<HTMLElement>('.c-espectro');
+      if (esp && esp.dataset.v !== clave) esp.remove();
+      if (x && el.dataset.palo === 'X' && (!esp || esp.dataset.v !== clave)) {
+        el.insertAdjacentHTML('beforeend', `<span class="c-espectro" data-v="${clave}" aria-hidden="true">${pxNaipe({ palo: x.palo, n: x.n })}</span>`);
+        if (!quieto()) {
+          const en = centro(el);
+          destello(en.x, en.y, RAMPA_PALO.D, 18);
+        }
+      }
     }
   }
   function pintarBotones(): void {
@@ -236,6 +249,9 @@ export function pantallaMesa(p: Partida): Pantalla {
   function pintarArriba(): void {
     const el = $('[data-turno]');
     const racha = (p.racha ?? 0) > 0 ? ` <span class="chip canto" ${tip(t('racha', { n: p.racha }), idioma() === 'en' ? `Exact hits in a row. Your next exact hit gives +${Math.min(B.exacto.rachaTope, p.racha + 1)} Mult.` : `Golpes exactos seguidos. Tu próximo exacto da +${Math.min(B.exacto.rachaTope, p.racha + 1)} de Multi.`)}>${t('racha', { n: p.racha })}</span>` : '';
+    const enRacha = (p.racha ?? 0) >= 2;
+    $('.mesa')?.classList.toggle('racha', enRacha);
+    ponerFuego(enRacha);
     if (el) el.innerHTML = `${t('turno', { n: c().turno })}${racha}${c().dado ? ` <span class="dado" ${tip(idioma() === 'en' ? `Die: ${c().dado}` : `Dado: ${c().dado}`)}>${pxHud(`dado${c().dado}` as 'dado1')}</span>` : ''}`;
   }
   /** Pone toda la vista de acuerdo con el estado real (al empezar y al terminar cada acción). */
@@ -522,6 +538,36 @@ export function pantallaMesa(p: Partida): Pantalla {
     await cortina(`<div class="irr-banda rotulo-entrada"><b class="titulo">${esc(tx(NODO_NOMBRE[tipo]))}</b><span class="sub">${esc(tx(TRAMO_NOMBRE[Math.min(2, p.acto)]))}</span></div>`, 800, 'irrupcion');
   }
 
+  /** El conteo del golpe, en cadena: cada carta salta con su número, después lo que multiplica, y el total vibra. */
+  async function conteo(q: Cuenta): Promise<void> {
+    if (quieto()) return;
+    const cartas = q.pasos.filter((x) => x.tipo === 'd' && x.de.startsWith('c:'));
+    const hayExtra = q.canto || q.pasos.some((x) => x.tipo === 'x');
+    const paso = Math.max(55, Math.min(95, Math.round(400 / (cartas.length + (hayExtra ? 2 : 1)))));
+    let i = 0;
+    for (const x of cartas) {
+      const el = $(`[data-mano] .carta[data-id="${x.de.slice(2)}"]`);
+      if (el) {
+        const rc = el.getBoundingClientRect();
+        el.classList.remove('cuenta-pop');
+        void el.offsetWidth;
+        el.classList.add('cuenta-pop');
+        numero(`+${x.v}`, rc.left + rc.width / 2, rc.top - 4, 'roja', 1);
+      }
+      nota(i++);
+      await pausa(paso);
+    }
+    if (hayExtra) {
+      for (const el of document.querySelectorAll('[data-cuenta] .c-canto, [data-cuenta] .c-parte')) el.classList.add('salta');
+      nota(i + 1);
+      i += 2;
+      await pausa(paso);
+    }
+    $('[data-total]')?.classList.add('vibra');
+    nota(i + 3, true);
+    await pausa(paso + 40);
+  }
+
   // ───────────── acciones ─────────────
   async function terminar(): Promise<void> {
     if (ensena && !perfil.aprendido) {
@@ -546,6 +592,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     mano?.bloquear(true);
     pintarBotones();
     const antes = c().fila.map((e) => ({ ...e }));
+    await conteo(q);
     await mano?.volar(ids, centro($('[data-carta]')));
     const evs = juego.golpear(p, ids);
     await animar(evs, antes, q);
@@ -588,6 +635,8 @@ export function pantallaMesa(p: Partida): Pantalla {
     }
   }
 
+  /** El retrato mira hacia la carta que arrastrás. */
+  const seguir = (ev: PointerEvent): void => mirarHacia(document.body.classList.contains('arrastrando') ? ev.clientX : null);
   const tramo = tx(TRAMO_NOMBRE[Math.min(2, p.acto)]);
   return {
     nombre: 'mesa',
@@ -615,6 +664,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     </main>`,
     alMontar: (raiz) => {
       avivarRetrato(p, () => [hud.vida, hud.vidaMax]);
+      document.addEventListener('pointermove', seguir);
       const zonaMano = $('[data-mano]', raiz)!;
       mano = crearMano(zonaMano, {
         alCambiar: () => {
@@ -656,6 +706,8 @@ export function pantallaMesa(p: Partida): Pantalla {
       (window as unknown as { __mesa?: unknown }).__mesa = { mano, golpear, descartar, sincronizar, decir, gritar: (texto: string) => gritar(p.mazoId, texto) };
     },
     alSalir: () => {
+      document.removeEventListener('pointermove', seguir);
+      ponerFuego(false);
       clearTimeout(vozReloj);
       mano?.destruir();
       mano = null;

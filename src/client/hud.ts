@@ -140,6 +140,10 @@ interface Vivo {
   cambia: number;
   parpadea: number;
   reloj: number;
+  /** Hacia dónde mira porque algo lo llama (la carta que arrastrás). */
+  forzada: Mirada | null;
+  /** El gesto que sostiene mientras dure algo (la sonrisa del Golpe exacto a la vista). */
+  fijo: Gesto | null;
 }
 let vivo: Vivo | null = null;
 
@@ -149,10 +153,10 @@ function pintarCara(): void {
   if (!el) return;
   const [vida, max] = vivo.vida();
   const ahora = performance.now();
-  let gesto: Gesto = vivo.gesto && ahora < vivo.hasta ? vivo.gesto : 'neutro';
+  let gesto: Gesto = vivo.gesto && ahora < vivo.hasta ? vivo.gesto : (vivo.fijo ?? 'neutro');
   if (vida <= 0) gesto = 'caido';
   else if (gesto === 'neutro' && ahora < vivo.parpadea) gesto = 'parpadeo';
-  const c: Cuadro = { mirada: gesto === 'neutro' ? vivo.mirada : 0, gesto, herida: gesto === 'caido' ? 2 : heridaDe(vida, max) };
+  const c: Cuadro = { mirada: gesto === 'neutro' ? (vivo.forzada ?? vivo.mirada) : 0, gesto, herida: gesto === 'caido' ? 2 : heridaDe(vida, max) };
   const u = `url(${urlRetrato(vivo.p.mazoId, c)})`;
   if (el.style.backgroundImage !== u) el.style.backgroundImage = u;
 }
@@ -163,7 +167,7 @@ function pintarCara(): void {
  */
 export function avivarRetrato(p: Partida, vida: () => [number, number] = () => [p.vida, p.vidaMax]): void {
   apagarRetrato();
-  vivo = { p, vida, gesto: null, hasta: 0, mirada: 0, cambia: performance.now() + 1800, parpadea: 0, reloj: 0 };
+  vivo = { p, vida, gesto: null, hasta: 0, mirada: 0, cambia: performance.now() + 1800, parpadea: 0, reloj: 0, forzada: null, fijo: null };
   pintarCara();
   if (ajustes.calma || enFoto()) return;
   vivo.reloj = window.setInterval(() => {
@@ -283,4 +287,24 @@ if (typeof document !== 'undefined') {
     requestAnimationFrame(() => ajustarBandeja());
   });
   addEventListener('resize', () => ajustarBandeja());
+}
+
+/** El retrato sigue con los ojos lo que arrastrás (`null`: vuelve a mirar por su cuenta). */
+export function mirarHacia(x: number | null): void {
+  if (!vivo) return;
+  let m: Mirada | null = null;
+  if (x !== null) {
+    const r = $('.hud-retrato')?.getBoundingClientRect();
+    const c = r ? r.left + r.width / 2 : innerWidth / 2;
+    m = x < c - 48 ? -1 : x > c + 48 ? 1 : 0;
+  }
+  if (m === vivo.forzada) return;
+  vivo.forzada = m;
+  pintarCara();
+}
+/** Sostiene un gesto mientras dure algo (o lo suelta con `null`). */
+export function gestoFijo(g: Gesto | null): void {
+  if (!vivo || vivo.fijo === g) return;
+  vivo.fijo = g;
+  pintarCara();
 }

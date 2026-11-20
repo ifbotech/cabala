@@ -49,6 +49,10 @@ export interface Combate {
   engano: boolean;
   /** Multi ganado para el resto del combate (Mano Caliente). */
   multiCombate: number;
+  /** Cascabel del Bufón: Multi ganado con cada canto, para el resto del combate (sin tope). */
+  cascabel?: number;
+  /** Cetro del Bufón: está cargado (al empezar el combate y otra vez tras cada Golpe exacto). */
+  cetro?: boolean;
   /** Multi que lleva el próximo golpe (Golpe exacto, Facón). */
   proxMulti: number;
   /** Golpes dados en el combate. */

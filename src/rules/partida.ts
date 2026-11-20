@@ -396,13 +396,16 @@ export function templar(p: Partida, cartaId: string): 'templada' | 'quemada' | n
   const carta = p.mazo.find((k) => k.id === cartaId);
   if (!carta) return null;
   p.fogonHecho = true;
-  if (pasadas > 0 && azar(p) < B.fogon.riesgo) {
+  if (azar(p) < (B.fogon.riesgos[pasadas] ?? 1) && pasadas > 0) {
     p.mazo.splice(p.mazo.indexOf(carta), 1);
     p.fogonCarta = null;
     p.fogonPasadas = B.fogon.pasadas;
     return 'quemada';
   }
-  carta.temple = (carta.temple ?? 0) + B.fogon.temple;
+  // primera pasada: +Daño; segunda: otro tanto y queda Templada (+Multi al jugarla); tercera: Forja Brava (su número vale doble)
+  if (pasadas < 2) carta.temple = (carta.temple ?? 0) + B.fogon.temple;
+  if (pasadas === 1) carta.templada = true;
+  if (pasadas === 2) carta.brava = true;
   p.fogonCarta = cartaId;
   p.fogonPasadas = pasadas + 1;
   return 'templada';

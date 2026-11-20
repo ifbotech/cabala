@@ -184,10 +184,10 @@ describe('los cantos de los Mazos', () => {
     const p = mesa('chinchon', mano);
     expect(cuenta(p, mano).dano).toBe(7 + 8);
   });
-  it('el Fogón de riesgo: la primera pasada templa segura; las siguientes templan o queman; el fuego tiene tope', () => {
+  it('el Fogón de tres pasadas: +Daño seguro, después Templada (+Multi) y al final la Forja Brava; lo que no sale, se quema', () => {
     let quemadas = 0;
-    let enteras = 0;
-    for (let i = 0; i < 60; i++) {
+    let bravas = 0;
+    for (let i = 0; i < 80; i++) {
       const p = juego.nuevaPartida({ mazo: 'chinchon', semilla: `FUEGO${i}` });
       p.fase = 'fogon';
       p.fogonHecho = false;
@@ -197,20 +197,46 @@ describe('los cantos de los Mazos', () => {
       const n = p.mazo.length;
       expect(juego.templar(p, carta.id)).toBe('templada');
       expect(carta.temple).toBe(B.fogon.temple);
+      expect(carta.templada).toBeUndefined();
       expect(juego.descansar(p)).toBe(false); // el Fogón ya se usó
       let r = juego.templar(p, carta.id);
-      while (r === 'templada') r = juego.templar(p, carta.id);
+      if (r === 'templada') {
+        expect(carta.temple).toBe(B.fogon.temple * 2);
+        expect(carta.templada).toBe(true);
+        r = juego.templar(p, carta.id);
+        if (r === 'templada') {
+          expect(carta.brava).toBe(true);
+          expect(carta.temple).toBe(B.fogon.temple * 2);
+          expect(juego.templar(p, carta.id)).toBeNull(); // el fuego tiene tope
+          bravas++;
+        }
+      }
       if (r === 'quemada') {
         quemadas++;
         expect(p.mazo).toHaveLength(n - 1);
         expect(juego.templar(p, carta.id)).toBeNull();
-      } else {
-        enteras++;
-        expect(carta.temple).toBe(B.fogon.temple * B.fogon.pasadas);
       }
     }
-    expect(quemadas).toBeGreaterThan(20);
-    expect(enteras).toBeGreaterThan(4);
+    expect(quemadas).toBeGreaterThan(30);
+    expect(bravas).toBeGreaterThan(10);
+  });
+  it('un naipe Templado suma Multi y uno de Forja Brava vale doble; el Cetro se recarga con el Golpe exacto', () => {
+    const base = [c('S', 7)];
+    const p0 = mesa('chinchon', base);
+    const q0 = cuenta(p0, base);
+    const fino = [{ ...c('S', 7), temple: 8, templada: true, brava: true }];
+    const p1 = mesa('chinchon', fino);
+    const q1 = cuenta(p1, fino);
+    expect(q1.dano).toBe(q0.dano + 8 + 7);
+    expect(q1.multi).toBe(q0.multi + B.fogon.multiTemplada);
+    // el Cetro: ×3 en el primer golpe; gastado, vuelve con un Golpe exacto
+    const p2 = mesa('chinchon', base);
+    p2.amuletos.push('cetro');
+    expect(cuenta(p2, base).multi).toBe(q0.multi * B.amuletos.cetro);
+    p2.combate!.golpes = 1;
+    expect(cuenta(p2, base).multi).toBe(q0.multi);
+    p2.combate!.cetro = true;
+    expect(cuenta(p2, base).multi).toBe(q0.multi * B.amuletos.cetro);
   });
   it('Truco: dos del mismo palo cantan ¡ENVIDO! y las Bravas pegan de más', () => {
     const mano = [c('S', 1, 'S1'), c('S', 7, 'S7'), c('D', 4)];

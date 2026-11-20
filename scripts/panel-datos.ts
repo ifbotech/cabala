@@ -64,6 +64,18 @@ const FUNCIONES = {
   botinEnMesa: true,
   /** En portátil y Steam Deck los naipes de la mano llevan el número de la esquina más grande. */
   indiceGrande: true,
+  /** El Fogón tiene tres pasadas: +Daño seguro, Templada (+Multi) con riesgo y Forja Brava (número doble) con más riesgo. */
+  fogonTresPasadas: true,
+  /** La tabla de JUGADAS pone arriba el canto del Mazo y pliega las jugadas que no entran en la mano. */
+  jugadasPorMazo: true,
+  /** El Comodín elegido se dibuja como la carta que copia (un naipe dorado). */
+  comodinEspectral: true,
+  /** La Furia se ve como llamas detrás del emblema del Ataque. */
+  llamasFuria: true,
+  /** Al golpear, las cartas se cuentan en cadena (un número y una nota por carta) y el total vibra. */
+  conteoEnCadena: true,
+  /** Con dos o más Golpes exactos seguidos, el marco de la mesa y el retrato se encienden y la música suma una capa. */
+  rachaEncendida: true,
   /** El Fogón deja templar un naipe con riesgo de quemarlo (ya no «quemar un naipe»). */
   fogonTemple: true,
   /** La cuenta dice cuánto le queda al enemigo o cuánto sobra, y hay racha de Golpes exactos. */

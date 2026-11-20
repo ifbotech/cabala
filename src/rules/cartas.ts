@@ -21,6 +21,10 @@ export interface Carta {
   marcada?: true;
   /** Templada en el Fogón: Daño de más, para siempre, cada vez que se juega. */
   temple?: number;
+  /** Templada en la segunda pasada por el Fogón: +1 de Multi al jugarla. */
+  templada?: boolean;
+  /** Forja Brava (tercera pasada): su número vale doble en el Daño. */
+  brava?: boolean;
 }
 
 export const MAX_NUM = 9;
