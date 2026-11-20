@@ -53,3 +53,46 @@ lo que modifica la partida es pasivo, y la interfaz entera al nivel de los Dorso
 - Medir la línea base con el panel simulado y sus placebos nulos.
 - El retrato del HUD es chico en 1080p; los iconos de 28 celdas pierden lectura en la tira del móvil.
 - El bot casi no usa los descartes para buscar el canto de su Mazo: las cifras de ¡ESCOBA! y ¡CHANCHO! son de piso.
+
+## Línea base del panel simulado (0.1.0)
+
+El panel (`..\panelAgentesGaming`) quedó reapuntado a CÁBALA: `escenas_cabala.py` (20 escenas, todas las cifras salen de
+`artifacts/panel-datos.json`, que exporta `scripts/panel-datos.ts`) con guardia estricta: sin palabras de venta ni
+valorativas, toda cita entre «» tiene que ser texto literal del juego, y toda pantalla citada tiene que estar
+fotografiada. La QA visual guarda junto a cada captura sus medidas reales del DOM.
+
+`pulso-60` (60 personas simuladas, una reseña cada una), tres medidas del mismo juego (la medida y dos placebos nulos):
+
+| | Medida | Placebo 1 | Placebo 2 | Listón (media) | Meta |
+|---|---|---|---|---|---|
+| Aprobación | 43,3 % | 46,7 % | 46,7 % | 45,6 % | 85 % |
+| Críticos | 25 % | 35 % | 30 % | 30 % | 60 % |
+| Claridad | 5,93 | 6,07 | 5,93 | 5,98 | 8,0 |
+| Diversión | 7,32 | 7,32 | 7,28 | 7,31 | 8,4 |
+| Steam Deck | 33,3 % | 44,4 % | 44,4 % | 40,7 % | 85 % |
+| Móvil | 53,3 % | 53,3 % | 53,3 % | 53,3 % | 85 % |
+| F | 139,78 | 152,77 | 144,98 | 145,84 | — |
+
+El mismo juego da 13 puntos de F de diferencia entre dos tiradas: una candidata solo cuenta si supera la media del
+listón con margen. Corridas: `pulso-60-20261119-214333`, `-215503`, `-220547` (snapshot `20261119-213100`).
+
+**Lo que más pesa en las reseñas** (leído en las auditorías y en las confusiones): los iconos de la tira del HUD eran
+dianas de 32 px a 2–4 px entre sí (el auditor lo marca como P0 en casi todas las pantallas); no había tabla de jugadas
+en el juego; la salpicadura de Oros, el Comodín y la Furia se entendían mal; y la letra de texto dibujaba el «5» como
+una «S» («Suman 1S»).
+
+## 0.2.0 · en curso (rama `v0.2`, sin publicar)
+
+**Hipótesis.** Las reseñas bajan por fricción de lectura y de toque: si cada cosa que se toca mide lo que debe y cada
+regla que se aplica se ve en la mesa, sube la Claridad.
+
+Hecho en la rama: fuera la salpicadura de Oros; la tira del HUD es un solo botón que abre «LO QUE LLEVÁS»; tabla de
+JUGADAS en la mesa (tecla J); cartas Inmunes marcadas en la mano; letra de texto DotGothic16 (cifras nítidas) en lugar
+de Pixelify Sans; reglas de dianas en la QA visual (chica, pegada, pisada); Chinchón 63 y Chancho Va 57 de Vida.
+Puertas en verde: tipos, 51 pruebas, forja y linter, laboratorio sin avisos (29,9–32,6 % / 45,0–48,7 %), QA visual
+ES y EN (100 capturas cada una, 0 fallos), humo ES y EN, build.
+
+**Pendiente antes de publicar:** la puerta de FPS falla en la primera tanda de golpes (un cuadro de ~125 ms en el
+primer golpe a 1366×768). No es la tipografía, ni el filtro, ni la VRAM: el navegador lo atribuye al temporizador de
+`volar()` en `src/client/mano.ts`, es decir, al código que sigue al vuelo de las cartas en el primer golpe. Después:
+medir la 0.2.0 con el panel contra el listón de arriba.

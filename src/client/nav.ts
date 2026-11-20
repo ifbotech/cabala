@@ -73,7 +73,7 @@ export function iniciarNav(): void {
     } else if (k === 'Escape') {
       ev.preventDefault();
       atras();
-    } else if (k === 'g' || k === 'd' || k === 'e') {
+    } else if (k === 'g' || k === 'd' || k === 'e' || k === 'j') {
       if (atajo(k)) ev.preventDefault();
     }
   });

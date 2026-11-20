@@ -1,11 +1,13 @@
 // Las pantallas del camino, todas atendidas por el Bufón: el Mapa ramificado, el Botín y su «ELEGÍ UNA», la
 // Pulpería, el Fogón, la Cábala del Bufón y el final de la partida. Abajo, siempre, el HUD del jugador.
-import { AMULETO } from '../../rules/amuletos';
+import { AMULETO, RAREZA_NOMBRE } from '../../rules/amuletos';
+import { AUMENTO, NIVEL_NOMBRE } from '../../rules/aumentos';
 import type { AmuletoId } from '../../rules/amuletos';
 import { B } from '../../rules/balance';
 import { CABALA, HUMOR_NOMBRE, humorDe, suerte } from '../../rules/bufon';
-import { PALOS, ordenar } from '../../rules/cartas';
-import type { Carta, Palo } from '../../rules/cartas';
+import { JUGADAS, PALOS, ordenar } from '../../rules/cartas';
+import type { Carta, Jugada, Palo } from '../../rules/cartas';
+import { carga, sirveA } from '../../rules/estado';
 import type { ItemBotin, Nodo, Oferta, Partida } from '../../rules/estado';
 import { COLUMNAS, PISOS } from '../../rules/mapa';
 import { MAZO } from '../../rules/mazos';
@@ -13,7 +15,7 @@ import * as juego from '../../rules/partida';
 import { ver } from '../../rules/perfil';
 import { BENDICION, REY_DEF } from '../../rules/reyes';
 import type { BendicionId } from '../../rules/reyes';
-import { clavePieza } from '../../rules/sellos';
+import { clavePieza, selloDe } from '../../rules/sellos';
 import { alAzar, idioma, perfil, t, tx } from '../almacen';
 import { sonar } from '../audio';
 import { haloRey, lluviaDeMonedas } from '../fx/efectos';
@@ -21,8 +23,8 @@ import { enFoto } from '../fx/motor';
 import { avivarRetrato, hudHtml } from '../hud';
 import { avanzar, guardar, irPortada, sesion, soltarPartida } from '../juego';
 import type { Expresion } from '../pixel/bufon';
-import { cifra, pxAmuleto, pxHud, pxNaipe, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
-import { NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, TRAMO_NOMBRE } from '../textos';
+import { cifra, pxAmuleto, pxAumento, pxBendicion, pxHud, pxNaipe, pxNodo, pxPalo, pxPieza, pxSello, urlRetrato } from '../sprites';
+import { JUGADA_COMO, JUGADA_NOMBRE, NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, TRAMO_NOMBRE } from '../textos';
 import { VOZ } from '../voces';
 import { $, abrirModal, anfitrion, bufonHtml, cerrarModal, esc, fichaDe, repintar, reyHtml, selloHtml, tip, type Accion, type Pantalla } from '../ui';
 
@@ -53,6 +55,61 @@ export function modalMazo(p: Partida, titulo: string, elegir?: (id: string) => v
       elegir?.(el.dataset.id!);
     },
   });
+}
+
+/** «LO QUE LLEVÁS»: cada Amuleto, Cábala, carga y Bendición con su texto entero (la tira del HUD es su resumen). */
+export function modalPiezas(p: Partida): void {
+  const fila = (icono: string, nombre: string, clase: string, desc: string, sello = ''): string =>
+    `<li class="pieza-fila"><span class="pieza-icono">${icono}</span><div class="pieza-texto"><b>${esc(nombre)}</b><span class="sub">${esc(clase)}</span><p>${esc(desc)}</p></div>${sello}</li>`;
+  const vacio = `<li class="pieza-fila vacia"><p class="sub">${t('nada')}</p></li>`;
+  const amuletos = p.amuletos.map((id) => fila(pxAmuleto(id), tx(AMULETO[id].nombre), tx(RAREZA_NOMBRE[AMULETO[id].rareza]), tx(AMULETO[id].desc), pxSello(selloDe('amuleto', id))));
+  const aumentos = p.aumentos.map((id) => fila(pxAumento(id), tx(AUMENTO[id].nombre), AUMENTO[id].maldicion ? t('maldicion') : tx(NIVEL_NOMBRE[AUMENTO[id].nivel]), tx(AUMENTO[id].desc), pxSello(selloDe('aumento', id))));
+  const cargas = PALOS.filter((s) => sirveA(p, s)).map((s) => fila(pxPalo(s), `${tx(REY_DEF[s].carga)} ${carga(p, s)}`, tx(REY_DEF[s].apodo), tx(REY_DEF[s].cargaDa)));
+  const bendiciones = (Object.keys(p.bendiciones) as BendicionId[]).map((id) => {
+    const d = BENDICION[id];
+    const n = p.bendiciones[id] ?? 1;
+    return fila(pxBendicion(id), tx(d.nombre), `${tx(REY_DEF[d.rey].apodo)}${d.dual ? ` + ${tx(REY_DEF[d.dual].apodo)}` : ''}${d.niveles > 1 ? ` · ${t('nivel', { n })}` : ''}`, tx(d.desc(n)), pxSello(selloDe('bendicion', id)));
+  });
+  const bloque = (titulo: string, filas: string[]): string => `<h3 class="rotulo">${esc(titulo)}</h3><ul class="pieza-lista">${filas.length ? filas.join('') : vacio}</ul>`;
+  abrirModal(
+    `<div class="panel piezas">
+      <header class="cabecera"><h2 class="titulo">${t('llevas')}</h2><button class="btn marco chico" data-accion="cerrar" data-inicio>${t('cerrar')}</button></header>
+      <div class="piezas-cuerpo rollo">
+        ${bloque(`${t('amuletos')} · ${t('avance', { a: p.amuletos.length, b: p.huecos })}`, amuletos)}
+        ${bloque(t('cabalaNueva'), aumentos)}
+        ${bloque(`${t('bendiciones')} · ${t('cargas')}`, [...cargas, ...bendiciones])}
+      </div>
+    </div>`,
+    { cerrar: () => cerrarModal() },
+  );
+}
+
+/** La tabla de JUGADAS: lo que vale cada una, lo que hace cada palo y las dos reglas que más se preguntan. */
+export function modalJugadas(p: Partida, actual?: Jugada | null): void {
+  const propias: Jugada[] = p.mazoId === 'escoba' ? ['quince'] : p.mazoId === 'truco' ? ['envido'] : [];
+  const filas = [...JUGADAS, ...propias]
+    .map((j) => `<tr class="${j === actual ? 'actual' : ''}"><th scope="row">${esc(tx(JUGADA_NOMBRE[j]))}</th><td>${esc(tx(JUGADA_COMO[j]))}</td><td class="n">${cifra(`+${B.jugadas[j].d}`, 'roja')}</td><td class="n">${cifra(`x${B.jugadas[j].m}`, 'azul')}</td></tr>`)
+    .join('');
+  const palos = PALOS.map((s) => `<li>${pxPalo(s)}<b>${esc(tx(PALO_NOMBRE[s]))}</b><span>${esc(tx(PALO_PODER[s]))}</span></li>`).join('');
+  abrirModal(
+    `<div class="panel jugadas">
+      <header class="cabecera"><h2 class="titulo">${t('jugadas')}</h2><button class="btn marco chico" data-accion="cerrar" data-inicio>${t('cerrar')}</button></header>
+      <div class="jugadas-cuerpo rollo">
+        <table class="jugadas-tabla">
+          <thead><tr><th scope="col">${t('jugada')}</th><th scope="col">${t('cartas')}</th><th scope="col" class="n">${t('dano')}</th><th scope="col" class="n">${t('multi')}</th></tr></thead>
+          <tbody>${filas}</tbody>
+        </table>
+        <div class="jugadas-lado">
+          <h3 class="rotulo">${t('palos')}</h3>
+          <ul class="palos-lista">${palos}</ul>
+          <p class="regla">${esc(t('inmuneRegla'))}</p>
+          <p class="regla">${esc(t('comodinRegla'))}</p>
+          <p class="regla canto-regla"><b>${esc(tx(MAZO[p.mazoId].canto))}</b> ${esc(tx(MAZO[p.mazoId].regla))}</p>
+        </div>
+      </div>
+    </div>`,
+    { cerrar: () => cerrarModal() },
+  );
 }
 
 /** El menú de la partida: guardar y salir, o rendirse. */
@@ -93,6 +150,7 @@ export function modalMenu(p: Partida): void {
 /** Las acciones del HUD y del menú, comunes a todas las pantallas de la partida. */
 export const accionesComunes = (p: Partida): Record<string, Accion> => ({
   'ver-mazo': () => modalMazo(p, `${t('mazo')} · ${p.mazo.length}`),
+  'ver-piezas': () => modalPiezas(p),
   menu: () => modalMenu(p),
 });
 

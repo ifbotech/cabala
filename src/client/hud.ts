@@ -37,26 +37,26 @@ function tiras(p: Partida): string {
     const id = p.amuletos[i];
     if (!id) return `<span class="ficha vacia" ${tip(t('huecos', { a: p.amuletos.length, b: p.huecos }))}></span>`;
     const d = AMULETO[id];
-    return `<button class="ficha" data-pieza="a:${id}" ${tip(tx(d.nombre), tx(d.desc), tx(RAREZA_NOMBRE[d.rareza]))}>${pxAmuleto(id)}</button>`;
+    return `<span class="ficha" data-pieza="a:${id}" ${tip(tx(d.nombre), tx(d.desc), tx(RAREZA_NOMBRE[d.rareza]))}>${pxAmuleto(id)}</span>`;
   }).join('');
   const aumentos = p.aumentos
     .map((id) => {
       const d = AUMENTO[id];
-      return `<button class="ficha" data-pieza="u:${id}" ${tip(tx(d.nombre), tx(d.desc), d.maldicion ? t('maldicion') : tx(NIVEL_NOMBRE[d.nivel]))}>${pxAumento(id)}</button>`;
+      return `<span class="ficha" data-pieza="u:${id}" ${tip(tx(d.nombre), tx(d.desc), d.maldicion ? t('maldicion') : tx(NIVEL_NOMBRE[d.nivel]))}>${pxAumento(id)}</span>`;
     })
     .join('');
   const cargas = PALOS.filter((s) => sirveA(p, s))
     .map((s) => {
       const r = REY_DEF[s];
       const regla = ajustes.idioma === 'en' ? `+1 for each enemy you take down with ${PALO_NOMBRE[s].en} in the hit.` : `+1 por cada enemigo que abatís con ${PALO_NOMBRE[s].es} en el golpe.`;
-      return `<button class="ficha carga" data-carga="${s}" ${tip(`${tx(r.carga)} ${carga(p, s)}`, tx(r.cargaDa), regla)}>${pxPalo(s)}${cifra(carga(p, s), 'oro')}</button>`;
+      return `<span class="ficha carga" data-carga="${s}" ${tip(`${tx(r.carga)} ${carga(p, s)}`, tx(r.cargaDa), regla)}>${pxPalo(s)}${cifra(carga(p, s), 'oro')}</span>`;
     })
     .join('');
   const bendiciones = (Object.keys(p.bendiciones) as BendicionId[])
     .map((id) => {
       const d = BENDICION[id];
       const n = p.bendiciones[id] ?? 1;
-      return `<button class="ficha" data-pieza="b:${id}" ${tip(tx(d.nombre), tx(d.desc(n)), `${tx(REY_DEF[d.rey].apodo)}${d.niveles > 1 ? ` · ${t('nivel', { n })}` : ''}`)}>${pxBendicion(id)}${d.niveles > 1 && n > 1 ? `<span class="cuenta">${cifra(n, 'hueso')}</span>` : ''}</button>`;
+      return `<span class="ficha" data-pieza="b:${id}" ${tip(tx(d.nombre), tx(d.desc(n)), `${tx(REY_DEF[d.rey].apodo)}${d.niveles > 1 ? ` · ${t('nivel', { n })}` : ''}`)}>${pxBendicion(id)}${d.niveles > 1 && n > 1 ? `<span class="cuenta">${cifra(n, 'hueso')}</span>` : ''}</span>`;
     })
     .join('');
   return `<div class="hud-tira" data-tira="amuletos">${amuletos}${aumentos}</div><div class="hud-tira" data-tira="reyes">${cargas}${bendiciones}</div>`;
@@ -88,7 +88,7 @@ export function hudHtml(p: Partida, v: VistaHud = vistaDe(p)): string {
         <span class="rotulo">${t('mazo')}</span>
         <span class="valor">${pxHud('mazo')}<span data-n="mazo">${cifra(v.mazo, 'hueso', 'grande')}</span></span>
       </button>
-      <div class="hud-tiras" data-tiras>${tiras(p)}</div>
+      <button class="hud-tiras" data-tiras data-accion="ver-piezas" data-foco="hud-piezas" aria-label="${t('verLlevas')}">${tiras(p)}</button>
     </div>
   </footer>`;
 }

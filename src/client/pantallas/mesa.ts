@@ -27,7 +27,7 @@ import { JUGADA_NOMBRE, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_NOMBRE, RANGO
 import { ENSENANZA, VOZ } from '../voces';
 import { $, bufonHtml, esc, fichaDe, gestoBufon, reyHtml, tip, type Pantalla } from '../ui';
 import { pausa, quieto } from '../ritmo';
-import { accionesComunes } from './camino';
+import { accionesComunes, modalJugadas } from './camino';
 
 const AURA: Record<Palo, string> = { S: '#00c8ff', C: '#22d95b', D: '#ffd500', H: '#ff1453' };
 
@@ -176,7 +176,18 @@ export function pantallaMesa(p: Partida): Pantalla {
     const ataque = $('[data-ataque]');
     ataque?.classList.toggle('inminente', !!enemigo && enemigo.aturdido <= 0 && !(q.ok && (q.abate || q.ejecuta)));
     ataque?.classList.toggle('mortal', q.ok && q.contra !== null && q.contra >= hud.vida);
+    marcarInmunes();
     pintarBotones();
+  }
+  /** Las cartas a las que el enemigo activo es Inmune llevan su marca en la mano (salvo con el Engaño armado). */
+  function marcarInmunes(): void {
+    const libre = !enemigo || tieneAmuleto(p, 'doscaras') || c().engano;
+    for (const el of document.querySelectorAll<HTMLElement>('[data-mano] .carta')) {
+      const si = !libre && el.dataset.palo === enemigo!.palo;
+      if (si && !el.querySelector('.c-inmune')) el.insertAdjacentHTML('beforeend', `<span class="c-inmune" title="${t('noDana')}">${pxInmune(enemigo!.palo)}</span>`);
+      if (!si) el.querySelector('.c-inmune')?.remove();
+      el.classList.toggle('inmune', si);
+    }
   }
   function pintarBotones(): void {
     const sel = seleccion();
@@ -256,14 +267,6 @@ export function pantallaMesa(p: Partida): Pantalla {
           $('[data-carta]')?.classList.add('herido');
           if (ev.n >= enemigo.vidaMax * 0.75) voz(VOZ.fuerte, 'risa');
           await pausa(160);
-          break;
-        }
-        case 'salpica': {
-          const sig = resto[0];
-          if (sig) sig.vida = Math.max(1, sig.vida - ev.n);
-          const en = centro($('[data-corte] .corte-carta'));
-          numero(ev.n, en.x, en.y, 'oro');
-          chispas(en.x, en.y, RAMPA_PALO.D, 6, 50);
           break;
         }
         case 'exacto': {
@@ -544,7 +547,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     html: () => `<main class="pantalla en-partida mesa">
       <header class="cabecera mesa-top">
         <div class="lado"><span class="rotulo">${esc(tramo)} · ${esc(tx(NODO_NOMBRE[tipo]))}</span><span class="sub" data-turno></span></div>
-        <div class="lado"><button class="btn marco chico" data-accion="menu" data-foco="menu" aria-label="${t('menu')}">≡ ${t('menu')}</button></div>
+        <div class="lado"><button class="btn marco chico b-jugadas" data-accion="jugadas" data-foco="jugadas" data-tecla="j" aria-label="${t('jugadas')}">? <span class="solo-ancho">${t('jugadas')}</span></button><button class="btn marco chico" data-accion="menu" data-foco="menu" aria-label="${t('menu')}">≡ <span class="solo-ancho">${t('menu')}</span></button></div>
       </header>
       <section class="escena" data-escena>
         <div class="esc-bufon">${bufonHtml(p.afinidad <= -2 ? 'sombria' : 'reposo')}<p class="bocadillo" data-voz hidden></p></div>
@@ -609,6 +612,10 @@ export function pantallaMesa(p: Partida): Pantalla {
     },
     acciones: {
       ...accionesComunes(p),
+      jugadas: () => {
+        const q = cuenta(p, seleccion());
+        modalJugadas(p, q.ok ? q.jugada : null);
+      },
       golpear: () => void golpear(mano?.seleccion() ?? []),
       descartar: () => void descartar(mano?.seleccion() ?? []),
       engano: () => {

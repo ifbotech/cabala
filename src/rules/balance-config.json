@@ -48,8 +48,7 @@
   "palos": {
     "escudoPorBasto": 2,
     "curaPorCopa": 2,
-    "oroPorOro": 1,
-    "salpicaPorOro": 3
+    "oroPorOro": 1
   },
   "jugador": {
     "vida": 70,
@@ -156,7 +155,7 @@
       "cargaDano": 1
     },
     "chinchon": {
-      "vida": 61,
+      "vida": 63,
       "mano": 7,
       "hasta": 9,
       "comodines": 2,
@@ -172,7 +171,7 @@
       "furiaFallo": 3
     },
     "chancho": {
-      "vida": 55,
+      "vida": 57,
       "mano": 6,
       "hasta": 9,
       "comodines": 2,

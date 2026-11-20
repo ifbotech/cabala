@@ -13,7 +13,7 @@ import { $ } from './ui';
 
 export const ESTADOS = [
   'portada', 'elegir-mazo', 'elegi-una', 'mapa', 'mesa', 'mesa-seleccion', 'mesa-arrastrando', 'mesa-rey', 'mesa-mentiroso', 'botin', 'elegi-bendicion', 'elegi-amuleto',
-  'pulperia', 'fogon', 'cabala', 'mazo', 'altar', 'coleccion', 'coleccion-amuletos', 'cronica', 'ajustes', 'fin-victoria', 'fin-derrota',
+  'pulperia', 'fogon', 'cabala', 'mazo', 'jugadas', 'piezas', 'altar', 'coleccion', 'coleccion-amuletos', 'cronica', 'ajustes', 'fin-victoria', 'fin-derrota',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
 
@@ -118,6 +118,19 @@ export function montarQa(estado: string): void {
     }
     case 'mesa-rey':
       montar(partida(mazo, (p) => p.fase === 'combate' && !!p.combate!.fila[0]?.jefe));
+      break;
+    case 'jugadas': {
+      const p = partida(mazo, (x) => enCombate(x));
+      montar(p);
+      const m = mejorGolpe(p);
+      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[]): void } } }).__mesa;
+      if (m && mesa) mesa.mano.elegir(m.ids);
+      $<HTMLElement>('[data-accion="jugadas"]')?.click();
+      break;
+    }
+    case 'piezas':
+      montar(partida(mazo, (p) => p.fase === 'combate' && !!p.combate!.fila[0]?.jefe && p.acto >= 1));
+      $<HTMLElement>('[data-accion="ver-piezas"]')?.click();
       break;
     case 'mesa-mentiroso':
       montar(partida('mentiroso', (p) => enCombate(p)));

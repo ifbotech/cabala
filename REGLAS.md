@@ -1,5 +1,5 @@
 # CÁBALA — Reglas
-> Versión 0.1.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
+> Versión 0.2.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
 
 *Todo es cuestión de cábala.* Roguelike de baraja española para un jugador. Elegís un Mazo, el Bufón te lleva por tres tramos de caminos y al fondo de cada uno te espera un Rey. Tu mano contra la Corte: cada golpe es **DAÑO × MULTI**.
 
@@ -11,16 +11,16 @@ Tu Mazo lleva las cartas del **1 al 9** de los cuatro palos (36) y **2 Comodines
 |---|---|
 | **Espadas** | Perfora: atraviesa el Escudo y lo que sobra sigue al próximo. |
 | **Bastos** | Cada Basto te da Escudo. |
-| **Oros** | Cada Oro paga una moneda y salpica al próximo. |
+| **Oros** | Cada Oro paga una moneda. |
 | **Copas** | Cada Copa te cura. |
 
-Cifras: cada Basto da **2 de Escudo**, cada Copa cura **2 de Vida**, cada Oro paga **1 de oro** y salpica **3** al enemigo que espera (la salpicadura no abate). El Escudo frena el Contraataque antes que tu Vida (tope 20).
+Cifras: cada Basto da **2 de Escudo**, cada Copa cura **2 de Vida**, cada Oro paga **1 de oro**. El Escudo frena el Contraataque antes que tu Vida (tope 20).
 
-**El Comodín** copia la carta de mayor número del golpe (número y palo). Solo, no es jugada.
+**El Comodín** vale como una copia de tu carta más alta del golpe: mismo número y mismo palo. Solo, no es jugada.
 
 ## El turno
 
-1. **Elegí cartas** de tu mano (hasta 5) que formen una jugada y **arrastralas al enemigo** (o tocá GOLPEAR).
+1. **Elegí cartas** de tu mano (hasta 5) que formen una jugada y **arrastralas al enemigo** (o tocá GOLPEAR). La tabla de JUGADAS está a un toque en la mesa.
 2. Si el enemigo sigue en pie, **contraataca**: te pega su Ataque (⚔) más la Furia. Tu Escudo frena primero.
 3. **Robás** hasta completar la mano.
 
@@ -56,7 +56,7 @@ Abatir a un enemigo con un TOTAL **igual a su Vida** es ¡EXACTO!: cobrás **3 d
 
 ### Aturdido y Furia
 
-Un enemigo **Aturdido** se salta su próximo Contraataque. La **Furia** es Ataque de más para toda la Corte en ese combate: sube **3** cada vez que se agota tu Mazo (y se baraja el Descarte), y cada turno que un Rey sigue en pie.
+Un enemigo **Aturdido** se salta su próximo Contraataque. La **Furia** es Ataque de más para toda la Corte en ese combate: sube **3** cada vez que se agota tu Mazo (y se baraja el Descarte) y **1** por cada turno que un Rey sigue en pie. Se ve junto al Ataque del enemigo.
 
 ## La Corte
 
@@ -147,14 +147,14 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 | **Ser Mano** | Plata | Tu primer golpe de cada combate: +1 de Multi. | A |
 | **Mesa Servida** | Plata | Empezás cada combate con 6 de Escudo. | A |
 | **Carta Marcada** | Oro | Sumás un 1 de Espadas marcado: no ocupa lugar y vuelve a tu mano al jugarlo. | B |
-| **Mano Caliente** | Oro | Cada canto de tu Mazo: +1 de Multi por el resto del combate (tope +4). | A |
+| **Mano Caliente** | Oro | Cada canto de tu Mazo: +1 de Multi por el resto del combate (tope +4). | S |
 | **Chamuyo** | Oro | La Pulpería te cobra 25 % menos y el humor del Bufón nunca baja de neutral. | B |
 | **Retruco** | Oro | Si el enemigo sobrevivió a tu golpe anterior: +1 de Multi. | A |
 | **Cara de Póker** | Oro | El primer Contraataque de cada combate no llega. | S |
-| **Irse al Mazo** | Oro | Una vez por partida, el golpe que te mataría no llega y curás 30 % de tu Vida. | S |
+| **Irse al Mazo** | Oro | Una vez por partida, el golpe que te mataría no llega y curás 30 % de tu Vida. | A |
 | **Falta Envido** | Prismático | Al golpear con 40 % de Vida o menos: ×2 de Multi. | S |
-| **Vale Cuatro** | Prismático | Tus golpes de 4 cartas o más: +3 de Multi. | A |
-| **Baraja Cargada** | Prismático | Los 2 y los 3 de tu Mazo se vuelven 9. | S |
+| **Vale Cuatro** | Prismático | Tus golpes de 4 cartas o más: +3 de Multi. | S |
+| **Baraja Cargada** | Prismático | Los 2 y los 3 de tu Mazo se vuelven 9. | A |
 | **Pacto Garca** | Prismático · Maldición | +40 de oro ya, pero el próximo Rey arranca con +2 de Furia. | B |
 | **Contraflor al Resto** | Prismático · Maldición | ×2 de Multi en todos tus golpes, pero perdés el 60 % de tu Vida máxima. | S |
 | **Vender el Alma** | Prismático · Maldición | +1 carta en la mano, pero el Bufón se queda con 6 de tu Vida máxima. | B |
@@ -165,9 +165,9 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 |---|---|---|---|---|
 | **Escoba** · Escoba del 15 | La Barrendera | 62 · 6 | Sumá 15 justo: ¡ESCOBA!, Multi ×2 y más Daño para siempre. | abierto desde el principio |
 | **Truco** · Envido y Bravas | El Paisano Bravo | 81 · 6 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
-| **Chinchón** · Pierna y Escalera | La Timbera del Club | 61 · 7 | Piernas y Escaleras de palo crecen siempre y frenan el Contraataque. | Vencé a un Rey. |
+| **Chinchón** · Pierna y Escalera | La Timbera del Club | 63 · 7 | Piernas y Escaleras de palo crecen siempre y frenan el Contraataque. | Vencé a un Rey. |
 | **El Mentiroso** · Cara de Piedra | El Chamuyero | 65 · 6 | Cuatro Comodines y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
-| **Chancho Va** · Mano al Centro | El Manotazo | 55 · 6 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
+| **Chancho Va** · Mano al Centro | El Manotazo | 57 · 6 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
 
 **Escoba** (¡ESCOBA!)
 - Si las cartas del golpe suman 15: ¡ESCOBA!, ×2 de Multi.

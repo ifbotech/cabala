@@ -23,7 +23,6 @@ export type Ev =
   | { t: 'cae'; palo: Palo; rango: Rango; exacto: boolean; ejecutado: boolean; jefe: boolean }
   | { t: 'entra'; palo: Palo; rango: Rango; jefe: boolean }
   | { t: 'perfora'; n: number }
-  | { t: 'salpica'; n: number }
   | { t: 'exacto' }
   | { t: 'escudo'; n: number }
   | { t: 'cura'; n: number }
@@ -68,11 +67,10 @@ export interface Cuenta {
   canto: boolean;
   critico: boolean;
   perfora: boolean;
-  /** Lo que dan los palos: Escudo (Bastos), cura (Copas), oro y salpicadura (Oros). */
+  /** Lo que dan los palos: Escudo (Bastos), cura (Copas) y oro (Oros). */
   escudo: number;
   cura: number;
   oro: number;
-  salpica: number;
   /** Contra el enemigo activo. */
   aEscudo: number;
   aVida: number;
@@ -87,7 +85,7 @@ export interface Cuenta {
 
 const NULA: Cuenta = {
   ok: false, jugada: 'sola', ef: [], dano: 0, multi: 0, total: 0, pasos: [], canto: false, critico: false, perfora: false,
-  escudo: 0, cura: 0, oro: 0, salpica: 0, aEscudo: 0, aVida: 0, abate: false, exacto: false, ejecuta: false, sobra: 0, aturde: 0, contra: null,
+  escudo: 0, cura: 0, oro: 0, aEscudo: 0, aVida: 0, abate: false, exacto: false, ejecuta: false, sobra: 0, aturde: 0, contra: null,
 };
 
 /** ¿Llevás algo que tire el dado cada turno? */
@@ -202,7 +200,6 @@ export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
   const escudo = cuantas('C') * (B.palos.escudoPorBasto + (nivelBend(p, 'empalizada') ? nivelDe(bn.empalizada, nivelBend(p, 'empalizada')) : 0));
   const cura = cuantas('H') * (B.palos.curaPorCopa + (nivelBend(p, 'otraronda') ? nivelDe(bn.otraronda, nivelBend(p, 'otraronda')) : 0));
   const oro = cuantas('D') * B.palos.oroPorOro;
-  const salpica = c.fila.length > 1 ? cuantas('D') * B.palos.salpicaPorOro : 0;
   const perfora = cuantas('S') > 0 || tieneAmuleto(p, 'lanza');
 
   // ── Multi: primero lo que suma…
@@ -260,7 +257,7 @@ export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
     }
   }
 
-  return { ok: true, jugada, ef, dano, multi: multiFinal, total, pasos, canto, critico, perfora, escudo, cura, oro, salpica, aEscudo, aVida, abate, exacto, ejecuta, sobra, aturde, contra };
+  return { ok: true, jugada, ef, dano, multi: multiFinal, total, pasos, canto, critico, perfora, escudo, cura, oro, aEscudo, aVida, abate, exacto, ejecuta, sobra, aturde, contra };
 }
 
 // ───────────────────────── enemigos ─────────────────────────
@@ -580,14 +577,6 @@ export function golpear(p: Partida, ids: readonly string[]): Ev[] {
   e.escudo -= q.aEscudo;
   e.vida = Math.max(0, e.vida - q.aVida);
   evs.push({ t: 'dano', n: q.total, aEscudo: q.aEscudo, vida: e.vida, escudo: e.escudo });
-  if (q.salpica && c.fila[1]) {
-    const s = c.fila[1];
-    const n = Math.min(q.salpica, s.vida - 1);
-    if (n > 0) {
-      s.vida -= n;
-      evs.push({ t: 'salpica', n });
-    }
-  }
   const cae = q.abate || q.ejecuta;
   if (cae) {
     if (q.ejecuta) e.vida = 0;

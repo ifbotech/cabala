@@ -892,7 +892,7 @@ button.visor-carta:disabled {
     flex: 1 1 40%;
   }
   .mazos {
-    gap: calc(var(--u) * 0.5);
+    gap: var(--u);
   }
   .mazo-op {
     flex: 1;
@@ -1051,7 +1051,7 @@ button.visor-carta:disabled {
   }
   .ventas {
     flex-direction: column;
-    gap: calc(var(--u) * 0.5);
+    gap: var(--u);
   }
   .venta,
   .venta.hierro {
@@ -1107,5 +1107,154 @@ button.visor-carta:disabled {
   }
   .cabala .cabecera .lado {
     min-width: 0;
+  }
+}
+
+/* ───────────── 0.2.0: «LO QUE LLEVÁS» y la tabla de JUGADAS ───────────── */
+
+.piezas,
+.jugadas {
+  width: min(96vw, calc(860px * var(--k) * 0.5 + 430px));
+}
+.piezas-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 0.75);
+  padding: 0 calc(var(--u) * 0.5) calc(var(--u) * 0.5) 0;
+}
+.pieza-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: var(--u);
+}
+.pieza-fila {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--u);
+  padding: calc(var(--u) * 0.75);
+  background: var(--abismo);
+  box-shadow:
+    inset calc(1px * var(--k)) calc(1px * var(--k)) 0 #3a1426,
+    inset calc(-1px * var(--k)) calc(-1px * var(--k)) 0 #6b2e1a;
+}
+.pieza-fila.vacia {
+  opacity: 0.7;
+}
+.pieza-icono {
+  flex: none;
+  line-height: 0;
+}
+.pieza-texto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pieza-texto b {
+  font-family: var(--rot);
+  font-weight: 400;
+  text-transform: uppercase;
+  color: var(--oro);
+}
+.pieza-texto p,
+.pieza-fila p {
+  margin: 0;
+  font-size: var(--fs-s);
+  color: var(--hueso);
+}
+.pieza-fila > .sello {
+  flex: none;
+}
+.jugadas-cuerpo {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: calc(var(--u) * 2);
+  align-items: start;
+  padding-right: calc(var(--u) * 0.5);
+}
+.jugadas-tabla {
+  width: 100%;
+  border-collapse: collapse;
+}
+.jugadas-tabla th,
+.jugadas-tabla td {
+  padding: 3px 6px;
+  text-align: left;
+  font-size: var(--fs-s);
+  color: var(--hueso);
+  vertical-align: middle;
+}
+.jugadas-tabla thead th {
+  font-family: var(--rot);
+  font-weight: 400;
+  color: var(--hueso-2);
+}
+.jugadas-tabla tbody th {
+  font-family: var(--rot);
+  font-weight: 400;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.jugadas-tabla .n {
+  text-align: right;
+  white-space: nowrap;
+}
+.jugadas-tabla tr.actual {
+  background: #3a2a05;
+  box-shadow: inset 0 0 0 calc(1px * var(--k)) var(--oro);
+}
+.jugadas-tabla tr.actual th {
+  color: var(--oro);
+}
+.jugadas-lado {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 0.75);
+}
+.palos-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.palos-lista li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--u);
+  align-items: center;
+}
+.palos-lista li .pinta {
+  grid-row: span 2;
+}
+.palos-lista li b {
+  font-family: var(--rot);
+  font-weight: 400;
+  text-transform: uppercase;
+  color: var(--hueso);
+}
+.palos-lista li span {
+  font-size: var(--fs-s);
+  color: var(--hueso-2);
+}
+.regla {
+  margin: 0;
+  font-size: var(--fs-s);
+  color: var(--hueso);
+}
+.canto-regla b {
+  font-family: var(--rot);
+  font-weight: 400;
+  color: var(--oro);
+}
+@media (max-width: 700px) {
+  .jugadas-cuerpo {
+    grid-template-columns: 1fr;
+    gap: var(--u);
   }
 }

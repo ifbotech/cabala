@@ -485,7 +485,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: calc(var(--u) * 0.75);
+  gap: var(--u);
   min-width: calc(190px * var(--k) * 0.5 + 95px);
 }
 
@@ -653,13 +653,21 @@
     display: none;
   }
   .mesa-top .lado {
-    gap: 6px;
+    gap: 8px;
+  }
+  .mesa-top .lado:first-child {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .mesa-top .lado:last-child {
+    flex: none;
   }
   .mesa-top .rotulo {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: clip;
-    max-width: 46vw;
+    max-width: 34vw;
   }
   .mesa-top .sub {
     white-space: nowrap;
@@ -748,7 +756,7 @@
     grid-template-areas:
       'cara izq mazo'
       'tiras tiras tiras';
-    gap: 4px 6px;
+    gap: 8px 6px;
     padding: 0 2px;
     --k-retrato: 1;
   }
@@ -801,4 +809,31 @@
   .hud .hud-vida .cifra.grande {
     --kc: 2;
   }
+}
+
+/* ───────────── 0.2.0: la carta a la que el enemigo es Inmune ───────────── */
+
+/* un velo oscuro y no un filtro: los filtros de CSS compilan sombreadores la primera vez y cuestan un tirón */
+.carta.inmune::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 7, 17, 0.58);
+  pointer-events: none;
+}
+.c-inmune {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  line-height: 0;
+  z-index: 1;
+  --k: var(--k-naipe, 1);
+}
+.mesa-top .lado {
+  gap: var(--u);
+}
+.b-jugadas {
+  min-width: 44px;
 }

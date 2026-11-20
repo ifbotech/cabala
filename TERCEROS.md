@@ -9,5 +9,5 @@ repositorio. Estas son las referencias de método que se consultaron (ninguna se
 | [patch-gg/pixelfx](https://github.com/patch-gg/pixelfx) | MIT | El método de efectos en dos buffers (color opaco o tramado y luz aditiva), rampas duras en el color, cuadro blanco de impacto, *hitstop* y azar con semilla. El motor de `src/client/fx/` es propio y no usa su código. |
 | [omer-metin/skills-for-antigravity](https://github.com/omer-metin/skills-for-antigravity) · `pixel-art-sprites` | Apache-2.0 | Las guías de validación de sprites (render sin suavizado, escala entera, cuadros de tamaño constante, tiempos de animación explícitos), integradas y adaptadas en `.claude/skills/pixel-art-sprites/`. |
 
-Tipografías, vía `@fontsource` (SIL Open Font License 1.1): **Pixelify Sans** (Stefie Justprince) y **Silkscreen**
+Tipografías, vía `@fontsource` (SIL Open Font License 1.1): **DotGothic16** (Fontworks Inc.) y **Silkscreen**
 (Jason Kottke).

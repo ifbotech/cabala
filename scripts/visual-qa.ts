@@ -41,7 +41,7 @@ function auditar(o: { esMovil: boolean; idioma: string }): Fallo[] {
     const r = el.getBoundingClientRect();
     return r.width > 0 && r.height > 0;
   };
-  const enRollo = (el: Element) => !!el.closest('.mapa-rollo, .visor-cartas, .col-cuerpo, .hud-tiras, .pul-cuerpo, .velo');
+  const enRollo = (el: Element) => !!el.closest('.mapa-rollo, .visor-cartas, .col-cuerpo, .hud-tiras, .pul-cuerpo, .velo, .rollo');
   const nombre = (el: Element) => `${el.tagName.toLowerCase()}${el.className && typeof el.className === 'string' ? `.${el.className.trim().split(/\s+/).slice(0, 3).join('.')}` : ''}`;
   const todos = [...document.querySelectorAll('#app *, #capa *')].filter(visible);
   for (const el of todos) {
@@ -75,7 +75,7 @@ function auditar(o: { esMovil: boolean; idioma: string }): Fallo[] {
       }
     }
     // texto recortado dentro de su caja
-    if (el.matches('button, .chip, .op-nombre, .e-nombre, .titulo') && el.scrollWidth > el.clientWidth + 2 && s.overflow !== 'visible') fallos.push({ regla: 'texto-cortado', detalle: `${nombre(el)} «${(el.textContent ?? '').trim().slice(0, 30)}»` });
+    if (el.matches('button:not(.hud-tiras), .chip, .op-nombre, .e-nombre, .titulo') && el.scrollWidth > el.clientWidth + 2 && s.overflow !== 'visible') fallos.push({ regla: 'texto-cortado', detalle: `${nombre(el)} «${(el.textContent ?? '').trim().slice(0, 30)}»` });
   }
   // restos de español en la pantalla inglesa
   if (idioma === 'en') {
@@ -84,6 +84,116 @@ function auditar(o: { esMovil: boolean; idioma: string }): Fallo[] {
     if (restos.length) fallos.push({ regla: 'español-en-inglés', detalle: restos.join(', ') });
   }
   return fallos;
+}
+
+/** Medidas reales del DOM de la captura (hechos, no opiniones): las lee el panel de jugadores simulado, y de ellas
+ * salen las reglas de dianas. Una diana es lo que se puede tocar de verdad: su caja recortada por las zonas que se
+ * desplazan y por la ventana, y solo si en su centro no hay otra cosa encima. */
+function medir(o: { esMovil: boolean }) {
+  const visible = (el: Element) => {
+    const s = getComputedStyle(el);
+    return !(s.visibility === 'hidden' || s.display === 'none' || Number(s.opacity) === 0);
+  };
+  const rotulo = (el: Element) => ((el as HTMLElement).innerText || el.getAttribute('aria-label') || el.getAttribute('data-tip') || el.className || '').toString().trim().replace(/\s+/g, ' ').slice(0, 28);
+  /** La caja que se ve: la del elemento, recortada por sus contenedores con desplazamiento y por la ventana. */
+  const caja = (el: Element) => {
+    const r = el.getBoundingClientRect();
+    let l = Math.max(0, r.left);
+    let t = Math.max(0, r.top);
+    let d = Math.min(innerWidth, r.right);
+    let b = Math.min(innerHeight, r.bottom);
+    for (let p = el.parentElement; p; p = p.parentElement) {
+      const s = getComputedStyle(p);
+      if (s.overflow === 'visible' && s.overflowX === 'visible' && s.overflowY === 'visible') continue;
+      const q = p.getBoundingClientRect();
+      l = Math.max(l, q.left);
+      t = Math.max(t, q.top);
+      d = Math.min(d, q.right);
+      b = Math.min(b, q.bottom);
+    }
+    return { l, t, d, b, w: d - l, h: b - t };
+  };
+  const tocable = (el: Element, c: { l: number; t: number; w: number; h: number }) => {
+    const hit = document.elementFromPoint(c.l + c.w / 2, c.t + c.h / 2);
+    return !!hit && (el.contains(hit) || hit.contains(el));
+  };
+  const dianas = [...document.querySelectorAll('#app button:not(:disabled), #capa button:not(:disabled), #app [data-accion]:not(button), #capa [data-accion]:not(button), #app [data-soltar="descarte"]')]
+    .filter((el) => visible(el) && !el.closest('.mano'))
+    .map((el) => ({ el, c: caja(el) }))
+    .filter((x) => x.c.w >= 8 && x.c.h >= 8 && tocable(x.el, x.c));
+  let menor: (typeof dianas)[number] | null = null;
+  for (const x of dianas) if (!menor || Math.min(x.c.w, x.c.h) < Math.min(menor.c.w, menor.c.h)) menor = x;
+  let separacion: number | null = null;
+  let par = '';
+  const chicas: string[] = [];
+  const pisadas: string[] = [];
+  for (const x of dianas) {
+    const min = o.esMovil && x.el.closest('.botones') ? 48 : 44;
+    // una diana cortada por el borde de una zona que se desplaza no cuenta como chica (se termina de ver al desplazar)
+    const r = x.el.getBoundingClientRect();
+    const cortada = x.c.w < r.width - 1 || x.c.h < r.height - 1;
+    if (!cortada && (x.c.w < min - 0.5 || x.c.h < min - 0.5)) chicas.push(`«${rotulo(x.el)}» ${Math.round(x.c.w)}×${Math.round(x.c.h)} (mínimo ${min})`);
+  }
+  for (let i = 0; i < dianas.length; i++)
+    for (let j = i + 1; j < dianas.length; j++) {
+      const p = dianas[i];
+      const q = dianas[j];
+      if (p.el.contains(q.el) || q.el.contains(p.el)) continue;
+      const dx = Math.max(0, Math.max(p.c.l, q.c.l) - Math.min(p.c.d, q.c.d));
+      const dy = Math.max(0, Math.max(p.c.t, q.c.t) - Math.min(p.c.b, q.c.b));
+      if (dx === 0 && dy === 0) {
+        const ix = Math.min(p.c.d, q.c.d) - Math.max(p.c.l, q.c.l);
+        const iy = Math.min(p.c.b, q.c.b) - Math.max(p.c.t, q.c.t);
+        if (ix > 2 && iy > 2) pisadas.push(`«${rotulo(p.el)}» y «${rotulo(q.el)}»`);
+        continue;
+      }
+      const d = Math.round(Math.max(dx, dy));
+      if (separacion === null || d < separacion) {
+        separacion = d;
+        par = `«${rotulo(p.el)}» y «${rotulo(q.el)}»`;
+      }
+    }
+  const cartas = [...document.querySelectorAll('.mano .carta')].filter(visible).map((el) => el.getBoundingClientRect()).sort((a, b) => a.left - b.left);
+  let mano: { n: number; montadas: boolean; franjaMin: number } | null = null;
+  if (cartas.length) {
+    let montadas = false;
+    let franja = Infinity;
+    for (let i = 0; i < cartas.length; i++) {
+      const sig = cartas[i + 1];
+      const monta = !!sig && sig.left < cartas[i].right - 1;
+      if (monta) montadas = true;
+      franja = Math.min(franja, monta ? sig.left - cartas[i].left : cartas[i].width);
+    }
+    mano = { n: cartas.length, montadas, franjaMin: Math.round(franja) };
+  }
+  let n = 0;
+  let minPx = Infinity;
+  let minQue = '';
+  let bajo14 = 0;
+  for (const el of document.querySelectorAll('#app *, #capa *')) {
+    if (!visible(el)) continue;
+    const propio = [...el.childNodes].some((x) => x.nodeType === 3 && (x.textContent ?? '').trim().length > 0);
+    if (!propio) continue;
+    const c = caja(el);
+    if (c.w < 2 || c.h < 2) continue;
+    n++;
+    const px = parseFloat(getComputedStyle(el).fontSize);
+    if (px < 14) bajo14++;
+    if (px < minPx) {
+      minPx = px;
+      minQue = (el.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 28);
+    }
+  }
+  return {
+    medidas: {
+      dianas: menor ? { n: dianas.length, minW: Math.round(menor.c.w), minH: Math.round(menor.c.h), minQue: rotulo(menor.el), separacionMin: separacion, solapes: pisadas.length } : { n: 0 },
+      mano,
+      texto: n ? { n, minPx: Math.round(minPx), minQue, bajo14 } : { n: 0 },
+    },
+    chicas,
+    pisadas,
+    pegadas: separacion !== null && separacion < 8 ? [`${par} a ${separacion} px`] : [],
+  };
 }
 
 const informe: { estado: string; ventana: string; fallos: Fallo[] }[] = [];
@@ -110,6 +220,11 @@ await conServidor(5191, async (url) => {
         const fallos = await pagina.evaluate(auditar, { esMovil: v.w < 700, idioma: lang });
         for (const e of errores) fallos.push({ regla: 'error-js', detalle: e.slice(0, 200) });
         await pagina.screenshot({ path: `${carpeta}/${v.nombre}/${estado}.png` });
+        const m = await pagina.evaluate(medir, { esMovil: v.w < 700 });
+        for (const x of m.chicas) fallos.push({ regla: 'diana-chica', detalle: x });
+        for (const x of m.pisadas) fallos.push({ regla: 'dianas-pisadas', detalle: x });
+        for (const x of m.pegadas) fallos.push({ regla: 'dianas-pegadas', detalle: x });
+        writeFileSync(`${carpeta}/${v.nombre}/${estado}.medidas.json`, JSON.stringify({ ...m.medidas, recortes: fallos.filter((x) => x.regla === 'recorte' || x.regla === 'texto-cortado').length }));
         informe.push({ estado, ventana: v.nombre, fallos });
       }
       await ctx.close();

@@ -105,6 +105,21 @@ await conServidor(5192, async (url) => {
     exigir(hud.ancla, 'el HUD no está anclado abajo');
     ok(`HUD del jugador: Vida ${hud.vida} · Escudo ${hud.escudo} · oro ${hud.oro} · Mazo ${hud.mazo} · retrato vivo`);
 
+    // la tabla de JUGADAS (tecla J) y «LO QUE LLEVÁS» (la tira del HUD, un solo botón)
+    await p.keyboard.press('j');
+    await p.waitForSelector('.jugadas .jugadas-tabla tbody tr');
+    const filas = await p.locator('.jugadas .jugadas-tabla tbody tr').count();
+    exigir(filas >= 9, `la tabla de JUGADAS tiene ${filas} filas (se esperan 9 o más)`);
+    exigir((await p.locator('.jugadas .palos-lista li').count()) === 4, 'la tabla de JUGADAS no explica los 4 palos');
+    await p.keyboard.press('Escape');
+    await p.waitForSelector('.jugadas', { state: 'detached' });
+    await p.click('[data-accion="ver-piezas"]');
+    await p.waitForSelector('.piezas .pieza-fila');
+    exigir((await p.locator('[data-hud] button.ficha').count()) === 0, 'las fichas de la tira siguen siendo botones sueltos');
+    await p.keyboard.press('Escape');
+    await p.waitForSelector('.piezas', { state: 'detached' });
+    ok(`tabla de JUGADAS con ${filas} jugadas y los 4 palos (tecla J); la tira del HUD abre «LO QUE LLEVÁS»`);
+
     // teclado: Enter elige una carta y la suelta
     const primera = (await estado(p))!.mano[0];
     await p.locator(`.carta[data-id="${primera}"]`).focus();
