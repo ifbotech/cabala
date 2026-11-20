@@ -38,6 +38,8 @@ await conServidor(5193, async (url) => {
       await p.waitForSelector('.mano .carta');
       // la forja de fondo termina antes de medir (en el juego real ocurre en la portada y al elegir Mazo)
       await p.waitForFunction(() => (window as unknown as { __cabala: { porForjar: () => number } }).__cabala.porForjar() === 0, undefined, { timeout: 60000 });
+      // como en el juego de verdad, antes del primer golpe ya hubo un gesto (el clic de «JUGAR»): ahí se abre el audio
+      await p.mouse.click(4, 4);
       await p.waitForTimeout(600);
       const medir = (ms: number, conGolpes: boolean): Promise<Medida> =>
         p.evaluate(

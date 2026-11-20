@@ -29,6 +29,26 @@ let ctx: AudioContext | null = null;
 /** Cuántos sonidos se pidieron (para la QA, que no oye). */
 export const sonados: Sonido[] = [];
 
+/**
+ * Abre el audio con el primer gesto del jugador (un clic o una tecla, en la portada). Abrir el dispositivo de sonido
+ * cuesta más de 100 ms la primera vez: hacerlo al tocar el primer sonido dejaba un tirón en mitad del primer golpe.
+ */
+export function prepararAudio(): void {
+  const abrir = (): void => {
+    removeEventListener('pointerdown', abrir, true);
+    removeEventListener('keydown', abrir, true);
+    if (!ajustes.sonido) return;
+    try {
+      ctx ??= new AudioContext();
+      if (ctx.state === 'suspended') void ctx.resume();
+    } catch {
+      // sin audio: el juego sigue en silencio
+    }
+  };
+  addEventListener('pointerdown', abrir, true);
+  addEventListener('keydown', abrir, true);
+}
+
 /** Toca un sonido. No hace nada si el sonido está apagado o el navegador todavía no dejó abrir el audio. */
 export function sonar(cual: Sonido): void {
   sonados.push(cual);

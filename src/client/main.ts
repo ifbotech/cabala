@@ -9,7 +9,7 @@ import './estilos/mesa.css';
 import { MARCA } from '../shared/brand';
 import { decidir, mejorGolpe } from '../rules/bot';
 import { ajustes, idioma, perfil } from './almacen';
-import { sonados } from './audio';
+import { prepararAudio, sonados } from './audio';
 import { iniciarFx, pulso } from './fx/motor';
 import { irPortada, sesion } from './juego';
 import { iniciarNav } from './nav';
@@ -24,6 +24,7 @@ forjarCss();
 iniciarUi();
 iniciarFx();
 iniciarNav();
+prepararAudio();
 
 // para la QA de humo: el estado vivo y el consejo del bot
 (window as unknown as { __cabala?: unknown }).__cabala = { sesion, perfil: () => perfil, mejorGolpe, decidir, pulso, sonados, porForjar };
