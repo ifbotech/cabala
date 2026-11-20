@@ -238,7 +238,11 @@ export function ajustarBandeja(): void {
   mas.hidden = true;
   el.classList.remove('con-mas');
   if (!fichas.length) return;
-  const sobran = (): HTMLElement[] => fichas.filter((f) => !f.hidden && f.offsetTop > fichas[0].offsetTop + 4);
+  // una ficha está en otra fila si empieza por debajo de donde termina la primera (las hay de distinta altura:
+  // comparar solo el borde de arriba tomaba por «segunda fila» a las cargas y las Bendiciones)
+  const pie = (): number => fichas[0].offsetTop + fichas[0].offsetHeight - 2;
+  const abajo = (el: HTMLElement): boolean => el.offsetTop >= pie();
+  const sobran = (): HTMLElement[] => fichas.filter((f) => !f.hidden && abajo(f));
   let fuera = sobran();
   if (!fuera.length) return;
   // se reserva el sitio del «+N» y se esconden las que ya no entran en la primera fila
@@ -250,7 +254,7 @@ export function ajustarBandeja(): void {
     n += fuera.length;
     mas.textContent = `+${n}`;
     // si el «+N» quedó en la segunda fila, se le hace sitio quitando una más
-    if (mas.offsetTop > fichas[0].offsetTop + 4) {
+    if (abajo(mas)) {
       const ultima = [...fichas].reverse().find((f) => !f.hidden);
       if (!ultima) break;
       ultima.hidden = true;
@@ -258,7 +262,7 @@ export function ajustarBandeja(): void {
       mas.textContent = `+${n}`;
     }
   }
-  if (mas.offsetTop > fichas[0].offsetTop + 4) {
+  if (abajo(mas)) {
     const ultima = [...fichas].reverse().find((f) => !f.hidden);
     if (ultima) {
       ultima.hidden = true;

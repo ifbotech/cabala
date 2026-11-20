@@ -76,6 +76,8 @@ const FUNCIONES = {
   conteoEnCadena: true,
   /** Con dos o más Golpes exactos seguidos, el marco de la mesa y el retrato se encienden y la música suma una capa. */
   rachaEncendida: true,
+  /** En portátil y Steam Deck los iconos de la bandeja del HUD van al doble (60 px) y el contador de descartes, más grande. */
+  bandejaGrande: true,
   /** El Fogón deja templar un naipe con riesgo de quemarlo (ya no «quemar un naipe»). */
   fogonTemple: true,
   /** La cuenta dice cuánto le queda al enemigo o cuánto sobra, y hay racha de Golpes exactos. */

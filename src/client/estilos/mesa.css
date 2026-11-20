@@ -1283,3 +1283,30 @@
 .mesa.racha .hud-cara {
   filter: saturate(1.35) brightness(1.08);
 }
+
+/* ───────────── 0.13.0: pulido para leer a 40 cm (portátil y Steam Deck) ───────────── */
+
+@media (min-width: 1100px) and (max-width: 1699px) {
+  /* la bandeja del HUD va al doble: los iconos se reconocen sin acercarse */
+  button.hud-tiras {
+    --k: 2;
+    gap: 8px;
+  }
+  .hud-tiras .hud-tira + .hud-tira > :first-child {
+    margin-left: 8px;
+  }
+}
+/* cuántos descartes quedan: una cifra que se lee, no una nota al pie */
+.b-quedan {
+  font-size: 1.25em;
+  color: var(--oro);
+}
+button:disabled .b-quedan {
+  color: inherit;
+}
+@media (min-width: 701px) and (max-width: 1500px) {
+  .mano .carta .c-indice {
+    left: 5px;
+    top: 5px;
+  }
+}
