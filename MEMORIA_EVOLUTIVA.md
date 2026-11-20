@@ -286,3 +286,24 @@ ruido. Los Críticos vuelven a 50 % (35 en la 0.9.0).
 
 Steam Deck y Móvil son grupos de 9 y 15 personas: un pulgar mueve 11 y 7 puntos. La Aprobación subió 27 puntos con
 arreglos reales de interfaz; Claridad y Diversión no salieron de una banda de ±0,2 en diez versiones.
+
+## 0.11.0 · Cirugía de composición (publicada; empate con el Campeón)
+
+**Pedido del dueño** tras su UAT de la 0.10.0: HUD simétrico (50 · retrato · 50), todo centrado y sin espacio muerto,
+bocadillos con marco, menos cortes de pantalla y números más grandes en Steam Deck. Recta final hacia la 1.0.0 en
+rondas (0.11 composición, 0.12 las cinco reglas de adicción, 0.13+ pulido por inspección visual).
+
+**Medida** (`pulso-60-20261120-162624`, snapshot `20261120-161558`): F 201,2 contra 200,7 del Campeón (0.6.0) y 194,5
+de la 0.10.0. Claridad 6,30, Diversión 7,48, Aprobación 75 %. Nada significativo: empate.
+
+**Lecciones**
+- **Un observador de tamaño que cambia lo que observa se muerde la cola.** La bandeja del HUD esconde fichas y con
+  eso cambia de alto: el `ResizeObserver` se re-disparaba y en el móvil bajaba los fps. Solo mira el ancho.
+- **La puerta de FPS medía de más.** La ráfaga seguía contando cuadros después del combate; con el botín sobre la
+  mesa, ahí cae la primera pintura de «ELEGÍ UNA» (un cuadro de ~120 ms en frío). Ahora la ráfaga termina con el
+  combate y el cambio de pantalla tiene su propio tope (250 ms). No es un golpe, pero es deuda: conviene precalentar
+  esa capa.
+- **Agrandar una letra de píxel por un factor no entero la emborrona** y la saca de su caja (el «¡EXACTO!» pisaba el
+  corazón de al lado). El peso se da con aire, no con un 1,3×.
+- El índice grande del naipe es una placa con letra del cuerpo engordada un píxel (sombra de texto): la letra fina
+  sola se leía peor que el índice dibujado.

@@ -3,6 +3,38 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.11.0 · Cirugía de composición (2026-11-20)
+
+Pedido del dueño del proyecto tras su prueba de la 0.10.0: simetría, centrado y cero espacio muerto.
+
+**El HUD, en tres zonas**
+- A la izquierda Vida, Escudo y oro llenan su mitad; en el centro exacto, el retrato; a la derecha, el Mazo y una
+  **bandeja de una sola fila** con tus Amuletos, Cábalas, cargas y Bendiciones. Lo que no entra no se apila ni se
+  corta: se cuenta en un «+N». Tocar la bandeja abre «LO QUE LLEVÁS».
+
+**Todo centrado**
+- El Mapa va en el eje de la pantalla; el Bufón, a un costado, ya no lo corre.
+- La Pulpería: el Bufón detrás de su mostrador, pegado a las bandejas; el grupo entero, centrado.
+- Colección: los 5 Mazos en una fila; cada Rey muestra debajo su rasgo y su carga; la caja abraza lo que contiene.
+- Portada: el Bufón a un lado del menú y la pila de Mazos al otro.
+- Los bocadillos llevan marco de pixel-art con filete de oro. En Elegí tu Mazo, Altar, Colección, Crónica y Ajustes
+  el Bufón va en la escena, bajo la cabecera, con lo que dice al lado (ya no flota en la esquina).
+
+**Menos pantallas**
+- El botín pasa sobre la mesa: el oro vuela al HUD, «ELEGÍ UNA» brota sola y, elegida la última, la partida sigue.
+- Altar, Colección, Crónica y Ajustes comparten solapas: se pasa de una a otra sin volver a la portada.
+
+**Steam Deck y portátil**
+- Los naipes de la mano llevan el número de la esquina más grande (28 px) donde el naipe va a escala 1.
+
+**Medido**
+- 60 pruebas, QA visual ES y EN sin fallos (112 capturas cada una; estado nuevo `coleccion-reyes`), humo con 15
+  comprobaciones, 60 fps. La puerta de FPS ahora mide la ráfaga de golpes hasta que termina el combate y, aparte, el
+  cambio de pantalla que sigue (tope 250 ms): en frío, abrir «ELEGÍ UNA» sobre la mesa cuesta un cuadro de ~120 ms.
+- Panel simulado (una tirada contra una tirada; capturas nuevas): Aprobación 75,0 % (75,0), Críticos 50 % (55),
+  Claridad 6,30 (6,32), Diversión 7,48 (7,45), Steam Deck 66,7 % (88,9), Móvil 80,0 % (66,7). F 201,2 contra 200,7 del
+  Campeón: **empate** (suben 4 pulgares y bajan 4). Sube 6,7 sobre la 0.10.0, sin significación.
+
 ## 0.10.0 · Con música y con voz (2026-11-20)
 
 Pedido del dueño del proyecto: más animaciones, música y personajes con voz.
