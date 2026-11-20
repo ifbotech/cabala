@@ -33,6 +33,7 @@ export const MAZO: Record<MazoId, MazoDef> = {
     regla: L('Sumá 15 justo: ¡ESCOBA!, Multi ×2 y más Daño para siempre.', 'Add up to exactly 15: ESCOBA! Mult ×2 and permanent Damage.'),
     canto: L('¡ESCOBA!', 'ESCOBA!'),
     reglas: [
+      fillL(L('Mano de {n} cartas, como en la mesa: tus golpes llevan +{x} de Multi.', 'Hand of {n} cards, as at the table: your hits carry +{x} Mult.'), { n: m.escoba.mano, x: m.escoba.multiMano }),
       fillL(L('Si las cartas del golpe suman 15: ¡ESCOBA!, ×{x} de Multi.', 'If the cards in a hit add up to 15: ESCOBA! ×{x} Mult.'), { x: m.escoba.multi }),
       fillL(L('Cada Escoba deja +{d} de Daño en todos tus golpes, para siempre.', 'Each Escoba leaves +{d} Damage on all your hits, forever.'), { d: m.escoba.cargaDano }),
       L('Cualquier grupo de cartas que sume 15 vale como jugada.', 'Any set of cards adding up to 15 counts as a play.'),
@@ -47,6 +48,7 @@ export const MAZO: Record<MazoId, MazoDef> = {
     regla: L('Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO!', 'Short deck, 1 to 7: lethal Bravas and ENVIDO!'),
     canto: L('¡ENVIDO!', 'ENVIDO!'),
     reglas: [
+      fillL(L('Mano de {n} cartas, como en la mesa: tus golpes llevan +{x} de Multi.', 'Hand of {n} cards, as at the table: your hits carry +{x} Mult.'), { n: m.truco.mano, x: m.truco.multiMano }),
       L('Tu Mazo va del 1 al 7, y barajarlo no sube la Furia.', 'Your deck runs 1 to 7, and reshuffling it raises no Fury.'),
       fillL(L('Las 4 Bravas pegan de más: 1 de Espadas +{a}, 1 de Bastos +{b}, 7 de Espadas +{c}, 7 de Oros +{d}.', 'The 4 Bravas hit harder: 1 of Swords +{a}, 1 of Clubs +{b}, 7 of Swords +{c}, 7 of Coins +{d}.'), {
         a: m.truco.bravas.S1,
@@ -80,6 +82,7 @@ export const MAZO: Record<MazoId, MazoDef> = {
     regla: L('Cuatro Comodines y un Engaño por combate: mentí y cobrá.', 'Four Jokers and one Bluff per fight: lie and collect.'),
     canto: L('¡MENTIRA!', 'LIAR!'),
     reglas: [
+      fillL(L('Mano de {n} cartas.', 'Hand of {n} cards.'), { n: m.mentiroso.mano }),
       fillL(L('Tu Mazo lleva {n} Comodines.', 'Your deck holds {n} Jokers.'), { n: m.mentiroso.comodines }),
       L('Engaño, una vez por combate: todas las cartas del golpe fingen ser tu carta más alta y nada les es Inmune.', 'Bluff, once per fight: every card in the hit poses as your highest card and nothing is Immune to them.'),
       fillL(L('Si el Engaño no abate al enemigo, su Furia sube {f}.', "If the Bluff doesn't take the enemy down, its Fury rises {f}."), { f: m.mentiroso.furiaFallo }),
@@ -94,6 +97,7 @@ export const MAZO: Record<MazoId, MazoDef> = {
     regla: L('Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO!', 'Pass one card free each turn. Four of a kind: CHANCHO!'),
     canto: L('¡CHANCHO!', 'CHANCHO!'),
     reglas: [
+      fillL(L('Mano de {n} cartas, como en la mesa: tus golpes llevan +{x} de Multi.', 'Hand of {n} cards, as at the table: your hits carry +{x} Mult.'), { n: m.chancho.mano, x: m.chancho.multiMano }),
       L('Cada turno, descartar 1 sola carta es gratis: robás otra en el acto.', 'Each turn, discarding 1 single card is free: you draw another right away.'),
       fillL(L('Póker (4 iguales): ¡CHANCHO!, ×{x} de Multi y el enemigo queda Aturdido {t} turnos.', '4 of a kind: CHANCHO! ×{x} Mult and the enemy is Stunned for {t} turns.'), { x: m.chancho.multi, t: m.chancho.aturde }),
       L('De un saque: si abatís a un enemigo de un solo golpe, el siguiente entra Aturdido.', 'In one swipe: take an enemy down in a single hit and the next one enters Stunned.'),

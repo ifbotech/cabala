@@ -18,7 +18,7 @@ import type { MazoId } from './mazos';
 import { altarVacio, porotosDe } from './perfil';
 import { BENDICION, BENDICIONES, nivelDe } from './reyes';
 import type { BendicionId } from './reyes';
-import { barajar, elegir, muestra, ponderado, semillaDe } from './rng';
+import { azar, barajar, elegir, muestra, ponderado, semillaDe } from './rng';
 
 export interface OpcionesPartida {
   mazo: MazoId;
@@ -176,6 +176,8 @@ export function elegirNodo(p: Partida, id: string): Ev[] {
       return [];
     case 'fogon':
       p.fogonHecho = false;
+      p.fogonCarta = null;
+      p.fogonPasadas = 0;
       p.fase = 'fogon';
       return [];
     case 'cabala':
@@ -380,11 +382,30 @@ export function descansar(p: Partida): boolean {
   p.fogonHecho = true;
   return true;
 }
-/** Quemar un naipe en el Fogón: sale del Mazo para siempre, gratis. */
-export function quemar(p: Partida, cartaId: string): boolean {
-  if (p.fase !== 'fogon' || p.fogonHecho || !sacar(p, cartaId)) return false;
+/** ¿Se puede arrimar otra vez al fuego el naipe que ya está templándose? (Quedan pasadas y el Mazo aguanta perderlo.) */
+export const puedeArrimar = (p: Partida): boolean => p.fase === 'fogon' && !!p.fogonCarta && (p.fogonPasadas ?? 0) < B.fogon.pasadas && p.mazo.length > B.jugador.mazoMin;
+
+/**
+ * Templar un naipe en el Fogón: queda al rojo y hace Daño de más para siempre. La primera pasada es segura; cada
+ * pasada más suma otro tanto, pero puede quemarlo: entonces sale del Mazo para siempre.
+ */
+export function templar(p: Partida, cartaId: string): 'templada' | 'quemada' | null {
+  if (p.fase !== 'fogon') return null;
+  const pasadas = p.fogonPasadas ?? 0;
+  if (pasadas === 0 ? p.fogonHecho : p.fogonCarta !== cartaId || !puedeArrimar(p)) return null;
+  const carta = p.mazo.find((k) => k.id === cartaId);
+  if (!carta) return null;
   p.fogonHecho = true;
-  return true;
+  if (pasadas > 0 && azar(p) < B.fogon.riesgo) {
+    p.mazo.splice(p.mazo.indexOf(carta), 1);
+    p.fogonCarta = null;
+    p.fogonPasadas = B.fogon.pasadas;
+    return 'quemada';
+  }
+  carta.temple = (carta.temple ?? 0) + B.fogon.temple;
+  p.fogonCarta = cartaId;
+  p.fogonPasadas = pasadas + 1;
+  return 'templada';
 }
 
 // ───────────────────────── Cábala del Bufón ─────────────────────────

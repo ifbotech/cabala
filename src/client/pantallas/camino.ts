@@ -34,8 +34,9 @@ const expresionDe = (p: Partida): Expresion => (p.afinidad <= -2 ? 'sombria' : p
 
 // ───────────────────────── lo común de la partida ─────────────────────────
 
-/** El visor del Mazo: las cartas por palo. Con `elegir`, cada carta es un botón (purgar, quemar). */
-export function modalMazo(p: Partida, titulo: string, elegir?: (id: string) => void, cartas: readonly Carta[] = p.mazo): void {
+/** El visor del Mazo: las cartas por palo. Con `elegir`, cada carta es un botón (purgar, templar). */
+export function modalMazo(p: Partida, titulo: string, elegir?: (id: string) => void, cartas: readonly Carta[] = p.mazo, cualquiera = false): void {
+  const cara = (c: Carta): string => pxNaipe(c) + (c.temple ? `<span class="c-temple">+${c.temple}</span>` : '');
   const grupos = (['S', 'C', 'D', 'H', 'X'] as const).map((s) => ordenar(cartas.filter((c) => c.palo === s))).filter((g) => g.length);
   const html = `<div class="panel visor">
     <header class="cabecera"><h2 class="titulo">${esc(titulo)}</h2><button class="btn marco chico" data-accion="cerrar" data-inicio>${t('cerrar')}</button></header>
@@ -43,7 +44,7 @@ export function modalMazo(p: Partida, titulo: string, elegir?: (id: string) => v
       .map(
         (g) =>
           `<div class="visor-fila">${g
-            .map((c) => (elegir ? `<button class="visor-carta" data-accion="carta" data-id="${c.id}" ${juego.purgable(p, c.id) ? '' : 'disabled'}>${pxNaipe(c)}</button>` : `<span class="visor-carta">${pxNaipe(c)}</span>`))
+            .map((c) => (elegir ? `<button class="visor-carta" data-accion="carta" data-id="${c.id}" ${cualquiera || juego.purgable(p, c.id) ? '' : 'disabled'}>${cara(c)}</button>` : `<span class="visor-carta">${cara(c)}</span>`))
             .join('')}</div>`,
       )
       .join('')}</div>
@@ -88,8 +89,10 @@ export function modalPiezas(p: Partida): void {
 /** La tabla de JUGADAS: lo que vale cada una, lo que hace cada palo y las dos reglas que más se preguntan. */
 export function modalJugadas(p: Partida, actual?: Jugada | null): void {
   const propias: Jugada[] = p.mazoId === 'escoba' ? ['quince'] : p.mazoId === 'truco' ? ['envido'] : [];
+  const PIDE: Record<Jugada, number> = { sola: 1, par: 2, doblepar: 4, flor: 3, pierna: 3, escalera: 3, full: 5, escalerapalo: 3, poker: 4, quince: 2, envido: 2 };
+  const hayLejos = JUGADAS.some((j) => PIDE[j] > p.manoMax);
   const filas = [...JUGADAS, ...propias]
-    .map((j) => `<tr class="${j === actual ? 'actual' : ''}"><th scope="row">${esc(tx(JUGADA_NOMBRE[j]))}</th><td>${esc(tx(JUGADA_COMO[j]))}</td><td class="n">${cifra(`+${B.jugadas[j].d}`, 'roja')}</td><td class="n">${cifra(`x${B.jugadas[j].m}`, 'azul')}</td></tr>`)
+    .map((j) => `<tr class="${j === actual ? 'actual' : ''} ${PIDE[j] > p.manoMax ? 'lejos' : ''}"><th scope="row">${esc(tx(JUGADA_NOMBRE[j]))}</th><td>${esc(tx(JUGADA_COMO[j]))}</td><td class="n">${cifra(`+${B.jugadas[j].d}`, 'roja')}</td><td class="n">${cifra(`x${B.jugadas[j].m}`, 'azul')}</td></tr>`)
     .join('');
   const palos = PALOS.map((s) => `<li>${pxPalo(s)}<b>${esc(tx(PALO_NOMBRE[s]))}</b><span>${esc(tx(PALO_PODER[s]))}</span></li>`).join('');
   abrirModal(
@@ -99,6 +102,7 @@ export function modalJugadas(p: Partida, actual?: Jugada | null): void {
         <table class="jugadas-tabla">
           <thead><tr><th scope="col">${t('jugada')}</th><th scope="col">${t('cartas')}</th><th scope="col" class="n">${t('dano')}</th><th scope="col" class="n">${t('multi')}</th></tr></thead>
           <tbody>${filas}</tbody>
+          ${hayLejos ? `<caption class="sub">${t('manoDe', { n: p.manoMax })}</caption>` : ''}
         </table>
         <div class="jugadas-lado">
           <h3 class="rotulo">${t('palos')}</h3>
@@ -491,6 +495,21 @@ export function pantallaPulperia(p: Partida): Pantalla {
 
 export function pantallaFogon(p: Partida): Pantalla {
   const cura = Math.min(Math.round(p.vidaMax * B.fogon.curaPct), p.vidaMax - p.vida);
+  let seQuemo = false;
+  /** La segunda opción del Fogón: templar un naipe; el naipe que ya está en el fuego (¿otra pasada?); o su ceniza. */
+  const fuegoHtml = (): string => {
+    const enFuego = p.fogonCarta ? p.mazo.find((k) => k.id === p.fogonCarta) : null;
+    if (seQuemo) return `<div class="opcion marco hierro fuego"><span class="op-icono grande">${pxNodo('fogon')}</span><b class="op-nombre">${t('quemada')}</b></div>`;
+    if (enFuego)
+      return `<div class="opcion marco hierro fuego">
+        <span class="fuego-carta">${pxNaipe(enFuego)}<span class="c-temple">+${enFuego.temple ?? 0}</span></span>
+        <b class="op-nombre">${t('templada', { n: enFuego.temple ?? 0 })}</b>
+        ${juego.puedeArrimar(p) ? `<button class="btn marco prisma chico" data-accion="arrimar" data-foco="arrimar">${t('arrimar')}</button><span class="op-desc">${t('riesgo', { n: B.fogon.temple, p: Math.round(B.fogon.riesgo * 100) })}</span>` : ''}
+      </div>`;
+    return `<button class="opcion marco hierro" data-accion="templar" data-foco="templar" ${p.fogonHecho ? 'disabled' : ''}>
+      <span class="op-icono grande">${pxHud('furia')}</span><b class="op-nombre">${t('templar')}</b><span class="op-desc">${t('templarDesc', { n: B.fogon.temple })}</span>
+    </button>`;
+  };
   return {
     nombre: 'fogon',
     html: () => `<main class="pantalla en-partida fogon">
@@ -501,9 +520,7 @@ export function pantallaFogon(p: Partida): Pantalla {
           <button class="opcion marco paloH" data-accion="descansar" data-foco="descansar" data-inicio ${p.fogonHecho ? 'disabled' : ''}>
             <span class="op-icono grande">${pxNodo('fogon')}</span><b class="op-nombre">${t('descansar')}</b><span class="op-desc">${t('descansarDesc', { n: cura })}</span>
           </button>
-          <button class="opcion marco hierro" data-accion="quemar" data-foco="quemar" ${p.fogonHecho || p.mazo.length <= B.jugador.mazoMin ? 'disabled' : ''}>
-            <span class="op-icono grande">${pxHud('descarte')}</span><b class="op-nombre">${t('quemar')}</b><span class="op-desc">${t('quemarDesc')}</span>
-          </button>
+          ${fuegoHtml()}
         </div>
         <button class="btn marco ${p.fogonHecho ? 'oro' : 'hierro'} grande" data-accion="seguir" data-foco="seguir">${t('seguir')}</button>
       </div>
@@ -519,14 +536,30 @@ export function pantallaFogon(p: Partida): Pantalla {
         repintar();
         if (hecho) bufonDice(tx(alAzar(VOZ.descansa)));
       },
-      quemar: () =>
-        modalMazo(p, t('elegiPurga'), (id) => {
-          const hecho = juego.quemar(p, id);
-          if (hecho) sonar('cae');
-          guardar();
-          repintar();
-          if (hecho) bufonDice(tx(alAzar(VOZ.quema)));
-        }),
+      templar: () =>
+        modalMazo(
+          p,
+          t('elegiTemple'),
+          (id) => {
+            const r = juego.templar(p, id);
+            if (r) sonar('canto');
+            guardar();
+            repintar();
+            if (r) bufonDice(tx(alAzar(VOZ.templa)));
+          },
+          p.mazo.filter((k) => k.palo !== 'X'),
+          true,
+        ),
+      arrimar: () => {
+        const r = p.fogonCarta ? juego.templar(p, p.fogonCarta) : null;
+        if (r === 'quemada') {
+          seQuemo = true;
+          sonar('cae');
+        } else if (r === 'templada') sonar('canto');
+        guardar();
+        repintar();
+        if (r) bufonDice(tx(alAzar(r === 'quemada' ? VOZ.quema : VOZ.templa)));
+      },
       seguir: () => {
         juego.salir(p);
         avanzar();

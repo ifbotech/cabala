@@ -172,8 +172,45 @@ describe('los cantos de los Mazos', () => {
     const p = mesa('escoba', mano);
     const q = cuenta(p, mano.slice(0, 2));
     expect(q.canto).toBe(true);
-    expect(q.multi).toBe(B.jugadas.quince.m * B.mazos.escoba.multi);
+    expect(q.multi).toBe((B.jugadas.quince.m + B.mazos.escoba.multiMano) * B.mazos.escoba.multi);
     expect(cuenta(p, [mano[0], mano[2]]).ok).toBe(false);
+  });
+  it('cada Mazo se juega con la mano de su juego: Escoba y Truco 3, Chancho Va 4, Chinchón 7, El Mentiroso 8', () => {
+    expect([B.mazos.escoba.mano, B.mazos.truco.mano, B.mazos.chancho.mano, B.mazos.chinchon.mano, B.mazos.mentiroso.mano]).toEqual([3, 3, 4, 7, 8]);
+    for (const m of MAZOS) expect(juego.nuevaPartida({ mazo: m, semilla: 'MANO' }).manoMax).toBe(B.mazos[m].mano);
+  });
+  it('un naipe templado en el Fogón pega de más', () => {
+    const mano = [{ ...c('S', 7), temple: 8 }];
+    const p = mesa('chinchon', mano);
+    expect(cuenta(p, mano).dano).toBe(7 + 8);
+  });
+  it('el Fogón de riesgo: la primera pasada templa segura; las siguientes templan o queman; el fuego tiene tope', () => {
+    let quemadas = 0;
+    let enteras = 0;
+    for (let i = 0; i < 60; i++) {
+      const p = juego.nuevaPartida({ mazo: 'chinchon', semilla: `FUEGO${i}` });
+      p.fase = 'fogon';
+      p.fogonHecho = false;
+      p.fogonCarta = null;
+      p.fogonPasadas = 0;
+      const carta = p.mazo.find((k) => k.palo !== 'X')!;
+      const n = p.mazo.length;
+      expect(juego.templar(p, carta.id)).toBe('templada');
+      expect(carta.temple).toBe(B.fogon.temple);
+      expect(juego.descansar(p)).toBe(false); // el Fogón ya se usó
+      let r = juego.templar(p, carta.id);
+      while (r === 'templada') r = juego.templar(p, carta.id);
+      if (r === 'quemada') {
+        quemadas++;
+        expect(p.mazo).toHaveLength(n - 1);
+        expect(juego.templar(p, carta.id)).toBeNull();
+      } else {
+        enteras++;
+        expect(carta.temple).toBe(B.fogon.temple * B.fogon.pasadas);
+      }
+    }
+    expect(quemadas).toBeGreaterThan(20);
+    expect(enteras).toBeGreaterThan(4);
   });
   it('Truco: dos del mismo palo cantan ¡ENVIDO! y las Bravas pegan de más', () => {
     const mano = [c('S', 1, 'S1'), c('S', 7, 'S7'), c('D', 4)];

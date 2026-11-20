@@ -161,6 +161,9 @@ export interface Partida {
   cabalasVistas: string[];
   /** Fogón: ya usaste su servicio. */
   fogonHecho?: boolean;
+  /** El naipe que está en el fuego en este Fogón y las pasadas que lleva (null: no hay, o se quemó). */
+  fogonCarta?: string | null;
+  fogonPasadas?: number;
   /** Veces que purgaste y curaste en Pulperías (encarece el precio). */
   purgas: number;
   curas: number;

@@ -1,5 +1,5 @@
 # CÁBALA — Reglas
-> Versión 0.8.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
+> Versión 0.9.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
 
 *Todo es cuestión de cábala.* Roguelike de baraja española para un jugador. Elegís un Mazo, el Bufón te lleva por tres tramos de caminos y al fondo de cada uno te espera un Rey. Tu mano contra la Corte: cada golpe es **DAÑO × MULTI**.
 
@@ -153,7 +153,7 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 | **Cara de Póker** | Oro | El primer Contraataque de cada combate no llega. |
 | **Irse al Mazo** | Oro | Una vez por partida, el golpe que te mataría no llega y curás 30 % de tu Vida. |
 | **Falta Envido** | Prismático | Al golpear con 40 % de Vida o menos: ×2 de Multi. |
-| **Vale Cuatro** | Prismático | Tus golpes de 4 cartas o más: +3 de Multi. |
+| **Vale Cuatro** | Prismático | Golpes con toda tu mano (o con 5 cartas): +3 de Multi. |
 | **Baraja Cargada** | Prismático | Los 2 y los 3 de tu Mazo se vuelven 9. |
 | **Pacto Garca** | Prismático · Maldición | +40 de oro ya, pero el próximo Rey arranca con +2 de Furia. |
 | **Contraflor al Resto** | Prismático · Maldición | ×2 de Multi en todos tus golpes, pero perdés el 60 % de tu Vida máxima. |
@@ -163,18 +163,20 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 
 | Mazo | Personaje | Vida · mano | Regla estrella | Se abre con |
 |---|---|---|---|---|
-| **Escoba** · Escoba del 15 | La Barrendera | 58 · 6 | Sumá 15 justo: ¡ESCOBA!, Multi ×2 y más Daño para siempre. | abierto desde el principio |
-| **Truco** · Envido y Bravas | El Paisano Bravo | 82 · 6 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
-| **Chinchón** · Pierna y Escalera | La Timbera del Club | 56 · 7 | Piernas y Escaleras de palo crecen siempre y frenan el Contraataque. | Vencé a un Rey. |
-| **El Mentiroso** · Cara de Piedra | El Chamuyero | 74 · 6 | Cuatro Comodines y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
-| **Chancho Va** · Mano al Centro | El Manotazo | 54 · 6 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
+| **Escoba** · Escoba del 15 | La Barrendera | 70 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×2 y más Daño para siempre. | abierto desde el principio |
+| **Truco** · Envido y Bravas | El Paisano Bravo | 82 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
+| **Chinchón** · Pierna y Escalera | La Timbera del Club | 58 · 7 | Piernas y Escaleras de palo crecen siempre y frenan el Contraataque. | Vencé a un Rey. |
+| **El Mentiroso** · Cara de Piedra | El Chamuyero | 53 · 8 | Cuatro Comodines y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
+| **Chancho Va** · Mano al Centro | El Manotazo | 92 · 4 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
 
 **Escoba** (¡ESCOBA!)
-- Si las cartas del golpe suman 15: ¡ESCOBA!, ×2 de Multi.
-- Cada Escoba deja +1 de Daño en todos tus golpes, para siempre.
+- Mano de 3 cartas, como en la mesa: tus golpes llevan +4 de Multi.
+- Si las cartas del golpe suman 15: ¡ESCOBA!, ×3 de Multi.
+- Cada Escoba deja +2 de Daño en todos tus golpes, para siempre.
 - Cualquier grupo de cartas que sume 15 vale como jugada.
 
 **Truco** (¡ENVIDO!)
+- Mano de 3 cartas, como en la mesa: tus golpes llevan +3 de Multi.
 - Tu Mazo va del 1 al 7, y barajarlo no sube la Furia.
 - Las 4 Bravas pegan de más: 1 de Espadas +24, 1 de Bastos +20, 7 de Espadas +16, 7 de Oros +12.
 - Dos cartas del mismo palo: ¡ENVIDO!, ×2 de Multi y +28 de Daño, más +1 por cada Envido ya cantado.
@@ -185,11 +187,13 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 - Ese turno, el Contraataque te llega a la mitad.
 
 **El Mentiroso** (¡MENTIRA!)
+- Mano de 8 cartas.
 - Tu Mazo lleva 4 Comodines.
 - Engaño, una vez por combate: todas las cartas del golpe fingen ser tu carta más alta y nada les es Inmune.
 - Si el Engaño no abate al enemigo, su Furia sube 3.
 
 **Chancho Va** (¡CHANCHO!)
+- Mano de 4 cartas, como en la mesa: tus golpes llevan +4 de Multi.
 - Cada turno, descartar 1 sola carta es gratis: robás otra en el acto.
 - Póker (4 iguales): ¡CHANCHO!, ×2 de Multi y el enemigo queda Aturdido 2 turnos.
 - De un saque: si abatís a un enemigo de un solo golpe, el siguiente entra Aturdido.
@@ -206,12 +210,12 @@ El azar del Mapa tiene reglas, y se cumplen siempre: se empieza con una Guardia;
 | **Guardia Brava** | Combate duro. Paga un Amuleto. |
 | **Pulpería** | Comprá Amuletos, purgá cartas, curate. |
 | **Cábala del Bufón** | El Bufón te propone un truco. |
-| **Fogón** | Descansá o quemá un naipe. |
+| **Fogón** | Descansá o templá un naipe al fuego. |
 | **Rey** | El Rey del tramo y su guardia. |
 
 **Pulpería** (la atiende el Bufón): Amuletos (Común 10, Raro 16, Épico 24, Legendario 40 de oro), **Purgar** una carta (8 de oro, +4 cada vez; tu Mazo no baja de 12) y **Curar** 30 % de tu Vida (8 de oro, +3 cada vez).
 
-**Fogón**: descansar (curás 30 % de tu Vida) o quemar un naipe, gratis. **Tras un Rey** curás 30 % de tu Vida.
+**Fogón**: descansar (curás 30 % de tu Vida) o **templar un naipe**: queda al rojo y hace +4 de Daño para siempre. La primera pasada por el fuego es segura. Podés arrimarlo otra vez (hasta 3 pasadas) para sumar otro tanto, pero cada pasada de más tiene 50 % de quemarlo: entonces lo perdés. **Tras un Rey** curás 30 % de tu Vida.
 
 ### El Bufón y sus Cábalas
 
@@ -236,7 +240,7 @@ Ganes o pierdas, cada partida deja **Porotos** (4 por combate, 8 por Guardia Bra
 
 | Mejora | Efecto | Niveles | Coste de cada nivel |
 |---|---|---|---|
-| **Vida Inicial** | +2 % de Vida por nivel. | 5 | 20 · 40 · 70 · 110 · 160 |
+| **Vida Inicial** | +3 % de Vida por nivel. | 5 | 20 · 40 · 70 · 110 · 160 |
 | **Oro de Arranque** | +2 de oro al empezar por nivel. | 5 | 20 · 40 · 70 · 110 · 160 |
 | **Descuento en Pulpería** | Todo cuesta 3 % menos por nivel. | 5 | 20 · 40 · 70 · 110 · 160 |
 | **Suerte del Bufón** | +5 % de que sus trucos te salgan bien por nivel. | 5 | 20 · 40 · 70 · 110 · 160 |

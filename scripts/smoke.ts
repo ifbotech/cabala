@@ -255,6 +255,32 @@ await conServidor(5192, async (url) => {
     ok('móvil (390 × 844, táctil): se llega a la mesa y se golpea tocando');
     await movil.close();
 
+    // el Fogón de riesgo: templar un naipe (la primera pasada es segura) y arrimarlo hasta que se queme o llegue al tope
+    const fg = await navegador.newContext({ viewport: { width: 1366, height: 768 } });
+    await fg.addInitScript('globalThis.__name = (f) => f');
+    const pf = await fg.newPage();
+    pf.on('pageerror', (e) => errores.push(e.message));
+    await pf.goto(`${url}/?qa=fogon&vivo&rapido&lang=${lang}`);
+    await pf.waitForSelector('[data-accion="templar"]');
+    const mazoAntes = await pf.evaluate(() => (window as unknown as { __cabala: { sesion: { partida: { mazo: unknown[] } } } }).__cabala.sesion.partida.mazo.length);
+    await pf.click('[data-accion="templar"]');
+    await pf.locator('.visor button.visor-carta').first().click();
+    await pf.waitForSelector('.opcion.fuego .c-temple');
+    exigir((await pf.locator('.opcion.fuego .c-temple').textContent())?.trim() === '+4', 'la primera pasada por el fuego no dejó el naipe al rojo (+4)');
+    let pasadas = 1;
+    while ((await pf.locator('[data-accion="arrimar"]').count()) > 0 && pasadas < 6) {
+      await pf.click('[data-accion="arrimar"]');
+      await pf.waitForTimeout(60);
+      pasadas++;
+    }
+    const finFuego = await pf.evaluate(() => {
+      const p = (window as unknown as { __cabala: { sesion: { partida: { mazo: { temple?: number }[] } } } }).__cabala.sesion.partida;
+      return { mazo: p.mazo.length, temple: Math.max(0, ...p.mazo.map((k) => k.temple ?? 0)) };
+    });
+    exigir(finFuego.mazo === mazoAntes - 1 ? finFuego.temple === 0 : finFuego.temple === 12, `el Fogón de riesgo terminó raro: ${JSON.stringify(finFuego)} tras ${pasadas} pasadas`);
+    ok(`Fogón de riesgo: templar (+4 seguro) y arrimar ${pasadas - 1} vez/veces más → ${finFuego.mazo < mazoAntes ? 'se quemó (un naipe menos)' : 'llegó al tope (+12)'}`);
+    await fg.close();
+
     // el Bufón vivo (sin el modo rápido, que lo deja quieto): llega con su nube y su sonido, escribe lo que dice,
     // se esfuma al cambiar de pantalla y reaparece en la siguiente; el bocadillo se va solo
     const vivo = await navegador.newContext({ viewport: { width: 1366, height: 768 } });

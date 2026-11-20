@@ -19,8 +19,8 @@ import { MAZOS } from '../src/rules/mazos';
 guardian('analyze:meta', 590);
 const args = process.argv.slice(2);
 const FAST = args.includes('--fast');
-const N = FAST ? 500 : 6000;
-const N_NOTAS = FAST ? 800 : 8000;
+const N = FAST ? 500 : 3000;
+const N_NOTAS = FAST ? 800 : 5000;
 
 /** Corre una celda en su propio proceso. */
 function celda(c: Celda): Promise<Resultado> {

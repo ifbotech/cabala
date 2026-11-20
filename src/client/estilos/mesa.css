@@ -1019,3 +1019,20 @@
     flex: none;
   }
 }
+
+/* ───────────── 0.9.0: el naipe templado en el Fogón lleva su marca ───────────── */
+
+.c-temple {
+  position: absolute;
+  left: calc(4px * var(--k-naipe, 1));
+  bottom: calc(4px * var(--k-naipe, 1));
+  padding: 0 calc(3px * var(--k-naipe, 1));
+  background: rgba(11, 7, 17, 0.92);
+  box-shadow: 0 0 0 calc(1px * var(--k-naipe, 1)) #ff7b00;
+  color: #ffb000;
+  font-family: var(--rot);
+  font-size: var(--fr);
+  line-height: 1.25;
+  pointer-events: none;
+  z-index: 1;
+}

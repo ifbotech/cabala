@@ -45,6 +45,10 @@ const FUNCIONES = {
   bufonVivo: true,
   /** El naipe del Comodín lleva su nombre escrito. */
   comodinRotulado: true,
+  /** Cada Mazo se juega con la mano de su juego (Escoba y Truco 3, Chancho Va 4, Chinchón 7, El Mentiroso 8). */
+  manosReales: true,
+  /** El Fogón deja templar un naipe con riesgo de quemarlo (ya no «quemar un naipe»). */
+  fogonTemple: true,
   /** La cuenta dice cuánto le queda al enemigo o cuánto sobra, y hay racha de Golpes exactos. */
   rachaExactos: true,
   /** En reposo, la zona de la cuenta dice qué hacer. */
@@ -79,7 +83,7 @@ const datos = {
   jugadas: [...JUGADAS, 'quince' as Jugada, 'envido' as Jugada].map((j) => ({ id: j, nombre: JUGADA_NOMBRE[j], como: JUGADA_COMO[j], d: B.jugadas[j].d, m: B.jugadas[j].m })),
   nodos: Object.fromEntries((Object.keys(NODO_NOMBRE) as (keyof typeof NODO_NOMBRE)[]).map((n) => [n, { nombre: NODO_NOMBRE[n], desc: NODO_DESC[n] }])),
   tramos: TRAMO_NOMBRE,
-  mazos: MAZOS.map((m) => ({ id: m, nombre: MAZO[m].nombre, lema: MAZO[m].lema, personaje: MAZO[m].personaje, regla: MAZO[m].regla, canto: MAZO[m].canto, reglas: MAZO[m].reglas, desbloqueo: MAZO[m].desbloqueo?.texto ?? null, vida: B.mazos[m].vida, mano: B.mazos[m].mano })),
+  mazos: MAZOS.map((m) => ({ id: m, nombre: MAZO[m].nombre, lema: MAZO[m].lema, personaje: MAZO[m].personaje, regla: MAZO[m].regla, canto: MAZO[m].canto, reglas: MAZO[m].reglas, desbloqueo: MAZO[m].desbloqueo?.texto ?? null, vida: B.mazos[m].vida, mano: B.mazos[m].mano, multiMano: (B.mazos[m] as { multiMano?: number }).multiMano ?? 0 })),
   reyes: PALOS.map((s) => ({ palo: s, nombre: REY_DEF[s].nombre, apodo: REY_DEF[s].apodo, carga: REY_DEF[s].carga, cargaDa: REY_DEF[s].cargaDa, rasgo: REY_DEF[s].rasgo, rasgoDesc: REY_DEF[s].rasgoDesc })),
   bendiciones: BENDICIONES.map((id) => {
     const d = BENDICION[id];

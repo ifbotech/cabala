@@ -188,9 +188,10 @@ function masBaja(p: Partida): Carta | undefined {
 }
 
 function enFogon(p: Partida): void {
-  const baja = masBaja(p);
-  if (p.vida < p.vidaMax * 0.7 || !baja) juego.descansar(p);
-  else juego.quemar(p, baja.id);
+  // con poca Vida descansa; si no, templa su mejor naipe una sola vez (la pasada segura: no se la juega)
+  const mejor = [...p.mazo].filter((k) => k.palo !== 'X').sort((a, b) => b.n + (b.temple ?? 0) - (a.n + (a.temple ?? 0)))[0];
+  if (p.vida < p.vidaMax * 0.7 || !mejor) juego.descansar(p);
+  else juego.templar(p, mejor.id);
   juego.salir(p);
 }
 

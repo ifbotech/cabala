@@ -1346,3 +1346,65 @@ button.visor-carta:disabled {
   stroke: #9a8fb8;
   stroke-width: calc(4px * var(--k));
 }
+
+/* ───────────── 0.9.0: el Fogón de riesgo y las jugadas que no entran en la mano ───────────── */
+
+.visor-carta {
+  position: relative;
+  display: inline-block;
+}
+.opcion.fuego {
+  cursor: default;
+  gap: calc(var(--u) * 0.75);
+}
+.fuego-carta {
+  position: relative;
+  line-height: 0;
+  box-shadow: 0 0 0 calc(2px * var(--k)) #ff7b00, 0 0 0 calc(6px * var(--k)) rgba(255, 123, 0, 0.35);
+  animation: fuego-late 0.9s steps(3) infinite alternate;
+}
+@keyframes fuego-late {
+  to {
+    box-shadow: 0 0 0 calc(2px * var(--k)) #ffd500, 0 0 0 calc(9px * var(--k)) rgba(255, 123, 0, 0.5);
+  }
+}
+.jugadas-tabla tr.lejos {
+  opacity: 0.4;
+}
+.jugadas-tabla caption {
+  caption-side: bottom;
+  text-align: left;
+  padding-top: calc(var(--u) * 0.5);
+}
+@media (min-width: 701px) {
+  /* el Fogón, como la Pulpería: el Bufón a un lado con lo que dice debajo; las dos opciones y «SEGUIR», al otro */
+  .fogon .cuerpo {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-areas:
+      'bufon opciones'
+      'bufon seguir';
+    align-items: center;
+    justify-content: center;
+    column-gap: calc(var(--u) * 6);
+    row-gap: calc(var(--u) * 1.5);
+  }
+  .fogon .cuerpo > .anfitrion {
+    grid-area: bufon;
+  }
+  .pantalla.fogon .anfitrion {
+    --k-bufon: var(--kb1);
+  }
+  .fogon .cuerpo > .opciones {
+    grid-area: opciones;
+    align-self: end;
+  }
+  .fogon .cuerpo > [data-accion='seguir'] {
+    grid-area: seguir;
+    justify-self: center;
+    align-self: start;
+  }
+  .fogon .opcion {
+    width: calc(230px * var(--k) * 0.5 + 115px);
+  }
+}

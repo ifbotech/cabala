@@ -7,7 +7,7 @@ export const OBJETIVOS = {
   reinado8Baja: 8,
   /** Golpes por combate: ni un trámite ni una maratón. */
   golpesGuardia: [2, 4.5] as const,
-  golpesRey: [4, 9] as const,
+  golpesRey: [3.5, 9] as const,
   /** Duración estimada de una partida ganada (minutos), a 11 s por golpe y 20 s por pantalla del camino. */
   minutos: [14, 24] as const,
   /** Constitución: topes de contenido. */

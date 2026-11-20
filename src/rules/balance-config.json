@@ -134,16 +134,17 @@
   },
   "mazos": {
     "escoba": {
-      "vida": 58,
-      "mano": 6,
+      "vida": 70,
+      "mano": 3,
       "hasta": 9,
       "comodines": 2,
-      "multi": 2,
-      "cargaDano": 1
+      "multi": 3,
+      "cargaDano": 2,
+      "multiMano": 4
     },
     "truco": {
       "vida": 82,
-      "mano": 6,
+      "mano": 3,
       "hasta": 7,
       "comodines": 2,
       "bravas": {
@@ -153,31 +154,35 @@
         "D7": 12
       },
       "envido": 28,
-      "cargaDano": 1
+      "cargaDano": 1,
+      "multiMano": 3
     },
     "chinchon": {
-      "vida": 56,
+      "vida": 58,
       "mano": 7,
       "hasta": 9,
       "comodines": 2,
       "cargaDano": 3,
-      "mitiga": 0.5
+      "mitiga": 0.5,
+      "multiMano": 0
     },
     "mentiroso": {
-      "vida": 74,
-      "mano": 6,
+      "vida": 53,
+      "mano": 8,
       "hasta": 9,
       "comodines": 4,
       "enganos": 2,
-      "furiaFallo": 3
+      "furiaFallo": 3,
+      "multiMano": 0
     },
     "chancho": {
-      "vida": 54,
-      "mano": 6,
+      "vida": 92,
+      "mano": 4,
       "hasta": 9,
       "comodines": 2,
       "multi": 2,
-      "aturde": 2
+      "aturde": 2,
+      "multiMano": 4
     }
   },
   "botin": {
@@ -215,7 +220,10 @@
     "curarPct": 0.3
   },
   "fogon": {
-    "curaPct": 0.3
+    "curaPct": 0.3,
+    "temple": 4,
+    "pasadas": 3,
+    "riesgo": 0.5
   },
   "bufon": {
     "afinidadMin": -3,
@@ -352,7 +360,6 @@
       "multi": 2
     },
     "valecuatro": {
-      "cartas": 4,
       "multi": 3
     },
     "barajacargada": {
@@ -383,7 +390,7 @@
       110,
       160
     ],
-    "vida": 0.02,
+    "vida": 0.03,
     "oro": 2,
     "descuento": 0.03,
     "suerte": 0.05,

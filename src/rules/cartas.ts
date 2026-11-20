@@ -19,6 +19,8 @@ export interface Carta {
   n: number;
   /** Carta Marcada: vuelve a la mano al jugarla. */
   marcada?: true;
+  /** Templada en el Fogón: Daño de más, para siempre, cada vez que se juega. */
+  temple?: number;
 }
 
 export const MAX_NUM = 9;

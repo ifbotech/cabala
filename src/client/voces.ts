@@ -58,7 +58,8 @@ export const VOZ = {
   elige: [P('Buena mano.', 'Good hand.'), P('Esa era la que yo quería.', 'That was the one I wanted.')],
   salta: [P('¿La dejás pasar? Vos sabrás.', 'Letting it go? Your call.')],
   descansa: [P('Dormí, que yo vigilo. Más o menos.', 'Sleep, I will keep watch. More or less.')],
-  quema: [P('Al fuego. Chau, cartita.', 'Into the fire. Bye, little card.')],
+  quema: [P('Se te fue la mano. Chau, cartita.', 'You pushed your luck. Bye, little card.'), P('Ceniza. Te dije que no arrimaras tanto.', 'Ash. I told you not to hold it that close.')],
+  templa: [P('¡Al rojo vivo! Esa va a doler.', 'Red-hot! That one will hurt.'), P('Linda. ¿Te animás a otra pasada?', 'Nice. Dare another pass?')],
   // lo que dice cuando lo dejás solo un rato
   muletilla: [
     P('¿Y? ¿Jugamos o miramos?', 'Well? Are we playing or watching?'),

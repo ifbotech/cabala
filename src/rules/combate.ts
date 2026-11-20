@@ -166,6 +166,10 @@ export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
   d(`j:${jugada}`, base.d);
   m(`j:${jugada}`, base.m);
   for (const k of ef) d(`c:${k.de.id}`, inmune(k.palo) ? 0 : k.n);
+  // los naipes templados en el Fogón pegan de más
+  d('temple', ef.reduce((s, k) => s + (inmune(k.palo) ? 0 : (k.de.temple ?? 0)), 0));
+  // las manos cortas (Escoba, Truco, Chancho Va) pegan con Multi de más
+  m('mano', (B.mazos[p.mazoId] as { multiMano?: number }).multiMano ?? 0);
 
   const canto = hayCanto(p, ef, jugada, engano);
   const dob = doble(p);
@@ -208,7 +212,7 @@ export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
   const au = B.aumentos;
   if (tieneAumento(p, 'sermano') && c.golpes === 0) m('u:sermano', au.sermano);
   if (tieneAumento(p, 'retruco') && e.golpes > 0) m('u:retruco', au.retruco);
-  if (tieneAumento(p, 'valecuatro') && ef.length >= au.valecuatro.cartas) m('u:valecuatro', au.valecuatro.multi);
+  if (tieneAumento(p, 'valecuatro') && ef.length >= Math.min(MAX_GOLPE, c.mano.length)) m('u:valecuatro', au.valecuatro.multi);
   const am = B.amuletos;
   if (tieneAmuleto(p, 'poncho') && c.escudo >= am.poncho.escudo) m('a:poncho', am.poncho.multi);
   if (tieneAmuleto(p, 'taba') && c.dado >= am.taba.desde) m('a:taba', am.taba.multi);
