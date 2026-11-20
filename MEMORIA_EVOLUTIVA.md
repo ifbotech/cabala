@@ -187,3 +187,34 @@ es balance; cualquier cambio de sus reglas pasa por el laboratorio antes que por
 
 **Lo que sigue sin moverse:** Claridad (6,3; meta 8,0) y Diversión (7,45; meta 8,4). Cinco versiones medidas y las dos
 notas no salieron de ±0,15. Suben los pulgares, no las notas.
+
+## 0.7.0 · Dos reglas menos (rechazada; rama `rechazado/v0.7.0`)
+
+**Hipótesis.** Las dudas que más repiten las reseñas son el Comodín y la Furia: sacar los Comodines de los dos Mazos
+iniciales y dejar la Furia solo en los Reyes subiría la Claridad.
+
+**Medida controlada** (mismas capturas que el Campeón, así el auditor no mete ruido): F 184,4 contra 200,7; Claridad
+6,17 contra 6,32; bajan 9 pulgares y suben 3. **Rechazada.**
+
+**Lecciones**
+- Segunda vez (con la 0.4.0) que recortar reglas no sube la Claridad en este panel y sí baja el gusto. Las personas
+  simuladas siempre nombran dos o tres dudas: si no es el Comodín, es otra.
+- Sin Comodines, Chinchón y Chancho Va se hunden (15,6 % y 21 %): los necesitan para armar sus cantos.
+- **Medida controlada:** para probar un cambio de reglas, se toma el snapshot antes de volver a fotografiar. Las
+  capturas son las del Campeón, salen de la caché y la comparación mide solo las reglas.
+
+## 0.8.0 · El Golpe exacto, protagonista (publicada dentro del ruido)
+
+**Hipótesis.** El momento favorito más citado es el Golpe exacto: darle una racha y poner a la vista cuánto falta o
+sobra debería subir la Diversión. Más una segunda pasada de pulido con la lista del auditor.
+
+**Medida.** F 192,8 contra 200,7 del Campeón (una tirada cada una, mismo instrumento); Claridad 6,38 (6,32);
+Diversión 7,50 (7,45); Móvil 80 % (66,7); Críticos 30 % (55); Steam Deck 66,7 % (88,9). Suben 3 pulgares y bajan 5
+(p = 0,73). Ninguna diferencia es significativa: **empate dentro del ruido**.
+
+**Decisión.** El dueño del proyecto pidió avanzar hasta la 0.10.0 con funciones nuevas y hacer él mismo la prueba; se
+publica (corrige además un error real del HUD del móvil que salió con la 0.6.0: la Vida máxima cortada).
+
+**Estado de las metas tras ocho versiones medidas.** Suben con arreglos reales de interfaz la Aprobación (45 → 72–75 %),
+el móvil y Steam Deck. No se mueven la Claridad (5,98 → 6,3–6,4; meta 8,0) ni la Diversión (7,31 → 7,45–7,50; meta
+8,4): el instrumento parece tener un techo propio para esas dos notas con escenas hechas solo de hechos y cifras.
