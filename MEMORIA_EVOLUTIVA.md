@@ -133,3 +133,57 @@ Claridad parece depender del largo y de las excepciones del reglamento que leen,
   adelante. Un jugador toca lo que ve; la prueba ahora también.
 - La guardia de las escenas marcó «comodín» como palabra valorativa (por «cómodo»): los patrones de la guardia van
   con terminación explícita.
+
+**Listón de la 0.3.0** (la medida y dos placebos nulos, instrumento i5): F 204,98 · 199,77 · 207,57 (media 204,11);
+Aprobación 75,6 %; Críticos 46,7 %; Claridad 6,29; Diversión 7,44; Steam Deck 77,8 %; Móvil 82,2 %.
+
+## 0.4.0 · Menos reglas (rechazada; rama `rechazado/v0.4.0`)
+
+**Hipótesis.** La Claridad no sube porque el reglamento tiene demasiadas cláusulas: Espadas con un solo efecto, Golpe
+exacto con un solo premio, núcleo del reglamento en corto.
+
+**Veredicto.** F 186,55 contra 204,11 (por debajo de las tres tiradas del listón). **Rechazada.**
+
+**Lección.** El momento favorito más citado en las reseñas es el **Golpe exacto con +1 de Multi**: la 0.4.0 lo
+quitaba. No se simplifica lo que la gente festeja. Recortar reglas tampoco subió la nota de Claridad (6,40 contra 6,29).
+
+## 0.5.0 · Legibilidad y sin tiers (rechazada como paquete; rama `rechazado/v0.5.0-legibilidad`)
+
+**Veredicto.** Tres tiradas (196,43 · 195,18 · 203,12; media 198,2) contra las tres del listón (media 204,1): no lo
+supera. Lo único que se salvó fue quitar los tiers, que es decisión del dueño del proyecto (y la escena de los
+Amuletos pasó de 33 % a 100 % de pulgares arriba).
+
+**Lección de protocolo.** Una candidata dentro del ruido se mide tres veces (la medida y dos placebos) y se comparan
+medias contra medias. Una sola tirada no alcanza ni para aceptar ni para rechazar.
+
+## 0.6.0 · El Bufón vivo y el Mapa que sube (aceptada)
+
+**Qué es.** Tres decisiones del dueño del proyecto (sin tiers; el Bufón vivo en todas las pantallas; el Mapa vertical
+de red irregular) y un pulido guiado por la auditoría visual.
+
+**El Mapa y el balance.** El Mapa nuevo (un piso más, Fogón o Pulpería asegurados antes del Rey, Guardia Brava
+esquivable) dejó el juego mucho más fácil: el bot pasó de 30 % a 53–62 % de victorias. Hubo que recalibrar la Corte
+(tramos ×1,18 · ×3,4 · ×9,3 de Vida y +1 · +9 · +20 de Ataque) y la Vida de los Mazos. **Lección:** la forma del Mapa
+es balance; cualquier cambio de sus reglas pasa por el laboratorio antes que por la pantalla.
+
+**La medida, en dos tiempos.**
+1. Tal como salió (sin pulido): F 167,9 contra 204,1. Los 14 que bajaron el pulgar no nombran al Bufón ni al Mapa ni
+   a los tiers: se quejan de legibilidad («quedan N», iconos del HUD, contrastes, el Comodín).
+2. Se listaron los 86 problemas P1 que el auditor visual marcaba en las 108 capturas y se arreglaron por tema. Con el
+   pulido y el instrumento corregido (i6): F 200,7 contra 181,5 del Campeón medido igual; Aprobación 75 % (66,7);
+   Críticos 55 % (40); suben 5 pulgares y no baja ninguno. El auditor pasó de 76 a 63 problemas. **Aceptada.**
+
+**Lecciones de instrumento**
+- **El auditor visual es la mayor fuente de ruido.** El mismo Campeón, re-auditado con una frase apenas distinta,
+  pasó de F 204 a 181. Los placebos nulos no lo ven (no vuelven a auditar las capturas). Toda comparación se hace con
+  las dos versiones auditadas con el mismo instrumento, y una diferencia de menos de 20 puntos de F entre versiones
+  con capturas distintas no prueba nada por sí sola.
+- **Instrumento i6:** junto a la medida del objetivo más chico se dice si cumple el mínimo del contexto. El auditor
+  leía «224×48 px» y escribía «insuficiente para el mínimo de 40 px».
+- **El auditor como guía directa.** Listar sus problemas P1 por pantalla y arreglarlos por tema es más barato y más
+  certero que adivinar: una pasada de auditoría son 12 minutos y dice exactamente qué molesta y dónde.
+- En la ventana de Steam Deck las capturas se toman con el foco puesto (ahí se juega solo con mando): antes el
+  auditor marcaba «foco invisible» en pantallas donde simplemente no había nada enfocado.
+
+**Lo que sigue sin moverse:** Claridad (6,3; meta 8,0) y Diversión (7,45; meta 8,4). Cinco versiones medidas y las dos
+notas no salieron de ±0,15. Suben los pulgares, no las notas.
