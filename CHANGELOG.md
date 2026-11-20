@@ -3,6 +3,42 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.12.0 · Romper el juego (2026-11-20)
+
+Las cinco reglas de adicción que pidió el dueño del proyecto.
+
+**Piezas que rompen el juego** (el Multi sigue siendo entero: no hay ×1,5)
+- **Cetro del Bufón**: el primer golpe pega ×3 y **cada Golpe exacto lo vuelve a cargar**.
+- **Cascabel del Bufón**: los cantos valen doble y **cada canto deja +1 de Multi para el resto del combate**, sin tope.
+- **Naipe de dos caras**: nada es Inmune y **las cartas del palo del enemigo pegan ×2**.
+- **Vale Cuatro** pasa de +3 a **×2 de Multi**; **Falta Envido**, de ×2 a **×3**.
+- Para sostener el balance, los enemigos del tramo 3 tienen un 2 % más de Vida y se reajustó la Vida de cuatro Mazos.
+- **El Mentiroso** tiene un Engaño por combate, como siempre dijo su texto (el número interno decía dos).
+
+**El Fogón, en tres pasadas**
+- Primera, segura: +4 de Daño. Segunda (35 % de quemarlo): otros +4 y queda **Templada** (+1 de Multi al jugarla).
+  Tercera (50 %): **¡FORJA BRAVA!**, su número vale doble en el Daño.
+
+**Se entiende mirando**
+- **JUGADAS por Mazo**: arriba, el canto de tu Mazo; después, solo las jugadas que entran en tu mano. Las que piden
+  más cartas quedan plegadas detrás de un botón.
+- **El Comodín** elegido se dibuja como la carta que copia, en dorado y con su destello.
+- **La Furia** arde detrás de las espadas del Ataque: una, dos o tres llamas.
+
+**Jugo**
+- **Conteo en cadena**: al golpear, cada carta salta con su número y una nota que sube un semitono; después lo que
+  multiplica, y el total vibra. Menos de medio segundo.
+- **Racha encendida**: con dos Golpes exactos seguidos se encienden el marco de la mesa y el retrato, y la música
+  suma palmas y un rasgueo más agudo.
+- **Ojos vivos**: el retrato sigue con la mirada la carta que arrastrás y sonríe en cuanto tu selección marca un
+  Golpe exacto.
+
+**Medido**
+- Laboratorio: 29,6–31,9 % con el Altar vacío y 46,0–48,6 % con el lleno; sin avisos. 61 pruebas.
+- Panel simulado (una tirada contra una tirada): Aprobación 75,0 %, Críticos 55 %, Claridad 6,33, **Diversión 7,57**
+  (la más alta medida; 7,45 el Campeón, p = 0,16), **Móvil 93,3 %** (cumple su meta), Steam Deck 55,6 % (5 de 9).
+  F 200,6 contra 200,7 del Campeón: **empate**. Ninguna diferencia es significativa.
+
 ## 0.11.0 · Cirugía de composición (2026-11-20)
 
 Pedido del dueño del proyecto tras su prueba de la 0.10.0: simetría, centrado y cero espacio muerto.

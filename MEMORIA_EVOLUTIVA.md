@@ -307,3 +307,27 @@ de la 0.10.0. Claridad 6,30, Diversión 7,48, Aprobación 75 %. Nada significati
   corazón de al lado). El peso se da con aire, no con un 1,3×.
 - El índice grande del naipe es una placa con letra del cuerpo engordada un píxel (sombra de texto): la letra fina
   sola se leía peor que el índice dibujado.
+
+## 0.12.0 · Romper el juego (publicada; empate con el Campeón)
+
+**Pedido del dueño.** Cinco reglas: piezas que rompan el juego, un Fogón que tiente, una tabla de JUGADAS por Mazo,
+matar con dibujo las dudas del Comodín y la Furia, y jugo de conteo con racha encendida.
+
+**Decisiones**
+- Pidió multiplicadores «×1,5, ×2». La Constitución manda Multi entero: se hicieron ×2 y ×3 y efectos que crecen
+  (Cascabel sin tope, Cetro que se recarga con el exacto), no fracciones.
+- El balance se sostuvo como pidió: sin topar al jugador. Tramo 3 +2 % de Vida y Vida de Mazos (Truco 81, Chinchón 53,
+  Chancho Va 89, El Mentiroso 56).
+- **Hallazgo:** El Mentiroso tenía 2 Engaños por combate en los números y «un Engaño por combate» en su texto. Con las
+  piezas nuevas ganaba 36–42 % y sus partidas duraban menos de 14 min. Se dejó en 1, que es lo que el juego decía.
+- El bot ahora toma la segunda pasada del Fogón (paga) y no la Forja Brava.
+
+**Medida** (`pulso-60-20261120-172524`, snapshot `20261120-171846`): F 200,6; Diversión 7,57 contra 7,45 del Campeón
+(t = 1,41; p = 0,16); Claridad 6,33; Móvil 93,3 %; Steam Deck 55,6 %. Empate.
+
+**Lecciones**
+- Una animación de CSS no puede tocar `translate` en un naipe de la mano: la mano coloca cada carta por su cuenta y
+  el naipe se va de su sitio. El salto del conteo usa solo `scale` y brillo.
+- El laboratorio completo ya no entra en 298 s con las notas: se corre en dos (`--sin-notas`, `--solo-notas`).
+- La Diversión se movió por primera vez fuera de su banda (7,57), sin llegar a ser significativa. Es la primera
+  versión cuyas escenas cuentan cosas que pasan en el golpe (conteo, racha, piezas que escalan).
