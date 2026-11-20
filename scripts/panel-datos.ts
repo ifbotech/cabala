@@ -43,6 +43,8 @@ const FUNCIONES = {
   mapaVertical: true,
   /** El Bufón está en todas las pantallas: llega con humo y sonido, flota, parpadea, y su bocadillo se escribe y se va. */
   bufonVivo: true,
+  /** El naipe del Comodín lleva su nombre escrito. */
+  comodinRotulado: true,
 };
 
 const c = (palo: PaloCarta, n: number): Carta => ({ id: `${palo}${n}`, palo, n });
