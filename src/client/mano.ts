@@ -161,8 +161,9 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
   const marcaMedio = document.createElement('span');
   marcaMedio.className = 'posta-marca';
   marcaMedio.setAttribute('aria-hidden', 'true');
-  marcaMedio.innerHTML = `${pxHud('medio', 'p-icono')}${cifra('x2', 'oro')}<b class="p-marca-txt">${esc(t('postaMedio'))}</b>`;
+  marcaMedio.innerHTML = `${cifra('x2', 'oro')}<b class="p-marca-txt">${esc(t('postaMedio'))}</b>`;
   raiz.append(marcaMedio);
+  let anchoMarca = { visible: -1, w: 0 };
   const chispas = enPosta.slice(1).map(() => {
     const el = document.createElement('span');
     el.className = 'posta-chispa';
@@ -302,7 +303,16 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     const enMedio = enPosta[medio];
     const nm = enMedio ? naipes.find((c) => c.carta.id === enMedio) : null;
     marcaMedio.hidden = !nm;
-    if (nm) ponerEn(marcaMedio, nm.x + Math.round(visible) - marcaMedio.offsetWidth - 3 * k, nm.y + 3 * k, Z.marca);
+    if (nm) {
+      // (a la derecha del índice, nunca encima: si «x2 PEGA DOBLE» no entra en lo que se ve del naipe, queda «x2»)
+      const libre = Math.round(visible) - 30 * k;
+      if (anchoMarca.visible !== libre) {
+        marcaMedio.classList.remove('corta');
+        marcaMedio.classList.toggle('corta', marcaMedio.offsetWidth > libre);
+        anchoMarca = { visible: libre, w: marcaMedio.offsetWidth };
+      }
+      ponerEn(marcaMedio, nm.x + Math.round(visible) - anchoMarca.w - 2 * k, nm.y + 3 * k, Z.marca);
+    }
     // la Chispa: entre la Posta del Comodín y la de su derecha
     chispas.forEach((el, i) => {
       const si = marcas.chispas.includes(i);
@@ -408,7 +418,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
         }
         // la carta con el foco del mando o del teclado pasa al frente, sin moverse de su lugar (con mano de 8, la que
         // tenés no queda debajo de su vecina)
-        if (foco === c.el) z = Z.foco;
+        // (la del paño pasa al frente de su fila, no de la mano: no tapa el naipe que tiene delante)
+        if (foco === c.el) z = p >= 0 ? Z.posta + 9 : Z.foco;
       }
       if (quieto) {
         c.x = tx;

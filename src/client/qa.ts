@@ -121,9 +121,9 @@ export function montarQa(estado: string): void {
       const p = partida(mazo, (x) => enCombate(x));
       montar(p);
       const m = mejorGolpe(p);
-      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[]): void; posar(ids: string[], x: number, y: number): void } } }).__mesa;
+      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void; posar(ids: string[], x: number, y: number): void } } }).__mesa;
       if (m && mesa) {
-        if (estado === 'mesa-seleccion') mesa.mano.elegir(m.ids);
+        if (estado === 'mesa-seleccion') mesa.mano.elegir(m.ids, m.postas);
         else {
           const r = $('[data-carta]')!.getBoundingClientRect();
           mesa.mano.posar(m.ids, r.left + r.width / 2, r.top + r.height * 0.62);
@@ -165,7 +165,7 @@ export function montarQa(estado: string): void {
       }
       montar(p);
       const sel = vivas().find((x) => cuenta(p, x).jugada !== 'sola') ?? vivas()[0];
-      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[]): void }; sincronizar(): void } }).__mesa;
+      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void }; sincronizar(): void } }).__mesa;
       if (sel && mesa) {
         // (`-cambia`: la jugada de antes fue otra, el caso común de la segunda cara: no arma el Tajo y la placa del
         // TE PEGA queda con su Furia)
@@ -179,8 +179,8 @@ export function montarQa(estado: string): void {
       const p = partida(mazo, (x) => enCombate(x));
       montar(p);
       const m = mejorGolpe(p);
-      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[]): void } } }).__mesa;
-      if (m && mesa) mesa.mano.elegir(m.ids);
+      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
+      if (m && mesa) mesa.mano.elegir(m.ids, m.postas);
       $<HTMLElement>('[data-accion="jugadas"]')?.click();
       break;
     }
@@ -208,7 +208,7 @@ export function montarQa(estado: string): void {
       c.escudo = Math.max(1, e.ataque + c.furia - 3);
       montar(p);
       const sel = vivas.find((x) => (cuenta(p, x).contra ?? 0) > 0) ?? vivas[0];
-      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[]): void } } }).__mesa;
+      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
       // (la QA vuelve a elegir esta jugada después de medir la mesa en reposo, en la misma página)
       (window as unknown as { __qaSel?: string[] }).__qaSel = sel?.map((k) => k.id) ?? [];
       if (sel && mesa) mesa.mano.elegir(sel.map((k) => k.id));
@@ -301,7 +301,7 @@ export function montarQa(estado: string): void {
       e.vida = Math.max(e.vida, q.total + 60);
       e.vidaMax = Math.max(e.vidaMax, e.vida * 2);
       montar(p);
-      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[]): void }; conteoQa(f: number): void } }).__mesa;
+      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void }; conteoQa(f: number): void } }).__mesa;
       if (mesa && ids.length === 2) {
         mesa.mano.elegir(ids);
         mesa.conteoQa(0.75);
