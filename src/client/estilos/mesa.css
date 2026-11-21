@@ -4261,3 +4261,56 @@ button.chiche:focus-visible {
 .cortina.quieta .irr-texto {
   animation: none;
 }
+
+/* ───────────── el oro y la Vida son cosas: las fichas que saltan sobre el icono del pozo del HUD ───────────── */
+.ficha-fisica {
+  position: fixed;
+  z-index: 240;
+  pointer-events: none;
+  line-height: 0;
+  --k: 1;
+  translate: -50% -50%;
+  animation: ff-cae 520ms steps(10) both;
+  filter: drop-shadow(0 2px 0 rgba(11, 7, 17, 0.7));
+}
+.ficha-fisica.ff-pierde {
+  animation-name: ff-salta;
+}
+/* ganar: cae de arriba sobre el icono y rebota */
+@keyframes ff-cae {
+  0% {
+    transform: translate(var(--dx), -70px);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  60% {
+    transform: translate(0, 0);
+  }
+  78% {
+    transform: translate(0, -10px);
+  }
+  100% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+}
+/* perder: salta del icono hacia afuera y se cae */
+@keyframes ff-salta {
+  0% {
+    transform: translate(0, 0);
+  }
+  35% {
+    transform: translate(calc(var(--dx) * 0.5), -34px);
+  }
+  100% {
+    transform: translate(var(--dx), 30px) rotate(90deg);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ficha-fisica {
+    display: none;
+  }
+}

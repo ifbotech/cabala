@@ -117,25 +117,56 @@ export function actualizarTiras(p: Partida, sube?: Palo): void {
 }
 
 /** Pone un número del HUD (y la barra de Vida). */
+/**
+ * El oro y la Vida son cosas: al ganar, unas fichas saltan desde abajo y caen sobre el icono del pozo; al perder, saltan
+ * del icono y se caen. Van sobre el icono (nunca sobre las cifras) y duran medio segundo.
+ */
+function fichasFisicas(que: 'vida' | 'oro', delta: number): void {
+  if (!delta || ajustes.calma || enFoto()) return;
+  const icono = $(`[data-hud-${que}] .valor > .px`);
+  const r = icono?.getBoundingClientRect();
+  if (!r || !r.width) return;
+  const capa = $('#capa');
+  if (!capa) return;
+  const n = Math.max(1, Math.min(5, Math.ceil(Math.abs(delta) / (que === 'oro' ? 3 : 4))));
+  const gana = delta > 0;
+  for (let i = 0; i < n; i++) {
+    const f = document.createElement('span');
+    f.className = `ficha-fisica ff-${que} ${gana ? 'ff-gana' : 'ff-pierde'}`;
+    f.setAttribute('aria-hidden', 'true');
+    f.innerHTML = pxHud(que === 'oro' ? 'oro' : 'vida');
+    const lado = (i - (n - 1) / 2) * 10;
+    f.style.left = `${Math.round(r.left + r.width / 2 + lado)}px`;
+    f.style.top = `${Math.round(r.top + r.height / 2)}px`;
+    f.style.setProperty('--dx', `${Math.round(lado * (gana ? -0.6 : 2.2))}px`);
+    f.style.animationDelay = `${i * 45}ms`;
+    capa.append(f);
+    window.setTimeout(() => f.remove(), 560 + i * 45);
+  }
+}
+
 export function ponerHud(v: VistaHud): void {
-  const pon = (clave: string, html: string) => {
+  const pon = (clave: string, html: string, n?: number) => {
     const el = $(`[data-hud] [data-n="${clave}"]`);
     if (el && el.dataset.v !== html) {
       const cambia = el.dataset.v !== undefined;
+      const antes = Number(el.dataset.num);
       el.innerHTML = html;
       el.dataset.v = html;
+      if (n !== undefined) el.dataset.num = String(n);
       // el número que cambia da un latido
       if (cambia && !ajustes.calma && !enFoto()) {
         el.classList.remove('late');
         void el.offsetWidth;
         el.classList.add('late');
+        if ((clave === 'vida' || clave === 'oro') && n !== undefined && Number.isFinite(antes)) fichasFisicas(clave, n - antes);
       }
     }
   };
-  pon('vida', cifra(v.vida, 'roja', 'grande'));
+  pon('vida', cifra(v.vida, 'roja', 'grande'), v.vida);
   pon('vidaMax', cifra(`/${v.vidaMax}`, 'hueso'));
   pon('escudo', cifra(v.escudo, 'azul', 'grande'));
-  pon('oro', cifra(v.oro, 'oro', 'grande'));
+  pon('oro', cifra(v.oro, 'oro', 'grande'), v.oro);
   pon('mazo', cifra(v.mazo, 'hueso', 'grande'));
   const barra = $<HTMLElement>('[data-barra="vida"]');
   if (barra) barra.style.width = `${Math.max(0, Math.round((100 * v.vida) / v.vidaMax))}%`;
