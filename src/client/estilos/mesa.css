@@ -243,7 +243,8 @@
   position: relative;
   z-index: 1;
   grid-area: barras;
-  width: calc(400px * var(--k) * 0.5 + 200px);
+  /* (24 px más que la del naipe: «THE CHIEFTAIN» entra junto a «1175/1175» y su Escudo) */
+  width: calc(400px * var(--k) * 0.5 + 224px);
   max-width: 94vw;
   display: flex;
   flex-direction: column;
