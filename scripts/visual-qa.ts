@@ -1,6 +1,7 @@
 // QA visual: monta cada estado fijo (`?qa=…`) en las cuatro ventanas, lo captura y audita el DOM. Falla si algo se
 // sale de la ventana, si hay texto de menos de 14 px, una diana chica, una caja clara de HTML, un borde liso de
-// HTML o texto recortado.
+// HTML, texto recortado (también el rótulo que no entra en su botón) o algo que desborda de costado dentro de un
+// modal o un panel.
 //
 //   npm run qa:visual                      español, las 4 ventanas, todos los estados
 //   npm run qa:visual -- --lang=en         inglés (capturas en artifacts/visual-qa-en/)
@@ -76,6 +77,39 @@ function auditar(o: { esMovil: boolean; idioma: string }): Fallo[] {
     }
     // texto recortado dentro de su caja
     if (el.matches('button:not(.hud-tiras), .chip, .op-nombre, .e-nombre, .titulo') && el.scrollWidth > el.clientWidth + 2 && s.overflow !== 'visible') fallos.push({ regla: 'texto-cortado', detalle: `${nombre(el)} «${(el.textContent ?? '').trim().slice(0, 30)}»` });
+  }
+  // el rótulo que no entra en su botón (aunque el botón no recorte: se sale por el costado o se monta en el marco)
+  for (const el of todos) {
+    if (!el.matches('button.btn') || getComputedStyle(el).overflow !== 'visible') continue;
+    if (el.clientWidth > 0 && el.scrollWidth > el.clientWidth + 1) fallos.push({ regla: 'texto-cortado', detalle: `${nombre(el)} «${(el.textContent ?? '').trim().slice(0, 30)}» pide ${el.scrollWidth} px y el botón tiene ${el.clientWidth}` });
+  }
+  // desborde de costado dentro de un modal o un panel: ni el panel ni su cuerpo se desplazan a lo ancho, y nada asoma
+  // por sus bordes (la columna que queda fuera, el botón que se sale)
+  for (const panel of [...document.querySelectorAll<HTMLElement>('#capa .panel, #app .panel')].filter(visible)) {
+    const cajas = new Set<HTMLElement>([panel, ...panel.querySelectorAll<HTMLElement>(':scope > *, .rollo, .rollo > *')]);
+    for (const el of cajas) {
+      if (!visible(el) || el.clientWidth === 0 || getComputedStyle(el).overflowX === 'scroll') continue;
+      // (la última cifra de un número de sprites deja asomar su margen transparente: esa cola no es un desborde)
+      const cola = Math.max(0, ...[...el.querySelectorAll<HTMLElement>('.cifra')].map((c) => c.scrollWidth - c.clientWidth));
+      if (el.scrollWidth > el.clientWidth + 1 + cola) fallos.push({ regla: 'desborde-panel', detalle: `${nombre(el)} pide ${el.scrollWidth} px de ancho y enseña ${el.clientWidth}` });
+    }
+    const p = panel.getBoundingClientRect();
+    /** ¿Lo recorta alguna caja de dentro del panel? (entonces su desborde ya lo cuenta la regla de arriba) */
+    const recortado = (el: Element): boolean => {
+      for (let a = el.parentElement; a && a !== panel; a = a.parentElement) if (getComputedStyle(a).overflowX !== 'visible') return true;
+      return false;
+    };
+    let fuera = 0;
+    for (const el of panel.querySelectorAll('*')) {
+      if (fuera >= 3) break;
+      if (!visible(el) || getComputedStyle(el).position === 'fixed' || recortado(el)) continue;
+      const r = el.getBoundingClientRect();
+      const cola = el.closest('.cifra') ? 4 : 0;
+      if (r.right > p.right + 1 + cola || r.left < p.left - 1) {
+        fuera++;
+        fallos.push({ regla: 'desborde-panel', detalle: `${nombre(el)} asoma fuera de ${nombre(panel)}: ${Math.round(r.left)} → ${Math.round(r.right)} en un panel de ${Math.round(p.left)} → ${Math.round(p.right)}` });
+      }
+    }
   }
   // restos de español en la pantalla inglesa
   if (idioma === 'en') {

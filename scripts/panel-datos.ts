@@ -84,6 +84,16 @@ const FUNCIONES = {
   rachaExactos: true,
   /** En reposo, la zona de la cuenta dice qué hacer. */
   pistaEnReposo: true,
+  /** 0.14.0: el conteo dispara pieza por pieza (cada cosa que suma sube con su nombre y su ficha del HUD salta). */
+  conteoPorPiezas: true,
+  /** 0.14.0: cada parada tiene su escenario (mesa de tablas, Pulpería con estantes, Fogón con leños, Mapa con horizonte) y cada Rey su clima. */
+  escenarios: true,
+  /** 0.14.0: el golpe pesa en tres escalones y la caída de un Rey es una escena (silencio, fogonazo, lluvia de monedas). */
+  golpeConPeso: true,
+  /** 0.14.0: en el móvil el descarte al arrastrar es el propio botón DESCARTAR y el naipe va por encima del dedo. */
+  dedoPrimero: true,
+  /** 0.14.0: con la Vida llena, Descansar en el Fogón sale apagado. */
+  fogonSinNulo: true,
 };
 
 const c = (palo: PaloCarta, n: number): Carta => ({ id: `${palo}${n}`, palo, n });

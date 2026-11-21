@@ -101,7 +101,7 @@ export function pintarFase(): void {
       ir(pantallaPulperia(p), 'pulperia', 'pulperia');
       break;
     case 'fogon':
-      ir(pantallaFogon(p), 'pulperia', 'fogon');
+      ir(pantallaFogon(p), 'fogon', 'fogon');
       break;
     case 'cabala':
       ir(pantallaCabala(p), 'altar', 'cabala');

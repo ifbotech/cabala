@@ -15,7 +15,7 @@ const CX = 32;
 const CY = 30;
 
 export type Mirada = -1 | 0 | 1;
-export type Gesto = 'neutro' | 'parpadeo' | 'feroz' | 'mueca' | 'caido';
+export type Gesto = 'neutro' | 'parpadeo' | 'feroz' | 'mueca' | 'caido' | 'festejo' | 'pavor' | 'guino';
 export type Herida = 0 | 1 | 2;
 export interface Cuadro {
   mirada: Mirada;
@@ -88,6 +88,15 @@ function ojos(l: Lienzo, c: Cuadro, r: Rasgo): void {
     } else if (c.gesto === 'mueca' || c.gesto === 'caido') {
       yd = y - 6;
       yf = y - 4;
+    } else if (c.gesto === 'festejo') {
+      yd = y - 7;
+      yf = y - 7;
+    } else if (c.gesto === 'pavor') {
+      yd = y - 8;
+      yf = y - 6;
+    } else if (c.gesto === 'guino') {
+      yd = lado === -1 ? y - 4 : y - 7;
+      yf = lado === -1 ? y - 4 : y - 8;
     } else if (alta) {
       yd = y - 6;
       yf = y - 7;
@@ -95,6 +104,25 @@ function ojos(l: Lienzo, c: Cuadro, r: Rasgo): void {
     l.linea(dentro, yd, fuera, yf, r.ceja).linea(dentro, yd + 1, fuera, yf + 1, r.ceja);
     if (c.gesto === 'parpadeo') {
       l.rect(ex - 3, y, 6, 1, '9').rect(ex - 2, y + 1, 4, 1, sombraPiel);
+      continue;
+    }
+    if (c.gesto === 'festejo') {
+      // los ojos cerrados de la risa: dos arcos hacia arriba
+      l.set(ex - 3, y, '0').set(ex - 2, y - 1, '0').set(ex - 1, y - 2, '0').set(ex, y - 2, '0').set(ex + 1, y - 1, '0').set(ex + 2, y, '0');
+      l.set(ex - 2, y, sombraPiel).set(ex + 1, y, sombraPiel);
+      continue;
+    }
+    if (c.gesto === 'guino' && lado === -1) {
+      // el guiño del tramposo
+      l.rect(ex - 3, y, 6, 1, '0').set(ex - 3, y - 1, '9').set(ex + 2, y - 1, '9');
+      continue;
+    }
+    if (c.gesto === 'pavor') {
+      // los ojos como platos, con el iris hecho un punto
+      l.rect(ex - 3, y - 3, 6, 6, 'w');
+      l.set(ex - 3, y - 3, sombraPiel).set(ex + 2, y - 3, sombraPiel).set(ex - 3, y + 2, sombraPiel).set(ex + 2, y + 2, sombraPiel);
+      l.rect(ex - 3, y - 4, 6, 1, '9');
+      l.rect(ex - 1, y - 1, 2, 2, r.iris).set(ex, y, '0');
       continue;
     }
     if (c.gesto === 'caido') {
@@ -150,6 +178,26 @@ function bocaGesto(l: Lienzo, c: Cuadro, reposo: () => void): void {
     l.rect(CX - 4, y, 9, 2, 'w');
     for (let x = CX - 3; x < CX + 5; x += 2) l.rect(x, y, 1, 2, 'h');
     l.set(CX - 6, y + 2, '9').set(CX + 6, y + 3, '9');
+    return;
+  }
+  if (c.gesto === 'festejo') {
+    // la carcajada: la boca abierta de par en par, con los dientes de arriba
+    l.poli([[CX - 6, y - 2], [CX + 7, y - 2], [CX + 5, y + 4], [CX, y + 5], [CX - 4, y + 4]], '0');
+    l.rect(CX - 4, y - 1, 9, 2, 'w');
+    l.rect(CX - 2, y + 3, 5, 1, 'h');
+    l.set(CX - 7, y - 3, '9').set(CX + 8, y - 3, '9');
+    return;
+  }
+  if (c.gesto === 'pavor') {
+    // la boca chica y redonda del susto
+    l.rect(CX - 1, y - 1, 3, 5, '0').rect(CX - 2, y, 5, 3, '0');
+    l.set(CX, y + 1, '9');
+    return;
+  }
+  if (c.gesto === 'guino') {
+    // la media sonrisa, torcida hacia el ojo abierto
+    l.linea(CX - 4, y + 1, CX + 3, y + 1, '0').linea(CX + 3, y + 1, CX + 6, y - 1, '0');
+    l.set(CX + 7, y - 2, '9');
     return;
   }
   if (c.gesto === 'caido') {
@@ -251,7 +299,7 @@ const RASGO: Record<MazoId, Rasgo> = {
     encima: (l, c) => {
       // patillas y bigote negro, tupido, de puntas caídas
       l.rect(CX - 12, CY - 8, 2, 9, '0').rect(CX + 11, CY - 8, 2, 9, '0');
-      if (c.gesto !== 'feroz' && c.gesto !== 'mueca') l.poli([[CX - 8, CY + 9], [CX - 5, CY + 6], [CX, CY + 7], [CX + 5, CY + 6], [CX + 8, CY + 9], [CX + 4, CY + 8], [CX, CY + 9], [CX - 4, CY + 8]], '0');
+      if (c.gesto !== 'feroz' && c.gesto !== 'mueca' && c.gesto !== 'festejo' && c.gesto !== 'pavor' && c.gesto !== 'guino') l.poli([[CX - 8, CY + 9], [CX - 5, CY + 6], [CX, CY + 7], [CX + 5, CY + 6], [CX + 8, CY + 9], [CX + 4, CY + 8], [CX, CY + 9], [CX - 4, CY + 8]], '0');
       else l.poli([[CX - 8, CY + 7], [CX - 5, CY + 5], [CX, CY + 6], [CX + 5, CY + 5], [CX + 8, CY + 7], [CX, CY + 7]], '0');
       // la barba de dos días, tramada
       for (let y = CY + 9; y < CY + 15; y++) for (let x = CX - 9; x < CX + 10; x++) if ((x + y) % 3 === 0 && l.lleno(x, y, 'spP')) l.set(x, y, 's').marcar(x, y);
@@ -424,7 +472,7 @@ export function cuadros(): Cuadro[] {
   const out: Cuadro[] = [];
   for (const herida of [0, 1, 2] as Herida[]) {
     for (const mirada of [-1, 0, 1] as Mirada[]) out.push({ mirada, gesto: 'neutro', herida });
-    for (const gesto of ['parpadeo', 'feroz', 'mueca'] as Gesto[]) out.push({ mirada: 0, gesto, herida });
+    for (const gesto of ['parpadeo', 'feroz', 'mueca', 'festejo', 'pavor', 'guino'] as Gesto[]) out.push({ mirada: 0, gesto, herida });
   }
   out.push({ mirada: 0, gesto: 'caido', herida: 2 });
   return out;

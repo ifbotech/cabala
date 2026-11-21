@@ -1,12 +1,14 @@
 // El motor de efectos: pixel-art procedural en Canvas, sin dependencias, a 60 FPS.
 //
-// Tres lienzos de baja resolución que se estiran sin suavizado: el FONDO (la penumbra tramada de la escena, con el
-// candil que respira y sus brasas), el de COLOR (píxeles opacos de los efectos: tajos, monedas, números, la carta
+// Tres lienzos de baja resolución que se estiran sin suavizado: el FONDO (la escena de cada parada, ver escenas.ts,
+// con su luz que respira y sus brasas), el de COLOR (píxeles opacos de los efectos: tajos, monedas, números, la carta
 // que se parte) y el de LUZ (resplandores aditivos, tramados con Bayer, que se suman a la pantalla). Es el método
 // de doble buffer de pixelfx (https://github.com/patch-gg/pixelfx, MIT): color por un lado, luz por otro, pasos de
 // rampa duros en el color y la suavidad solo en la luz. El código es nuestro.
 import { ajustes } from '../almacen';
+import type { Palo } from '../../rules/cartas';
 import { BAYER4 } from '../pixel/dither';
+import { armarEscenario, type Escena, type Escenario } from './escenas';
 
 export type Ctx = CanvasRenderingContext2D;
 
@@ -49,102 +51,74 @@ export function azar(): number {
 }
 export const entre = (a: number, b: number): number => a + azar() * (b - a);
 
-// ───────────── la penumbra del fondo ─────────────
+// ───────────── la escena del fondo ─────────────
 
-export type Escena = 'mesa' | 'mapa' | 'pulperia' | 'portada' | 'altar';
+export type { Escena } from './escenas';
 
-/** Tonos de cada penumbra, del abismo de los bordes a la luz de candil, y dónde cuelga el candil. */
-const ESCENA: Record<Escena, { tonos: string[]; foco: [number, number]; radio: [number, number] }> = {
-  mesa: { tonos: ['#09070f', '#120a24', '#1c0f2c', '#2a1533', '#3a1a34'], foco: [0.5, 0.42], radio: [0.62, 0.72] },
-  mapa: { tonos: ['#07070f', '#0c0f26', '#141a3a', '#1e2450', '#2a2c5c'], foco: [0.5, 0.3], radio: [0.7, 0.9] },
-  pulperia: { tonos: ['#0b0711', '#1a0b16', '#2a1018', '#40191a', '#5a2a1c'], foco: [0.5, 0.4], radio: [0.62, 0.74] },
-  portada: { tonos: ['#09070f', '#160c1c', '#24112b', '#3a1436', '#55193c'], foco: [0.5, 0.38], radio: [0.66, 0.8] },
-  altar: { tonos: ['#09070f', '#150a10', '#241018', '#3a1420', '#571c24'], foco: [0.5, 0.5], radio: [0.6, 0.7] },
-};
 let escena: Escena = 'portada';
-/** Cuatro cuadros de la misma penumbra con el candil un poco más o menos abierto: al alternarlos, respira. */
-let cuadrosFondo: HTMLCanvasElement[] = [];
-
-function hex(h: string): number {
-  const n = parseInt(h.slice(1), 16);
-  // ABGR para escribir de a 32 bits en el ImageData (little-endian)
-  return (255 << 24) | ((n & 255) << 16) | (((n >> 8) & 255) << 8) | ((n >> 16) & 255);
-}
-
-function pintarFondo(esc: Escena, apertura: number): HTMLCanvasElement {
-  const { tonos, foco, radio } = ESCENA[esc];
-  const c = document.createElement('canvas');
-  c.width = W;
-  c.height = H;
-  const x = c.getContext('2d')!;
-  const img = x.createImageData(W, H);
-  const buf = new Uint32Array(img.data.buffer);
-  const col = tonos.map(hex);
-  const n = tonos.length - 1;
-  for (let y = 0; y < H; y++)
-    for (let xx = 0; xx < W; xx++) {
-      const d = Math.hypot(((xx + 0.5) / W - foco[0]) / (radio[0] * apertura), ((y + 0.5) / H - foco[1]) / (radio[1] * apertura));
-      const v = Math.max(0, 1 - d) ** 1.4 * n;
-      const i = Math.min(n - 1, Math.floor(v));
-      const sube = v - i > (BAYER4[y & 3][xx & 3] + 0.5) / 16;
-      buf[y * W + xx] = col[sube ? i + 1 : i];
-    }
-  x.putImageData(img, 0, 0);
-  return c;
-}
+/** El clima del duelo de Rey (el palo del Rey) o nada. Solo lo viste la mesa. */
+let clima: Palo | null = null;
+/** La escena montada: sus cuadros de luz ya pintados y lo que se mueve encima. */
+let escenario: Escenario | null = null;
+/** Las escenas ya armadas a este tamaño: volver a una parada no cuesta nada. */
+const armadas = new Map<string, Escenario>();
+/** Segundos de escena (lo que lleva hamacándose el farol), el paseo del candil y lo que queda del fogonazo. */
+let tEscena = 0;
+let respiro = 1;
+let golpe = 0;
+/** Quedan cuadros de luz por adelantar en la escena montada. */
+let calentando = false;
 
 function rehacerFondo(): void {
-  cuadrosFondo = [0.94, 0.98, 1.02, 1.06].map((a) => pintarFondo(escena, a));
-}
-
-/** Cambia la penumbra de la escena. */
-export function ponerEscena(e: Escena): void {
-  if (e === escena && cuadrosFondo.length) return;
-  escena = e;
-  if (W) rehacerFondo();
+  const palo = escena === 'mesa' ? clima : null;
+  const clave = `${escena}|${palo ?? '-'}`;
+  let e = armadas.get(clave);
+  if (!e) {
+    e = armarEscenario(escena, palo, W, H, { azar, entre });
+    armadas.set(clave, e);
+  }
+  escenario = e;
+  calentando = true;
   fondoPintado = false;
 }
 
-interface Brasa {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  vida: number;
-  max: number;
-  oro: boolean;
+/** Cambia la escena del fondo (y despeja el clima: cada duelo de Rey pone el suyo al montarse). */
+export function ponerEscena(e: Escena): void {
+  if (e === escena && clima === null && escenario) return;
+  escena = e;
+  clima = null;
+  golpe = 0;
+  if (W) rehacerFondo();
 }
-const brasas: Brasa[] = [];
-let respiro = 1;
 
-function nuevaBrasa(arranque = false): Brasa {
-  const max = entre(4, 9);
-  return { x: entre(0, W), y: arranque ? entre(0, H) : H + 2, vx: entre(-2, 2), vy: entre(-9, -3), vida: arranque ? entre(0, max) : 0, max, oro: azar() < 0.6 };
+/** El clima del duelo de Rey: relámpagos (Espadas), hojas y esporas (Bastos), lluvia de monedas (Oros) o bruma carmesí (Copas). `null` lo despeja. */
+export function ponerClima(palo: Palo | null): void {
+  if (palo === clima) return;
+  clima = palo;
+  if (W && escena === 'mesa') rehacerFondo();
+}
+
+/** El candil salta con el golpe: la luz de la mesa se abre un instante y decae en un cuarto de segundo. `fuerza` va de 0 a 1. */
+export function fogonazoCandil(fuerza = 1): void {
+  if (foto || ajustes.calma) return;
+  golpe = Math.max(golpe, Math.max(0, Math.min(1, fuerza)));
 }
 
 function pasoFondo(dt: number): void {
-  // el candil respira: salta entre sus cuadros con un paseo lento
-  if (azar() < dt * 5) respiro = Math.max(0, Math.min(3, respiro + (azar() < 0.5 ? -1 : 1)));
-  xFondo.drawImage(cuadrosFondo[foto ? 1 : respiro], 0, 0);
-  if (foto || ajustes.calma) return;
-  const meta = Math.round((W * H) / 9000);
-  while (brasas.length < meta) brasas.push(nuevaBrasa(true));
-  for (let i = brasas.length - 1; i >= 0; i--) {
-    const b = brasas[i];
-    b.vida += dt;
-    b.x += (b.vx + Math.sin(b.vida * 2 + i) * 2) * dt;
-    b.y += b.vy * dt;
-    if (b.vida > b.max || b.y < -2) {
-      brasas[i] = nuevaBrasa();
-      continue;
-    }
-    const f = b.vida / b.max;
-    // brasas de oro y polvo: se encienden, titilan y se apagan
-    const titila = (Math.floor(b.vida * 6 + i) & 3) !== 0;
-    if (!titila) continue;
-    xFondo.fillStyle = b.oro ? (f < 0.3 ? '#ffd500' : f < 0.7 ? '#ff7b00' : '#7a0026') : f < 0.5 ? '#5a1e96' : '#2e0f52';
-    xFondo.fillRect(Math.round(b.x), Math.round(b.y), 1, 1);
+  const e = escenario;
+  if (!e) return;
+  const quieta = foto || ajustes.calma;
+  if (!quieta) {
+    tEscena += dt;
+    golpe = Math.max(0, golpe - dt * 4);
+    // el candil respira: salta entre sus cuadros con un paseo lento
+    if (azar() < dt * 5) respiro = Math.max(0, Math.min(3, respiro + (azar() < 0.5 ? -1 : 1)));
   }
+  const k = quieta ? e.base : Math.max(0, Math.min(e.n - 1, e.elegir(tEscena, respiro, golpe)));
+  // un cuadro de luz que falte se pinta en el momento; los demás se van adelantando de a uno, en reposo
+  xFondo.drawImage(e.cuadro(k), 0, 0);
+  e.animar(xFondo, quieta ? 0 : dt, tEscena, quieta);
+  if (calentando && !quieta && !efectos.length) calentando = e.calentar();
 }
 
 // ───────────── el bucle ─────────────
@@ -159,9 +133,8 @@ function medir(): void {
     c.height = H;
   }
   for (const x of [xFondo, xColor, xLuz]) x.imageSmoothingEnabled = false;
-  brasas.length = 0;
+  armadas.clear();
   rehacerFondo();
-  fondoPintado = false;
   limpios = false;
 }
 
@@ -216,6 +189,8 @@ export function iniciarFx(): void {
     ultimo = t;
     cuadro(t);
   });
+  // para la QA y las pruebas: la escena, el clima y el fogonazo a mano
+  (window as unknown as { __fx?: unknown }).__fx = { ponerEscena, ponerClima, fogonazoCandil };
 }
 
 /** Suma un efecto (no hace nada en modo foto ni con «Reducir movimiento»). */

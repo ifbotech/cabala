@@ -1,6 +1,6 @@
 {
-  "fecha": "2026-11-20",
-  "huella": "24c260a2f19dd2e5",
+  "fecha": "2026-11-21",
+  "huella": "b513bcc9cc0d6cd3",
   "rapido": false,
   "partidasPorCelda": 3000,
   "objetivos": {
@@ -42,117 +42,117 @@
     {
       "mazo": "escoba",
       "vacio": 31,
-      "lleno": 46.6,
-      "reinado8": 23.8,
+      "lleno": 47.1,
+      "reinado8": 24.3,
       "caidas": [
-        335,
-        847,
-        889
+        350,
+        877,
+        842
       ],
       "golpesGuardia": 2.8,
       "golpesRey": 4.2,
       "golpeMedio": [
-        157,
-        457,
-        1456
+        155,
+        455,
+        1496
       ],
       "exactos": 0.9,
       "cantos": 8.8,
-      "mejorGolpe": 37422,
+      "mejorGolpe": 26136,
       "porotos": 76,
-      "minutos": 15.3
+      "minutos": 15.2
     },
     {
       "mazo": "truco",
-      "vacio": 31.7,
-      "lleno": 48.6,
-      "reinado8": 23.5,
+      "vacio": 30.2,
+      "lleno": 48.7,
+      "reinado8": 22.5,
       "caidas": [
-        14,
-        357,
-        1677
+        13,
+        406,
+        1676
       ],
-      "golpesGuardia": 2.8,
+      "golpesGuardia": 2.7,
       "golpesRey": 4.3,
       "golpeMedio": [
-        210,
-        433,
-        1023
+        209,
+        434,
+        1031
       ],
       "exactos": 0.4,
-      "cantos": 26.5,
-      "mejorGolpe": 11016,
-      "porotos": 89,
+      "cantos": 26.2,
+      "mejorGolpe": 13320,
+      "porotos": 88,
       "minutos": 15.3
     },
     {
       "mazo": "chinchon",
-      "vacio": 29.6,
-      "lleno": 47.5,
-      "reinado8": 15,
+      "vacio": 28.2,
+      "lleno": 45.7,
+      "reinado8": 16,
       "caidas": [
-        266,
-        810,
-        1035
+        276,
+        825,
+        1052
       ],
       "golpesGuardia": 3.6,
-      "golpesRey": 5.5,
+      "golpesRey": 5.6,
       "golpeMedio": [
         107,
-        286,
-        848
+        285,
+        836
       ],
       "exactos": 1.9,
-      "cantos": 15.3,
-      "mejorGolpe": 9891,
-      "porotos": 78,
+      "cantos": 15.2,
+      "mejorGolpe": 9954,
+      "porotos": 76,
       "minutos": 17.1
     },
     {
       "mazo": "mentiroso",
-      "vacio": 31.4,
-      "lleno": 46,
-      "reinado8": 19.1,
+      "vacio": 29.1,
+      "lleno": 46.2,
+      "reinado8": 20.5,
       "caidas": [
-        29,
-        476,
-        1554
+        26,
+        452,
+        1649
       ],
       "golpesGuardia": 2.3,
       "golpesRey": 4.6,
       "golpeMedio": [
-        199,
-        367,
-        919
+        198,
+        369,
+        901
       ],
       "exactos": 1.3,
       "cantos": 13.5,
-      "mejorGolpe": 8568,
-      "porotos": 90,
+      "mejorGolpe": 6408,
+      "porotos": 88,
       "minutos": 14.6
     },
     {
       "mazo": "chancho",
-      "vacio": 31.9,
-      "lleno": 48.1,
-      "reinado8": 26.8,
+      "vacio": 31.6,
+      "lleno": 45.2,
+      "reinado8": 25.6,
       "caidas": [
         8,
-        544,
-        1491
+        613,
+        1430
       ],
       "golpesGuardia": 3.1,
-      "golpesRey": 4.9,
+      "golpesRey": 4.8,
       "golpeMedio": [
         149,
-        318,
-        957
+        317,
+        956
       ],
       "exactos": 1.1,
-      "cantos": 1.7,
-      "mejorGolpe": 28512,
-      "porotos": 88,
-      "minutos": 16
+      "cantos": 1.6,
+      "mejorGolpe": 28080,
+      "porotos": 87,
+      "minutos": 15.9
     }
   ],
   "notas": [],

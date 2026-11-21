@@ -1,6 +1,7 @@
 // QA de FPS: la mesa viva (candil, brasas, cartas flotando, retrato, Bufón) y una ráfaga de golpes con sus efectos
 // tienen que correr a 60 cuadros por segundo. Mide los cuadros reales con requestAnimationFrame en dos ventanas.
 //   npm run qa:fps
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 import { guardian } from './guardian';
 import { conServidor } from './servidor';
@@ -9,9 +10,9 @@ guardian('qa:fps', 200);
 /** Mínimos: media de cuadros por segundo y parte de los cuadros que pueden pasar de 25 ms. */
 const MIN_FPS = 57;
 const MAX_LENTOS = 0.03;
-const MAX_CUADRO = 80;
-/** El cambio de pantalla tras el último golpe (botín y «ELEGÍ UNA») puede costar un cuadro largo, no un cuelgue. */
-const MAX_CAMBIO = 250;
+const MAX_CUADRO = 50;
+/** El cambio de pantalla tras el último golpe (botín y «ELEGÍ UNA» sobre la mesa), también en frío: sin tirones. */
+const MAX_CAMBIO = 50;
 
 interface Medida {
   fps: number;
@@ -28,6 +29,11 @@ const ventanas = [
   { nombre: '390x844', w: 390, h: 844 },
 ];
 let fallos = 0;
+const lineas: string[] = [];
+const decir = (l: string): void => {
+  console.log(l);
+  lineas.push(l);
+};
 
 await conServidor(5193, async (url) => {
   // con la GPU de verdad (el Chromium nuevo sin cabecera sobre ANGLE/D3D11): es donde corre el juego
@@ -90,7 +96,7 @@ await conServidor(5193, async (url) => {
       for (const [que, m] of [['reposo', reposo], ['golpes', golpes]] as const) {
         const bien = m.fps >= MIN_FPS && m.lentos <= MAX_LENTOS && m.peor <= MAX_CUADRO && m.cambio <= MAX_CAMBIO;
         if (!bien) fallos++;
-        console.log(`${bien ? '✓' : '✗'} ${v.nombre} · ${que.padEnd(6)} ${m.fps} fps · ${(m.lentos * 100).toFixed(1)} % de cuadros de más de 25 ms · peor cuadro ${m.peor} ms · ${m.cuadros} cuadros${m.cambio ? ` · cambio de pantalla ${m.cambio} ms` : ''}`);
+        decir(`${bien ? '✓' : '✗'} ${v.nombre} · ${que.padEnd(6)} ${m.fps} fps · ${(m.lentos * 100).toFixed(1)} % de cuadros de más de 25 ms · peor cuadro ${m.peor} ms · ${m.cuadros} cuadros${m.cambio ? ` · cambio de pantalla ${m.cambio} ms` : ''}`);
       }
       await ctx.close();
     }
@@ -99,5 +105,8 @@ await conServidor(5193, async (url) => {
   }
 });
 
-console.log(fallos ? `\nqa:fps · ${fallos} medidas por debajo de ${MIN_FPS} fps` : `\nqa:fps · todo a 60 fps (mínimo exigido ${MIN_FPS})`);
+decir(fallos ? `\nqa:fps · ${fallos} medidas por debajo de ${MIN_FPS} fps` : `\nqa:fps · todo a 60 fps (mínimo exigido ${MIN_FPS})`);
+// la última medida queda a mano del Jurado
+mkdirSync('artifacts/jurado', { recursive: true });
+writeFileSync('artifacts/jurado/fps.txt', [new Date().toISOString() + ' · tope por cuadro ' + MAX_CUADRO + ' ms, cambio de pantalla ' + MAX_CAMBIO + ' ms', ...lineas, ''].join(String.fromCharCode(10)));
 process.exit(fallos ? 1 : 0);

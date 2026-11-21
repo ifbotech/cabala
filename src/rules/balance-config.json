@@ -143,7 +143,7 @@
       "multiMano": 4
     },
     "truco": {
-      "vida": 81,
+      "vida": 79,
       "mano": 3,
       "hasta": 7,
       "comodines": 2,
@@ -176,7 +176,7 @@
       "multiMano": 0
     },
     "chancho": {
-      "vida": 89,
+      "vida": 87,
       "mano": 4,
       "hasta": 9,
       "comodines": 2,

@@ -15,7 +15,7 @@ export interface ReyDef {
   rasgo: L;
   rasgoDesc: L;
   /** Lo que dice: al ofrecer, al enfrentarte llevando dones suyos, sin ellos, al caer. */
-  voz: { ofrece: L[]; aliado: L; ajeno: L; cae: L };
+  voz: { ofrece: L[]; aliado: L; ajeno: L; cae: L; pega: L[]; duele: L };
 }
 
 const r = B.reyes;
@@ -35,6 +35,8 @@ export const REY_DEF: Record<Palo, ReyDef> = {
       aliado: L('Con mi propio filo venís. Mostrame qué aprendiste.', 'You come with my own edge. Show me what you learned.'),
       ajeno: L('Nunca aceptaste nada mío. Mejor: no te debo piedad.', 'You never took a thing from me. Good: I owe you no mercy.'),
       cae: L('Buen tajo… paisano.', 'Clean cut… stranger.'),
+      pega: [L('¿Eso era tu guardia?', 'Was that your guard?'), L('Sangrás fácil.', 'You bleed easy.')],
+      duele: L('¡Así se pega, carajo!', 'Now that is a blow!'),
     },
   },
   C: {
@@ -50,6 +52,8 @@ export const REY_DEF: Record<Palo, ReyDef> = {
       aliado: L('Te di mi coraza. Veamos si la merecés.', 'I gave you my armor. Let us see if you earn it.'),
       ajeno: L('Sin mi amparo llegaste. Sin él te vas.', 'You came without my shelter. You leave without it.'),
       cae: L('Se quebró… el roble.', 'The oak… broke.'),
+      pega: [L('Leña al que se arrima.', 'Firewood, if you come close.'), L('Acá mando yo.', 'I rule here.')],
+      duele: L('¡Astillas nomás!', 'Splinters, that is all!'),
     },
   },
   D: {
@@ -65,6 +69,8 @@ export const REY_DEF: Record<Palo, ReyDef> = {
       aliado: L('Invertí en vos. Hora de cobrar los intereses.', 'I invested in you. Time to collect the interest.'),
       ajeno: L('Ni una moneda mía tocaste. Venís pobre a morir.', 'Not one coin of mine you touched. You come poor to die.'),
       cae: L('Quedate… con el vuelto.', 'Keep… the change.'),
+      pega: [L('Eso te lo cobro con interés.', 'I charge interest on that.'), L('Barato me salís.', 'You come cheap.')],
+      duele: L('¡Mi bolsa, atorrante!', 'My purse, you rascal!'),
     },
   },
   H: {
@@ -80,6 +86,8 @@ export const REY_DEF: Record<Palo, ReyDef> = {
       aliado: L('¡Bebiste de mi copa! Ahora bailamos.', 'You drank from my cup! Now we dance.'),
       ajeno: L('Rechazaste mi vino. Qué falta de modales.', 'You refused my wine. Such poor manners.'),
       cae: L('La última… y me voy.', 'One last… and I go.'),
+      pega: [L('¡Salud! A la tuya, digo.', 'Cheers! To yours, I mean.'), L('Tomá, de la casa.', 'Here, on the house.')],
+      duele: L('¡Me volcaste la copa!', 'You spilled my cup!'),
     },
   },
 };

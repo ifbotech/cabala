@@ -1,6 +1,8 @@
 // La mano: una fila respirada de naipes grandes con física de resorte. Cada carta flota con su propio desfase, se
 // levanta al elegirla y se inclina hacia el cursor; se puede ARRASTRAR una carta (o el grupo elegido) sobre el
 // enemigo para golpear, o sobre el descarte para descartar. También se juega con clic, teclado y mando.
+// Con el dedo, el grupo va levantado por encima de la yema (no la tapa ni tapa al enemigo), cada zona avisa con una
+// vibración corta y un gesto que el sistema cancela devuelve las cartas a la mano sin jugar nada.
 import type { Carta } from '../rules/cartas';
 import { t } from './almacen';
 import { quieto as todoQuieto } from './ritmo';
@@ -50,13 +52,34 @@ export interface Mano {
   destruir(): void;
 }
 
+/** Con el dedo, cuánto sube el centro del grupo arrastrado por encima de la yema (px). */
+const ALZA = 70;
+/** Con el dedo, lo que tiene que subir la yema para que las cartas que lleva encima apunten al enemigo (px). */
+const SUBIDA = 40;
+/** Lo que tiene que quedar tocable de cada carta de la fila de atrás (px). */
+const DIANA = 48;
+
+/** Una vibración corta (solo con el dedo, si el aparato vibra y no se pidió «Reducir movimiento»). */
+function vibrar(): void {
+  if (todoQuieto()) return;
+  const nav = navigator as Navigator & { userActivation?: { hasBeenActive: boolean } };
+  // sin un toque previo el navegador la bloquea (y lo anota en la consola): no se pide
+  if (nav.userActivation && !nav.userActivation.hasBeenActive) return;
+  try {
+    nav.vibrate?.(8);
+  } catch {
+    // sin vibración: nada que hacer
+  }
+}
+
 const orden = (a: Carta, b: Carta) => Number(a.palo === 'X') - Number(b.palo === 'X') || a.n - b.n || 'SCDH'.indexOf(a.palo) - 'SCDH'.indexOf(b.palo) || a.id.localeCompare(b.id);
 
 export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
   let naipes: Naipe[] = [];
   let bloqueada = false;
   let viva = true;
-  let arrastre: { ids: string[]; dx: number; dy: number; x: number; y: number; zona: Zona | null } | null = null;
+  /** `alza`: lo que el centro del grupo va por encima del dedo (0 con ratón o lápiz); crece al alejarse de donde se tomó. */
+  let arrastre: { ids: string[]; dx: number; dy: number; x: number; y: number; zona: Zona | null; tactil: boolean; alza: number } | null = null;
   let presion: { id: string; x: number; y: number; puntero: number } | null = null;
   let cursor: { x: number; y: number } | null = null;
   let ultimo = performance.now();
@@ -85,17 +108,19 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
     // parte de arriba de cada naipe (su número y sus primeras pintas) y ninguna tapa de costado a otra
     if (n > 1 && paso < w * 0.8 && alto >= h * 1.4) {
       const atras = Math.ceil(n / 2);
-      const fila = (cuantas: number, desde: number, y: number): void => {
+      // la de adelante, al elegirse, sube solo lo que deja tocable (≥ 48 px) a la carta de atrás que tiene encima
+      const subeDelante = Math.max(0, Math.min(sube, base - sube - DIANA));
+      const fila = (cuantas: number, desde: number, y: number, alza: number): void => {
         const p2 = cuantas > 1 ? Math.min(w + hueco, (ancho - w) / (cuantas - 1)) : 0;
         const t2 = cuantas > 1 ? p2 * (cuantas - 1) + w : w;
         const x2 = Math.round((ancho - t2) / 2);
         for (let j = 0; j < cuantas; j++) {
           const c = naipes[desde + j];
-          out.set(c.carta.id, { x: Math.round(x2 + j * p2), y: y - (c.elegida ? sube : 0) });
+          out.set(c.carta.id, { x: Math.round(x2 + j * p2), y: y - (c.elegida ? alza : 0) });
         }
       };
-      fila(atras, 0, sube);
-      fila(n - atras, atras, base);
+      fila(atras, 0, sube, sube);
+      fila(n - atras, atras, base, subeDelante);
       return out;
     }
     naipes.forEach((c, i) => out.set(c.carta.id, { x: Math.round(x0 + i * paso), y: base - (c.elegida ? sube : 0) }));
@@ -140,7 +165,10 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
         // el grupo sigue al cursor, abierto en abanico chico
         const medio = (arrastre.ids.length - 1) / 2;
         tx = arrastre.x - caja.left - arrastre.dx + (enGrupo - medio) * 34 * k;
-        ty = arrastre.y - caja.top - arrastre.dy - Math.abs(enGrupo - medio) * -4 * k;
+        // con el dedo, el grupo se despega de donde se lo tomó hasta quedar entero por encima de la yema (su centro,
+        // `ALZA` px más arriba): el dedo no tapa las cartas
+        const dy = arrastre.dy + (70 * k + ALZA - arrastre.dy) * (arrastre.alza / ALZA);
+        ty = arrastre.y - caja.top - dy - Math.abs(enGrupo - medio) * -4 * k;
         trot = (enGrupo - medio) * 4 + c.vx * 0.01;
         z = 100 + enGrupo;
       } else if (posado && enPose >= 0) {
@@ -205,13 +233,26 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
     oye.alCambiar(elegidas());
   };
 
-  function zonaEn(x: number, y: number): Zona | null {
+  /** Sobre qué zona está el grupo. Con el dedo (`alza` > 0) al enemigo se le apunta con las cartas, que van por
+   * encima de la yema, o con la yema misma; al descarte, que queda bajo la mano, siempre con la yema. `subio`: lo que
+   * la yema lleva subido desde donde tomó la carta. */
+  function zonaEn(x: number, y: number, alza = 0, subio = 0): Zona | null {
     const z = oye.zonas();
-    for (const nombre of ['enemigo', 'descarte'] as Zona[]) {
-      const r = z[nombre];
-      if (r && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return nombre;
-    }
+    const dentro = (r: DOMRect | undefined, py: number): boolean => !!r && r.width > 0 && r.height > 0 && x >= r.left && x <= r.right && py >= r.top && py <= r.bottom;
+    // (las cartas solo apuntan si el dedo subió de verdad: un toque que resbala de costado no golpea)
+    if (dentro(z.enemigo, y) || (alza > 0 && subio >= SUBIDA && dentro(z.enemigo, y - alza))) return 'enemigo';
+    if (dentro(z.descarte, y)) return 'descarte';
     return null;
+  }
+  /** Termina el arrastre y devuelve lo que llevaba (las cartas vuelven solas a su sitio). */
+  function soltarGrupo(): { zona: Zona | null; ids: string[]; tactil: boolean } | null {
+    if (!arrastre) return null;
+    const { zona, ids, tactil } = arrastre;
+    arrastre = null;
+    raiz.classList.remove('arrastrando');
+    document.body.classList.remove('arrastrando');
+    oye.alApuntar(null, ids);
+    return { zona, ids, tactil };
   }
 
   // ── puntero: clic para elegir, arrastre para jugar
@@ -240,16 +281,19 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
         oye.alCambiar(elegidas());
       }
       const caja = raiz.getBoundingClientRect();
-      arrastre = { ids: elegidas(), dx: presion.x - caja.left - c.x, dy: presion.y - caja.top - c.y, x: ev.clientX, y: ev.clientY, zona: null };
+      arrastre = { ids: elegidas(), dx: presion.x - caja.left - c.x, dy: presion.y - caja.top - c.y, x: ev.clientX, y: ev.clientY, zona: null, tactil: ev.pointerType === 'touch', alza: 0 };
       raiz.classList.add('arrastrando');
       document.body.classList.add('arrastrando');
     }
     arrastre.x = ev.clientX;
     arrastre.y = ev.clientY;
-    const zona = zonaEn(ev.clientX, ev.clientY);
+    // con el dedo el grupo se despega de la yema a medida que se aleja de donde se tomó (sin salto al empezar)
+    if (arrastre.tactil) arrastre.alza = Math.max(arrastre.alza, Math.min(ALZA, Math.hypot(ev.clientX - presion.x, ev.clientY - presion.y) * 1.5));
+    const zona = zonaEn(ev.clientX, ev.clientY, arrastre.alza, presion.y - ev.clientY);
     if (zona !== arrastre.zona) {
       arrastre.zona = zona;
       oye.alApuntar(zona, arrastre.ids);
+      if (zona && arrastre.tactil) vibrar();
     }
   };
   const arriba = (ev: PointerEvent) => {
@@ -261,16 +305,25 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
     } catch {
       // ya estaba suelto
     }
-    if (arrastre) {
-      const { zona, ids } = arrastre;
-      arrastre = null;
-      raiz.classList.remove('arrastrando');
-      document.body.classList.remove('arrastrando');
-      oye.alApuntar(null, ids);
-      oye.alSoltar(zona, ids);
+    const suelto = soltarGrupo();
+    if (suelto) {
+      if (suelto.zona && suelto.tactil) vibrar();
+      oye.alSoltar(suelto.zona, suelto.ids);
       return;
     }
-    if (ev.type === 'pointerup') alternar(id);
+    alternar(id);
+  };
+  /** El sistema canceló el gesto (una llamada, un gesto del borde, la palma): las cartas vuelven a la mano y no se
+   * golpea ni se descarta, aunque el grupo estuviera sobre una zona. */
+  const cancela = (ev: PointerEvent) => {
+    if (!presion || ev.pointerId !== presion.puntero) return;
+    presion = null;
+    try {
+      raiz.releasePointerCapture(ev.pointerId);
+    } catch {
+      // ya estaba suelto
+    }
+    soltarGrupo();
   };
   const sale = () => {
     cursor = null;
@@ -285,7 +338,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
   raiz.addEventListener('pointerdown', abajo);
   raiz.addEventListener('pointermove', mueve);
   raiz.addEventListener('pointerup', arriba);
-  raiz.addEventListener('pointercancel', arriba);
+  raiz.addEventListener('pointercancel', cancela);
   raiz.addEventListener('pointerleave', sale);
   raiz.addEventListener('keydown', tecla);
   raiz.addEventListener('cabala:alternar', ((ev: CustomEvent<string>) => alternar(ev.detail)) as EventListener);
@@ -376,7 +429,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
       raiz.removeEventListener('pointerdown', abajo);
       raiz.removeEventListener('pointermove', mueve);
       raiz.removeEventListener('pointerup', arriba);
-      raiz.removeEventListener('pointercancel', arriba);
+      raiz.removeEventListener('pointercancel', cancela);
       raiz.removeEventListener('pointerleave', sale);
       raiz.removeEventListener('keydown', tecla);
     },

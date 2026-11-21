@@ -1,7 +1,7 @@
 // Las pantallas del camino, todas atendidas por el Bufón: el Mapa ramificado, el Botín y su «ELEGÍ UNA», la
 // Pulpería, el Fogón, la Cábala del Bufón y el final de la partida. Abajo, siempre, el HUD del jugador.
-import { AMULETO, RAREZA_NOMBRE } from '../../rules/amuletos';
-import { AUMENTO, NIVEL_NOMBRE } from '../../rules/aumentos';
+import { AMULETO, AMULETOS, RAREZA_NOMBRE } from '../../rules/amuletos';
+import { AUMENTO, AUMENTOS, NIVEL_NOMBRE } from '../../rules/aumentos';
 import type { AmuletoId } from '../../rules/amuletos';
 import { B } from '../../rules/balance';
 import { CABALA, HUMOR_NOMBRE, humorDe, suerte } from '../../rules/bufon';
@@ -13,7 +13,7 @@ import { COLUMNAS, PISOS } from '../../rules/mapa';
 import { MAZO } from '../../rules/mazos';
 import * as juego from '../../rules/partida';
 import { ver } from '../../rules/perfil';
-import { BENDICION, REY_DEF } from '../../rules/reyes';
+import { BENDICION, BENDICIONES, REY_DEF } from '../../rules/reyes';
 import type { BendicionId } from '../../rules/reyes';
 import { clavePieza } from '../../rules/notas';
 import { alAzar, idioma, perfil, t, tx } from '../almacen';
@@ -214,7 +214,7 @@ export function pantallaMapa(p: Partida): Pantalla {
         const [x2, y2] = lugar(b);
         const hecho = p.camino.includes(a.id) && p.camino.includes(b.id);
         const vivo = a.id === p.pos && abiertos.includes(b.id);
-        return `<line x1="${(x1 * 1000).toFixed(0)}" y1="${(y1 * 1000).toFixed(0)}" x2="${(x2 * 1000).toFixed(0)}" y2="${(y2 * 1000).toFixed(0)}" class="${hecho ? 'hecho' : vivo ? 'vivo' : ''}"/>`;
+        return `<line x1="${(x1 * 1000).toFixed(0)}" y1="${(y1 * 1000).toFixed(0)}" x2="${(x2 * 1000).toFixed(0)}" y2="${(y2 * 1000).toFixed(0)}" pathLength="100" style="--fila:${Math.round((1 - Math.max(y1, y2)) * 10)}" class="${hecho ? 'hecho' : vivo ? 'vivo' : ''}"/>`;
       }),
     );
     return `<svg class="mapa-lineas" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">${trazos.join('')}</svg>`;
@@ -265,14 +265,10 @@ const TITULO_OFERTA = { bendicion: 'elegiBendicion', amuleto: 'elegiAmuleto', au
 const NOMBRE_OFERTA = { bendicion: 'bendicionDe', amuleto: 'amuletoNuevo', aumento: 'cabalaNueva' } as const;
 
 /** El modal gigante «ELEGÍ UNA»: tres opciones (con su etiqueta de sinergia, si la hay) y Saltar. */
-function modalOferta(p: Partida, indice: number, alTerminar: () => void): void {
-  const item = p.botin!.items[indice] as Extract<ItemBotin, { t: 'oferta' }>;
-  const oferta: Oferta = item.oferta;
-  for (const id of oferta.opciones) ver(perfil, clavePieza(oferta.tipo, id));
+/** El cuerpo de «ELEGÍ UNA» (lo usa el modal y también el precalentado de la GPU). */
+function ofertaHtml(p: Partida, oferta: Oferta, fraseRey: string): string {
   const reyes = oferta.tipo === 'bendicion' ? oferta.opciones.map((id) => BENDICION[id as BendicionId].rey) : [];
-  for (const r of reyes) ver(perfil, `r:${r}`);
   const habla = reyes[0];
-  const fraseRey = habla ? tx(alAzar(REY_DEF[habla].voz.ofrece, fijo())) : '';
   const cabeza =
     oferta.tipo === 'bendicion' && habla
       ? `<p class="bocadillo sin-cola oferta-voz"><b>${esc(tx(REY_DEF[habla].apodo))}:</b> <span data-teclea>${esc(fraseRey)}</span></p>`
@@ -290,13 +286,52 @@ function modalOferta(p: Partida, indice: number, alTerminar: () => void): void {
       <span class="op-sinergia">${sinergiaHtml(oferta.tipo, id, p)}</span>
     </button>`;
   };
-  const velo = abrirModal(
-    `<div class="oferta o-${oferta.tipo}" data-oferta="${oferta.tipo}">
+  return `<div class="oferta o-${oferta.tipo}" data-oferta="${oferta.tipo}">
       <h2 class="titulo oferta-titulo">${t(TITULO_OFERTA[oferta.tipo])}</h2>
       ${cabeza}
       <div class="opciones">${oferta.opciones.map(opcion).join('')}</div>
       <button class="btn marco chico" data-accion="saltar" data-foco="saltar">${t('saltar', { n: B.botin.saltar })}</button>
-    </div>`,
+    </div>`;
+}
+
+/**
+ * Precalentado: la primera vez que la GPU pinta «ELEGÍ UNA» compila sus sombreadores y cuesta un cuadro de más de
+ * 100 ms, justo cuando llega el premio. Al entrar a la mesa (bajo la cortina) se pinta una vez, casi invisible, una
+ * oferta de cada tipo; después el modal de verdad brota sin tirón.
+ */
+let ofertasCalientes = false;
+export function calentarOfertas(p: Partida): void {
+  if (ofertasCalientes || quieto()) return;
+  ofertasCalientes = true;
+  // unas pocas de cada tipo, repartidas por la lista: así entran todos los marcos (rarezas, niveles y los cuatro Reyes)
+  const repartidas = (l: readonly string[]): string[] => [0, 1, 2, 3].map((i) => l[Math.floor((i * (l.length - 1)) / 3)]);
+  const muestras: Oferta[] = [
+    { tipo: 'bendicion', opciones: repartidas(BENDICIONES) },
+    { tipo: 'amuleto', opciones: repartidas(AMULETOS) },
+    { tipo: 'aumento', opciones: repartidas(AUMENTOS) },
+  ];
+  const el = document.createElement('div');
+  el.className = 'calienta';
+  el.setAttribute('aria-hidden', 'true');
+  el.inert = true;
+  el.innerHTML = muestras.map((o) => `<div class="velo-c recien">${ofertaHtml(p, o, '…').replaceAll('data-foco=', 'data-x=').replaceAll('data-accion=', 'data-y=').replaceAll('data-inicio', '')}</div>`).join('');
+  // y lo que el golpe estrena: los fogonazos, el nombre que sube, la ficha que dispara y el naipe que salta
+  el.insertAdjacentHTML('beforeend', '<i class="fogonazo f-oro"></i><i class="fogonazo f-blanco"></i><b class="c-vuela v-x">×2</b><b class="c-vuela v-d">+1</b><span class="hud"><span class="ficha dispara" style="display:inline-block;width:40px;height:40px;background:#555"></span></span><div class="carta cuenta-pop" style="position:absolute;left:0;top:0;width:60px;height:90px;background:#ccc"></div>');
+  $('#capa')?.append(el);
+  el.querySelectorAll('.opcion').forEach((b, i) => b.classList.toggle('caliente-foco', i % 2 === 0));
+  setTimeout(() => el.remove(), 900);
+}
+
+function modalOferta(p: Partida, indice: number, alTerminar: () => void): void {
+  const item = p.botin!.items[indice] as Extract<ItemBotin, { t: 'oferta' }>;
+  const oferta: Oferta = item.oferta;
+  for (const id of oferta.opciones) ver(perfil, clavePieza(oferta.tipo, id));
+  const reyes = oferta.tipo === 'bendicion' ? oferta.opciones.map((id) => BENDICION[id as BendicionId].rey) : [];
+  for (const r of reyes) ver(perfil, `r:${r}`);
+  const habla = reyes[0];
+  const fraseRey = habla ? tx(alAzar(REY_DEF[habla].voz.ofrece, fijo())) : '';
+  const velo = abrirModal(
+    ofertaHtml(p, oferta, fraseRey),
     {
       elegir: (el) => {
         const id = el.dataset.id!;
@@ -564,8 +599,8 @@ export function pantallaFogon(p: Partida): Pantalla {
       <div class="cuerpo">
         ${anfitrion(tx(alAzar(VOZ.fogon, fijo())), 'reposo')}
         <div class="opciones">
-          <button class="opcion marco paloH" data-accion="descansar" data-foco="descansar" data-inicio ${p.fogonHecho ? 'disabled' : ''}>
-            <span class="op-icono grande">${pxNodo('fogon')}</span><b class="op-nombre">${t('descansar')}</b><span class="op-desc">${t('descansarDesc', { n: cura })}</span>
+          <button class="opcion marco paloH" data-accion="descansar" data-foco="descansar" ${p.vida >= p.vidaMax ? '' : 'data-inicio'} ${p.fogonHecho || p.vida >= p.vidaMax ? 'disabled' : ''}>
+            <span class="op-icono grande">${pxNodo('fogon')}</span><b class="op-nombre">${t('descansar')}</b><span class="op-desc">${p.vida >= p.vidaMax ? t('vidaLlena') : t('descansarDesc', { n: cura })}</span>
           </button>
           ${fuegoHtml()}
         </div>

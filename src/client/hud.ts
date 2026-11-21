@@ -203,6 +203,27 @@ export function gestoRetrato(g: Gesto, ms = 900): void {
 }
 export const repintarCara = pintarCara;
 
+/** Una pose del retrato entero (el cuerpo acompaña al gesto): festeja a los saltos, tiembla de miedo o guiña. */
+export function poseRetrato(pose: 'festeja' | 'tiembla' | 'guina', ms = 900): void {
+  const el = $('.hud-retrato');
+  if (!el || enFoto() || ajustes.calma) return;
+  el.classList.remove('festeja', 'tiembla', 'guina');
+  void el.offsetWidth;
+  el.classList.add(pose);
+  window.setTimeout(() => el.classList.remove(pose), ms);
+}
+
+/** La ficha de una pieza en la bandeja pega un brinco (dispara en el conteo). Devuelve su centro, o null si no está a la vista. */
+export function dispararFicha(pieza: string): { x: number; y: number } | null {
+  const el = $<HTMLElement>(`.hud [data-pieza="${pieza}"]`);
+  if (!el || el.hidden || !el.offsetParent) return null;
+  el.classList.remove('dispara');
+  void el.offsetWidth;
+  el.classList.add('dispara');
+  const rc = el.getBoundingClientRect();
+  return { x: rc.left + rc.width / 2, y: rc.top };
+}
+
 /** El Personaje grita algo: un bocadillo corto sobre su retrato, con su voz, que se va solo. */
 export function gritar(mazo: MazoId, texto: string): void {
   const retrato = $('.hud-retrato');
