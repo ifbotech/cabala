@@ -482,6 +482,16 @@ export const SEGUNDA_CORTA: Record<Palo, Par> = {
   D: P(`Cada golpe suyo: −${Math.round(B.reyes.D.remate * 100)} % de tu oro`, `Each hit he lands: −${Math.round(B.reyes.D.remate * 100)}% of your gold`),
   H: P(`Lo que te curás, él se cura ×${B.reyes.H.ultimaRonda}`, `Whatever you heal, he heals ×${B.reyes.H.ultimaRonda}`),
 };
+/**
+ * El rasgo de cada Rey (su primera cara) en un renglón corto, a la vista bajo su nombre como la segunda cara (la regla
+ * entera, al inspeccionarlo). Las cifras salen del balance.
+ */
+export const RASGO_CORTA: Record<Palo, Par> = {
+  S: P('Medio golpe suyo cruza tu Escudo', 'Half his hit cuts through your Shield'),
+  C: P(`Recupera ${B.reyes.C.regenera} de Escudo por turno`, `Regains ${B.reyes.C.regenera} Shield per turn`),
+  D: P(`Cada golpe suyo: −${B.reyes.D.diezmo} de oro`, `Each hit he lands: −${B.reyes.D.diezmo} gold`),
+  H: P(`Se cura ${B.reyes.H.cura} por turno`, `Heals ${B.reyes.H.cura} per turn`),
+};
 /** Lo que el Bufón dice al voltearse un Rey: una burla de cinco palabras como mucho (la regla entera, en el chip y en su ayuda). */
 export const SEGUNDA_BURLA: Record<Palo, Par> = {
   S: P('Ojo: no repitas jugada.', "Careful: don't repeat plays."),

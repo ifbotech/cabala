@@ -5,7 +5,7 @@
 import type { Palo } from '../../rules/cartas';
 import { cifraMapa, type TonoCifra } from '../pixel/cifras';
 import { lienzo } from '../sprites';
-import { aCelda, azar, disco, efecto, entre, type Ctx, type Efecto } from './motor';
+import { S, aCelda, azar, disco, efecto, entre, type Ctx, type Efecto } from './motor';
 
 /** Rampas de cada palo, del cuadro blanco del impacto a la brasa que se apaga. */
 export const RAMPA_PALO: Record<Palo | 'X', string[]> = {
@@ -266,13 +266,19 @@ export function limpiarNumeros(): void {
   for (const n of enVuelo) n.apagar();
   enVuelo.clear();
 }
-export function numero(texto: string | number, x: number, y: number, tono: TonoCifra = 'hueso', escala = 1): void {
-  const glifos = [...String(texto).replace('×', 'x').replace('−', '-')].map((ch) => lienzo(`cf:${tono}:${ch}`, () => cifraMapa(ch, tono)));
+const glifosDe = (texto: string | number, tono: TonoCifra) => [...String(texto).replace('×', 'x').replace('−', '-')].map((ch) => lienzo(`cf:${tono}:${ch}`, () => cifraMapa(ch, tono)));
+/** Lo que mide un número de `numero` en píxeles de pantalla (para apartarlo de sus vecinos antes de soltarlo). */
+export function medidaNumero(texto: string | number, escala = 1): { w: number; h: number } {
+  const g = glifosDe(texto, 'hueso');
+  return { w: g.reduce((s, x) => s + x.width - 1, 0) * escala * S, h: (g[0]?.height ?? 9) * escala * S };
+}
+export function numero(texto: string | number, x: number, y: number, tono: TonoCifra = 'hueso', escala = 1, o: { alinear?: 'centro' | 'derecha'; vx?: number } = {}): void {
+  const glifos = glifosDe(texto, tono);
   const ancho = glifos.reduce((s, g) => s + g.width - 1, 0) * escala;
   // dentro de la pantalla: un número sobre una ficha de la esquina no se sale por el borde
-  let px = Math.max(1, Math.min(aCelda(innerWidth) - ancho - 1, aCelda(x) - ancho / 2));
+  let px = Math.max(1, Math.min(aCelda(innerWidth) - ancho - 1, aCelda(x) - (o.alinear === 'derecha' ? ancho : ancho / 2)));
   let py = aCelda(y);
-  let vx = entre(-14, 14);
+  let vx = o.vx ?? entre(-14, 14);
   let vy = -70;
   let t = 0;
   const T = 0.95;

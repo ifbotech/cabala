@@ -2444,6 +2444,19 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     0 calc(8px * var(--k)) 0 #09070f;
   animation: cartel-segunda 1.5s steps(20) both;
 }
+/* 0.19: se pliega en dos pasos apenas el Rey va a pegar (no queda encima de él) */
+.cartel-segunda.se-va {
+  animation: cartel-se-va 0.12s steps(2) both;
+}
+@keyframes cartel-se-va {
+  from {
+    scale: 1 1;
+  }
+  to {
+    scale: 1 0;
+    opacity: 0;
+  }
+}
 .cartel-segunda .rotulo {
   font-size: var(--fr);
   color: var(--hueso);
@@ -2691,12 +2704,30 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 /* ───────────── 0.17.0 · nada se tapa: la cara del Rey, el Tajo que dice la verdad y la caída sin baches ───────────── */
 
 /* ── la segunda cara (y el rasgo) del Rey: su nombre y, debajo, su regla en un renglón corto, siempre a la vista ── */
+.mesa .e-rasgo.e-primera,
 .mesa .e-rasgo.e-segunda {
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
   padding: 4px 10px 5px;
+  cursor: help;
+}
+/* 0.19: la primera cara, con la misma forma que la segunda (nombre y regla corta), en oro y quieta */
+.mesa .e-rasgo.e-primera {
+  background: #2a1706;
+  color: #fff3e0;
+  box-shadow:
+    0 0 0 2px #ffd500,
+    0 0 0 4px #09070f;
+}
+.mesa .e-rasgo.e-primera .e-seg-nombre {
+  color: #ffd500;
+}
+.mesa .e-rasgo.e-primera .e-regla {
+  color: #fff3e0;
+}
+.mesa .e-rasgo.e-segunda {
   background: #4a0818;
   color: #fff3e0;
   /* el latido va en píxel: un borde de 2 px que alterna dos tintas (sin halo borroso) */
@@ -2704,7 +2735,6 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     0 0 0 2px #ff4d6d,
     0 0 0 4px #09070f;
   animation: segunda-borde 1.2s steps(1) infinite;
-  cursor: help;
 }
 @keyframes segunda-borde {
   50% {
@@ -2841,6 +2871,7 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 
 /* ── teléfono: la segunda cara va debajo de la barra, centrada, con su regla ── */
 @media (max-width: 700px) {
+  .mesa .e-rasgo.e-primera,
   .mesa .e-rasgo.e-segunda {
     align-items: center;
     padding: 2px 8px 3px;
@@ -3339,4 +3370,194 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 .c-formula > .c-revelado {
   flex: none;
   margin: 0 calc(var(--u) * 0.75);
+}
+
+/* ───────────── 0.19.0 · la mesa quieta, el foco inconfundible y el crítico adentro de la cuenta ───────────── */
+
+/* ── el Crítico vive en su término del MULTI: «¡CRÍTICO! ×2» en oro; el conteo lo hace estallar en su lugar ── */
+.c-desglose .d-t.d-critico .d-crit {
+  font-family: var(--rot);
+  color: var(--oro);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.c-desglose .d-t.d-critico .d-v {
+  color: var(--oro);
+}
+.c-desglose .d-t.d-critico {
+  padding: 0 3px;
+  background: #3a2600;
+  box-shadow: 0 0 0 2px #c99a00;
+}
+.c-desglose .d-t.d-critico.estalla {
+  animation: critico-estalla 0.5s steps(6);
+}
+@keyframes critico-estalla {
+  0% {
+    scale: 1.6;
+    filter: brightness(2.4);
+    box-shadow: 0 0 0 4px #fff799;
+  }
+  35% {
+    scale: 0.94;
+  }
+  65% {
+    scale: 1.1;
+    filter: brightness(1.4);
+  }
+  100% {
+    scale: 1;
+  }
+}
+/* y el MULTI de la fórmula se enciende en oro un instante cuando el ×2 entra */
+.c-parte[data-cm].critico {
+  animation: multi-critico 0.5s steps(5);
+}
+@keyframes multi-critico {
+  0% {
+    scale: 1.35;
+    filter: brightness(2) sepia(1) saturate(4) hue-rotate(5deg);
+  }
+  100% {
+    scale: 1;
+  }
+}
+/* el total se asienta sin pisar a sus vecinos (el MULTI y la CURA): cae desde arriba y apenas crece */
+@keyframes total-asienta {
+  0% {
+    translate: 0 -0.55em;
+    scale: 1.18;
+    filter: brightness(2);
+  }
+  40% {
+    translate: 0 0;
+    scale: 0.96;
+  }
+  65% {
+    scale: 1.05;
+    filter: brightness(1.3);
+  }
+  100% {
+    scale: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .c-desglose .d-t.d-critico.estalla,
+  .c-parte[data-cm].critico {
+    animation: none;
+  }
+}
+
+/* ── el foco y la selección, cada uno con su canal: la carta ELEGIDA sube y lleva su canto de oro; la ENFOCADA (mando
+   o teclado) no crece ni se corre: lleva un marco celeste que late (separado del papel por un filo de tinta) y una
+   flecha celeste clavada en su canto de arriba. Las dos a la vez: el oro adentro y el celeste afuera. Celeste y no
+   hueso: sobre el papel hueso del naipe, un marco hueso no se ve ── */
+.mesa {
+  --foco: #7df3ff;
+  --foco-2: #e8fdff;
+}
+.carta:focus-visible .px {
+  transform: none;
+  box-shadow:
+    0 0 0 calc(1px * var(--k-naipe)) #09070f,
+    0 0 0 calc(3px * var(--k-naipe)) var(--foco),
+    0 0 0 calc(4px * var(--k-naipe)) #09070f;
+  animation: foco-late 0.8s steps(1) infinite;
+}
+.carta.elegida:focus-visible .px {
+  box-shadow:
+    0 0 0 calc(2px * var(--k-naipe)) var(--oro),
+    0 0 0 calc(3px * var(--k-naipe)) #09070f,
+    0 0 0 calc(5px * var(--k-naipe)) var(--foco),
+    0 0 0 calc(6px * var(--k-naipe)) #09070f;
+  animation: foco-late-elegida 0.8s steps(1) infinite;
+}
+@keyframes foco-late {
+  50% {
+    box-shadow:
+      0 0 0 calc(1px * var(--k-naipe)) #09070f,
+      0 0 0 calc(3px * var(--k-naipe)) var(--foco-2),
+      0 0 0 calc(4px * var(--k-naipe)) #09070f;
+  }
+}
+@keyframes foco-late-elegida {
+  50% {
+    box-shadow:
+      0 0 0 calc(2px * var(--k-naipe)) var(--oro),
+      0 0 0 calc(3px * var(--k-naipe)) #09070f,
+      0 0 0 calc(5px * var(--k-naipe)) var(--foco-2),
+      0 0 0 calc(6px * var(--k-naipe)) #09070f;
+  }
+}
+.mano .carta:focus-visible .c-indice {
+  transform: none;
+}
+/* la flecha del foco: un chevron de 11 × 7 celdas, celeste con su canto de tinta, a caballo del canto de arriba */
+.carta:focus-visible::before {
+  content: '';
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  top: calc(-8px * var(--k-naipe));
+  width: calc(11px * var(--k-naipe) * 2);
+  height: calc(7px * var(--k-naipe) * 2);
+  translate: -50% 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 7' shape-rendering='crispEdges'%3E%3Cpath fill='%2309070f' d='M0 0h11v2h-1v1H9v1H8v1H7v1H6v1H5V6H4V5H3V4H2V3H1V2H0z'/%3E%3Cpath fill='%237df3ff' d='M1 1h9v1H9v1H8v1H7v1H6v1H5V5H4V4H3V3H2V2H1z'/%3E%3Cpath fill='%23e8fdff' d='M2 1h3v1H2z'/%3E%3Cpath fill='%232fa8c8' d='M7 2h2v1H7zM6 4h1v1H6z'/%3E%3C/svg%3E") 0 0 / 100% 100%;
+  image-rendering: pixelated;
+  pointer-events: none;
+  animation: foco-flecha 0.8s steps(1) infinite;
+}
+@keyframes foco-flecha {
+  50% {
+    translate: -50% calc(2px * var(--k-naipe));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .carta:focus-visible .px,
+  .carta.elegida:focus-visible .px,
+  .carta:focus-visible::before {
+    animation: none;
+  }
+}
+/* ── la Steam Deck y el portátil (1100–1699 px): la mesa no salta al elegir la primera carta (la cuenta tiene siempre
+   el alto de la previa: la pista de reposo va centrada en ese mismo hueco); las elegidas suben enteras sobre el HUD; La
+   Corte va en una fila (su pila y, al costado, el rótulo y cuántos quedan), al pie de la escena, lejos de JUGADAS ── */
+@media (min-width: 1100px) and (max-width: 1699px) {
+  .mesa [data-cuenta] {
+    min-height: 104px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .mesa .mano {
+    margin-bottom: calc(-16px * var(--k-naipe));
+  }
+  .mesa .corte {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-areas:
+      'pila rot'
+      'pila quedan';
+    align-content: center;
+    align-items: center;
+    column-gap: calc(var(--u) * 1.25);
+    row-gap: 2px;
+    align-self: end;
+    margin-bottom: 4px;
+  }
+  .mesa .corte > .rotulo:first-child {
+    grid-area: rot;
+    align-self: end;
+  }
+  .mesa .corte > .corte-pila {
+    grid-area: pila;
+  }
+  .mesa .corte > .corte-quedan {
+    grid-area: quedan;
+    align-self: start;
+  }
+  .mesa .corte > .corte-n {
+    display: none;
+  }
 }

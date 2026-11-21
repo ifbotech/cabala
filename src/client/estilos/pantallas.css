@@ -2736,3 +2736,52 @@ button.visor-carta:disabled {
     flex: 1 1 auto;
   }
 }
+
+/* ───────────── 0.19.0 · el Botín del Rey con sus cinco piezas ───────────── */
+/* con cuatro piezas o más, cada pieza se angosta (y su dibujo baja a 2×): el panel deja su columna al Bufón y a su
+   bocadillo, que no quedan tapados */
+@media (min-width: 701px) {
+  .botin:not(.directo) .botin-lista:has(> :nth-child(4)) {
+    gap: calc(var(--u) * 1.25);
+  }
+  .botin:not(.directo) .botin-lista:has(> :nth-child(4)) > .botin-fila.bp {
+    --kp: 2;
+    width: calc(var(--fr) * 6.8);
+  }
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  .botin:not(.directo) .botin-lista:has(> :nth-child(4)) > .botin-fila.bp {
+    --kp: 4;
+  }
+}
+/* el teléfono: cada pieza en su renglón, con el dibujo a la izquierda, el nombre y (si lo tiene) su porqué debajo, y
+   la marca de cobrado o ELEGIR a la derecha: ningún rótulo pasa de dos renglones ni queda flotando al costado */
+@media (max-width: 700px) {
+  .botin-fila.bp {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'arte nombre fin'
+      'arte pie fin';
+    align-items: center;
+    column-gap: var(--u);
+    row-gap: 0;
+  }
+  .botin-fila.bp > .bp-arte {
+    grid-area: arte;
+  }
+  .botin-fila.bp > .bp-nombre {
+    grid-area: nombre;
+  }
+  .botin-fila.bp:not(:has(> .bp-pie)) > .bp-nombre {
+    grid-row: 1 / span 2;
+  }
+  .botin-fila.bp > .bp-pie {
+    grid-area: pie;
+    align-self: start;
+  }
+  .botin-fila.bp > .bp-cobrado,
+  .botin-fila.bp > .btn {
+    grid-area: fin;
+  }
+}

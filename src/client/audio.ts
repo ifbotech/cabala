@@ -74,6 +74,14 @@ const SONIDO = {
   grieta: [[420, 0.03, 'sawtooth', 0.12, 180], [95, 0.06, 'square', 0.14, 50]],
   // el total de la cuenta que se revela: un sello hondo y el acorde que lo corona
   revela: [[98, 0.09, 'square', 0.24, 49], [523, 0.06, 'square', 0.12], [784, 0.08, 'square', 0.12], [1047, 0.22, 'triangle', 0.16]],
+  // el Crítico que estalla en su término del MULTI: un hachazo seco y dos notas de oro que suben
+  critico: [[140, 0.05, 'square', 0.22, 60], [1175, 0.05, 'square', 0.13], [1760, 0.12, 'square', 0.13]],
+  // la capa de cada palo sobre el golpe (0.19): el acero de Espadas canta, el palo de Bastos suena a madera, el Oro
+  // tintinea y la Copa salpica (su ruido va en RUIDO)
+  paloS: [[2093, 0.05, 'square', 0.07, 1900], [2637, 0.1, 'triangle', 0.08]],
+  paloC: [[196, 0.04, 'triangle', 0.22, 120], [131, 0.07, 'triangle', 0.2, 90]],
+  paloD: [[1568, 0.035, 'square', 0.08], [2349, 0.06, 'triangle', 0.08], [1976, 0.08, 'triangle', 0.07]],
+  paloH: [[392, 0.06, 'triangle', 0.12, 260]],
 } satisfies Record<string, Nota[]>;
 
 /** Las capas de ruido: el transitorio que hace que un golpe pegue y no suene a pitido. */
@@ -101,12 +109,16 @@ const RUIDO: Partial<Record<keyof typeof SONIDO | 'segunda', Ruido[]>> = {
   grieta: [{ dur: 0.07, vol: 0.32, filtro: 'highpass', corte: 2600, hasta: 1200 }],
   revela: [{ dur: 0.05, vol: 0.34, filtro: 'bandpass', corte: 1300, q: 0.8 }, { dur: 0.18, vol: 0.2, filtro: 'lowpass', corte: 500, hasta: 100 }],
   segunda: [{ dur: 0.8, vol: 0.26, filtro: 'bandpass', corte: 400, hasta: 3000, q: 1.5 }],
+  critico: [{ dur: 0.06, vol: 0.34, filtro: 'bandpass', corte: 2200, q: 1.2 }],
+  paloS: [{ dur: 0.12, vol: 0.18, filtro: 'bandpass', corte: 6000, hasta: 3500, q: 6 }],
+  paloC: [{ dur: 0.06, vol: 0.26, filtro: 'lowpass', corte: 600 }],
+  paloH: [{ dur: 0.18, vol: 0.2, filtro: 'bandpass', corte: 900, hasta: 2600, q: 1.4, retraso: 0.02 }],
 };
 
 export type Sonido = keyof typeof SONIDO | 'segunda';
 
 /** Cuánto se corre la altura de cada disparo, en semitonos (arriba o abajo): que nada suene a loop. */
-const VARIA: Partial<Record<Sonido, number>> = { golpe: 2, fuerte: 1.5, contra: 1.5, carta: 1, suelta: 1, clic: 0.5, oro: 0.6, tintin: 1.2, frena: 0.8, cae: 1, puf: 1, paso: 1 };
+const VARIA: Partial<Record<Sonido, number>> = { paloS: 1, paloC: 1, paloD: 1, paloH: 1, golpe: 2, fuerte: 1.5, contra: 1.5, carta: 1, suelta: 1, clic: 0.5, oro: 0.6, tintin: 1.2, frena: 0.8, cae: 1, puf: 1, paso: 1 };
 const VARIA_BASE = 0.3;
 
 // ───────────── el cableado ─────────────

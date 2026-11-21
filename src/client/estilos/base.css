@@ -1465,3 +1465,13 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .b-signo {
     display: none;
   }
 }
+
+/* ───────────── 0.19.0 · el grito del Personaje, pegado a su retrato y con la cola hacia él ───────────── */
+.hud-grito::after {
+  left: var(--cola-x, calc(14px * var(--k)));
+}
+.hud-grito[data-cola='arriba']::after {
+  bottom: auto;
+  top: calc(-12px * var(--k));
+  transform: scaleY(-1);
+}

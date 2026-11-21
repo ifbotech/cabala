@@ -27,7 +27,7 @@ const pedidos = args.filter((a) => !a.startsWith('-'));
 const estados = ESTADOS.filter((e) => !pedidos.length || pedidos.includes(e));
 /** El móvil bajo (390 de ancho en Safari, con sus barras): solo los estados de mesa, que son los que ceden por alto. */
 const VENTANA_BAJA = { nombre: '390x664', w: 390, h: 664 } as const;
-const ESTADOS_BAJA: readonly string[] = ['mesa', 'mesa-seleccion', 'mesa-mentiroso', 'mesa-rey', 'mesa-segunda', 'mesa-segunda-cambia'];
+const ESTADOS_BAJA: readonly string[] = ['mesa', 'mesa-seleccion', 'mesa-mentiroso', 'mesa-rey', 'mesa-segunda', 'mesa-segunda-cambia', 'mesa-conteo'];
 const ventanas = [...VENTANAS, VENTANA_BAJA].filter((v) => !soloVentana || v.nombre === soloVentana);
 const carpeta = `artifacts/visual-qa${lang === 'en' ? '-en' : ''}`;
 
@@ -202,11 +202,18 @@ function auditar(o: { esMovil: boolean; idioma: string }): Fallo[] {
       if (asoma < 80) fallos.push({ regla: 'solape-enemigo', detalle: `el naipe del enemigo asoma solo ${asoma} px (mínimo 80)` });
     }
   }
-  // el grito del Personaje: cerca de su retrato, dentro de la pantalla, sin tapar controles, la mano, la cuenta, las
-  // cifras del HUD (Vida, Escudo, oro, Mazo) ni la cabecera
+  // el grito del Personaje: cerca de su retrato (a no más de 120 px en el teléfono y 220 en el escritorio, hueco entre
+  // las dos cajas), dentro de la pantalla, sin tapar controles que se puedan tocar, la mano, la cuenta, las cifras del
+  // HUD (Vida, Escudo, oro, Mazo) ni la cabecera
   for (const g of [...document.querySelectorAll('.hud-grito')].filter(visible)) {
     const r = g.getBoundingClientRect();
-    for (const el of [...document.querySelectorAll('#app button, #app .mano .carta, #app .cuenta:not(.reposo), #app [data-hud-vida], #app [data-hud-escudo], #app [data-hud-oro], #app .hud [data-n], #app .mesa-top .lado > *')].filter(visible)) {
+    const ret = document.querySelector('.hud-retrato')?.getBoundingClientRect();
+    if (ret) {
+      const hueco = Math.round(Math.hypot(Math.max(0, ret.left - r.right, r.left - ret.right), Math.max(0, ret.top - r.bottom, r.top - ret.bottom)));
+      const tope = W < 700 ? 120 : 220;
+      if (hueco > tope + 4) fallos.push({ regla: 'grito-tapa', detalle: `«${(g.textContent ?? '').trim()}» queda a ${hueco} px de su retrato (máximo ${tope})` });
+    }
+    for (const el of [...document.querySelectorAll('#app button:not(:disabled), #app .mano .carta, #app .cuenta:not(.reposo), #app [data-hud-vida], #app [data-hud-escudo], #app [data-hud-oro], #app .hud [data-n], #app .mesa-top .lado > *')].filter(visible)) {
       const c = el.getBoundingClientRect();
       if (Math.min(r.right, c.right) - Math.max(r.left, c.left) > 2 && Math.min(r.bottom, c.bottom) - Math.max(r.top, c.top) > 2) {
         fallos.push({ regla: 'grito-tapa', detalle: `«${(g.textContent ?? '').trim()}» tapa ${nombre(el)} «${(el.textContent ?? '').trim().slice(0, 20)}»` });
@@ -402,6 +409,8 @@ function medir(o: { esMovil: boolean }) {
 }
 
 const informe: { estado: string; ventana: string; fallos: Fallo[] }[] = [];
+/** Las cajas de la mesa en reposo, por ventana (la regla «mesa-quieta» las compara con las de la selección). */
+const reposo = new Map<string, Record<string, number[] | null>>();
 const t0 = Date.now();
 
 await conServidor(5191, async (url) => {
@@ -441,6 +450,28 @@ await conServidor(5191, async (url) => {
         await pagina.waitForTimeout(120);
         const fallos = await pagina.evaluate(auditar, { esMovil: v.w < 700, idioma: lang });
         for (const e of errores) fallos.push({ regla: 'error-js', detalle: e.slice(0, 200) });
+        // la mesa no salta al elegir («mesa-quieta»): fuera del teléfono, el naipe del Rey, La Corte y el Bufón quedan
+        // donde estaban en reposo (±4 px) cuando se elige la jugada
+        if ((estado === 'mesa' || estado === 'mesa-seleccion') && v.w > 700) {
+          const cajas = await pagina.evaluate(() =>
+            Object.fromEntries(
+              ['.mesa .e-centro', '.mesa .corte', '.mesa .esc-bufon .bufon', '.mesa .e-vida'].map((s) => {
+                const r = document.querySelector(s)?.getBoundingClientRect();
+                return [s, r ? [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)] : null];
+              }),
+            ),
+          );
+          if (estado === 'mesa') reposo.set(v.nombre, cajas);
+          else {
+            const antes = reposo.get(v.nombre);
+            for (const [s, r] of Object.entries(cajas)) {
+              const a = antes?.[s];
+              if (!a || !r) continue;
+              const corre = Math.max(...r.map((n, i) => Math.abs(n - a[i])));
+              if (corre > 4) fallos.push({ regla: 'mesa-quieta', detalle: `${s} se corre ${corre} px al elegir (${a.join(',')} → ${r.join(',')})` });
+            }
+          }
+        }
         await pagina.screenshot({ path: `${carpeta}/${v.nombre}/${estado}.png` });
         const m = await pagina.evaluate(medir, { esMovil: v.w < 700 });
         for (const x of m.chicas) fallos.push({ regla: 'diana-chica', detalle: x });

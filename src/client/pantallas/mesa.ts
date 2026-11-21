@@ -5,7 +5,7 @@
 // teclado o con el mando.
 import { B } from '../../rules/balance';
 import type { Carta, Palo } from '../../rules/cartas';
-import { cuenta, puedeDescartar, repiteJugada } from '../../rules/combate';
+import { contraataque, cuenta, puedeDescartar, repiteJugada } from '../../rules/combate';
 import type { Cuenta, Ev, Paso } from '../../rules/combate';
 import type { Enemigo, Partida } from '../../rules/estado';
 import { tieneAmuleto } from '../../rules/estado';
@@ -18,7 +18,7 @@ import { ajustes, alAzar, guardarPerfil, idioma, perfil, t, tx } from '../almace
 import { agacharMusica, nota, sonar, vozBufon } from '../audio';
 import { estadoMusica, ponerFuego, ponerMusica } from '../musica';
 import { teclear } from '../habla';
-import { RAMPA_CURA, RAMPA_ESCUDO, RAMPA_GOLPE, RAMPA_PALO, chispas, destello, haloRey, limpiarNumeros, lluviaDeMonedas, monedas, motas, numero, partirNaipe, quiebre, tajo, tajoDeReves } from '../fx/efectos';
+import { RAMPA_CURA, RAMPA_ESCUDO, RAMPA_GOLPE, RAMPA_PALO, chispas, destello, haloRey, limpiarNumeros, lluviaDeMonedas, medidaNumero, monedas, motas, numero, partirNaipe, quiebre, tajo, tajoDeReves } from '../fx/efectos';
 import { S, congelar, enFoto, fogonazoCandil, ponerClima, sacudir } from '../fx/motor';
 import { actualizarTiras, avivarRetrato, dispararFicha, gestoFijo, gestoRetrato, gritar, hudHtml, mirarHacia, ponerHud, poseRetrato, reubicarGrito, vistaDe, type VistaHud } from '../hud';
 import { guardar, pintarFase } from '../juego';
@@ -28,7 +28,7 @@ import { cifra, lienzoNaipe, lienzoNaipeSegunda, pxNaipeSegunda, pxAmuleto, pxAu
 import type { AmuletoId } from '../../rules/amuletos';
 import type { AumentoId } from '../../rules/aumentos';
 import type { BendicionId } from '../../rules/reyes';
-import { JUGADA_NOMBRE, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_NOMBRE, RANGO_NOMBRE, SEGUNDA_BURLA, SEGUNDA_CORTA, TRAMO_NOMBRE } from '../textos';
+import { JUGADA_NOMBRE, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_NOMBRE, RANGO_NOMBRE, RASGO_CORTA, SEGUNDA_BURLA, SEGUNDA_CORTA, TRAMO_NOMBRE } from '../textos';
 import { ENSENANZA, GRITO, VOZ } from '../voces';
 import { $, bufonHtml, esc, fichaDe, gestoBufon, reyHtml, tip, type Pantalla } from '../ui';
 import { glifo, porTeclado } from '../nav';
@@ -107,8 +107,13 @@ export function pantallaMesa(p: Partida): Pantalla {
   // ───────────── pintar ─────────────
   /** El Caudillo en segunda cara: si repetís la jugada, su Tajo de revés pega ×2 y atraviesa el Escudo. */
   const tajoArmado = (e: Enemigo | null): boolean => !!(e?.jefe && e.palo === 'S' && e.segunda);
-  /** El golpe del Tajo de revés que está por caer (mientras se anima el golpe que lo dispara), o null. */
-  let placaTajo: number | null = null;
+  /**
+   * Lo que dice la placa TE PEGA mientras se anima un golpe (lo mismo que decía la cuenta al soltar: el golpe neto que
+   * te va a llegar y si es el Tajo de revés), o null.
+   */
+  let placa: { n: number; tajo: boolean } | null = null;
+  /** El TE PEGA de la placa y de la cuenta es uno solo: con una jugada elegida, lo que te llega de verdad (q.contra). */
+  const golpeNeto = (q: Cuenta, sel: number): number | null => (sel > 0 && q.ok && !q.abate && !q.ejecuta && q.contra !== null ? Math.max(0, q.contra) : null);
   /** ¿La selección de ahora repite la jugada del golpe anterior (y el Tajo de revés la castiga)? */
   const tajoAhora = (q: Cuenta): boolean => tajoArmado(enemigo) && q.ok && !q.abate && !q.ejecuta && !!q.contra && q.contra > 0 && repiteJugada(c().ultimaJugada, q.jugada);
   /** Por qué este golpe no te pega (el chip «NO TE PEGA» lo dice): aturdido, lo aturdís, Cara de Póker o tu Escudo. */
@@ -134,11 +139,11 @@ export function pantallaMesa(p: Partida): Pantalla {
     // Va al costado de la barra de Vida (en el móvil, debajo; en el teléfono bajo, dentro de la barra)
     const rasgoNombre = e.jefe ? tx(e.segunda ? REY_DEF[e.palo].segunda : REY_DEF[e.palo].rasgo) : '';
     const rasgoTip = e.jefe ? tip(rasgoNombre, tx(e.segunda ? REY_DEF[e.palo].segundaDesc : REY_DEF[e.palo].rasgoDesc), e.segunda ? t('segundaCara') : '') : '';
+    // (las dos caras con la misma forma: el nombre y, debajo, lo que hace en un renglón; la primera en oro, la segunda
+    // en carmesí y latiendo)
     const rasgo = !e.jefe
       ? ''
-      : e.segunda
-        ? `<span class="e-rasgo e-segunda mirable" tabindex="0" ${rasgoTip}><b class="rotulo e-seg-nombre">${esc(rasgoNombre)}</b><span class="e-regla">${esc(tx(SEGUNDA_CORTA[e.palo]))}</span></span>`
-        : `<span class="chip canto e-rasgo mirable" tabindex="0" ${rasgoTip}>${esc(rasgoNombre)}</span>`;
+      : `<span class="e-rasgo ${e.segunda ? 'e-segunda' : 'e-primera'} mirable" tabindex="0" ${rasgoTip}><b class="rotulo e-seg-nombre">${esc(rasgoNombre)}</b><span class="e-regla">${esc(tx((e.segunda ? SEGUNDA_CORTA : RASGO_CORTA)[e.palo]))}</span></span>`;
     const pct = Math.max(0, Math.round((100 * e.vida) / e.vidaMax));
     // la Furia ya va sumada en la cifra de TE PEGA: su chip lo dice («ya incluida») y dice cuánto sube por turno
     const porTurno = e.jefe ? B.furia.reyPorTurno + (e.palo === 'S' ? B.reyes.S.furiaTurno : 0) : 0;
@@ -207,6 +212,15 @@ export function pantallaMesa(p: Partida): Pantalla {
     if (de === 'combate') return pxAumento('manocaliente' as AumentoId, 'd-i');
     return pxHud('ataque', 'd-i');
   }
+  /** Si tu Escudo frena parte del golpe, la causa chica junto al TE PEGA neto («(21 − 2 ESCUDO)»; en el teléfono, en su ayuda). */
+  function frenaEscudo(q: Cuenta): string {
+    const e = c().fila[0];
+    if (!e || q.contra === null || q.contra <= 0) return '';
+    const k = contraataque(p, e, { mitiga: q.canto && p.mazoId === 'chinchon', sinVida: q.aVida === 0, repite: repiteJugada(c().ultimaJugada, q.jugada) });
+    const frena = k.n - q.contra;
+    if (frena <= 0) return '';
+    return `<b class="c-tajo-x solo-ancho">(${k.n} − ${frena} ${esc(t('escudo'))})</b>`;
+  }
   function cuentaHtml(q: Cuenta, sel: Carta[]): string {
     // en reposo, la zona de la cuenta dice qué hacer
     // (con mando o teclado, la pista es de botones: el CSS enseña la que toca según `html[data-entrada]`)
@@ -224,8 +238,11 @@ export function pantallaMesa(p: Partida): Pantalla {
     const esCarta = (x: Paso): boolean => x.tipo === 'd' && x.de.startsWith('c:');
     const mas = (v: number): string => (v < 0 ? `−${-v}` : `+${v}`);
     const clave = (x: Paso): string => esc(`${x.tipo}|${x.de}`);
+    // el Crítico de Punta y hacha vive en su término del MULTI: «¡CRÍTICO! ×2» en oro (en el teléfono, sin el nombre de
+    // la pieza); el conteo lo enciende con su propio golpe. Nada de chip aparte ni de ×2 estampado sobre el total
+    const esCritico = (x: Paso): boolean => q.critico && x.tipo === 'x' && x.de === 'b:puntahacha';
     const termino = (x: Paso, valor: string): string =>
-      `<span class="d-t d-${x.tipo}${/^[aubr]:/.test(x.de) ? ' d-pieza' : x.de.startsWith('j:') || x.de === 'canto' ? ' d-nombre' : ''}" data-paso="${clave(x)}">${pasoIcono(x.de)}<span class="d-n">${esc(pasoNombre(x.de))}</span><b class="d-v">${valor}</b></span>`;
+      `<span class="d-t d-${x.tipo}${/^[aubr]:/.test(x.de) ? ' d-pieza' : x.de.startsWith('j:') || x.de === 'canto' ? ' d-nombre' : ''}${esCritico(x) ? ' d-critico' : ''}" data-paso="${clave(x)}">${pasoIcono(x.de)}<span class="d-n">${esc(pasoNombre(x.de))}</span>${esCritico(x) ? `<b class="d-crit">${t('critico')}</b>` : ''}<b class="d-v">${valor}</b></span>`;
     const cartasD = q.pasos.filter(esCarta);
     const piezasD = q.pasos.filter((x) => x.tipo === 'd' && !esCarta(x) && x.v !== 0);
     const sumanM = q.pasos.filter((x) => x.tipo === 'm' && x.v !== 0);
@@ -249,7 +266,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     const k = B.reyes.S.deguello;
     const pega = tajo
       ? `<span class="chip rojo c-tajo" ${tip(t('tajoAviso', { nombre: tx(REY_DEF.S.segunda) }), tx(REY_DEF.S.segundaDesc))}>${pxHud('ataque')}${t('tePega', { n: q.contra ?? 0 })}<b class="c-tajo-x">(${Math.round((q.contra ?? 0) / k)} ×${k})</b></span>`
-      : `<span class="chip rojo">${t('tePega', { n: q.contra ?? 0 })}</span>`;
+      : `<span class="chip rojo">${t('tePega', { n: q.contra ?? 0 })}${frenaEscudo(q)}</span>`;
     // «NO TE PEGA» dice por qué: aturdido, lo aturdís, Cara de Póker o tu Escudo
     const sinContra = (): string => {
       const causa = causaSinContra(q);
@@ -265,8 +282,6 @@ export function pantallaMesa(p: Partida): Pantalla {
         ? `<b class="c-veredicto v-abate">${t('ejecuta')}</b>`
         : ''; // si no lo abate, ya lo dicen «LE QUEDAN n» y TE PEGA: el veredicto no ocupa otro lugar
     const destino = (q.abate || q.ejecuta ? '' : q.contra && q.contra > 0 ? pega : sinContra()) + queda;
-    // el ¡CRÍTICO! dorado no le compite al aviso rojo del Tajo: va después y apagado
-    const critico = q.critico ? `<span class="chip canto c-critico${tajo ? ' menor' : ''}">${t('critico')}</span>` : '';
     // lo que dan los palos, cada cosa con su nombre: «CURA ♥ +15», «ESCUDO +4», «ORO +2»
     const efecto = (rotulo: string, icono: Parameters<typeof pxHud>[0], n: number, tono: 'azul' | 'verde' | 'oro'): string =>
       `<span class="chip c-efecto ef-${icono}"><b class="c-ef-rot">${rotulo}</b>${pxHud(icono)}${cifra(`+${n}`, tono)}</span>`;
@@ -285,7 +300,7 @@ export function pantallaMesa(p: Partida): Pantalla {
         </span>
         ${efectos}
       </span>
-      <span class="c-chips">${veredicto}${q.canto ? `<span class="chip canto c-canto">${esc(tx(MAZO[p.mazoId].canto))}</span>` : ''}${tajo ? '' : critico}${q.perfora && enemigo && enemigo.escudo > 0 ? `<span class="chip azul">${t('perfora')}</span>` : ''}${destino}${tajo ? critico : ''}</span>
+      <span class="c-chips">${veredicto}${q.canto ? `<span class="chip canto c-canto">${esc(tx(MAZO[p.mazoId].canto))}</span>` : ''}${q.perfora && enemigo && enemigo.escudo > 0 ? `<span class="chip azul">${t('perfora')}</span>` : ''}${destino}</span>
       ${desglose}
     </div>`;
   }
@@ -324,10 +339,11 @@ export function pantallaMesa(p: Partida): Pantalla {
     const ataque = $('[data-ataque]');
     ataque?.classList.toggle('inminente', !!enemigo && enemigo.aturdido <= 0 && !(q.ok && (q.abate || q.ejecuta)));
     ataque?.classList.toggle('mortal', q.ok && q.contra !== null && q.contra >= hud.vida);
-    // el Tajo de revés, antes de soltar: la cifra grande del Caudillo pasa al golpe de verdad (42) y debajo, chica,
-    // su causa («21 ×2»); late en rojo
+    // un solo TE PEGA: con una jugada elegida, la placa del Rey dice lo mismo que el chip de la cuenta (lo que te llega
+    // de verdad, ya descontado tu Escudo); sin elegir nada, su golpe entero. Con el Tajo de revés, el golpe de verdad
+    // (42) y debajo, chica, su causa («21 ×2»); late en rojo
     const tajo = tajoAhora(q);
-    if (enemigo) ponerGolpeRey(tajo ? (q.contra ?? 0) : enemigo.ataque + furia, tajo);
+    if (enemigo) ponerGolpeRey(golpeNeto(q, sel.length) ?? enemigo.ataque + furia, tajo);
     marcarInmunes();
     marcarCopias(q);
     pintarBotones();
@@ -399,8 +415,8 @@ export function pantallaMesa(p: Partida): Pantalla {
   function pintarEnemigo(): void {
     const el = $('[data-enemigo]');
     if (el) el.innerHTML = enemigoHtml();
-    // mientras se juega un golpe que dispara el Tajo, la placa sigue diciendo lo que te va a pegar (48, «24 ×2»)
-    if (placaTajo !== null && enemigo) ponerGolpeRey(placaTajo, true);
+    // mientras se juega el golpe, la placa sigue diciendo lo que te va a pegar (19; con el Tajo, 48 y «24 ×2»)
+    if (placa && enemigo) ponerGolpeRey(placa.n, placa.tajo);
     const corte = $('[data-corte]');
     if (corte) corte.innerHTML = corteHtml();
   }
@@ -442,17 +458,15 @@ export function pantallaMesa(p: Partida): Pantalla {
           // tres escalones de peso: golpe, golpazo (media Vida o más) y remate (el que lo tumba)
           const peso = q?.abate || q?.ejecuta ? 2 : fuerte ? 1 : 0;
           sonar(fuerte || peso === 2 ? 'fuerte' : 'golpe');
+          // y encima, el timbre de su palo: el acero canta, la madera suena hueca, el oro tintinea, la copa salpica
+          if (!ev.engano && palo !== 'X') sonar(`palo${palo}` as 'paloS', { retraso: 0.025 });
           sacudir($('[data-enemigo]'), peso + 1);
           if (peso > 0) sacudir($('[data-escena]'), peso);
           fogonazoCandil([0.4, 0.7, 1][peso]);
           if (q?.exacto && q.abate) fogonazo('oro');
           await frenar([60, 110, 170][peso]);
-          // el ×2 del crítico es TUYO: se estampa sobre el total de tu cuenta (el naipe del Rey queda para lo suyo)
-          if (ev.critico) {
-            const tt = $('[data-cuenta] [data-total]')?.getBoundingClientRect();
-            const sobre = tt && tt.width > 0 ? { x: tt.left + tt.width / 2, y: tt.top - 8 } : carril(0.12);
-            numero(t('critico').replace(/[^0-9]/g, '') || 'x2', sobre.x, sobre.y, 'oro', 2);
-          }
+          // (el ×2 del crítico ya se encendió en su término del MULTI durante el conteo y está adentro del total: no se
+          // estampa otra vez)
           await pausa(90);
           break;
         }
@@ -477,9 +491,10 @@ export function pantallaMesa(p: Partida): Pantalla {
           break;
         case 'dano': {
           if (!enemigo) break;
-          // el número del daño va por su carril: arriba del naipe (el medio y el pie son de los rótulos del Rey)
-          const en = carril(0.2);
-          numero(ev.n, en.x, en.y, ev.aEscudo >= ev.n ? 'azul' : 'roja', ev.n >= enemigo.vidaMax * 0.5 ? 2 : 1);
+          // el número del daño va por su carril: al costado del naipe, montado apenas sobre su canto izquierdo a media
+          // altura (nunca sobre la cara ni el índice del Rey; el pie es de sus rótulos), y se aparta hacia afuera
+          const en = carrilDano();
+          numero(ev.n, en.x, en.y, ev.aEscudo >= ev.n ? 'azul' : 'roja', ev.n >= enemigo.vidaMax * 0.5 ? 2 : 1, { alinear: 'derecha', vx: -18 });
           enemigo.vida = ev.vida;
           enemigo.escudo = ev.escudo;
           pintarEnemigo();
@@ -633,7 +648,9 @@ export function pantallaMesa(p: Partida): Pantalla {
           pintarEnemigo();
           break;
         case 'contra': {
-          placaTajo = null;
+          placa = null;
+          // el cartel de la segunda cara se va antes de que el Rey embista: nada tapa al que te pega
+          quitarCartelSegunda();
           const el = carta();
           el?.classList.remove('embiste');
           void (el as HTMLElement | null)?.offsetWidth;
@@ -692,6 +709,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           $('[data-ataque]')?.classList.add('sube');
           break;
         case 'rey':
+          quitarCartelSegunda();
           await poderRey(ev.que, ev.n);
           break;
         case 'roba': {
@@ -845,6 +863,15 @@ export function pantallaMesa(p: Partida): Pantalla {
     if (!r) return { x: innerWidth / 2, y: innerHeight / 3 };
     return { x: r.left + r.width / 2, y: r.top + r.height * f };
   }
+  /**
+   * Dónde nace el número de tu golpe: su borde derecho apenas adentro del canto izquierdo del naipe (lo que se ve de
+   * él), a media altura: lejos del índice (arriba a la izquierda) y de la cara (al centro).
+   */
+  function carrilDano(): { x: number; y: number } {
+    const r = ($('[data-enemigo] .e-centro') ?? carta())?.getBoundingClientRect();
+    if (!r) return { x: innerWidth / 2, y: innerHeight / 3 };
+    return { x: r.left + r.width * 0.16, y: r.top + r.height * 0.46 };
+  }
   /** Lo que el Rey hace por su cuenta (sus poderes de cara y de segunda cara), a la vista: número y rótulo. */
   async function poderRey(que: 'cura' | 'escudo' | 'diezmo' | 'deguello', n: number): Promise<void> {
     if (!enemigo) return;
@@ -936,10 +963,19 @@ export function pantallaMesa(p: Partida): Pantalla {
     $('#capa')?.append(g);
     window.setTimeout(() => g.remove(), 1500);
     await pausa(950);
+    // (lo que sigue suele ser el Rey que te pega: el cartel ya se leyó y se va enseguida, sin quedar encima de él)
+    window.setTimeout(quitarCartelSegunda, 220);
     // y recién después del cartel, el Bufón: una burla corta (la regla entera queda en el chip y en su ayuda)
     decir(tx(SEGUNDA_BURLA[palo]), 'sombria');
   }
 
+  /** El cartel de la segunda cara se pliega (en dos pasos) y se va: nada queda encima del Rey cuando este te pega. */
+  function quitarCartelSegunda(): void {
+    for (const g of document.querySelectorAll<HTMLElement>('.cartel-segunda:not(.se-va)')) {
+      g.classList.add('se-va');
+      window.setTimeout(() => g.remove(), quieto() ? 0 : 120);
+    }
+  }
   /** La pelea se retira de la mesa (una sola vez): los rótulos del enemigo, la cuenta, la mano y los botones. */
   function despejar(): void {
     const m = $('.mesa');
@@ -1032,6 +1068,62 @@ export function pantallaMesa(p: Partida): Pantalla {
    * del naipe, sin tapar su índice), cada pieza hace brincar su ficha del HUD, el Daño y el Multi suben a la vista y el
    * total lleva la cuenta en gris hasta que, al final, se enciende en oro.
    */
+  /** Los pasos del conteo en su orden: primero las cartas, después lo que suma Daño, lo que suma Multi y lo que lo multiplica. */
+  function pasosConteo(q: Cuenta): { cartas: Paso[]; piezas: Paso[] } {
+    const esCarta = (x: Paso): boolean => x.tipo === 'd' && x.de.startsWith('c:');
+    const orden = { d: 0, m: 1, x: 2 } as const;
+    return { cartas: q.pasos.filter(esCarta), piezas: q.pasos.filter((x) => !esCarta(x) && x.v !== 0).sort((u, v) => orden[u.tipo] - orden[v.tipo]) };
+  }
+  /** Las cifras de la fórmula después de `hechos` pasos del conteo (lo que no viene de ningún paso, la base, ya está). */
+  function cifrasConteo(q: Cuenta, hechos: Paso[]): { dano: number; multi: number } {
+    let dano = q.dano - q.pasos.filter((x) => x.tipo === 'd').reduce((n, x) => n + x.v, 0);
+    let sumaM = 0;
+    let por = 1;
+    for (const x of hechos) {
+      if (x.tipo === 'd') dano += x.v;
+      else if (x.tipo === 'm') sumaM += x.v;
+      else por *= x.v;
+    }
+    // el Multi nunca baja de 1 (es lo que hace el motor): la fórmula está entera desde el primer cuadro, sin huecos
+    return { dano: Math.max(0, dano), multi: Math.max(1, sumaM) * por };
+  }
+  /** Pone la fórmula (Daño, Multi y el total en gris) como va el conteo. */
+  function ponerConteo(d: { dano: number; multi: number }): void {
+    const vd = $('[data-cuenta] [data-cd] [data-v]');
+    const vm = $('[data-cuenta] [data-cm] [data-v]');
+    const total = $('[data-total]');
+    if (vd) vd.innerHTML = cifra(d.dano, 'roja', 'grande');
+    if (vm) vm.innerHTML = cifra(d.multi, 'azul', 'grande');
+    if (total) total.innerHTML = cifra(d.dano * d.multi, 'hueso', 'grande');
+  }
+  const termino = (x: Paso): Element | null | undefined => $('[data-cuenta] .c-desglose')?.querySelector(`[data-paso="${CSS.escape(`${x.tipo}|${x.de}`)}"]`);
+  /**
+   * El conteo congelado a una fracción `f` (para la QA visual, estado «mesa-conteo»): la cuenta como se ve a mitad del
+   * golpe, con los términos ya contados encendidos y el total en gris.
+   */
+  function conteoQa(f: number): void {
+    const q = cuenta(p, seleccion());
+    if (!q.ok) return;
+    const cuentaEl = $('[data-cuenta] .cuenta');
+    cuentaEl?.classList.remove('previa');
+    cuentaEl?.classList.add('contando');
+    $('[data-cuenta] .c-desglose')?.classList.add('contando');
+    const { cartas, piezas } = pasosConteo(q);
+    const todos = [...cartas, ...piezas];
+    const hechos = todos.slice(0, Math.max(1, Math.round(todos.length * f)));
+    for (const x of hechos) termino(x)?.classList.add('encendido');
+    $('[data-total]')?.classList.add('cuenta-sube');
+    ponerConteo(cifrasConteo(q, hechos));
+    mano?.bloquear(true);
+  }
+
+  /**
+   * El conteo del golpe, pieza por pieza, en el propio desglose (nada de carteles que vuelen encima): cada término se
+   * enciende en su lugar a medida que suma y los ya contados quedan encendidos. Cada carta salta con su número (dentro
+   * del naipe, sin tapar su índice), cada pieza hace brincar su ficha del HUD (su «+N» sale escalonado, sin montarse
+   * sobre el de la vecina), el Daño y el Multi suben a la vista y el total lleva la cuenta en gris hasta que, al final,
+   * se enciende en oro. El Crítico estalla en su término del MULTI. Un toque (o cualquier tecla) apura lo que falta.
+   */
   async function conteo(q: Cuenta): Promise<void> {
     const cuentaEl = $('[data-cuenta] .cuenta');
     // la vista previa se abre: el veredicto deja su lugar a la fórmula, que va a subir término a término
@@ -1043,44 +1135,62 @@ export function pantallaMesa(p: Partida): Pantalla {
       await pausa(420);
       return;
     }
-    const esCarta = (x: Paso): boolean => x.tipo === 'd' && x.de.startsWith('c:');
-    const cartas = q.pasos.filter(esCarta);
-    const orden = { d: 0, m: 1, x: 2 } as const;
-    const piezas = q.pasos.filter((x) => !esCarta(x) && x.v !== 0).sort((u, v) => orden[u.tipo] - orden[v.tipo]);
+    // un toque, un clic o una tecla durante el conteo lo apuran (como en los juegos de cuentas: el que ya lo vio, no espera)
+    let apurado = false;
+    const apurar = (): void => {
+      apurado = true;
+    };
+    addEventListener('pointerdown', apurar, true);
+    addEventListener('keydown', apurar, true);
+    try {
+      await contar(q, cuentaEl, () => apurado);
+    } finally {
+      removeEventListener('pointerdown', apurar, true);
+      removeEventListener('keydown', apurar, true);
+    }
+  }
+  async function contar(q: Cuenta, cuentaEl: HTMLElement | null, apurado: () => boolean): Promise<void> {
+    const { cartas, piezas } = pasosConteo(q);
     // el ritmo: arranca despacio (se lee qué suma) y acelera; con muchas piezas se aprieta para no pasar de 1,6 s
     const pasos = cartas.length + piezas.length;
     const crudo = (k: number): number => 115 - (70 * k) / Math.max(1, pasos - 1);
     let suma = 0;
     for (let k = 0; k < pasos; k++) suma += crudo(k);
     const apuro = Math.min(1, 1600 / Math.max(1, suma));
-    const ritmo = (k: number): number => Math.max(40, Math.round(crudo(k) * apuro));
-    const vd = $('[data-cuenta] [data-cd] [data-v]');
-    const vm = $('[data-cuenta] [data-cm] [data-v]');
+    const ritmo = (k: number): number => (apurado() ? 16 : Math.max(40, Math.round(crudo(k) * apuro)));
     const total = $('[data-total]');
     const desglose = $('[data-cuenta] .c-desglose');
     desglose?.classList.add('contando');
-    // de dónde arranca cada cifra: lo que no viene de ningún paso (la base) ya está puesto
-    let dano = q.dano - q.pasos.filter((x) => x.tipo === 'd').reduce((n, x) => n + x.v, 0);
-    let sumaM = 0;
-    let por = 1;
-    // el Multi nunca baja de 1 (es lo que hace el motor): la fórmula está entera desde el primer cuadro, sin huecos
-    const multi = (): number => Math.max(1, sumaM) * por;
-    const poner = (): void => {
-      if (vd) vd.innerHTML = cifra(Math.max(0, dano), 'roja', 'grande');
-      if (vm) vm.innerHTML = cifra(multi(), 'azul', 'grande');
-      if (total) total.innerHTML = cifra(Math.max(0, dano) * multi(), 'hueso', 'grande');
-    };
-    const brinco = (el: Element | null | undefined): void => {
+    const hechos: Paso[] = [];
+    const poner = (): void => ponerConteo(cifrasConteo(q, hechos));
+    const brinco = (el: Element | null | undefined, cls = 'salta'): void => {
       if (!el) return;
-      el.classList.remove('salta');
+      el.classList.remove(cls);
       void (el as HTMLElement).offsetWidth;
-      el.classList.add('salta');
+      el.classList.add(cls);
     };
     const encender = (x: Paso): void => {
-      const el = desglose?.querySelector(`[data-paso="${CSS.escape(`${x.tipo}|${x.de}`)}"]`);
+      const el = termino(x);
       if (!el) return;
       el.classList.add('encendido');
       brinco(el);
+    };
+    // los «+N» de la bandeja: cada uno busca un renglón libre (no se monta sobre el que acaba de soltar la vecina)
+    const enAire: { x0: number; x1: number; y0: number; y1: number; t: number }[] = [];
+    const soltarCifra = (texto: string, x: number, y: number, tono: 'roja' | 'azul' | 'oro'): void => {
+      const m = medidaNumero(texto, 1);
+      const ahora = performance.now();
+      for (let i = enAire.length - 1; i >= 0; i--) if (ahora - enAire[i].t > 650) enAire.splice(i, 1);
+      let yy = y - m.h;
+      for (let k = 0; k < 5; k++) {
+        const x0 = x - m.w / 2 - 3;
+        const x1 = x + m.w / 2 + 3;
+        const choca = enAire.some((o) => x0 < o.x1 && o.x0 < x1 && yy < o.y1 && o.y0 < yy + m.h + 3);
+        if (!choca) break;
+        yy -= m.h + 4;
+      }
+      enAire.push({ x0: x - m.w / 2 - 3, x1: x + m.w / 2 + 3, y0: yy, y1: yy + m.h + 3, t: ahora });
+      numero(texto, x, yy, tono, 1, { vx: 0 });
     };
     total?.classList.add('cuenta-sube');
     poner();
@@ -1095,7 +1205,7 @@ export function pantallaMesa(p: Partida): Pantalla {
         // el «+N» nace en el medio del naipe, lejos de su índice (arriba a la izquierda), y sube sin llegar a él
         numero(`+${x.v}`, rc.left + rc.width / 2, rc.top + rc.height * 0.58, 'roja', 1);
       }
-      dano += x.v;
+      hechos.push(x);
       poner();
       encender(x);
       await pausa(ritmo(i));
@@ -1103,26 +1213,36 @@ export function pantallaMesa(p: Partida): Pantalla {
     }
     for (const x of piezas) {
       const parte = x.tipo === 'd' ? $('[data-cuenta] [data-cd]') : $('[data-cuenta] [data-cm]');
-      if (x.tipo === 'd') dano += x.v;
-      else if (x.tipo === 'm') sumaM += x.v;
-      else por *= x.v;
+      hechos.push(x);
       poner();
       brinco(parte);
       encender(x);
       // la ficha de la pieza brinca en la bandeja; en el escritorio, además, suelta su cifra (en el teléfono la bandeja
       // va pegada al retrato y la cifra ya se lee encendida en el desglose)
       const f = dispararFicha(x.de);
-      if (f && innerWidth > 700) numero(`${x.tipo === 'x' ? 'x' : '+'}${x.v}`, f.x, f.y - 6, x.tipo === 'd' ? 'roja' : x.tipo === 'm' ? 'azul' : 'oro', x.tipo === 'x' ? 2 : 1);
+      if (f && innerWidth > 700) soltarCifra(`${x.tipo === 'x' ? 'x' : '+'}${x.v}`, f.x, f.y, x.tipo === 'd' ? 'roja' : x.tipo === 'm' ? 'azul' : 'oro');
       if (x.de === 'canto') brinco($('[data-cuenta] .c-canto'));
-      if (x.tipo === 'x') await frenar(60);
+      const critico = q.critico && x.tipo === 'x' && x.de === 'b:puntahacha';
+      if (critico) {
+        // el Crítico: su término estalla en oro, el MULTI se enciende, un tajo de oro cruza el término y suena su golpe
+        const el = termino(x);
+        brinco(el, 'estalla');
+        brinco(parte, 'critico');
+        sonar('critico');
+        const r = el?.getBoundingClientRect();
+        if (r) {
+          destello(r.left + r.width / 2, r.top + r.height / 2, RAMPA_PALO.D, 22);
+          chispas(r.left + r.width / 2, r.top + r.height / 2, RAMPA_PALO.D, 14, 90);
+        }
+        await frenar(apurado() ? 0 : 120);
+      } else if (x.tipo === 'x') await frenar(apurado() ? 0 : 60);
       await pausa(ritmo(i));
       nota(i++, x.tipo === 'x');
     }
-    if (vd) vd.innerHTML = cifra(q.dano, 'roja', 'grande');
-    if (vm) vm.innerHTML = cifra(q.multi, 'azul', 'grande');
+    ponerConteo({ dano: q.dano, multi: q.multi });
     // el remate de la cuenta: un respiro, y el total cae grande en oro y se asienta; la cuenta se sacude (más si
-    // abate), suena el sello y recién entonces aparece «LE QUEDAN» o «SOBRAN»
-    await pausa(90);
+    // abate), suena el sello y recién entonces se vuelve a sellar «LE QUEDAN» o «SOBRAN»
+    await pausa(apurado() ? 16 : 90);
     if (total) total.innerHTML = cifra(q.total, 'oro', 'grande');
     total?.classList.remove('cuenta-sube');
     total?.classList.add('asienta');
@@ -1136,7 +1256,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     }
     cuentaEl?.classList.add('revelada');
     // el total tiene su instante antes de que las cartas vuelen
-    await pausa(360);
+    await pausa(apurado() ? 160 : 360);
   }
 
   // ───────────── acciones ─────────────
@@ -1165,12 +1285,13 @@ export function pantallaMesa(p: Partida): Pantalla {
     mano?.bloquear(true);
     pintarBotones();
     const antes = c().fila.map((e) => ({ ...e }));
-    placaTajo = tajoAhora(q) ? (q.contra ?? 0) : null;
+    const neto = golpeNeto(q, sel.length);
+    placa = neto !== null ? { n: neto, tajo: tajoAhora(q) } : null;
     await conteo(q);
     await mano?.volar(ids, centro($('[data-carta]')));
     const evs = juego.golpear(p, ids);
     await animar(evs, antes, q);
-    placaTajo = null;
+    placa = null;
     if (p.fase !== 'combate') {
       await terminar();
       return;
@@ -1292,6 +1413,7 @@ export function pantallaMesa(p: Partida): Pantalla {
         gritar: (texto: string, foto = false) => gritar(p.mazoId, texto, { foto }),
         cuenta: (ids: string[]) => cuenta(p, c().mano.filter((k) => ids.includes(k.id))),
         ocupado: () => ocupado,
+        conteoQa,
       };
     },
     alSalir: () => {

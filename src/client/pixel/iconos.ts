@@ -603,13 +603,26 @@ const NODO: Record<NodoPx, Dibujo> = {
 
 // ───────────────────────── HUD y emblemas ─────────────────────────
 
-export type HudPx = 'vida' | 'escudo' | 'oro' | 'mazo' | 'descarte' | 'poroto' | 'furia' | 'ataque' | 'aturdido' | 'candado' | 'engano' | 'pasar' | 'dado1' | 'dado2' | 'dado3' | 'dado4' | 'dado5' | 'dado6';
+export type HudPx = 'vida' | 'vidamax' | 'escudo' | 'oro' | 'mazo' | 'descarte' | 'poroto' | 'furia' | 'ataque' | 'aturdido' | 'candado' | 'engano' | 'pasar' | 'dado1' | 'dado2' | 'dado3' | 'dado4' | 'dado5' | 'dado6';
 
 const HUD: Record<HudPx, Dibujo> = {
   vida: (l) => {
     l.elipse(9, 10, 6.5, 6.5, '¤').elipse(19, 10, 6.5, 6.5, '¤').poli([[2.5, 12], [25.5, 12], [14, 26]], '¤');
     vol(l, ROJO, { borde: 3, fuerzaBorde: 0.5, base: 0.62 });
     l.set(7, 7, 'e').set(8, 6, 'e').set(6, 8, 'e');
+  },
+  vidamax: (l) => {
+    // la Vida máxima: el corazón engastado en oro (el recipiente que crece) y, arriba a la derecha, una flecha de oro
+    // que sube. A 1× se distingue del corazón pelado de la Vida por el engaste y la flecha
+    l.elipse(7.5, 13, 6.5, 6.5, '¤').elipse(16.5, 13, 6.5, 6.5, '¤').poli([[0.6, 15], [23.4, 15], [12, 27.5]], '¤');
+    vol(l, ORO, { borde: 2, fuerzaBorde: 0.45, base: 0.62 });
+    l.elipse(7.5, 13.5, 4, 4, '¤').elipse(16.5, 13.5, 4, 4, '¤').poli([[3.6, 15], [20.4, 15], [12, 24]], '¤');
+    vol(l, ROJO, { borde: 2, fuerzaBorde: 0.5, base: 0.62 });
+    l.set(6, 11, 'e').set(7, 10, 'e');
+    // la flecha: cabeza de 5 y asta de 2, en el oro más claro, con su sombra al pie
+    l.rect(23, 0, 2, 1, 'Y').rect(22, 1, 4, 1, 'Y').rect(21, 2, 6, 1, 'Y').rect(20, 3, 8, 1, 'y');
+    l.rect(22, 4, 2, 7, 'Y').rect(24, 4, 2, 7, 'y');
+    l.rect(22, 11, 4, 1, 'z').rect(20, 4, 2, 1, 'z').rect(26, 4, 2, 1, 'z');
   },
   escudo: (l) => {
     broquel(l, 14, 2, 10, 24, ACERO);

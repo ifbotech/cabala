@@ -17,7 +17,7 @@ import { $ } from './ui';
 export const ESTADOS = [
   'portada', 'elegir-mazo', 'elegi-una', 'mapa', 'mesa', 'mesa-seleccion', 'mesa-arrastrando', 'mesa-rey', 'mesa-segunda', 'mesa-mentiroso', 'botin', 'elegi-bendicion', 'elegi-amuleto',
   'pulperia', 'fogon', 'cabala', 'mazo', 'jugadas', 'piezas', 'mesa-mando', 'mapa-mando', 'altar', 'coleccion', 'coleccion-reyes', 'coleccion-amuletos', 'cronica', 'ajustes', 'fin-victoria', 'fin-derrota',
-  'mesa-grito', 'botin-grito', 'mesa-segunda-cambia',
+  'mesa-grito', 'botin-grito', 'mesa-segunda-cambia', 'botin-rey', 'mesa-conteo',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
 /** Estados que solo tienen sentido en vivo (`&vivo`, para las secuencias del Jurado): no entran en la QA visual. */
@@ -240,6 +240,49 @@ export function montarQa(estado: string): void {
       // y en el botín, recién ganado: no tapa SEGUIR
       montar(partida(mazo, (p) => p.fase === 'botin' && p.botin!.de === 'guardia' && p.acto >= 1));
       gritar(mazo, tx(GRITO[mazo].gana), { foto: true });
+      break;
+    }
+    case 'botin-rey': {
+      // el botín de un Rey vencido con sus cinco piezas (oro, Vida máxima, Vida, Amuleto, Cábala): no tapa al Bufón ni
+      // a su bocadillo, cada rótulo entra en dos renglones como mucho, y el grito del Personaje cae junto a su retrato
+      const p = partida(mazo, (x) => x.fase === 'botin' && x.botin!.de === 'rey');
+      const b = p.botin!;
+      // (si la Vida ya estaba llena, la pieza de Vida no salió: se pone a mano, es una foto de QA)
+      if (!b.items.some((i) => i.t === 'cura')) b.items.splice(Math.max(1, b.items.findIndex((i) => i.t === 'oferta')), 0, { t: 'cura', n: 12, hecho: true });
+      if (!b.items.some((i) => i.t === 'vidamax')) b.items.splice(1, 0, { t: 'vidamax', n: 12, hecho: true });
+      montar(p);
+      gritar(mazo, tx(GRITO[mazo].gana), { foto: true });
+      break;
+    }
+    case 'mesa-conteo': {
+      // el conteo del golpe congelado a mitad, con el Tajo de revés armado y un Crítico de Punta y hacha: la cuenta
+      // no cambia de alto ni de renglones al contar, y lo del Rey (TE PEGA) no se monta sobre la cabecera
+      const p = partida(mazo, (x) => x.fase === 'combate' && !!x.combate!.fila[0]?.jefe);
+      const e = p.combate!.fila[0];
+      e.palo = 'S';
+      e.segunda = true;
+      e.vida = Math.floor(e.vidaMax / 2);
+      e.escudo = 0;
+      p.bendiciones.puntahacha = 3;
+      const c = p.combate!;
+      const mano = c.mano;
+      // un Par que no lo abate (dos cartas fuera de Espadas con el mismo número)
+      const fuera = mano.filter((k) => k.palo !== 'S' && k.palo !== 'X');
+      if (fuera.length >= 2) fuera[1].n = fuera[0].n;
+      const ids = fuera.slice(0, 2).map((k) => k.id);
+      // el Crítico cae en este golpe (uno de cada 2 con Punta y hacha al nivel 3)
+      for (let g = 0; g < 4 && !cuenta(p, mano.filter((k) => ids.includes(k.id))).critico; g++) c.golpes = g;
+      const q = cuenta(p, mano.filter((k) => ids.includes(k.id)));
+      c.ultimaJugada = q.jugada;
+      // el Rey aguanta el golpe (le queda Vida para pegarte con el Tajo) y ya está bajo media Vida
+      e.vida = Math.max(e.vida, q.total + 60);
+      e.vidaMax = Math.max(e.vidaMax, e.vida * 2);
+      montar(p);
+      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[]): void }; conteoQa(f: number): void } }).__mesa;
+      if (mesa && ids.length === 2) {
+        mesa.mano.elegir(ids);
+        mesa.conteoQa(0.75);
+      }
       break;
     }
     default:

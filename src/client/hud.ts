@@ -284,12 +284,21 @@ export function reubicarGrito(): void {
   const b = document.querySelector<HTMLElement>('.hud-grito');
   if (b) ubicarGrito(b);
 }
-/** Lo que el grito no puede tapar nunca (también lo mide la QA visual, regla «grito-tapa»). */
+/**
+ * Lo que el grito no puede tapar nunca (también lo mide la QA visual, regla «grito-tapa»). Un botón apagado no cuenta:
+ * mientras se anima un golpe (cuando grita el Personaje) GOLPEAR y DESCARTAR no se pueden tocar, y en el teléfono ese
+ * renglón, justo arriba del retrato, es el único hueco cerca de él.
+ */
 export const ZONAS_SIN_GRITO =
-  '#app button, #app [data-accion], #app .mano .carta, #app .cuenta:not(.reposo), #app [data-hud-vida], #app [data-hud-escudo], #app [data-hud-oro], #app .hud [data-n], #app .mesa-top .lado > *, #app .botin-panel, #app .panel';
-/** Lo que mejor no tapa (si no hay otro hueco, tapa lo menos posible): lo del enemigo, el Bufón y lo que dice. */
-const ZONAS_MEJOR_NO = '#app .e-centro, #app .e-vida, #app .e-ataque, #app .e-rasgo, #app .e-sellos > *, #app .corte-carta, #app .esc-bufon .bufon, #app .bocadillo:not([hidden])';
-/** Ubica el grito en el hueco libre más cercano a su retrato, dentro de la pantalla. */
+  '#app button:not(:disabled), #app [data-accion]:not(:disabled), #app .mano .carta, #app .cuenta:not(.reposo), #app [data-hud-vida], #app [data-hud-escudo], #app [data-hud-oro], #app .hud [data-n], #app .mesa-top .lado > *, #app .panel:not(.botin-panel)';
+/** Lo que mejor no tapa (si no hay otro hueco, tapa lo menos posible): lo del enemigo, el Bufón y lo que dice, el Botín. */
+const ZONAS_MEJOR_NO = '#app .e-centro, #app .e-vida, #app .e-ataque, #app .e-rasgo, #app .e-sellos > *, #app .corte-carta, #app .esc-bufon .bufon, #app .bocadillo:not([hidden]), #app .botin-panel > .titulo, #app .botin-fila, #app button:disabled';
+/** Lo más lejos que puede caer el grito de su retrato (el hueco entre las dos cajas), salvo que cerca no haya lugar. */
+export const GRITO_LEJOS = (ancho: number): number => (ancho < 700 ? 120 : 220);
+/**
+ * Ubica el grito en el hueco libre más cercano a su retrato, dentro de la pantalla y a no más de `GRITO_LEJOS` de él,
+ * con la cola apuntándole (abajo si el globo queda arriba del retrato, arriba si queda debajo).
+ */
 function ubicarGrito(b: HTMLElement): void {
   const retrato = $('.hud-retrato');
   if (!retrato) {
@@ -303,12 +312,16 @@ function ubicarGrito(b: HTMLElement): void {
   b.style.top = '0px';
   const w = b.offsetWidth;
   const h = b.offsetHeight;
+  const lejos = GRITO_LEJOS(innerWidth);
+  /** El hueco entre el globo puesto en (x, y) y el retrato. */
+  const hueco = (x: number, y: number): number => Math.hypot(Math.max(0, r.left - (x + w), x - r.right), Math.max(0, r.top - (y + h), y - r.bottom));
   const cajas = (sel: string, peso: number) =>
     [...document.querySelectorAll<HTMLElement>(sel)]
       .filter((el) => el !== b && !(el.classList.contains('carta') && Number(el.style.zIndex || 0) >= 100))
       .map((el) => ({ c: el.getBoundingClientRect(), peso }))
       .filter((x) => x.c.width > 0 && x.c.height > 0);
-  const prohibidas = [...cajas(ZONAS_SIN_GRITO, 1000), ...cajas(ZONAS_MEJOR_NO, 1)];
+  // (lo que no se puede tapar pesa un millón por píxel: un solo píxel de eso pierde contra tapar entero lo blando)
+  const prohibidas = [...cajas(ZONAS_SIN_GRITO, 1e6), ...cajas(ZONAS_MEJOR_NO, 1)];
   // (corta apenas supera lo que tapa el mejor hueco hallado: la búsqueda entera cabe en un par de milisegundos)
   const tapa = (x: number, y: number, tope: number): number => {
     let a = 0;
@@ -323,24 +336,42 @@ function ubicarGrito(b: HTMLElement): void {
   // el ancla: el borde de arriba del retrato, al medio
   const ax = r.left + r.width / 2;
   const ay = r.top;
-  let mejor = { x: Math.max(m, Math.min(innerWidth - w - m, ax - w / 2)), y: Math.max(m, ay - h - m), tapa: Infinity, d: Infinity };
   const paso = 8;
-  for (let y = m; y <= innerHeight - h - m; y += paso) {
-    for (let x = m; x <= innerWidth - w - m; x += paso) {
-      // lo más cerca del retrato (el centro del globo contra el ancla), un poco más barato hacia arriba que al costado
-      const dx = x + w / 2 - ax;
-      const dy = y + h / 2 - (ay - h / 2 - m);
-      const d = dx * dx + dy * dy * 1.4;
-      // con un hueco limpio ya hallado, lo que queda más lejos ni se mide
-      if (mejor.tapa === 0 && d >= mejor.d) continue;
-      const t = tapa(x, y, mejor.tapa);
-      if (t > mejor.tapa) continue;
-      if (t < mejor.tapa || d < mejor.d) mejor = { x, y, tapa: t, d };
+  // primero, solo cerca del retrato; si ahí todo tapa algo que no se puede tapar, la pantalla entera
+  const buscar = (cerca: boolean) => {
+    let mejor = { x: Math.max(m, Math.min(innerWidth - w - m, ax - w / 2)), y: Math.max(m, ay - h - m), tapa: Infinity, d: Infinity };
+    for (let y = m; y <= innerHeight - h - m; y += paso) {
+      for (let x = m; x <= innerWidth - w - m; x += paso) {
+        if (cerca && hueco(x, y) > lejos) continue;
+        // lo más cerca del retrato (el centro del globo contra el ancla), un poco más barato hacia arriba que al costado
+        const dx = x + w / 2 - ax;
+        const dy = y + h / 2 - (ay - h / 2 - m);
+        const d = dx * dx + dy * dy * 1.4;
+        // con un hueco limpio ya hallado, lo que queda más lejos ni se mide
+        if (mejor.tapa === 0 && d >= mejor.d) continue;
+        const t = tapa(x, y, mejor.tapa);
+        if (t > mejor.tapa) continue;
+        if (t < mejor.tapa || d < mejor.d) mejor = { x, y, tapa: t, d };
+      }
     }
+    return mejor;
+  };
+  let mejor = buscar(true);
+  if (mejor.tapa >= 1e6) {
+    const lejano = buscar(false);
+    if (lejano.tapa < mejor.tapa) mejor = lejano;
   }
   b.dataset.lado = mejor.x + w / 2 < ax ? 'izq' : 'der';
   b.style.left = `${Math.round(mejor.x)}px`;
   b.style.top = `${Math.round(mejor.y)}px`;
+  // la cola, hacia el retrato: abajo si el globo quedó arriba de él, arriba si quedó debajo; en x, lo más cerca de su
+  // centro que deje el globo (sin salirse de las esquinas)
+  const arriba = mejor.y + h <= r.top + h * 0.5;
+  b.dataset.cola = arriba ? 'abajo' : 'arriba';
+  const k = Number(getComputedStyle(document.documentElement).getPropertyValue('--k')) || 1;
+  const cx = Math.max(16 * k, Math.min(w - 24 * k, ax - mejor.x - 2 * k));
+  b.style.setProperty('--cola-x', `${Math.round(cx)}px`);
+  b.classList.remove('sin-cola');
 }
 // al abrirse un modal el grito se borra; al cambiar de pantalla, se vuelve a ubicar junto al retrato nuevo (o se va)
 if (typeof document !== 'undefined')
