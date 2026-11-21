@@ -1,12 +1,12 @@
 // Las reglas del combate y de la partida: jugadas, la cuenta DAÑO × MULTI, los poderes de palo, Inmune, el Golpe
 // exacto, el determinismo y los invariantes de una partida entera jugada por el bot.
 import { describe, expect, it } from 'vitest';
-import { AMULETOS } from '../src/rules/amuletos';
+import { AMULETO, AMULETOS } from '../src/rules/amuletos';
 import { B } from '../src/rules/balance';
 import { jugarEntera, mejorGolpe, paso } from '../src/rules/bot';
 import { clasificar, resolver } from '../src/rules/cartas';
 import type { Carta, PaloCarta } from '../src/rules/cartas';
-import { crearEnemigo, cuenta, descartar, golpear, iniciarCombate } from '../src/rules/combate';
+import { crearEnemigo, cuenta, descartar, golpear, iniciarCombate, repiteJugada } from '../src/rules/combate';
 import type { Enemigo, Partida } from '../src/rules/estado';
 import { COLUMNAS, PISOS, REGLAS_MAPA, TRAMOS, cumple, generarTramo } from '../src/rules/mapa';
 import { MAZOS } from '../src/rules/mazos';
@@ -74,7 +74,7 @@ describe('la cuenta', () => {
     expect(q.ok).toBe(true);
     expect(q.jugada).toBe('par');
     expect(q.dano).toBe(B.jugadas.par.d + 14);
-    expect(q.multi).toBe(B.jugadas.par.m);
+    expect(q.multi).toBe(B.jugadas.par.m + B.mazos.chinchon.multiMano);
     expect(q.total).toBe(q.dano * q.multi);
     expect(Number.isInteger(q.total)).toBe(true);
   });
@@ -103,7 +103,7 @@ describe('la cuenta', () => {
   });
   it('el Golpe exacto abate justo y premia', () => {
     const mano = [c('S', 7), c('C', 7), c('D', 2)];
-    const p = mesa('chinchon', mano, { vida: (B.jugadas.par.d + 14) * B.jugadas.par.m });
+    const p = mesa('chinchon', mano, { vida: (B.jugadas.par.d + 14) * (B.jugadas.par.m + B.mazos.chinchon.multiMano) });
     const oro = p.oro;
     const q = cuenta(p, mano.slice(0, 2));
     expect(q.exacto).toBe(true);
@@ -117,7 +117,7 @@ describe('la cuenta', () => {
   it('la racha: cada Golpe exacto seguido sube el premio hasta el tope, y se corta al abatir sin exactitud', () => {
     const exacta = (racha: number) => {
       const mano = [c('S', 7), c('C', 7), c('D', 2)];
-      const p = mesa('chinchon', mano, { vida: (B.jugadas.par.d + 14) * B.jugadas.par.m });
+      const p = mesa('chinchon', mano, { vida: (B.jugadas.par.d + 14) * (B.jugadas.par.m + B.mazos.chinchon.multiMano) });
       p.racha = racha;
       golpear(p, [mano[0].id, mano[1].id]);
       return p;
@@ -146,7 +146,7 @@ describe('la cuenta', () => {
     expect(p.combate!.escudo).toBe(0);
   });
   it('lo que sobra de un golpe con Espadas pasa al siguiente', () => {
-    const mano = [c('S', 9), c('C', 9), c('H', 9)];
+    const mano = [c('S', 3), c('C', 3), c('H', 3)];
     const p = mesa('chinchon', mano, { palo: 'D', vida: 10 });
     const sig = p.combate!.fila[1];
     const antes = sig.vida;
@@ -471,6 +471,15 @@ describe('0.16.0: las segundas caras obligan a cambiar de plan', () => {
     expect(repite.contra).toBe((20 + furia) * B.reyes.S.deguello);
     const evs = golpear(p, [mano[0].id, mano[1].id]);
     expect(evs.some((x) => x.t === 'rey' && x.que === 'deguello')).toBe(true);
+  });
+  it('0.17: la Carta sola no arma el Tajo de revés, y la Pulpería no ofrece dos Comunes juntos', () => {
+    expect(repiteJugada('sola', 'sola')).toBe(false);
+    expect(repiteJugada('par', 'par')).toBe(true);
+    const p = juego.nuevaPartida({ mazo: 'escoba', semilla: 'TIENDA' });
+    for (let i = 0; i < 200; i++) {
+      const ofs = juego.sortearAmuletos(p, 'tienda', 3);
+      expect(ofs.filter((id) => AMULETO[id].rareza === 'comun').length).toBeLessThanOrEqual(1);
+    }
   });
   it('Remate: a media Vida el Caudal se lleva una tajada de la bolsa', () => {
     const mano = [c('C', 3), c('S', 3)];

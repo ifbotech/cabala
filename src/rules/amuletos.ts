@@ -30,20 +30,22 @@ export interface AmuletoDef {
 const a = B.amuletos;
 const PALO_ES: Record<Palo, string> = { S: 'Espadas', C: 'Bastos', D: 'Oros', H: 'Copas' };
 const PALO_EN: Record<Palo, string> = { S: 'Swords', C: 'Clubs', D: 'Coins', H: 'Cups' };
-const porCarta = (p: Palo): L =>
-  fillL(L('+{n} de Daño por carta de {p} del golpe, y +{c} por punto de carga de su Rey (tope +{t}).', '+{n} Damage per {q} card in the hit, and +{c} per charge point of its King (max +{t}).'), { n: a.danoPorCarta, p: PALO_ES[p], q: PALO_EN[p], c: a.comunPorCarga, t: a.comunTope });
+const ac = a.comunes;
+/** Los cuatro Comunes: Daño por carta de su palo que crece con el tramo, y una segunda mitad propia. */
+const porCarta = (p: Palo, es: string, en: string, v: Record<string, number> = {}): L =>
+  fillL(L(`+{n} de Daño por cada ${PALO_ES[p].replace(/s$/, '')} del golpe (×2 en el tramo 2, ×3 en el 3). ${es}`, `+{n} Damage per ${PALO_EN[p].replace(/s$/, '')} in the hit (×2 in act 2, ×3 in act 3). ${en}`), { n: a.danoPorCarta, ...v });
 
 const lista: AmuletoDef[] = [
-  { id: 'cuchillo', palo: 'S', rareza: 'comun', nombre: L('Cuchillo criollo', 'Criollo Knife'), desc: porCarta('S') },
+  { id: 'cuchillo', palo: 'S', rareza: 'comun', nombre: L('Cuchillo criollo', 'Criollo Knife'), desc: porCarta('S', 'Enemigo a media Vida o menos: ×{x}.', 'Enemy at half Health or less: ×{x}.', { x: ac.cuchilloRemata }) },
   { id: 'facon', palo: 'S', rareza: 'raro', nombre: L('Facón de plata', 'Silver Facón'), desc: L('Abatir a un enemigo con Espadas en el golpe: +1 de Multi en tu próximo golpe.', 'Take an enemy down with Swords in the hit: +1 Mult on your next hit.') },
   { id: 'lanza', palo: 'S', rareza: 'epico', nombre: L('Lanza del Caudillo', "Warlord's Lance"), desc: fillL(L('Todos tus golpes Perforan, y lo que sobra pasa ×{x} al siguiente.', 'All your hits Pierce, and the overflow carries ×{x} to the next enemy.'), { x: a.lanza }) },
-  { id: 'rebenque', palo: 'C', rareza: 'comun', nombre: L('Rebenque', 'Rawhide Whip'), desc: porCarta('C') },
+  { id: 'rebenque', palo: 'C', rareza: 'comun', nombre: L('Rebenque', 'Rawhide Whip'), desc: porCarta('C', 'Y cada Basto te da +{e} de Escudo más.', 'And each Club gives you +{e} more Shield.', { e: ac.rebenqueEscudo }) },
   { id: 'boleadoras', palo: 'C', rareza: 'raro', nombre: L('Boleadoras', 'Bolas'), desc: L('Golpe con 2 o más Bastos: el enemigo queda Aturdido (una vez por enemigo).', 'Hit with 2 or more Clubs: the enemy is Stunned (once per enemy).') },
   { id: 'poncho', palo: 'C', rareza: 'epico', nombre: L('Poncho del Cacique', "Chieftain's Poncho"), desc: fillL(L('Con {e} o más de Escudo: +{m} de Multi.', 'With {e} or more Shield: +{m} Mult.'), { e: a.poncho.escudo, m: a.poncho.multi }) },
-  { id: 'moneda', palo: 'D', rareza: 'comun', nombre: L('Moneda falsa', 'False Coin'), desc: porCarta('D') },
+  { id: 'moneda', palo: 'D', rareza: 'comun', nombre: L('Moneda falsa', 'False Coin'), desc: porCarta('D', 'Con {k} o más Oros en el golpe, +{m} de Multi.', 'With {k} or more Coins in the hit, +{m} Mult.', { k: ac.monedaDesde, m: ac.monedaMulti }) },
   { id: 'taba', palo: 'D', rareza: 'raro', nombre: L('Taba', 'Knucklebone'), desc: fillL(L('Cada turno se tira la taba: con {d} o más, +{m} de Multi.', 'Each turn the knucklebone is thrown: on {d} or more, +{m} Mult.'), { d: a.taba.desde, m: a.taba.multi }) },
   { id: 'cofre', palo: 'D', rareza: 'epico', nombre: L('Cofre del Caudal', "Fortune's Chest"), desc: fillL(L('+1 de Multi por cada {k} de oro que tengas (tope +{t}).', '+1 Mult for every {k} gold you hold (max +{t}).'), { k: a.cofre.cada, t: a.cofre.tope }) },
-  { id: 'mate', palo: 'H', rareza: 'comun', nombre: L('Mate curado', 'Seasoned Mate'), desc: porCarta('H') },
+  { id: 'mate', palo: 'H', rareza: 'comun', nombre: L('Mate curado', 'Seasoned Mate'), desc: porCarta('H', 'Y cada Copa te cura +{c} más.', 'And each Cup heals you +{c} more.', { c: ac.mateCura }) },
   { id: 'bota', palo: 'H', rareza: 'raro', nombre: L('Bota de vino', 'Wineskin'), desc: fillL(L('Al empezar cada combate curás {c} de Vida.', 'At the start of each fight you heal {c} Health.'), { c: a.bota }) },
   { id: 'caliz', palo: 'H', rareza: 'epico', nombre: L('Cáliz del Bacanal', "Reveler's Chalice"), desc: fillL(L('Con {p} % de Vida o más: +{m} de Multi.', 'At {p}% Health or more: +{m} Mult.'), { p: pct(a.caliz.vida), m: a.caliz.multi }) },
   { id: 'cascabel', palo: 'X', rareza: 'legendario', nombre: L('Cascabel del Bufón', "Jester's Bell"), desc: fillL(L('Los cantos de tu Mazo valen doble, y cada canto te deja +{m} de Multi para el resto del combate.', "Your deck's calls count double, and each call leaves you +{m} Mult for the rest of the fight."), { m: a.cascabelMulti }) },

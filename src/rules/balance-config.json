@@ -145,7 +145,7 @@
   },
   "mazos": {
     "escoba": {
-      "vida": 80,
+      "vida": 73,
       "mano": 3,
       "hasta": 9,
       "comodines": 2,
@@ -154,7 +154,7 @@
       "multiMano": 4
     },
     "truco": {
-      "vida": 96,
+      "vida": 88,
       "mano": 3,
       "hasta": 7,
       "comodines": 2,
@@ -169,25 +169,25 @@
       "multiMano": 3
     },
     "chinchon": {
-      "vida": 63,
+      "vida": 43,
       "mano": 7,
       "hasta": 9,
       "comodines": 2,
       "cargaDano": 2,
-      "mitiga": 0.5,
-      "multiMano": 0
+      "mitiga": 0.35,
+      "multiMano": 1
     },
     "mentiroso": {
-      "vida": 43,
+      "vida": 40,
       "mano": 8,
       "hasta": 9,
-      "comodines": 4,
+      "comodines": 3,
       "enganos": 1,
       "furiaFallo": 3,
       "multiMano": 0
     },
     "chancho": {
-      "vida": 90,
+      "vida": 80,
       "mano": 4,
       "hasta": 9,
       "comodines": 2,
@@ -266,7 +266,7 @@
     "dobleTope": 25
   },
   "amuletos": {
-    "danoPorCarta": 3,
+    "danoPorCarta": 2,
     "poncho": {
       "escudo": 6,
       "multi": 2
@@ -289,8 +289,13 @@
     "cascabel": 2,
     "cascabelMulti": 1,
     "doscarasDoble": 2,
-    "comunPorCarga": 1,
-    "comunTope": 6
+    "comunes": {
+      "cuchilloRemata": 2,
+      "rebenqueEscudo": 1,
+      "monedaDesde": 3,
+      "monedaMulti": 1,
+      "mateCura": 1
+    }
   },
   "bendiciones": {
     "deguello": [

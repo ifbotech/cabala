@@ -34,7 +34,7 @@ export const REY_DEF: Record<Palo, ReyDef> = {
     rasgo: L('Filo del Caudillo', "Warlord's Edge"),
     rasgoDesc: fillL(L('Su Furia sube {f} por turno y la mitad de lo que TE PEGA atraviesa tu Escudo.', 'His Fury rises {f} per turn and half of what HE HITS cuts through your Shield.'), { f: r.S.furiaTurno }),
     segunda: L('Tajo de revés', 'Backhand Cut'),
-    segundaDesc: fillL(L('A media Vida: si repetís la jugada de tu golpe anterior, ese turno TE PEGA ×{x} y atraviesa todo tu Escudo. Cambiá de jugada cada golpe.', 'At half Health: repeat the play of your last hit and that turn HE HITS ×{x}, straight through your whole Shield. Change your play every hit.'), { x: r.S.deguello }),
+    segundaDesc: fillL(L('A media Vida: si repetís la jugada de tu golpe anterior (salvo Carta sola), ese turno TE PEGA ×{x} y atraviesa todo tu Escudo. Cambiá de jugada cada golpe.', 'At half Health: repeat the play of your last hit (except a Single) and that turn HE HITS ×{x}, straight through your whole Shield. Change your play every hit.'), { x: r.S.deguello }),
     voz: {
       ofrece: [L('Un solo tajo. El resto es ruido.', 'One clean cut. The rest is noise.'), L('Tomá mi filo. Usalo bien.', 'Take my edge. Use it well.')],
       aliado: L('Con mi propio filo venís. Mostrame qué aprendiste.', 'You come with my own edge. Show me what you learned.'),

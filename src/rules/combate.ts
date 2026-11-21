@@ -129,6 +129,9 @@ export function contraataque(p: Partida, e: Enemigo, o: { mitiga?: boolean; sinV
 /** El Caudillo en su segunda cara castiga repetir la jugada del golpe anterior. */
 const deguelloArmado = (e: Enemigo): boolean => !!(e.jefe && e.palo === 'S' && e.segunda);
 
+/** Repetir jugada para el Tajo de revés: la Carta sola no cuenta (con mano de 3 a veces es la única que hay). */
+export const repiteJugada = (antes: string | undefined, ahora: Jugada): boolean => antes === ahora && ahora !== 'sola';
+
 /**
  * La cuenta de un golpe con esas cartas de la mano contra el enemigo activo. No cambia nada.
  */
@@ -198,12 +201,13 @@ export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
   if (p.mazoId === 'escoba') d('cantos', p.cantos * B.mazos.escoba.cargaDano);
   if (p.mazoId === 'chinchon' && canto) d('cantos', p.cantos * B.mazos.chinchon.cargaDano);
 
-  // los cuatro Comunes crecen con la carga del Rey de su palo (hasta un tope): la build de un palo llega viva al final
-  const porCarta = (palo: Palo): number => B.amuletos.danoPorCarta + Math.min(B.amuletos.comunTope, carga(p, palo) * B.amuletos.comunPorCarga);
-  if (tieneAmuleto(p, 'cuchillo')) d('a:cuchillo', vivas('S') * porCarta('S'));
-  if (tieneAmuleto(p, 'rebenque')) d('a:rebenque', vivas('C') * porCarta('C'));
-  if (tieneAmuleto(p, 'moneda')) d('a:moneda', vivas('D') * porCarta('D'));
-  if (tieneAmuleto(p, 'mate')) d('a:mate', vivas('H') * porCarta('H'));
+  // los cuatro Comunes: Daño por carta de su palo que crece con el tramo (×1, ×2, ×3), y cada uno con su segunda mitad
+  const porCarta = B.amuletos.danoPorCarta * tramoJugador(p);
+  const amC = B.amuletos.comunes;
+  if (tieneAmuleto(p, 'cuchillo')) d('a:cuchillo', vivas('S') * porCarta * (e.vida * 2 <= e.vidaMax ? amC.cuchilloRemata : 1));
+  if (tieneAmuleto(p, 'rebenque')) d('a:rebenque', vivas('C') * porCarta);
+  if (tieneAmuleto(p, 'moneda')) d('a:moneda', vivas('D') * porCarta);
+  if (tieneAmuleto(p, 'mate')) d('a:mate', vivas('H') * porCarta);
 
   d('r:S', carga(p, 'S') * B.cargas.filoDano);
   const bn = B.bendiciones;
@@ -216,8 +220,8 @@ export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
   if (nivelBend(p, 'filodorado')) d('b:filodorado', Math.min(bn.filodorado.tope, Math.floor(p.oro / bn.filodorado.cada)));
 
   // ── los poderes de palo (también los da una carta que no hace Daño por Inmune)
-  const escudo = cuantas('C') * (B.palos.escudoPorBasto * tramoJugador(p) + (nivelBend(p, 'empalizada') ? nivelDe(bn.empalizada, nivelBend(p, 'empalizada')) : 0));
-  const cura = cuantas('H') * (B.palos.curaPorCopa * tramoJugador(p) + (nivelBend(p, 'otraronda') ? nivelDe(bn.otraronda, nivelBend(p, 'otraronda')) : 0));
+  const escudo = cuantas('C') * (B.palos.escudoPorBasto * tramoJugador(p) + (nivelBend(p, 'empalizada') ? nivelDe(bn.empalizada, nivelBend(p, 'empalizada')) : 0) + (tieneAmuleto(p, 'rebenque') ? amC.rebenqueEscudo * tramoJugador(p) : 0));
+  const cura = cuantas('H') * (B.palos.curaPorCopa * tramoJugador(p) + (nivelBend(p, 'otraronda') ? nivelDe(bn.otraronda, nivelBend(p, 'otraronda')) : 0) + (tieneAmuleto(p, 'mate') ? amC.mateCura * tramoJugador(p) : 0));
   const oro = cuantas('D') * B.palos.oroPorOro;
   const perfora = cuantas('S') > 0 || tieneAmuleto(p, 'lanza');
 
@@ -225,6 +229,8 @@ export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
   m('combate', c.multiCombate);
   m('prox', c.proxMulti);
   m('a:cascabel', c.cascabel ?? 0);
+  // la Moneda falsa: un golpe cargado de Oros suma Multi
+  if (tieneAmuleto(p, 'moneda') && cuantas('D') >= amC.monedaDesde) m('a:moneda', amC.monedaMulti);
   // los naipes Templados (segunda pasada por el Fogón) suman Multi al jugarlos
   m('templada', ef.filter((k) => !inmune(k.palo) && k.de.templada).length * B.fogon.multiTemplada);
   const au = B.aumentos;
@@ -276,7 +282,7 @@ export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
   if (!abate && !ejecuta) {
     if (e.aturdido > 0 || aturde > 0 || c.caraDePoker) contra = 0;
     else {
-      const k = contraataque(p, e, { mitiga: canto && p.mazoId === 'chinchon', sinVida: aVida === 0, repite: c.ultimaJugada === jugada });
+      const k = contraataque(p, e, { mitiga: canto && p.mazoId === 'chinchon', sinVida: aVida === 0, repite: repiteJugada(c.ultimaJugada, jugada) });
       const tuEscudo = Math.min(escudoTope(p), c.escudo + escudo);
       contra = k.n - Math.min(tuEscudo, k.n - k.directo);
     }
@@ -667,7 +673,7 @@ export function golpear(p: Partida, ids: readonly string[]): Ev[] {
     return evs;
   }
   if (!cae) {
-    const sigue = contraatacar(p, evs, { mitiga: q.canto && p.mazoId === 'chinchon', sinVida: q.aVida === 0, repite: jugadaAntes === q.jugada });
+    const sigue = contraatacar(p, evs, { mitiga: q.canto && p.mazoId === 'chinchon', sinVida: q.aVida === 0, repite: repiteJugada(jugadaAntes, q.jugada) });
     if (!sigue || !c.fila.length) return evs;
   }
   finTurno(p, evs, sel);

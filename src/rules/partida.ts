@@ -74,7 +74,11 @@ const PESOS: Record<'elite' | 'rey' | 'tienda', Record<Rareza, number>> = {
 export function sortearAmuletos(p: Partida, de: 'elite' | 'rey' | 'tienda', n: number): AmuletoId[] {
   const out: AmuletoId[] = [];
   for (let i = 0; i < n; i++) {
-    const libres = AMULETOS.filter((id) => !p.amuletos.includes(id) && !out.includes(id));
+    // nunca dos Comunes en la misma oferta: la tienda tiene que ser una decisión, no tres variantes de lo mismo
+    const yaComun = out.some((id) => AMULETO[id].rareza === 'comun');
+    const todos = AMULETOS.filter((id) => !p.amuletos.includes(id) && !out.includes(id));
+    const sinComun = todos.filter((id) => AMULETO[id].rareza !== 'comun');
+    const libres = yaComun && sinComun.length ? sinComun : todos;
     if (!libres.length) break;
     const conPeso = libres.map((id) => [id, PESOS[de][AMULETO[id].rareza]] as const);
     out.push(conPeso.some(([, w]) => w > 0) ? ponderado(p, conPeso) : elegir(p, libres));
