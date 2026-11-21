@@ -208,7 +208,11 @@ export function iniciarNav(): void {
         }
       } else repite = 0;
       // cualquier botón del mando cuenta como «se juega con mando»: los glifos aparecen al primer toque
-      if (b.some((x, i) => x && !antes[i])) ponerEntrada('mando');
+      if (b.some((x, i) => x && !antes[i])) {
+        ponerEntrada('mando');
+        // (las micro-escenas se saltan con cualquier botón)
+        dispatchEvent(new Event('cabala:pulso'));
+      }
       if (recien(0)) activar();
       if (recien(1)) atras();
       if (recien(2)) atajo('g');

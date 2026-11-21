@@ -14,12 +14,13 @@ import { GRITO } from './voces';
 import { modoFoto } from './fx/motor';
 import { irAjustes, irAltar, irColeccion, irCronica, irMazo, irPortada, pintarFase, sesion } from './juego';
 import { $ } from './ui';
+import { mascaraHtml } from './pantallas/mesa';
 
 export const ESTADOS = [
   'portada', 'elegir-mazo', 'elegi-una', 'mapa', 'mesa', 'mesa-seleccion', 'mesa-arrastrando', 'mesa-rey', 'mesa-segunda', 'mesa-mentiroso', 'botin', 'elegi-bendicion', 'elegi-amuleto',
   'pulperia', 'fogon', 'cabala', 'mazo', 'jugadas', 'piezas', 'mesa-mando', 'mapa-mando', 'altar', 'coleccion', 'coleccion-reyes', 'coleccion-amuletos', 'cronica', 'ajustes', 'fin-victoria', 'fin-derrota',
   'mesa-grito', 'botin-grito', 'mesa-segunda-cambia', 'botin-rey', 'mesa-conteo', 'mesa-escudo',
-  'mesa-chispa', 'mesa-escalon', 'mesa-postas-arrastre', 'mesa-chiches', 'mesa-chiche-usa', 'mesa-prenda', 'pulperia-chiches',
+  'mesa-chispa', 'mesa-escalon', 'mesa-postas-arrastre', 'mesa-chiches', 'mesa-chiche-usa', 'mesa-prenda', 'pulperia-chiches', 'rey-mascara',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
 /** Estados que solo tienen sentido en vivo (`&vivo`, para las secuencias del Jurado): no entran en la QA visual. */
@@ -136,6 +137,16 @@ export function montarQa(estado: string): void {
     case 'mesa-rey':
       montar(partida(mazo, (p) => p.fase === 'combate' && !!p.combate!.fila[0]?.jefe));
       break;
+    case 'rey-mascara': {
+      // la micro-escena de entrada del Rey, quieta: el Bufón todavía con la máscara puesta
+      const p = partida(mazo, (x) => x.fase === 'combate' && !!x.combate!.fila[0]?.jefe);
+      montar(p);
+      const el = document.createElement('div');
+      el.className = 'cortina irrupcion quieta';
+      el.innerHTML = mascaraHtml(p.combate!.fila[p.combate!.fila.length - 1].palo);
+      $('#capa')?.append(el);
+      break;
+    }
     case 'rey-abre':
       // el duelo del Rey recién abierto (turno 1, sin golpes): en vivo, la irrupción entera
       montar(partida(mazo, (p) => p.fase === 'combate' && p.combate!.tipo === 'rey' && enCombate(p, 0)));

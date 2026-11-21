@@ -134,7 +134,8 @@ function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[
     pisa(vida, cuenta, 'la barra de Vida pisa la cuenta');
     pisa(cuenta, mano, 'la cuenta pisa la mano');
     pisa(vida, mano, 'la barra de Vida pisa la mano');
-    if (cuentaEl && !document.body.classList.contains('arrastrando')) {
+    // (una micro-escena a pantalla entera tapa la mesa a propósito: no cuenta)
+    if (cuentaEl && !document.body.classList.contains('arrastrando') && !document.querySelector('.cortina')) {
       const r = cuentaEl.getBoundingClientRect();
       for (const fx of [0.2, 0.5, 0.8]) {
         const encima = document.elementFromPoint(r.left + r.width * fx, r.top + r.height / 2);

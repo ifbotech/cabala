@@ -53,8 +53,8 @@ const centro = (el: Element | null): { x: number; y: number } => {
 };
 
 /** Una micro-escena que cruza la pantalla (la entrada del combate, la irrupción de un Rey). Se salta con un clic. */
-function cortina(html: string, ms: number, cls = '', alMontar?: (el: HTMLElement) => number): Promise<void> {
-  if (quieto()) return Promise.resolve();
+function cortina(html: string, ms: number, cls = '', alMontar?: (el: HTMLElement) => number): Promise<boolean> {
+  if (quieto()) return Promise.resolve(false);
   return new Promise((ok) => {
     const el = document.createElement('div');
     el.className = `cortina ${cls}`;
@@ -62,15 +62,30 @@ function cortina(html: string, ms: number, cls = '', alMontar?: (el: HTMLElement
     $('#capa')!.append(el);
     ms += alMontar?.(el) ?? 0;
     let hecho = false;
-    const fin = () => {
+    const fin = (saltada: boolean) => {
       if (hecho) return;
       hecho = true;
       el.remove();
-      ok();
+      removeEventListener('keydown', saltar, true);
+      removeEventListener('cabala:pulso', saltar);
+      ok(saltada);
     };
-    el.addEventListener('pointerdown', fin);
-    setTimeout(fin, ms);
+    // (cualquier entrada la salta: el dedo, una tecla o un botón del mando)
+    const saltar = (ev: Event): void => {
+      if (ev.type === 'keydown') ev.preventDefault();
+      fin(true);
+    };
+    el.addEventListener('pointerdown', saltar);
+    addEventListener('keydown', saltar, true);
+    addEventListener('cabala:pulso', saltar);
+    setTimeout(() => fin(false), ms);
   });
+}
+
+/** La banda del Bufón con la máscara del Rey (la QA la fotografía quieta, a mitad de la escena). */
+export function mascaraHtml(palo: Palo): string {
+  const r = REY_DEF[palo];
+  return `<div class="irr-banda mascarada" style="--aura:${AURA[palo]}"><span class="mz-par">${bufonHtml('risa', 'mz-bufon')}<span class="mz-mascara" aria-hidden="true">${reyHtml(palo, 'calma', 'mz-rey')}</span></span><div class="irr-texto"><b class="titulo">${esc(tx(r.apodo))}</b><span class="sub">${esc(t('mascaraRey'))}</span></div></div>`;
 }
 
 export function pantallaMesa(p: Partida): Pantalla {
@@ -908,8 +923,20 @@ export function pantallaMesa(p: Partida): Pantalla {
     if (cantoPendiente) cantoGrande();
   }
 
+  /**
+   * La micro-escena del Bufón con la máscara del Rey (1,1 s): entra disfrazado de Rey, la levanta con una risa y la
+   * máscara sale volando hacia la mesa, donde el Rey de verdad aparece. Cualquier entrada la salta.
+   */
+  function mascaraRey(palo: Palo): Promise<boolean> {
+    sonar('bufon');
+    return cortina(
+      mascaraHtml(palo),
+      1100,
+      'irrupcion',
+    );
+  }
   /** La irrupción teatral de un Rey: su retrato, su aura y lo que te dice según lo que llevás de él. */
-  function irrupcion(palo: Palo): Promise<void> {
+  function irrupcion(palo: Palo): Promise<boolean> {
     const r = REY_DEF[palo];
     const linea = donesDe(p, palo) > 0 ? r.voz.aliado : r.voz.ajeno;
     return cortina(
@@ -920,7 +947,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     );
   }
   /** La aparición chanta del Bufón cuando una de sus Cábalas hace de las suyas. */
-  function aparicion(aumento: 'irsealmazo'): Promise<void> {
+  function aparicion(aumento: 'irsealmazo'): Promise<boolean> {
     const f = fichaDe('aumento', aumento);
     sonar('bufon');
     return cortina(`<div class="irr-banda bufonada">${bufonHtml('brillo')}<div class="irr-texto"><b class="titulo">${esc(f.nombre)}</b><p class="bocadillo sin-cola">${esc(f.desc)}</p></div></div>`, 1000, 'irrupcion');
@@ -953,6 +980,8 @@ export function pantallaMesa(p: Partida): Pantalla {
   async function entrada(): Promise<void> {
     if (tipo === 'rey') {
       const palo = c().fila[c().fila.length - 1].palo;
+      // primero el Bufón con la máscara del Rey (se la arranca y la tira a la mesa); saltarla salta la entrada entera
+      if (await mascaraRey(palo)) return;
       sonar('rey');
       await irrupcion(palo);
       return;
