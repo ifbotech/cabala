@@ -3,6 +3,43 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.17.0 · La cara verdadera (2026-11-21)
+
+Paquete dictado por los P0 y P1 del Jurado Fable sobre la 0.16.0: el Rey en segunda cara pisando la cuenta, el Tajo de
+revés que castigaba sin salida, los cuatro Comunes clones, el grito sobre los controles y las pantallas sin escena.
+
+**Los Reyes, de verdad distintos a media Vida**
+- **Cada Rey tiene un dibujo propio para su segunda cara**: el Caudillo con la espada invertida y la cicatriz, el Cacique
+  tras una empalizada de estacas, el Caudal con la bolsa abierta y monedas cayendo, el Bacanal con la copa que rebalsa.
+  El volteo, la mesa y la rajadura final muestran ese dibujo.
+- **El Tajo de revés ya no castiga la Carta sola** (con mano de 3 a veces era la única jugada). Armado, la cifra grande del
+  Rey muestra el golpe real con «×2», y la regla corta queda escrita bajo su nombre mientras dure.
+- El rótulo y la barra del Rey ya no pisan la cuenta en ninguna ventana; la QA visual tiene una regla que lo vigila.
+
+**Los Amuletos comunes, cada uno con su juego**
+- Los cuatro suman Daño por carta de su palo (×2 en el tramo 2, ×3 en el 3) y cada uno tiene su segunda mitad: el
+  **Cuchillo criollo** pega ×2 contra un enemigo a media Vida, el **Rebenque** da Escudo de más, la **Moneda falsa** suma
+  +1 de Multi con tres Oros y el **Mate curado** cura de más. La Pulpería ya no ofrece dos Comunes juntos.
+
+**Escenas**
+- **Victoria** con amanecer sobre el arrabal y los Reyes vencidos partidos en dos; **derrota** con la vela apagada y tu
+  retrato rajado; **Botín** con las piezas grandes sobre la mesa; **Ajustes** con el abanico de Dorsos; **Crónica** con el
+  retrato de la última partida.
+
+**Mesa, mando y teléfono**
+- El grito del Personaje sale al costado del retrato y nunca encima de un modal ni de los botones.
+- Cara de Póker es un sello sobre el enemigo («NO LLEGA») y el chip dice la causa: «NO TE PEGA · Cara de Póker».
+- La caída del Rey arranca enseguida: la mano y los botones se retiran en el instante en que muere el último enemigo.
+- Mapa con mando: la ayuda va al costado del nodo enfocado, «ESTÁS ACÁ» se ve y el foco se centra en el rollo.
+- Las cargas de los Reyes en el HUD dicen qué hacen («Filo 9: +9 de Daño en cada golpe»).
+- En el teléfono bajo (390×664) la placa de lo que te pega ya no trepa a la cabecera.
+
+**Balance** (laboratorio, 3.000 partidas por celda, con las notas que se publican): Altar vacío / lleno — Escoba 32,8 / 48,8 ·
+Truco 28,3 / 48,7 · Chinchón 28,0 / 48,1 · Mentiroso 28,1 / 48,7 · Chancho Va 28,8 / 47,2. Chinchón pasa a Vida 43 con +1
+de Multi en cada golpe; el Mentiroso, a 3 Comodines.
+
+**Medición.** Jurado Fable 7,4 · 7,3 · 8,0 · 7,4 (antes 7,3 · 7,2 · 7,9 · 7,3). Panel simulado de la 0.16.0 (n = 60, ruido
+±10 puntos): aprobación 75,0 % (IC95 63–84 %), F 203,3 (+8,4), claridad 6,3.
 ## 0.16.0 · Cambiá de plan (2026-11-21)
 
 Paquete dictado por los P0 y P1 del Jurado Fable sobre la 0.15.0: el conteo que tapaba su propio desglose (los seis

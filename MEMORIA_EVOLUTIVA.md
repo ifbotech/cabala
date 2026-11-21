@@ -434,3 +434,21 @@ de descarte; bandeja en dos filas. Dos agentes en serie (claridad, luego juice y
   regla.
 
 **Medición.** Jurado 7,3 · 7,2 · 7,9 · 7,3 (+0,2 · +0,2 · +0,1 · +0,2). Panel: ver la entrada de la 0.17.0.
+## 0.17.0 · La cara verdadera (publicada)
+
+**Qué se buscó.** Los P0/P1 del Jurado sobre la 0.16.0: el Rey en segunda cara pisando la cuenta, el Tajo sin salida con
+mano de 3, los Comunes clones, el grito tapando controles, Cara de Póker como cortina, pantallas sin escena.
+
+**Qué entró.** Dibujo propio de segunda cara para los 4 Reyes; Tajo sin Carta sola y legible; regla de QA
+«solape-enemigo», «grito-tapa» y «mapa-foco»; Comunes con segunda mitad y ×tramo; tienda sin dos Comunes; escenas de
+victoria, derrota, botín, ajustes y crónica. Tres agentes en serie (mesa, arte) y yo en el motor.
+
+**Lecciones.**
+- Las notas del bot son terciles (S/A/B): unas pocas piezas en el borde cambian de letra con cualquier cambio de reglas,
+  y eso movió al Mentiroso de 48,9 a 53 % con el Altar lleno. Procedimiento que funciona: recalcular las notas **una vez**
+  tras el último cambio de reglas, y después afinar solo Vidas con `--sin-notas` sin volver a recalcularlas.
+- Endurecer el tramo 1 (más ataque de La Corte) agranda la distancia Altar vacío / lleno y saca a Chinchón y Mentiroso
+  de objetivo; un +1 de Multi plano (`multiMano`) la achica, porque ayuda más al que no tiene Altar.
+- El panel 0.16.0 dio 75,0 % (IC95 63–84 %, n = 60), F 203,3, claridad 6,3, Deck 77,8 % (n = 9), Móvil 80,0 %.
+
+**Medición.** Jurado 7,4 · 7,3 · 8,0 · 7,4 (+0,1 en las cuatro).
