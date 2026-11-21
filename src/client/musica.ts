@@ -3,7 +3,7 @@
 // canto y percusión de ruido. El canto de cada pista se compone solo, una vez y con semilla fija: notas del acorde en
 // los tiempos fuertes y grados vecinos de la escala entre medio, así siempre suena igual y siempre entona.
 import { ajustes } from './almacen';
-import { alAbrirAudio, contextoAudio } from './audio';
+import { alAbrirAudio, contextoAudio, salidaMusica } from './audio';
 
 export type PistaId = 'portada' | 'mapa' | 'mesa' | 'rey' | 'pulperia' | 'fogon' | 'cabala' | 'derrota';
 
@@ -287,7 +287,8 @@ function tic(): void {
     const f = ctx.createBiquadFilter();
     f.type = 'lowpass';
     f.frequency.value = 3600;
-    g.connect(f).connect(ctx.destination);
+    // al bus de la música (que pasa por el compresor y la ganancia maestra, y se agacha en cada hitstop)
+    g.connect(f).connect(salidaMusica() ?? ctx.destination);
     return g;
   })();
   if (!sonando || sonando.id !== deseada) {

@@ -13,7 +13,7 @@ import { REINADOS } from '../../rules/reinados';
 import { BENDICION, BENDICIONES, REY_DEF } from '../../rules/reyes';
 import { MARCA, VERSION } from '../../shared/brand';
 import { ajustes, alAzar, borrarTodo, fijarIdioma, guardarAjustes, guardarPartida, guardarPerfil, idioma, perfil, t, tx } from '../almacen';
-import { sonar } from '../audio';
+import { refrescarSonido, sonar } from '../audio';
 import { refrescarMusica } from '../musica';
 import { enFoto } from '../fx/motor';
 import { continuar, empezar, hayPartida, irAjustes, irAltar, irColeccion, irCronica, irMazo, irPortada, sesion } from '../juego';
@@ -372,11 +372,13 @@ export function pantallaAjustes(): Pantalla {
       'sonido-si': () => {
         ajustes.sonido = true;
         guardarAjustes();
+        refrescarSonido();
         repintar();
       },
       'sonido-no': () => {
         ajustes.sonido = false;
         guardarAjustes();
+        refrescarSonido();
         repintar();
       },
       borrar: () => {

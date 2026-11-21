@@ -2,6 +2,7 @@
 // fija, perfil de muestra que no se guarda) y deja la escena en modo foto. `&lang=en` la pone en inglés, `&vivo`
 // deja correr las animaciones y `&perfil=nuevo` usa un perfil recién estrenado.
 import { mejorGolpe, paso } from '../rules/bot';
+import { cuenta } from '../rules/combate';
 import type { Partida, TipoNodo } from '../rules/estado';
 import type { MazoId } from '../rules/mazos';
 import * as juego from '../rules/partida';
@@ -12,10 +13,12 @@ import { irAjustes, irAltar, irColeccion, irCronica, irMazo, irPortada, pintarFa
 import { $ } from './ui';
 
 export const ESTADOS = [
-  'portada', 'elegir-mazo', 'elegi-una', 'mapa', 'mesa', 'mesa-seleccion', 'mesa-arrastrando', 'mesa-rey', 'mesa-mentiroso', 'botin', 'elegi-bendicion', 'elegi-amuleto',
+  'portada', 'elegir-mazo', 'elegi-una', 'mapa', 'mesa', 'mesa-seleccion', 'mesa-arrastrando', 'mesa-rey', 'mesa-segunda', 'mesa-mentiroso', 'botin', 'elegi-bendicion', 'elegi-amuleto',
   'pulperia', 'fogon', 'cabala', 'mazo', 'jugadas', 'piezas', 'mesa-mando', 'mapa-mando', 'altar', 'coleccion', 'coleccion-reyes', 'coleccion-amuletos', 'cronica', 'ajustes', 'fin-victoria', 'fin-derrota',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
+/** Estados que solo tienen sentido en vivo (`&vivo`, para las secuencias del Jurado): no entran en la QA visual. */
+export const ESTADOS_VIVOS = ['rey-abre'] as const;
 
 /** Un perfil de muestra con algo de camino andado. */
 function perfilMuestra(): Perfil {
@@ -70,7 +73,7 @@ export function montarQa(estado: string): void {
   const mazo = (q.get('mazo') as MazoId) || 'escoba';
   // la mesa se fotografía con la mano de su Mazo (sin el Aumento que reparte cartas de más el primer turno)
   const enCombate = (p: Partida, acto = 1) => p.fase === 'combate' && p.acto >= acto && p.combate!.turno === 1 && p.combate!.golpes === 0 && p.combate!.mano.length === p.manoMax;
-  switch (estado as EstadoQa) {
+  switch (estado as EstadoQa | (typeof ESTADOS_VIVOS)[number]) {
     case 'portada':
       irPortada();
       break;
@@ -128,6 +131,31 @@ export function montarQa(estado: string): void {
     case 'mesa-rey':
       montar(partida(mazo, (p) => p.fase === 'combate' && !!p.combate!.fila[0]?.jefe));
       break;
+    case 'rey-abre':
+      // el duelo del Rey recién abierto (turno 1, sin golpes): en vivo, la irrupción entera
+      montar(partida(mazo, (p) => p.fase === 'combate' && p.combate!.tipo === 'rey' && enCombate(p, 0)));
+      break;
+    case 'mesa-segunda': {
+      // el Rey ya en su segunda cara (bajo media Vida) y, si es el Caudillo, una selección que repite la jugada
+      // anterior: la cuenta y el TE PEGA avisan el Tajo de revés antes de soltar
+      const p = partida(mazo, (x) => x.fase === 'combate' && !!x.combate!.fila[0]?.jefe);
+      const e = p.combate!.fila[0];
+      e.segunda = true;
+      e.vida = Math.floor(e.vidaMax * 0.46);
+      montar(p);
+      const mano = p.combate!.mano;
+      const posibles = [...mano.map((k) => [k]), ...mano.flatMap((k, i) => mano.slice(i + 1).map((j) => [k, j]))];
+      const sel = posibles.find((x) => {
+        const q = cuenta(p, x);
+        return q.ok && !q.abate && !q.ejecuta && !!q.contra && q.contra > 0;
+      });
+      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[]): void }; sincronizar(): void } }).__mesa;
+      if (sel && mesa) {
+        p.combate!.ultimaJugada = cuenta(p, sel).jugada;
+        mesa.mano.elegir(sel.map((k) => k.id));
+      }
+      break;
+    }
     case 'jugadas': {
       const p = partida(mazo, (x) => enCombate(x));
       montar(p);

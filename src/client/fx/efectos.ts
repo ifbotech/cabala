@@ -105,17 +105,20 @@ export function destello(x: number, y: number, rampa: string[], radio = 14): voi
   });
 }
 
-/** El tajo de Espadas: una media luna de acero que cruza en diagonal, con la cabeza blanca y la cola de cian. */
-function tajoEspadas(cx: number, cy: number, r: number): void {
-  let t = 0;
+/**
+ * El tajo de Espadas: una media luna de acero que cruza en diagonal, con la cabeza blanca y la cola de cian. `dir`
+ * -1 lo espeja (el revés) y `demora` lo hace esperar unos segundos antes de cortar.
+ */
+function tajoEspadas(cx: number, cy: number, r: number, dir = 1, demora = 0, rampa = RAMPA_PALO.S): void {
+  let t = -demora;
   const T = 0.26;
-  const rampa = RAMPA_PALO.S;
   efecto({
     paso(dt) {
       t += dt;
       return t < T + 0.12;
     },
     pinta(c, l) {
+      if (t < 0) return;
       const cabeza = Math.min(1, t / T);
       const cola = Math.max(0, (t - 0.1) / T);
       const pasos = Math.ceil(r * 3);
@@ -125,14 +128,14 @@ function tajoEspadas(cx: number, cy: number, r: number): void {
         // la curva: una diagonal con panza
         const a = (u * 2 - 1) * r;
         const b = Math.sin(u * Math.PI) * r * 0.32;
-        const x = Math.round(cx + (a + b) * 0.7071);
+        const x = Math.round(cx + dir * (a + b) * 0.7071);
         const y = Math.round(cy + (a - b) * 0.7071);
         const cerca = (cabeza - u) / Math.max(0.001, cabeza - cola);
         const grosor = cerca < 0.25 ? 3 : cerca < 0.6 ? 2 : 1;
         c.fillStyle = rampa[cerca < 0.2 ? 0 : cerca < 0.45 ? 1 : cerca < 0.75 ? 2 : 3];
         c.fillRect(x - (grosor >> 1), y - (grosor >> 1), grosor, grosor);
       }
-      const hx = cx + ((cabeza * 2 - 1) * r + Math.sin(cabeza * Math.PI) * r * 0.32) * 0.7071;
+      const hx = cx + dir * ((cabeza * 2 - 1) * r + Math.sin(cabeza * Math.PI) * r * 0.32) * 0.7071;
       const hy = cy + ((cabeza * 2 - 1) * r - Math.sin(cabeza * Math.PI) * r * 0.32) * 0.7071;
       const d = disco(rampa[2], r * 0.7);
       l.drawImage(d, Math.round(hx - d.width / 2), Math.round(hy - d.height / 2));
@@ -411,3 +414,78 @@ export function motas(x: number, y: number, rampa: string[], n = 10, ancho = 40)
 export const RAMPA_CURA = ['#ffffff', '#b4f03c', '#22d95b', '#139a3c'];
 export const RAMPA_ESCUDO = ['#ffffff', '#b8f6ff', '#00c8ff', '#2c7bf0'];
 export const RAMPA_GOLPE = ['#ffffff', '#ff6e8e', '#ff1453', '#7a0026'];
+
+/**
+ * El Tajo de revés del Caudillo: dos filos que se cruzan en X (el derecho y, un instante después, el revés en rojo),
+ * con un destello grande en el cruce y chispas de acero. Es el ×2: se tiene que ver doble.
+ */
+export function tajoDeReves(x: number, y: number, r: number): void {
+  const cx = aCelda(x);
+  const cy = aCelda(y);
+  const rc = aCelda(r);
+  tajoEspadas(cx, cy, rc, 1);
+  tajoEspadas(cx, cy, rc * 1.1, -1, 0.11, RAMPA_GOLPE_LARGA);
+  destello(x, y, RAMPA_PALO.S, rc * 0.7);
+  chispas(x, y, RAMPA_PALO.S, 14, 120);
+  chispas(x, y, RAMPA_GOLPE_LARGA, 12, 140);
+}
+const RAMPA_GOLPE_LARGA = ['#ffffff', '#ff6e8e', '#ff1453', '#f0124a', '#7a0026'];
+
+/**
+ * La segunda cara de un Rey: lo contrario de su irrupción. Los anillos no se abren, se CIERRAN sobre el naipe (la
+ * luz se le mete adentro) y del naipe salen grietas quebradas, en zigzag, del color de su palo.
+ */
+export function quiebre(x: number, y: number, r: number, color: string, rampa: string[]): void {
+  const cx = aCelda(x);
+  const cy = aCelda(y);
+  const rc = aCelda(r);
+  // las grietas: 7 rayos quebrados, cada uno con su zigzag fijo
+  const grietas = Array.from({ length: 7 }, (_, i) => {
+    const a0 = (i / 7) * Math.PI * 2 + entre(-0.2, 0.2);
+    const pts: [number, number][] = [];
+    let a = a0;
+    for (let k = 0; k <= 6; k++) {
+      a += entre(-0.35, 0.35);
+      const d = rc * (0.45 + k * 0.17);
+      pts.push([cx + Math.cos(a) * d, cy + Math.sin(a) * d * 0.85]);
+    }
+    return pts;
+  });
+  let t = 0;
+  const T = 0.95;
+  efecto({
+    paso(dt) {
+      t += dt;
+      return t < T;
+    },
+    pinta(c, l) {
+      const f = t / T;
+      // los anillos que se cierran: de afuera hacia el naipe
+      for (const fase of [0, 0.18, 0.36]) {
+        const u = f - fase;
+        if (u <= 0 || u > 0.45) continue;
+        const d = disco(color, rc * (1.9 - u * 3.2));
+        l.globalAlpha = u < 0.15 ? 0.33 : u < 0.3 ? 0.66 : 1;
+        l.drawImage(d, Math.round(cx - d.width / 2), Math.round(cy - d.height / 2));
+      }
+      l.globalAlpha = 1;
+      // las grietas crecen hasta la mitad y después se apagan tramadas
+      const largo = Math.min(1, f / 0.35);
+      for (const pts of grietas) {
+        const n = Math.ceil((pts.length - 1) * largo);
+        for (let k = 0; k < n; k++) {
+          const [x0, y0] = pts[k];
+          const [x1, y1] = pts[k + 1];
+          const pasos = Math.ceil(Math.hypot(x1 - x0, y1 - y0));
+          c.fillStyle = rampa[Math.min(rampa.length - 1, Math.floor(f * rampa.length + k * 0.3))];
+          for (let s = 0; s <= pasos; s++) {
+            if (f > 0.6 && (s + k) % 2) continue;
+            if (f > 0.8 && (s + k) % 3) continue;
+            const u = s / Math.max(1, pasos);
+            c.fillRect(Math.round(x0 + (x1 - x0) * u), Math.round(y0 + (y1 - y0) * u), k < 2 ? 2 : 1, k < 2 ? 2 : 1);
+          }
+        }
+      }
+    },
+  });
+}

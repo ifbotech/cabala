@@ -24,7 +24,7 @@ const pedidos = args.filter((a) => !a.startsWith('-'));
 const estados = ESTADOS.filter((e) => !pedidos.length || pedidos.includes(e));
 /** El móvil bajo (390 de ancho en Safari, con sus barras): solo los estados de mesa, que son los que ceden por alto. */
 const VENTANA_BAJA = { nombre: '390x664', w: 390, h: 664 } as const;
-const ESTADOS_BAJA: readonly string[] = ['mesa', 'mesa-seleccion', 'mesa-mentiroso', 'mesa-rey'];
+const ESTADOS_BAJA: readonly string[] = ['mesa', 'mesa-seleccion', 'mesa-mentiroso', 'mesa-rey', 'mesa-segunda'];
 const ventanas = [...VENTANAS, VENTANA_BAJA].filter((v) => !soloVentana || v.nombre === soloVentana);
 const carpeta = `artifacts/visual-qa${lang === 'en' ? '-en' : ''}`;
 

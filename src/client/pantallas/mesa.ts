@@ -15,10 +15,10 @@ import { donesDe, escudoTope } from '../../rules/estado';
 import { ver } from '../../rules/perfil';
 import { REY_DEF } from '../../rules/reyes';
 import { ajustes, alAzar, guardarPerfil, idioma, perfil, t, tx } from '../almacen';
-import { nota, sonar, vozBufon } from '../audio';
+import { agacharMusica, nota, sonar, vozBufon } from '../audio';
 import { estadoMusica, ponerFuego, ponerMusica } from '../musica';
 import { teclear } from '../habla';
-import { RAMPA_CURA, RAMPA_ESCUDO, RAMPA_GOLPE, RAMPA_PALO, chispas, destello, haloRey, lluviaDeMonedas, monedas, motas, numero, partirNaipe, tajo } from '../fx/efectos';
+import { RAMPA_CURA, RAMPA_ESCUDO, RAMPA_GOLPE, RAMPA_PALO, chispas, destello, haloRey, lluviaDeMonedas, monedas, motas, numero, partirNaipe, quiebre, tajo, tajoDeReves } from '../fx/efectos';
 import { S, congelar, enFoto, fogonazoCandil, ponerClima, sacudir } from '../fx/motor';
 import { actualizarTiras, avivarRetrato, dispararFicha, gestoFijo, gestoRetrato, gritar, hudHtml, mirarHacia, ponerHud, poseRetrato, vistaDe, type VistaHud } from '../hud';
 import { guardar, pintarFase } from '../juego';
@@ -36,6 +36,8 @@ import { pausa, quieto } from '../ritmo';
 import { accionesComunes, calentarOfertas, modalJugadas, textoGlosario } from './camino';
 
 const AURA: Record<Palo, string> = { S: '#00c8ff', C: '#22d95b', D: '#ffd500', H: '#ff1453' };
+/** El aura de la segunda cara: el Rey se pasa al carmesí (el de Copas, que ya lo era, al violeta). */
+const AURA_SEGUNDA: Record<Palo, string> = { S: '#ff1453', C: '#ff1453', D: '#ff1453', H: '#9038d8' };
 
 /** El nombre de un enemigo: «Sota de Copas» o el apodo del Rey jefe. */
 export function nombreEnemigo(e: Pick<Enemigo, 'palo' | 'rango' | 'jefe'>): string {
@@ -103,6 +105,10 @@ export function pantallaMesa(p: Partida): Pantalla {
   const voz = (lista: readonly { es: string; en: string }[], gesto: Expresion = 'reposo') => decir(tx(alAzar(lista, enFoto() ? 0 : undefined)), gesto);
 
   // ───────────── pintar ─────────────
+  /** El Caudillo en segunda cara: si repetís la jugada, su Tajo de revés pega ×2 y atraviesa el Escudo. */
+  const tajoArmado = (e: Enemigo | null): boolean => !!(e?.jefe && e.palo === 'S' && e.segunda);
+  /** ¿La selección de ahora repite la jugada del golpe anterior (y el Tajo de revés la castiga)? */
+  const tajoAhora = (q: Cuenta): boolean => tajoArmado(enemigo) && q.ok && !q.abate && !q.ejecuta && !!q.contra && q.contra > 0 && c().ultimaJugada === q.jugada;
   function enemigoHtml(): string {
     const e = enemigo;
     if (!e) return '';
@@ -129,13 +135,13 @@ export function pantallaMesa(p: Partida): Pantalla {
     return `<div class="e-sellos">${inmune}${estados}</div>
       <div class="e-centro" data-soltar="enemigo">
         <i class="e-pano"></i>
-        <div class="e-carta ${e.jefe ? 'jefe' : ''}" data-carta style="--aura:${AURA[e.palo]}">${pxNaipe({ palo: e.palo, n: e.rango })}</div>
+        <div class="e-carta ${e.jefe ? 'jefe' : ''} ${e.segunda ? 'segunda' : ''}" data-carta style="--aura:${e.segunda ? AURA_SEGUNDA[e.palo] : AURA[e.palo]}">${pxNaipe({ palo: e.palo, n: e.rango })}</div>
         <i class="e-halo" aria-hidden="true"></i>
         <span class="e-suelta chip canto">${t('soltaAca')}</span>
       </div>
       <div class="e-ataque mirable ${e.aturdido > 0 ? 'dormido' : ''}" data-ataque tabindex="0" ${tip(`${t('tePegaRotulo')} ${e.ataque + furia}`, t('tePegaTip'), furia ? `${t('furia')} ${furia}: ${notaFuria}` : '')}>
         <b class="rotulo e-pega solo-ancho">${t('tePegaRotulo')}</b>
-        ${furia ? `<i class="e-llamas n${furia >= 8 ? 3 : furia >= 4 ? 2 : 1}" aria-hidden="true">${pxHud('furia')}${pxHud('furia')}${pxHud('furia')}</i>` : ''}${pxHud('ataque')}<span data-n="ataque">${cifra(e.ataque + furia, 'roja', 'grande')}</span>
+        ${furia ? `<i class="e-llamas n${furia >= 8 ? 3 : furia >= 4 ? 2 : 1}" aria-hidden="true">${pxHud('furia')}${pxHud('furia')}${pxHud('furia')}</i>` : ''}${pxHud('ataque')}<span data-n="ataque">${cifra(e.ataque + furia, 'roja', 'grande')}</span>${tajoArmado(e) ? `<b class="e-tajo rotulo" aria-hidden="true">${cifra(`x${B.reyes.S.deguello}`, 'roja')}</b>` : ''}
         ${furiaHtml}
       </div>
       <div class="e-barras">
@@ -217,7 +223,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     // cuánto sobra o cuánto le queda: lo que hace falta para buscar el Golpe exacto
     const vidaE = enemigo?.vida ?? 0;
     const queda = !q.abate && !q.ejecuta && enemigo ? `<span class="chip c-queda">${t('leQuedan', { n: Math.max(0, vidaE - q.aVida) })}</span>` : '';
-    const destino = (q.abate ? (q.exacto ? `<span class="chip canto c-exacto">${t('exacto')}</span>` : `${q.alPelo ? `<span class="chip c-exacto c-alpelo">${t('alPelo')}</span>` : ''}<span class="chip verde">${t('cae')} · ${t('sobran', { n: q.aVida - vidaE })}</span>`) : q.ejecuta ? `<span class="chip verde">${t('ejecuta')}</span>` : q.contra && q.contra > 0 ? `<span class="chip rojo">${t('tePega', { n: q.contra })}</span>` : `<span class="chip azul">${t('noTePega')}</span>`) + queda;
+    const destino = (q.abate ? (q.exacto ? `<span class="chip canto c-exacto">${t('exacto')}</span>` : `${q.alPelo ? `<span class="chip c-exacto c-alpelo">${t('alPelo')}</span>` : ''}<span class="chip verde">${t('cae')} · ${t('sobran', { n: q.aVida - vidaE })}</span>`) : q.ejecuta ? `<span class="chip verde">${t('ejecuta')}</span>` : q.contra && q.contra > 0 ? `${tajoAhora(q) ? `<span class="chip rojo c-tajo" ${tip(t('tajoAviso', { nombre: tx(REY_DEF.S.segunda) }), tx(REY_DEF.S.segundaDesc))}>${pxHud('ataque')}<span class="solo-ancho">${esc(tx(REY_DEF.S.segunda))} </span>×${B.reyes.S.deguello}</span>` : ''}<span class="chip rojo ${tajoAhora(q) ? 'c-tajo-pega' : ''}">${t('tePega', { n: q.contra })}</span>` : `<span class="chip azul">${t('noTePega')}</span>`) + queda;
     // lo que dan los palos, cada cosa con su nombre: «CURA ♥ +15», «ESCUDO +4», «ORO +2»
     const efecto = (rotulo: string, icono: Parameters<typeof pxHud>[0], n: number, tono: 'azul' | 'verde' | 'oro'): string =>
       `<span class="chip c-efecto ef-${icono}"><b class="c-ef-rot">${rotulo}</b>${pxHud(icono)}${cifra(`+${n}`, tono)}</span>`;
@@ -245,6 +251,8 @@ export function pantallaMesa(p: Partida): Pantalla {
     const ataque = $('[data-ataque]');
     ataque?.classList.toggle('inminente', !!enemigo && enemigo.aturdido <= 0 && !(q.ok && (q.abate || q.ejecuta)));
     ataque?.classList.toggle('mortal', q.ok && q.contra !== null && q.contra >= hud.vida);
+    // el Tajo de revés, antes de soltar: el TE PEGA del Caudillo muestra su ×2 y late en rojo
+    ataque?.classList.toggle('tajo', tajoAhora(q));
     marcarInmunes();
     marcarCopias(q);
     pintarBotones();
@@ -386,34 +394,21 @@ export function pantallaMesa(p: Partida): Pantalla {
           break;
         }
         case 'alpelo': {
-          // te pasaste por un pelo: no cobra, pero la racha sigue viva
-          sonar('frena');
+          // te pasaste por un pelo: no cobra, pero la racha sigue viva. Suena a roce y a risita, no a Escudo
+          sonar('alpelo');
           gestoRetrato('feroz', 900);
+          gestoBufon($('.esc-bufon')!, 'risa');
+          if (!quieto()) {
+            const en = centro(carta());
+            destello(en.x + 30, en.y - 40, RAMPA_PALO.D, 12);
+            chispas(en.x + 30, en.y - 40, RAMPA_PALO.D, 8, 60);
+          }
           if (Math.random() < 0.5) gritar(p.mazoId, t('alPelo'));
           break;
         }
-        case 'segunda': {
-          // a media Vida el Rey muestra su segunda cara: la mesa se frena, su naipe se enciende y dice cómo cambia la pelea
-          if (enemigo) enemigo.segunda = true;
-          pintarEnemigo();
-          sonar('rey');
-          fogonazo('blanco');
-          sacudir($('[data-escena]'), 2);
-          if (!quieto()) {
-            const en = centro(carta());
-            const g = document.createElement('b');
-            g.className = 'canto-grande titulo segunda-cara';
-            g.textContent = tx(REY_DEF[ev.palo].segunda);
-            g.style.left = `${Math.round(en.x)}px`;
-            g.style.top = `${Math.round(en.y)}px`;
-            $('#capa')?.append(g);
-            window.setTimeout(() => g.remove(), 1300);
-            decir(tx(REY_DEF[ev.palo].segundaDesc), 'sombria', 0);
-            await frenar(160);
-            await pausa(700);
-          }
+        case 'segunda':
+          await segundaCara(ev.palo);
           break;
-        }
         case 'exacto': {
           const en = centro(carta());
           destello(en.x, en.y, RAMPA_PALO.D, 26);
@@ -465,6 +460,8 @@ export function pantallaMesa(p: Partida): Pantalla {
           const el = carta();
           const r = el?.getBoundingClientRect();
           const cayoRey = !!enemigo?.jefe;
+          // el último de la mesa: su barra, sus rótulos y su TE PEGA se retiran con la rajadura (no quedan colgados)
+          if (evs.some((x) => x.t === 'victoria') && !resto.length && !quieto()) $('.mesa')?.classList.add('sin-enemigo');
           if (enemigo?.jefe && !quieto()) {
             // el remate del tramo: la música calla, la mesa se congela en blanco y el Rey dice lo último
             const pista = estadoMusica().deseada;
@@ -478,14 +475,14 @@ export function pantallaMesa(p: Partida): Pantalla {
             const ms = teclear(b, tx(REY_DEF[enemigo.palo].voz.cae), enemigo.palo);
             await pausa(ms + 850);
             b.remove();
-            sonar('victoria');
-            lluviaDeMonedas(innerWidth * 0.1, innerWidth * 0.9, -30, 34);
-            gestoRetrato('festejo', 2400);
-            poseRetrato('festeja', 1500);
-            gritar(p.mazoId, tx(GRITO[p.mazoId].gana));
-            window.setTimeout(() => estadoMusica().deseada === null && ponerMusica(pista), 1400);
+            window.setTimeout(() => estadoMusica().deseada === null && ponerMusica(pista), 2200);
           }
-          sonar('cae');
+          // el Rey se parte con su propio sonido (hondo, que baja); los demás, con el de siempre
+          sonar(cayoRey ? 'remate' : 'cae');
+          if (cayoRey && !quieto()) {
+            fogonazo('palo', AURA[enemigo!.palo]);
+            sacudir($('[data-escena]'), 3);
+          }
           if (r && enemigo) {
             partirNaipe(lienzoNaipe(enemigo.palo, enemigo.rango), r, RAMPA_PALO[enemigo.palo]);
             el!.classList.add('partida');
@@ -577,18 +574,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           $('[data-ataque]')?.classList.add('sube');
           break;
         case 'rey':
-          if (enemigo) {
-            if (ev.que === 'cura') enemigo.vida = Math.min(enemigo.vidaMax, enemigo.vida + ev.n);
-            if (ev.que === 'escudo') enemigo.escudo += ev.n;
-            if (ev.que === 'diezmo') {
-              hud.oro = Math.max(0, hud.oro - ev.n);
-              ponerHud(hud);
-              const de = centro($('[data-hud-oro]'));
-              const a = centro(carta());
-              monedas(de.x, de.y, a.x, a.y, Math.min(6, ev.n));
-            }
-            pintarEnemigo();
-          }
+          await poderRey(ev.que, ev.n);
           break;
         case 'roba': {
           const de = centro($('[data-accion="ver-mazo"]'));
@@ -614,9 +600,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           pintarArriba();
           break;
         case 'victoria':
-          voz(VOZ.victoria, 'risa');
-          if (tipo === 'rey') gritar(p.mazoId, tx(GRITO[p.mazoId].gana));
-          await pausa(650);
+          await cobrar();
           break;
         case 'derrota':
           hud.vida = 0;
@@ -677,18 +661,189 @@ export function pantallaMesa(p: Partida): Pantalla {
   async function frenar(ms: number): Promise<void> {
     if (quieto()) return;
     congelar(ms);
+    // la música se agacha mientras dura el freno: el golpe se oye solo
+    agacharMusica(ms + 60);
     const m = $('.mesa');
     m?.classList.add('hitstop');
     await pausa(ms);
     m?.classList.remove('hitstop');
   }
-  /** Un fogonazo de pantalla entera: blanco cuando cae un Rey, dorado en el Golpe exacto que mata. */
-  function fogonazo(tono: 'blanco' | 'oro'): void {
+  /**
+   * Un fogonazo de pantalla entera: blanco cuando cae un Rey, dorado en el Golpe exacto que mata y, del color que se
+   * pida, un viñeteado que se cierra (la segunda cara, el Tajo de revés, la rajadura del Rey).
+   */
+  function fogonazo(tono: 'blanco' | 'oro' | 'palo', color = '#ff1453'): void {
     if (quieto()) return;
     const f = document.createElement('i');
     f.className = `fogonazo f-${tono}`;
+    f.style.setProperty('--tinte', color);
     $('#capa')?.append(f);
-    window.setTimeout(() => f.remove(), 420);
+    window.setTimeout(() => f.remove(), tono === 'palo' ? 620 : 420);
+  }
+
+  /**
+   * Un rótulo corto sobre el naipe del Rey cuando hace lo suyo («FORTÍN +78», «REMATE −12 de oro», «ÚLTIMA RONDA
+   * +30»): el nombre de lo que disparó y su cifra. Con «Reducir movimiento» aparece quieto y se va igual.
+   */
+  function rotuloRey(nombre: string, valor: string, tono: 'azul' | 'verde' | 'oro' | 'roja', extra = ''): void {
+    if (enFoto()) return;
+    const zona = $('[data-enemigo] .e-centro');
+    if (!zona) return;
+    zona.querySelector('.rey-rotulo')?.remove();
+    const r = document.createElement('div');
+    r.className = `rey-rotulo rr-${tono}`;
+    r.setAttribute('role', 'status');
+    r.innerHTML = `<b class="rotulo">${esc(nombre)}</b><span class="rr-valor">${valor ? cifra(valor, tono, 'grande') : ''}${extra ? `<span class="rr-extra">${esc(extra)}</span>` : ''}</span>`;
+    zona.append(r);
+    window.setTimeout(() => r.remove(), quieto() ? 1800 : 1500);
+  }
+
+  const carta = (): HTMLElement | null => $('[data-carta]');
+  /** Lo que el Rey hace por su cuenta (sus poderes de cara y de segunda cara), a la vista: número y rótulo. */
+  async function poderRey(que: 'cura' | 'escudo' | 'diezmo' | 'deguello', n: number): Promise<void> {
+    if (!enemigo) return;
+    const e = enemigo;
+    const el = carta();
+    const en = centro(el);
+    const w = el?.getBoundingClientRect().width ?? 160;
+    const nombre = (rasgo: string): string => (e.segunda ? tx(REY_DEF[e.palo].segunda) : rasgo);
+    if (que === 'deguello') {
+      // el Tajo de revés: dos filos en X, el ×2 a la vista y el golpe que atraviesa el Escudo, con su propio sonido
+      sonar('deguello');
+      rotuloRey(tx(REY_DEF.S.segunda), `x${B.reyes.S.deguello}`, 'roja');
+      if (!quieto()) {
+        tajoDeReves(en.x, en.y, w * 0.75);
+        fogonazo('palo', '#ff1453');
+        sacudir($('[data-escena]'), 3);
+        $('[data-ataque]')?.classList.add('tajo', 'sube');
+        await frenar(150);
+        await pausa(260);
+      }
+      return;
+    }
+    if (que === 'cura') {
+      e.vida = Math.min(e.vidaMax, e.vida + n);
+      sonar('brindis');
+      rotuloRey(nombre(t('reyCura')), `+${n}`, 'verde');
+      if (!quieto()) motas(en.x, en.y, RAMPA_CURA, 12, w * 0.4);
+    }
+    if (que === 'escudo') {
+      e.escudo += n;
+      sonar('fortin');
+      rotuloRey(nombre(t('reyEscudo')), `+${n}`, 'azul');
+      if (!quieto()) motas(en.x, en.y, RAMPA_ESCUDO, 14, w * 0.45);
+    }
+    if (que === 'diezmo') {
+      hud.oro = Math.max(0, hud.oro - n);
+      ponerHud(hud);
+      sonar('diezmo');
+      rotuloRey(nombre(t('reyDiezmo')), `-${n}`, 'oro', t('deOro'));
+      const de = centro($('[data-hud-oro]'));
+      monedas(de.x, de.y, en.x, en.y, Math.min(8, 2 + n));
+    }
+    pintarEnemigo();
+    await pausa(e.segunda ? 360 : 200);
+  }
+
+  /**
+   * La segunda cara: lo contrario de la irrupción. El naipe del Rey se da vuelta (se cierra de canto, cambia de aura
+   * y se abre), la luz se le mete adentro en anillos que se cierran, el naipe se agrieta, la mesa se tiñe de su
+   * color y el cartel «SEGUNDA CARA» cae con el nombre de lo que cambia. Con su propio sonido: un acorde que se quiebra.
+   */
+  async function segundaCara(palo: Palo): Promise<void> {
+    sonar('segunda', { palo });
+    if (quieto()) {
+      if (enemigo) enemigo.segunda = true;
+      pintarEnemigo();
+      decir(tx(REY_DEF[palo].segundaDesc), 'sombria', 0);
+      return;
+    }
+    const el = carta();
+    const en = centro(el);
+    const w = el?.getBoundingClientRect().width ?? 160;
+    // el golpe que lo dejó a media Vida se congela, la luz se le mete adentro y el naipe se cierra de canto
+    quiebre(en.x, en.y, w * 0.95, AURA_SEGUNDA[palo], RAMPA_PALO[palo]);
+    fogonazo('palo', AURA_SEGUNDA[palo]);
+    await frenar(140);
+    carta()?.classList.add('voltea');
+    await pausa(200);
+    // de canto: el naipe se da vuelta con su segunda cara
+    if (enemigo) enemigo.segunda = true;
+    pintarEnemigo();
+    $('[data-carta]')?.classList.add('volteada');
+    sacudir($('[data-escena]'), 2);
+    chispas(en.x, en.y, RAMPA_PALO[palo], 16, 110);
+    const g = document.createElement('div');
+    g.className = 'cartel-segunda';
+    g.style.setProperty('--tinte', AURA_SEGUNDA[palo]);
+    g.innerHTML = `<span class="rotulo">${esc(t('segundaCara'))}</span><b class="titulo">${esc(tx(REY_DEF[palo].segunda))}</b>`;
+    g.style.left = `${Math.round(en.x)}px`;
+    g.style.top = `${Math.round(en.y)}px`;
+    $('#capa')?.append(g);
+    window.setTimeout(() => g.remove(), 1500);
+    decir(tx(REY_DEF[palo].segundaDesc), 'sombria', 0);
+    await pausa(950);
+  }
+
+  /**
+   * El cobro: ganado el combate, la mesa se despeja sola (la barra, los rótulos, la cuenta, la mano y los botones se
+   * retiran), las monedas del botín vuelan al oro del HUD y el número sube contando, y la Vida que da el botín se
+   * llena igual. Después el botín brota sobre la misma mesa, sin corte (lo monta `terminar`).
+   */
+  async function cobrar(): Promise<void> {
+    voz(VOZ.victoria, 'risa');
+    const m = $('.mesa');
+    const de = centro($('[data-enemigo] .e-centro') ?? $('[data-enemigo]'));
+    if (tipo === 'rey') {
+      // la fanfarria, encadenada: suena cuando la rajadura ya terminó, nunca encima del remate
+      sonar('victoria');
+      if (!quieto()) lluviaDeMonedas(innerWidth * 0.1, innerWidth * 0.9, -30, 34);
+      gestoRetrato('festejo', 2400);
+      poseRetrato('festeja', 1500);
+    } else sonar('victoria', { retraso: 0.05, altura: 1.5 });
+    // el grito del Personaje, después de cobrar (antes tapaba el «+N» del oro)
+    const grito = (): void => void (tipo === 'rey' && gritar(p.mazoId, tx(GRITO[p.mazoId].gana)));
+    if (quieto()) {
+      grito();
+      return;
+    }
+    m?.classList.add('cobra');
+    sonar('despeja');
+    mano?.bloquear(true);
+    await pausa(tipo === 'rey' ? 380 : 220);
+    // el oro: las monedas vuelan al HUD y la cifra sube contando, una moneda por vez
+    const a = $('[data-hud-oro]');
+    const oroFinal = p.oro;
+    const desde = hud.oro;
+    if (a && oroFinal > desde) {
+      const ra = a.getBoundingClientRect();
+      const ca = centro(a);
+      const cuantas = Math.min(14, 4 + Math.round((oroFinal - desde) / 3));
+      monedas(de.x, de.y, ca.x, ca.y, cuantas);
+      await pausa(tipo === 'rey' ? 430 : 330);
+      numero(`+${oroFinal - desde}`, ca.x, ra.top - 34 * S, 'oro', 2);
+      const pasos = Math.min(12, oroFinal - desde);
+      for (let i = 1; i <= pasos; i++) {
+        hud.oro = Math.round(desde + ((oroFinal - desde) * i) / pasos);
+        ponerHud(hud);
+        sonar('tintin', { altura: 1 + i * 0.035 });
+        await pausa(48);
+      }
+      sonar('oro');
+    }
+    // (el grito espera a que el «+N» del oro termine de caer: si no, se le monta encima)
+    window.setTimeout(grito, 450);
+    // la Vida del botín (el respiro tras un Rey, el Brindis): se llena a la vista
+    const v = $('[data-hud-vida]');
+    if (v && p.vida > hud.vida) {
+      const cv = centro(v);
+      motas(cv.x, cv.y, RAMPA_CURA, 14, 50);
+      sonar('cura');
+      hud.vida = p.vida;
+      hud.vidaMax = p.vidaMax;
+      ponerHud(hud);
+    }
+    await pausa(tipo === 'rey' ? 420 : 260);
   }
 
   /**
@@ -791,7 +946,8 @@ export function pantallaMesa(p: Partida): Pantalla {
       guardarPerfil();
     }
     guardar();
-    pintarFase();
+    // ganado el combate, el botín brota sobre la misma mesa (sin el corte de pantalla ni el humo del Bufón)
+    pintarFase(p.fase === 'botin' && !quieto());
   }
   async function golpear(ids: string[]): Promise<void> {
     if (ocupado || !p.combate) return;
@@ -925,7 +1081,16 @@ export function pantallaMesa(p: Partida): Pantalla {
         if (enFoto() && !ensena) voz(tipo === 'rey' ? VOZ.entraRey : VOZ.entra, 'reposo');
       }
       // para la QA y las pruebas: la mesa viva
-      (window as unknown as { __mesa?: unknown }).__mesa = { mano, golpear, descartar, sincronizar, decir, gritar: (texto: string) => gritar(p.mazoId, texto) };
+      (window as unknown as { __mesa?: unknown }).__mesa = {
+        mano,
+        golpear,
+        descartar,
+        sincronizar,
+        decir,
+        gritar: (texto: string) => gritar(p.mazoId, texto),
+        cuenta: (ids: string[]) => cuenta(p, c().mano.filter((k) => ids.includes(k.id))),
+        ocupado: () => ocupado,
+      };
     },
     alSalir: () => {
       document.removeEventListener('pointermove', seguir);

@@ -37,7 +37,7 @@
   right: calc(20px * var(--k-bufon));
   bottom: calc(96px * var(--k-bufon));
   width: max-content;
-  max-width: min(30ch, 34vw);
+  max-width: min(15em, 34vw);
 }
 .esc-bufon .bocadillo::after {
   left: auto;
@@ -549,7 +549,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: calc(var(--u) * 0.5);
-  max-width: min(46ch, 60vw);
+  max-width: min(23em, 60vw);
 }
 .irr-banda.rotulo-entrada {
   flex-direction: column;
@@ -862,7 +862,7 @@
   gap: 0;
 }
 .b-quedan {
-  font-family: 'DotGothic16', ui-monospace, monospace;
+  font-family: var(--cuerpo);
   font-size: var(--fs-s);
   text-transform: none;
   color: var(--hueso-2);
@@ -1033,7 +1033,7 @@
   z-index: 6;
   margin: 0;
   width: max-content;
-  max-width: min(34ch, 80vw);
+  max-width: min(17em, 80vw);
   animation: brota 0.2s steps(4) both;
 }
 /* el canto y el Golpe exacto pesan más en la cuenta: más aire, sin salirse de la rejilla de la letra */
@@ -2366,5 +2366,311 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
   40% {
     scale: 1.15;
     filter: brightness(1.4);
+  }
+}
+
+/* ───────────── 0.16 · la segunda cara como acto, el Tajo de revés a la vista y el cobro encadenado ───────────── */
+
+/* el naipe del Rey se da vuelta: se cierra de canto (blanco) y se abre con su segunda cara */
+.e-carta.jefe.voltea {
+  animation: voltea-cierra 0.2s steps(4) both;
+}
+@keyframes voltea-cierra {
+  to {
+    scale: 0 1.04;
+    filter: brightness(2.6);
+  }
+}
+.e-carta.jefe.volteada {
+  animation:
+    voltea-abre 0.34s steps(6) both,
+    e-flota 2.6s steps(4) 0.34s infinite alternate,
+    e-aura 1.6s steps(3) 0.34s infinite alternate;
+}
+@keyframes voltea-abre {
+  from {
+    scale: 0 1.04;
+    filter: brightness(2.6);
+  }
+  55% {
+    scale: 1.1 1.1;
+    filter: brightness(1.5);
+  }
+  to {
+    scale: 1 1;
+    filter: none;
+  }
+}
+/* con la segunda cara, el Rey lleva doble anillo de su aura nueva */
+.e-carta.jefe.segunda {
+  box-shadow:
+    0 0 0 calc(1px * var(--k-enemigo)) var(--abismo),
+    0 0 0 calc(2px * var(--k-enemigo)) var(--aura),
+    0 0 0 calc(3px * var(--k-enemigo)) var(--abismo),
+    0 0 0 calc(4px * var(--k-enemigo)) var(--aura);
+}
+
+/* el cartel «SEGUNDA CARA»: una banda del color nuevo que cae de golpe, tiembla y se pliega (la irrupción, en
+   cambio, es la banda del retrato que cruza) */
+.cartel-segunda {
+  position: fixed;
+  z-index: 58;
+  translate: -50% -50%;
+  pointer-events: none !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 0.5);
+  padding: calc(var(--u) * 0.75) calc(var(--u) * 4);
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--tinte) 42%, #09070f);
+  box-shadow:
+    0 calc(-4px * var(--k)) 0 var(--tinte),
+    0 calc(4px * var(--k)) 0 var(--tinte),
+    0 calc(-8px * var(--k)) 0 #09070f,
+    0 calc(8px * var(--k)) 0 #09070f;
+  animation: cartel-segunda 1.5s steps(20) both;
+}
+.cartel-segunda .rotulo {
+  font-size: var(--fr);
+  color: var(--hueso);
+}
+.cartel-segunda .titulo {
+  font-size: calc(var(--fs-xl) * 1.5);
+  color: #fff;
+  text-shadow:
+    calc(3px * var(--k)) calc(3px * var(--k)) 0 #1c1024,
+    calc(-2px * var(--k)) 0 0 var(--tinte);
+}
+@keyframes cartel-segunda {
+  0% {
+    opacity: 0;
+    scale: 1 0;
+  }
+  8% {
+    opacity: 1;
+    scale: 1.2 1.2;
+  }
+  14% {
+    scale: 1 1;
+  }
+  18% {
+    translate: calc(-50% - 6px) -50%;
+  }
+  22% {
+    translate: calc(-50% + 6px) -50%;
+  }
+  26% {
+    translate: -50% -50%;
+  }
+  82% {
+    opacity: 1;
+    scale: 1 1;
+  }
+  100% {
+    opacity: 0;
+    scale: 1 0;
+  }
+}
+@media (max-width: 700px) {
+  .cartel-segunda {
+    padding: calc(var(--u) * 0.5) calc(var(--u) * 2);
+  }
+  .cartel-segunda .titulo {
+    font-size: var(--fs-xl);
+  }
+}
+
+/* el fogonazo de color: la mesa se tiñe desde los bordes y se aclara */
+.fogonazo.f-palo {
+  /* tramado del color en los bordes; el centro (el naipe) queda limpio */
+  background: repeating-conic-gradient(color-mix(in srgb, var(--tinte) 60%, transparent) 0% 25%, transparent 0% 50%) 0 0 / calc(2px * var(--k)) calc(2px * var(--k));
+  -webkit-mask-image: radial-gradient(ellipse at 50% 40%, transparent 32%, #000 78%);
+  mask-image: radial-gradient(ellipse at 50% 40%, transparent 32%, #000 78%);
+  animation: fogonazo 0.6s steps(6) both;
+}
+
+/* el Tajo de revés antes de soltar: el TE PEGA del Caudillo muestra su ×2 y late en rojo; en la cuenta, su chip */
+.e-ataque .e-tajo {
+  display: none;
+}
+.e-ataque.tajo .e-tajo {
+  display: inline-flex;
+  padding: calc(2px * var(--k)) calc(4px * var(--k));
+  background: #2a0812;
+  box-shadow: 0 0 0 calc(2px * var(--k)) #ff1453;
+  animation: tajo-late 0.45s steps(2) infinite alternate;
+}
+.e-ataque.tajo [data-n='ataque'] {
+  animation: ataque-tiembla 0.24s steps(3) infinite;
+}
+.cuenta .chip.c-tajo {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.5);
+  color: #fff;
+  background: #7a0026;
+  box-shadow: 0 0 0 calc(2px * var(--k)) #ff1453;
+  animation: tajo-late 0.45s steps(2) infinite alternate;
+}
+.cuenta .chip.c-tajo .icono {
+  --k: 1;
+}
+@keyframes tajo-late {
+  to {
+    filter: brightness(1.4);
+  }
+}
+
+/* lo que hace el Rey (Escudo, Fortín, Diezmo, Remate, Brindis, Última ronda, el Tajo): rótulo y cifra sobre su naipe */
+.rey-rotulo {
+  position: absolute;
+  left: 50%;
+  top: 64%;
+  z-index: 7;
+  translate: -50% -50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(2px * var(--k));
+  padding: calc(4px * var(--k)) calc(8px * var(--k));
+  white-space: nowrap;
+  pointer-events: none;
+  background: #09070f;
+  box-shadow:
+    0 0 0 calc(2px * var(--k)) var(--rr, #f4efe2),
+    calc(3px * var(--k)) calc(3px * var(--k)) 0 calc(2px * var(--k)) #09070f;
+  animation: rey-rotulo 1.5s steps(15) both;
+  --k: 1;
+}
+.rey-rotulo .rotulo {
+  font-size: var(--fr);
+  color: var(--rr, #f4efe2);
+}
+.rey-rotulo .rr-valor {
+  display: inline-flex;
+  align-items: baseline;
+  gap: calc(var(--u) * 0.5);
+}
+.rey-rotulo .rr-extra {
+  font-size: var(--fs-s);
+  color: var(--hueso);
+}
+.rey-rotulo.rr-azul {
+  --rr: #00c8ff;
+}
+.rey-rotulo.rr-verde {
+  --rr: #22d95b;
+}
+.rey-rotulo.rr-oro {
+  --rr: #ffd500;
+}
+.rey-rotulo.rr-roja {
+  --rr: #ff1453;
+}
+@keyframes rey-rotulo {
+  0% {
+    opacity: 0;
+    scale: 0.4;
+  }
+  10% {
+    opacity: 1;
+    scale: 1.15;
+  }
+  16% {
+    scale: 1;
+  }
+  80% {
+    opacity: 1;
+    translate: -50% -50%;
+  }
+  100% {
+    opacity: 0;
+    translate: -50% calc(-50% - 18px);
+  }
+}
+
+/* el cobro: ganado el combate, la mesa se despeja sola mientras el oro vuela al HUD (el Bufón se queda) */
+.mesa:is(.cobra, .sin-enemigo) :is(.e-sellos, .e-ataque, .e-barras) {
+  animation: cobra-arriba 0.28s steps(5) both;
+  pointer-events: none;
+}
+.mesa:is(.cobra, .sin-enemigo) .e-pano,
+.mesa:is(.cobra, .sin-enemigo) .e-halo {
+  animation: cobra-fuera 0.36s steps(5) both;
+}
+.mesa:is(.cobra, .sin-enemigo) .corte {
+  animation: cobra-derecha 0.3s steps(5) both;
+}
+.mesa.cobra .cuenta-zona {
+  animation: cobra-abajo 0.26s steps(5) both;
+}
+.mesa.cobra :is(.botones, .descarte-zona) {
+  animation: cobra-derecha 0.3s steps(5) 0.08s both;
+  pointer-events: none;
+}
+.mesa.cobra .mano .carta {
+  animation: cobra-mano 0.34s steps(6) both;
+  pointer-events: none;
+}
+.mesa.cobra .mano .carta:nth-child(2) {
+  animation-delay: 40ms;
+}
+.mesa.cobra .mano .carta:nth-child(3) {
+  animation-delay: 80ms;
+}
+.mesa.cobra .mano .carta:nth-child(4) {
+  animation-delay: 120ms;
+}
+.mesa.cobra .mano .carta:nth-child(5) {
+  animation-delay: 160ms;
+}
+.mesa.cobra .mano .carta:nth-child(n + 6) {
+  animation-delay: 200ms;
+}
+@keyframes cobra-arriba {
+  to {
+    opacity: 0;
+    translate: 0 calc(-20px * var(--k));
+  }
+}
+@keyframes cobra-fuera {
+  to {
+    opacity: 0;
+    scale: 0.6;
+  }
+}
+@keyframes cobra-derecha {
+  to {
+    opacity: 0;
+    translate: calc(56px * var(--k)) 0;
+  }
+}
+@keyframes cobra-abajo {
+  to {
+    opacity: 0;
+    translate: 0 calc(24px * var(--k));
+  }
+}
+@keyframes cobra-mano {
+  30% {
+    translate: 0 calc(-10px * var(--k));
+  }
+  to {
+    opacity: 0;
+    translate: 0 calc(160px * var(--k));
+  }
+}
+@media (max-width: 700px) {
+  /* en el teléfono el ×2 lo dice el chip de la cuenta: la columna de TE PEGA no crece */
+  .e-ataque.tajo .e-tajo {
+    display: none;
+  }
+}
+@media (max-width: 700px) {
+  /* en el teléfono la caja de botones no existe (display: contents): se retiran los botones mismos, hacia abajo */
+  .mesa.cobra .botones > .btn {
+    animation: cobra-abajo 0.26s steps(5) 0.08s both;
+    pointer-events: none;
   }
 }

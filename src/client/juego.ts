@@ -25,11 +25,12 @@ export const sesion: {
   qa: boolean;
 } = { partida: null, abiertos: [], reinadoAbierto: 0, anotada: false, qa: false };
 
-function ir(p: Pantalla, escena: Escena, pista: PistaId = 'portada'): void {
+/** Monta una pantalla con su escena y su música. `seguido`: sin corte (el Bufón no se esfuma ni la pantalla entra). */
+function ir(p: Pantalla, escena: Escena, pista: PistaId = 'portada', seguido = false): void {
   apagarRetrato();
   ponerEscena(escena);
   ponerMusica(pista);
-  montar(p);
+  montar(p, seguido);
 }
 
 export const irPortada = (): void => ir(pantallaPortada(), 'portada');
@@ -80,8 +81,11 @@ function anotarFin(p: Partida): void {
   guardarPerfil();
 }
 
-/** Monta la pantalla que corresponde a la fase de la partida. */
-export function pintarFase(): void {
+/**
+ * Monta la pantalla que corresponde a la fase de la partida. `desdeMesa`: el botín de un combate recién ganado brota
+ * sobre la misma mesa, sin corte (la mesa ya se despejó y cobró el oro a la vista).
+ */
+export function pintarFase(desdeMesa = false): void {
   const p = sesion.partida;
   if (!p) {
     irPortada();
@@ -89,7 +93,7 @@ export function pintarFase(): void {
   }
   switch (p.fase) {
     case 'botin':
-      ir(pantallaBotin(p), p.botin?.de === 'inicio' ? 'portada' : 'mesa', p.botin?.de === 'inicio' ? 'portada' : 'mapa');
+      ir(pantallaBotin(p, desdeMesa), p.botin?.de === 'inicio' ? 'portada' : 'mesa', p.botin?.de === 'inicio' ? 'portada' : 'mapa', desdeMesa);
       break;
     case 'mapa':
       ir(pantallaMapa(p), 'mapa', 'mapa');

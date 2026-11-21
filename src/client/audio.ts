@@ -1,14 +1,36 @@
 // El sonido: sintetizado con WebAudio, sin archivos. Tonos cortos de onda cuadrada y triangular con su envolvente
-// (chiptune de pulpería): cada cosa que pasa en la mesa suena a lo suyo.
+// (chiptune de pulpería) y, desde la 0.16, ruido filtrado para los golpes: cada cosa que pasa en la mesa suena a lo
+// suyo. Todo pasa por dos buses (efectos y música) que se juntan en un compresor y una ganancia maestra: así un golpe
+// fuerte encima de la música no satura, y la música se agacha un instante en cada hitstop.
+//
+//   efectos ─┐
+//            ├─▶ compresor ─▶ maestro ─▶ altavoces
+//   música  ─┘
+import type { Palo } from '../rules/cartas';
 import type { MazoId } from '../rules/mazos';
 import { ajustes } from './almacen';
 
 type Nota = [frecuencia: number, duracion: number, onda?: OscillatorType, volumen?: number, cae?: number];
 
+/**
+ * Las capas de ruido de cada sonido (el transitorio de un golpe, el silbido de un tajo): `filtro` y `corte` en Hz,
+ * `hasta` si el corte barre hacia otra frecuencia, `retraso` desde el arranque del sonido.
+ */
+interface Ruido {
+  dur: number;
+  vol: number;
+  filtro: BiquadFilterType;
+  corte: number;
+  hasta?: number;
+  q?: number;
+  retraso?: number;
+}
+
 const SONIDO = {
   clic: [[520, 0.04, 'square', 0.12]],
   carta: [[320, 0.03, 'triangle', 0.2], [480, 0.03, 'triangle', 0.14]],
   suelta: [[240, 0.05, 'triangle', 0.18]],
+  // el golpe: el cuerpo grave (el ruido del impacto va en RUIDO)
   golpe: [[150, 0.07, 'square', 0.22, 60], [90, 0.1, 'sawtooth', 0.2, 40]],
   fuerte: [[110, 0.08, 'sawtooth', 0.26, 40], [70, 0.16, 'square', 0.24, 30], [220, 0.05, 'square', 0.12]],
   exacto: [[660, 0.06, 'square', 0.16], [880, 0.06, 'square', 0.16], [1320, 0.14, 'square', 0.16]],
@@ -18,6 +40,7 @@ const SONIDO = {
   oro: [[988, 0.05, 'square', 0.12], [1319, 0.1, 'square', 0.12]],
   cura: [[440, 0.06, 'triangle', 0.2], [554, 0.06, 'triangle', 0.2], [659, 0.12, 'triangle', 0.2]],
   cae: [[300, 0.06, 'square', 0.18, 120], [180, 0.08, 'square', 0.18, 80], [90, 0.18, 'sawtooth', 0.2, 40]],
+  // la irrupción del Rey: tres notas de sierra que SUBEN (llega)
   rey: [[98, 0.2, 'sawtooth', 0.22], [147, 0.2, 'sawtooth', 0.2], [196, 0.36, 'sawtooth', 0.2]],
   error: [[160, 0.08, 'square', 0.14], [120, 0.1, 'square', 0.14]],
   // el Bufón: se esfuma (un soplo que cae) y reaparece (su cascabel: tres notas que suben)
@@ -31,18 +54,119 @@ const SONIDO = {
   brota: [[660, 0.03, 'triangle', 0.1]],
   victoria: [[523, 0.1, 'square', 0.16], [659, 0.1, 'square', 0.16], [784, 0.1, 'square', 0.16], [1047, 0.1, 'square', 0.16], [1319, 0.3, 'square', 0.16]],
   derrota: [[392, 0.16, 'triangle', 0.22], [330, 0.16, 'triangle', 0.22], [262, 0.16, 'triangle', 0.22], [196, 0.4, 'triangle', 0.22]],
+  // «¡AL PELO!»: un roce agudo (en RUIDO) y la risita del Bufón, tres «je» que bajan
+  alpelo: [[1568, 0.03, 'square', 0.1], [1175, 0.05, 'square', 0.12], [1319, 0.05, 'square', 0.12], [1047, 0.05, 'square', 0.12], [1175, 0.09, 'triangle', 0.16]],
+  // el Tajo de revés del Caudillo: dos filos que se cruzan (el silbido va en RUIDO) y un golpe seco abajo
+  deguello: [[1760, 0.04, 'square', 0.12, 2400], [70, 0.14, 'square', 0.26, 34], [1865, 0.04, 'square', 0.12, 2600], [55, 0.2, 'sawtooth', 0.26, 30]],
+  // la caída del Rey: un tronco que se parte, hondo, distinto de su llegada (que sube): este BAJA y se apaga
+  remate: [[196, 0.07, 'sawtooth', 0.26, 98], [147, 0.1, 'square', 0.24, 55], [110, 0.14, 'sawtooth', 0.24, 41], [62, 0.5, 'triangle', 0.32, 31]],
+  // Fortín, Remate y Última ronda: el Rey hace lo suyo
+  fortin: [[392, 0.04, 'square', 0.12], [523, 0.08, 'square', 0.12, 500], [262, 0.12, 'triangle', 0.18]],
+  diezmo: [[1319, 0.05, 'square', 0.1], [988, 0.05, 'square', 0.1], [784, 0.05, 'square', 0.1], [587, 0.1, 'triangle', 0.14]],
+  brindis: [[330, 0.08, 'triangle', 0.18, 280], [294, 0.08, 'triangle', 0.18, 250], [262, 0.14, 'triangle', 0.18, 220]],
+  // la mesa se despeja (la interfaz de combate se va): un soplo que baja
+  despeja: [[330, 0.12, 'triangle', 0.08, 140]],
+  // el oro que cuenta en el HUD (cada moneda que entra)
+  tintin: [[1568, 0.03, 'square', 0.07], [2093, 0.05, 'triangle', 0.08]],
 } satisfies Record<string, Nota[]>;
 
-export type Sonido = keyof typeof SONIDO;
+/** Las capas de ruido: el transitorio que hace que un golpe pegue y no suene a pitido. */
+const RUIDO: Partial<Record<keyof typeof SONIDO | 'segunda', Ruido[]>> = {
+  golpe: [{ dur: 0.03, vol: 0.42, filtro: 'bandpass', corte: 1800, q: 0.7 }, { dur: 0.09, vol: 0.28, filtro: 'lowpass', corte: 700 }],
+  fuerte: [{ dur: 0.04, vol: 0.5, filtro: 'bandpass', corte: 1400, q: 0.6 }, { dur: 0.2, vol: 0.34, filtro: 'lowpass', corte: 500, hasta: 120 }],
+  contra: [{ dur: 0.05, vol: 0.36, filtro: 'bandpass', corte: 900, q: 0.8 }, { dur: 0.16, vol: 0.2, filtro: 'lowpass', corte: 400 }],
+  cae: [{ dur: 0.14, vol: 0.24, filtro: 'highpass', corte: 2400, hasta: 900 }],
+  frena: [{ dur: 0.05, vol: 0.22, filtro: 'bandpass', corte: 3200, q: 3 }],
+  alpelo: [{ dur: 0.11, vol: 0.26, filtro: 'bandpass', corte: 5200, hasta: 9000, q: 4 }],
+  deguello: [
+    { dur: 0.16, vol: 0.4, filtro: 'bandpass', corte: 2500, hasta: 9000, q: 2.5 },
+    { dur: 0.16, vol: 0.4, filtro: 'bandpass', corte: 9000, hasta: 2500, q: 2.5, retraso: 0.12 },
+    { dur: 0.22, vol: 0.32, filtro: 'lowpass', corte: 600, hasta: 90, retraso: 0.2 },
+  ],
+  remate: [
+    { dur: 0.06, vol: 0.5, filtro: 'highpass', corte: 3000, q: 0.7 },
+    { dur: 0.7, vol: 0.4, filtro: 'lowpass', corte: 900, hasta: 60 },
+    { dur: 0.05, vol: 0.3, filtro: 'bandpass', corte: 4200, q: 6, retraso: 0.16 },
+    { dur: 0.05, vol: 0.26, filtro: 'bandpass', corte: 3100, q: 6, retraso: 0.27 },
+  ],
+  fortin: [{ dur: 0.08, vol: 0.26, filtro: 'bandpass', corte: 2600, q: 5 }],
+  despeja: [{ dur: 0.32, vol: 0.16, filtro: 'bandpass', corte: 1800, hasta: 300, q: 1.2 }],
+  segunda: [{ dur: 0.8, vol: 0.26, filtro: 'bandpass', corte: 400, hasta: 3000, q: 1.5 }],
+};
+
+export type Sonido = keyof typeof SONIDO | 'segunda';
+
+/** Cuánto se corre la altura de cada disparo, en semitonos (arriba o abajo): que nada suene a loop. */
+const VARIA: Partial<Record<Sonido, number>> = { golpe: 2, fuerte: 1.5, contra: 1.5, carta: 1, suelta: 1, clic: 0.5, oro: 0.6, tintin: 1.2, frena: 0.8, cae: 1, puf: 1, paso: 1 };
+const VARIA_BASE = 0.3;
+
+// ───────────── el cableado ─────────────
 
 let ctx: AudioContext | null = null;
+let busEfectos: GainNode | null = null;
+let busMusica: GainNode | null = null;
+let ruidoBlanco: AudioBuffer | null = null;
 const alAbrir: (() => void)[] = [];
+const MAESTRO = 0.9;
+
+/** Crea el contexto y los buses la primera vez (después, siempre los mismos). */
+function abrirContexto(): AudioContext {
+  if (ctx) return ctx;
+  const c = new AudioContext();
+  // el compresor: deja pasar la música tal cual y achata los picos de los golpes que se apilan
+  const comp = c.createDynamicsCompressor();
+  comp.threshold.value = -16;
+  comp.knee.value = 10;
+  comp.ratio.value = 5;
+  comp.attack.value = 0.004;
+  comp.release.value = 0.18;
+  const maestro = c.createGain();
+  maestro.gain.value = MAESTRO;
+  comp.connect(maestro).connect(c.destination);
+  busEfectos = c.createGain();
+  busEfectos.gain.value = ajustes.sonido ? 1 : 0;
+  busEfectos.connect(comp);
+  busMusica = c.createGain();
+  busMusica.gain.value = 1;
+  busMusica.connect(comp);
+  // el ruido blanco, uno solo para todos: cada disparo lo lee desde un punto distinto
+  ruidoBlanco = c.createBuffer(1, c.sampleRate, c.sampleRate);
+  const d = ruidoBlanco.getChannelData(0);
+  for (let k = 0; k < d.length; k++) d[k] = Math.random() * 2 - 1;
+  ctx = c;
+  return c;
+}
+
 /** El audio, si ya está abierto y andando (lo usa la música). */
 export const contextoAudio = (): AudioContext | null => (ctx && ctx.state === 'running' ? ctx : null);
+/** El bus de la música (con su compresor y la ganancia maestra), si el audio ya está abierto. */
+export const salidaMusica = (): AudioNode | null => busMusica;
 /** Avisa cuando el navegador deja abrir el audio (con el primer gesto). */
 export const alAbrirAudio = (f: () => void): void => void alAbrir.push(f);
 /** Cuántos sonidos se pidieron (para la QA, que no oye). */
 export const sonados: Sonido[] = [];
+
+/** Al cambiar el ajuste de sonido: el bus de efectos se abre o se cierra (con un fundido corto, sin chasquido). */
+export function refrescarSonido(): void {
+  if (!ctx || !busEfectos) return;
+  const t = ctx.currentTime;
+  busEfectos.gain.cancelScheduledValues(t);
+  busEfectos.gain.setTargetAtTime(ajustes.sonido ? 1 : 0, t, 0.03);
+}
+
+/**
+ * La música se agacha (unos 6 dB) mientras dura un hitstop y vuelve sola: el golpe se oye solo un instante.
+ */
+export function agacharMusica(ms: number, db = -6): void {
+  if (!ctx || !busMusica || ctx.state !== 'running') return;
+  const t = ctx.currentTime;
+  const g = busMusica.gain;
+  g.cancelScheduledValues(t);
+  g.setValueAtTime(g.value, t);
+  g.linearRampToValueAtTime(10 ** (db / 20), t + 0.02);
+  g.setValueAtTime(10 ** (db / 20), t + ms / 1000);
+  g.linearRampToValueAtTime(1, t + ms / 1000 + 0.25);
+}
 
 /**
  * Abre el audio con el primer gesto del jugador (un clic o una tecla, en la portada). Abrir el dispositivo de sonido
@@ -54,9 +178,9 @@ export function prepararAudio(): void {
     removeEventListener('keydown', abrir, true);
     if (!ajustes.sonido) return;
     try {
-      ctx ??= new AudioContext();
+      const c = abrirContexto();
       const listo = (): void => alAbrir.forEach((f) => f());
-      if (ctx.state === 'suspended') void ctx.resume().then(listo);
+      if (c.state === 'suspended') void c.resume().then(listo);
       else listo();
     } catch {
       // sin audio: el juego sigue en silencio
@@ -64,6 +188,119 @@ export function prepararAudio(): void {
   };
   addEventListener('pointerdown', abrir, true);
   addEventListener('keydown', abrir, true);
+}
+
+/** El contexto, si se puede sonar ya (sonido prendido y el navegador dejó abrir el audio). */
+function listo(): AudioContext | null {
+  if (!ajustes.sonido) return null;
+  try {
+    const c = abrirContexto();
+    if (c.state === 'suspended') void c.resume();
+    return c;
+  } catch {
+    return null;
+  }
+}
+
+/** Un tono con su envolvente, al bus de efectos. */
+function tono(c: AudioContext, t: number, f: number, dur: number, onda: OscillatorType, vol: number, cae?: number, detune = 0): void {
+  const osc = c.createOscillator();
+  const gan = c.createGain();
+  osc.type = onda;
+  osc.frequency.setValueAtTime(f, t);
+  if (detune) osc.detune.setValueAtTime(detune, t);
+  if (cae) osc.frequency.exponentialRampToValueAtTime(cae, t + dur);
+  gan.gain.setValueAtTime(0.0001, t);
+  gan.gain.linearRampToValueAtTime(vol, t + 0.004);
+  gan.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  osc.connect(gan).connect(busEfectos!);
+  osc.start(t);
+  osc.stop(t + dur + 0.02);
+}
+
+/** Una ráfaga de ruido blanco filtrado (leída desde un punto al azar del mismo buffer). */
+function soplo(c: AudioContext, t0: number, r: Ruido, altura = 1): void {
+  if (!ruidoBlanco) return;
+  const t = t0 + (r.retraso ?? 0);
+  const src = c.createBufferSource();
+  src.buffer = ruidoBlanco;
+  src.playbackRate.value = altura;
+  const fil = c.createBiquadFilter();
+  fil.type = r.filtro;
+  fil.frequency.setValueAtTime(r.corte * altura, t);
+  if (r.hasta) fil.frequency.exponentialRampToValueAtTime(r.hasta * altura, t + r.dur);
+  if (r.q) fil.Q.value = r.q;
+  const gan = c.createGain();
+  gan.gain.setValueAtTime(r.vol, t);
+  gan.gain.exponentialRampToValueAtTime(0.001, t + r.dur);
+  src.connect(fil).connect(gan).connect(busEfectos!);
+  const desde = Math.random() * Math.max(0, ruidoBlanco.duration - r.dur - 0.05);
+  src.start(t, desde, r.dur + 0.04);
+}
+
+// la segunda cara: un tinte por palo (la raíz del acorde y la onda)
+const TINTE: Record<Palo, { raiz: number; onda: OscillatorType }> = {
+  S: { raiz: 147, onda: 'sawtooth' },
+  C: { raiz: 98, onda: 'square' },
+  D: { raiz: 175, onda: 'square' },
+  H: { raiz: 131, onda: 'triangle' },
+};
+
+/**
+ * La segunda cara de un Rey: un acorde menor que se sostiene y se QUIEBRA hacia abajo (cae un tritono mientras se
+ * desafina), con un soplo que sube y un golpe hondo. La irrupción sube; la caída se parte; esto se tuerce.
+ */
+function segundaCara(c: AudioContext, t: number, palo: Palo): void {
+  const { raiz, onda } = TINTE[palo];
+  [1, 1.189, 1.498, 2].forEach((k, i) => {
+    const osc = c.createOscillator();
+    const gan = c.createGain();
+    osc.type = onda;
+    const f = raiz * k;
+    osc.frequency.setValueAtTime(f, t);
+    osc.frequency.setValueAtTime(f, t + 0.22);
+    osc.frequency.exponentialRampToValueAtTime(f / 1.414, t + 0.75);
+    osc.detune.setValueAtTime(0, t + 0.22);
+    osc.detune.linearRampToValueAtTime((i % 2 ? 1 : -1) * 35, t + 0.75);
+    gan.gain.setValueAtTime(0.0001, t);
+    gan.gain.linearRampToValueAtTime(onda === 'triangle' ? 0.16 : 0.07, t + 0.03);
+    gan.gain.setValueAtTime(onda === 'triangle' ? 0.16 : 0.07, t + 0.3);
+    gan.gain.exponentialRampToValueAtTime(0.001, t + 0.95);
+    osc.connect(gan).connect(busEfectos!);
+    osc.start(t + i * 0.025);
+    osc.stop(t + 1);
+  });
+  tono(c, t + 0.22, 82, 0.5, 'sine', 0.4, 36);
+  for (const r of RUIDO.segunda ?? []) soplo(c, t, r);
+}
+
+/**
+ * Toca un sonido. No hace nada si el sonido está apagado o el navegador todavía no dejó abrir el audio.
+ * `retraso` (en segundos) lo encadena detrás de otro sin timers; `palo` tiñe la segunda cara.
+ */
+export function sonar(cual: Sonido, o: { retraso?: number; palo?: Palo; altura?: number } = {}): void {
+  sonados.push(cual);
+  if (sonados.length > 60) sonados.shift();
+  const c = listo();
+  if (!c || !busEfectos) return;
+  try {
+    const t0 = c.currentTime + (o.retraso ?? 0);
+    if (cual === 'segunda') {
+      segundaCara(c, t0, o.palo ?? 'S');
+      return;
+    }
+    // la altura de este disparo: un corrimiento chico al azar (más grande en los golpes) y el que se pida
+    const semis = (Math.random() * 2 - 1) * (VARIA[cual] ?? VARIA_BASE);
+    const k = 2 ** (semis / 12) * (o.altura ?? 1);
+    let t = t0;
+    for (const [f, dur, onda = 'square', vol = 0.15, cae] of SONIDO[cual] as Nota[]) {
+      tono(c, t, f * k, dur, onda, vol * 0.5, cae ? cae * k : undefined);
+      t += dur * 0.85;
+    }
+    for (const r of RUIDO[cual] ?? []) soplo(c, t0, r, k);
+  } catch {
+    // sin audio: el juego sigue en silencio
+  }
 }
 
 /** Quién habla: el Bufón, un Rey (por su palo) o el Personaje de un Mazo. */
@@ -91,21 +328,12 @@ export const hablaron: VozId[] = [];
 /** Una sílaba de la voz de alguien. */
 export function voz(quien: VozId, letra: number): void {
   if (!hablaron.includes(quien)) hablaron.push(quien);
-  if (!ajustes.sonido || !ctx || ctx.state !== 'running') return;
+  if (!ajustes.sonido || !ctx || ctx.state !== 'running' || !busEfectos) return;
   try {
     const v = VOCES[quien];
-    const t = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gan = ctx.createGain();
     const f = v.escala[letra % v.escala.length];
-    osc.type = v.onda;
-    osc.frequency.setValueAtTime(f, t);
-    if (v.cae) osc.frequency.exponentialRampToValueAtTime(f * v.cae, t + v.dur);
-    gan.gain.setValueAtTime(v.vol, t);
-    gan.gain.exponentialRampToValueAtTime(0.001, t + v.dur);
-    osc.connect(gan).connect(ctx.destination);
-    osc.start(t);
-    osc.stop(t + v.dur + 0.02);
+    // cada sílaba, un pelito corrida: la voz no suena a sampler
+    tono(ctx, ctx.currentTime, f, v.dur, v.onda, v.vol, v.cae ? f * v.cae : undefined, (Math.random() - 0.5) * 30);
   } catch {
     // sin audio: habla en silencio
   }
@@ -115,47 +343,14 @@ export const vozBufon = (letra: number): void => voz('bufon', letra);
 
 /** Una nota del conteo del golpe: cada paso sube un semitono. `larga` es la del total. */
 export function nota(semitono: number, larga = false): void {
-  if (!ajustes.sonido || !ctx || ctx.state !== 'running') return;
+  if (!ajustes.sonido || !ctx || ctx.state !== 'running' || !busEfectos) return;
   try {
     const t = ctx.currentTime;
-    const dur = larga ? 0.22 : 0.07;
-    const osc = ctx.createOscillator();
-    const gan = ctx.createGain();
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(523.25 * 2 ** (semitono / 12), t);
-    gan.gain.setValueAtTime(larga ? 0.09 : 0.07, t);
-    gan.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    osc.connect(gan).connect(ctx.destination);
-    osc.start(t);
-    osc.stop(t + dur + 0.02);
+    const f = 523.25 * 2 ** (semitono / 12);
+    tono(ctx, t, f, larga ? 0.22 : 0.07, 'square', larga ? 0.09 : 0.07);
+    // el total suena con su quinta arriba: cierra la cuenta
+    if (larga) tono(ctx, t + 0.02, f * 1.5, 0.2, 'triangle', 0.08);
   } catch {
     // sin audio: cuenta en silencio
-  }
-}
-
-/** Toca un sonido. No hace nada si el sonido está apagado o el navegador todavía no dejó abrir el audio. */
-export function sonar(cual: Sonido): void {
-  sonados.push(cual);
-  if (sonados.length > 60) sonados.shift();
-  if (!ajustes.sonido) return;
-  try {
-    ctx ??= new AudioContext();
-    if (ctx.state === 'suspended') void ctx.resume();
-    let t = ctx.currentTime;
-    for (const [f, dur, onda = 'square', vol = 0.15, cae] of SONIDO[cual] as Nota[]) {
-      const osc = ctx.createOscillator();
-      const gan = ctx.createGain();
-      osc.type = onda;
-      osc.frequency.setValueAtTime(f, t);
-      if (cae) osc.frequency.exponentialRampToValueAtTime(cae, t + dur);
-      gan.gain.setValueAtTime(vol * 0.5, t);
-      gan.gain.exponentialRampToValueAtTime(0.001, t + dur);
-      osc.connect(gan).connect(ctx.destination);
-      osc.start(t);
-      osc.stop(t + dur + 0.02);
-      t += dur * 0.85;
-    }
-  } catch {
-    // sin audio: el juego sigue en silencio
   }
 }

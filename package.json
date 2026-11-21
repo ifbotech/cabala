@@ -21,6 +21,7 @@
     "puertas": "node scripts/puertas.mjs"
   },
   "devDependencies": {
+    "@fontsource/bitcount-prop-single": "^5.3.0",
     "@fontsource/dotgothic16": "^5.3.1",
     "@fontsource/silkscreen": "^5.3.0",
     "@types/node": "^22.9.0",

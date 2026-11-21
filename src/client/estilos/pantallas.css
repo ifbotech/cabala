@@ -36,7 +36,7 @@
   justify-self: end;
 }
 .portada-medio .anfitrion .bocadillo {
-  max-width: 22ch;
+  max-width: 11em;
 }
 .portada-menu {
   display: flex;
@@ -159,7 +159,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: min(30ch, 60vw);
+  min-width: min(15em, 60vw);
   text-align: center;
   gap: 2px;
 }
@@ -368,7 +368,7 @@
   font-size: calc(var(--fs-xl) * 1.25);
 }
 .oferta-voz {
-  max-width: 60ch;
+  max-width: 30em;
 }
 .oferta-bufon {
   display: flex;
@@ -580,7 +580,7 @@ button.visor-carta:disabled {
 }
 .cabala-bufon .bocadillo {
   font-size: var(--fs-l);
-  max-width: min(40ch, 70vw);
+  max-width: min(20em, 70vw);
 }
 
 /* ───────────── final ───────────── */
@@ -1256,7 +1256,7 @@ button.visor-carta:disabled {
   }
   .pantalla .anfitrion .bocadillo {
     margin: 0;
-    max-width: min(34ch, 100%);
+    max-width: min(17em, 100%);
     text-align: center;
   }
   .pantalla .anfitrion .bocadillo::after {
@@ -1504,7 +1504,7 @@ button.visor-carta:disabled {
 }
 .col-ficha {
   margin: 0;
-  max-width: 30ch;
+  max-width: 15em;
   font-size: var(--fs-s);
   line-height: 1.35;
   text-align: center;
@@ -2136,4 +2136,66 @@ button.visor-carta:disabled {
     align-self: stretch;
     min-height: 48px;
   }
+}
+
+/* ───────────── 0.16 · el botín, centrado y encadenado con la mesa ───────────── */
+
+/* el panel del botín va al eje de la pantalla (donde estaba el enemigo); el Bufón, a su izquierda */
+@media (min-width: 701px) {
+  .botin:not(.directo) > .cuerpo {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    justify-items: center;
+    column-gap: calc(var(--u) * 2);
+  }
+  .botin:not(.directo) > .cuerpo > .anfitrion {
+    justify-self: end;
+    /* el Bufón, pegado al panel como en la mesa estaba pegado al enemigo (y lejos de la vela) */
+    align-items: flex-end;
+  }
+  /* el bocadillo, angosto: el Bufón queda pegado al panel (y lejos de la vela de la mesa) */
+  .botin:not(.directo) > .cuerpo > .anfitrion .bocadillo {
+    max-width: min(12em, 100%);
+  }
+  .botin:not(.directo) > .cuerpo > .anfitrion .bocadillo::after {
+    left: auto;
+    right: calc(60px * var(--k-bufon));
+  }
+  .botin:not(.directo) > .cuerpo > .botin-panel {
+    grid-column: 2;
+  }
+}
+/* recién ganado: el panel brota al centro, opaco desde el primer cuadro (nada de fundido ni corrimiento) */
+.botin.desde-mesa .botin-panel {
+  animation: botin-brota 0.32s steps(6) both;
+}
+.botin.desde-mesa .botin-lista > * {
+  animation: brota 0.3s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+  animation-delay: calc(var(--orden, 0) * 70ms + 120ms);
+}
+@keyframes botin-brota {
+  from {
+    scale: 0.5 0.1;
+  }
+  50% {
+    scale: 1.06 1.06;
+  }
+  to {
+    scale: 1 1;
+  }
+}
+/* la primera elección reemplaza al panel: se pliega y en su lugar se abre «ELEGÍ UNA» */
+.botin.pliega:not(.eligiendo) .botin-panel {
+  animation: botin-pliega 0.17s steps(4) both;
+}
+@keyframes botin-pliega {
+  to {
+    scale: 1 0;
+    opacity: 0;
+  }
+}
+.botin.eligiendo .botin-panel,
+.botin.eligiendo .anfitrion .bocadillo {
+  visibility: hidden;
 }

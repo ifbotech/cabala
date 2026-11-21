@@ -405,6 +405,8 @@ function modalOferta(p: Partida, indice: number, alTerminar: () => void): void {
   for (const r of reyes) ver(perfil, `r:${r}`);
   const habla = reyes[0];
   const fraseRey = habla ? tx(alAzar(REY_DEF[habla].voz.ofrece, fijo())) : '';
+  // la elección reemplaza al panel del botín (no se monta encima con el panel fantasma detrás)
+  $('#app main.botin')?.classList.add('eligiendo');
   const velo = abrirModal(
     ofertaHtml(p, oferta, fraseRey),
     {
@@ -461,7 +463,11 @@ export function modalReemplazo(p: Partida, nuevo: AmuletoId, tomar: (reemplaza: 
   );
 }
 
-export function pantallaBotin(p: Partida): Pantalla {
+/**
+ * El botín. `desdeMesa`: viene de un combate recién ganado y brota sobre la misma mesa (la mesa ya se despejó y el
+ * oro ya voló al HUD contando): el panel entra al centro, opaco, y la primera elección lo reemplaza.
+ */
+export function pantallaBotin(p: Partida, desdeMesa = false): Pantalla {
   const botin = p.botin!;
   const directo = botin.de === 'inicio' || botin.de === 'cabala';
   const pendiente = () => botin.items.findIndex((i) => i.t === 'oferta' && !i.hecho);
@@ -489,7 +495,7 @@ export function pantallaBotin(p: Partida): Pantalla {
     html: () =>
       directo
         ? `<main class="pantalla en-partida botin directo"><div class="crece"></div>${hudHtml(p)}</main>`
-        : `<main class="pantalla en-partida botin">
+        : `<main class="pantalla en-partida botin ${desdeMesa ? 'desde-mesa' : ''}">
       <div class="cuerpo">
         ${anfitrion(tx(alAzar(VOZ.botin, fijo())), 'risa')}
         <section class="panel botin-panel">
@@ -503,7 +509,19 @@ export function pantallaBotin(p: Partida): Pantalla {
     alMontar: () => {
       avivarRetrato(p);
       if (directo && pendiente() >= 0) modalOferta(p, pendiente(), trasElegir);
-      else if (!directo && !enFoto()) {
+      else if (!directo && !enFoto() && desdeMesa && !quieto()) {
+        // recién ganado: el oro ya se cobró en la mesa; el panel brota al centro, muestra lo cobrado un instante y la
+        // primera elección lo reemplaza (el panel se pliega y en su lugar se abre «ELEGÍ UNA»)
+        const r = $('.botin-panel')?.getBoundingClientRect();
+        if (r) lluviaDeMonedas(r.left, r.right, r.top - 30, 10);
+        sonar('brota');
+        if (pendiente() >= 0)
+          void pausa(780).then(() => {
+            if (p.botin !== botin || pendiente() < 0 || $('.velo')) return;
+            $('#app main.botin')?.classList.add('pliega');
+            void pausa(170).then(() => p.botin === botin && pendiente() >= 0 && !$('.velo') && modalOferta(p, pendiente(), trasElegir));
+          });
+      } else if (!directo && !enFoto()) {
         // el botín pasa sobre la mesa: el oro vuela al HUD y la primera oferta brota sin cambiar de pantalla
         const r = $('.botin-panel')?.getBoundingClientRect();
         const a = $('[data-hud-oro]')?.getBoundingClientRect();
