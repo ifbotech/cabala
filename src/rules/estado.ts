@@ -25,6 +25,8 @@ export interface Enemigo {
   elite?: true;
   /** Ya lo aturdieron las Boleadoras. */
   boleado?: true;
+  /** El Rey ya mostró su segunda cara (a media Vida). */
+  segunda?: boolean;
 }
 
 export type TipoCombate = 'guardia' | 'elite' | 'rey';
@@ -65,6 +67,8 @@ export interface Combate {
   sena: boolean;
   /** Vida perdida en el combate. */
   perdida: number;
+  /** La jugada del golpe anterior (el Caudillo, en su segunda cara, castiga repetirla). */
+  ultimaJugada?: string;
 }
 
 export type TipoNodo = 'guardia' | 'elite' | 'pulperia' | 'cabala' | 'fogon' | 'rey';
@@ -149,6 +153,10 @@ export interface Partida {
   afinidad: number;
   /** Furia que el próximo Rey se lleva de regalo (Pacto Garca, el Bufón garca). */
   furiaRey: number;
+  /** El soplo del Bufón: parte de la Vida que el próximo Rey trae de menos. */
+  reyHerido?: number;
+  /** Naipes robados a la Corte (para darles un id propio). */
+  robadas?: number;
   irseAlMazo: boolean;
   /** Tramo actual (0, 1, 2) y su Mapa. */
   acto: number;
@@ -203,6 +211,14 @@ export function donesDe(p: Partida, rey: Palo): number {
   return n;
 }
 /** La carga de un Rey que cuenta de verdad (0 si no llevás dones suyos; con su tope). */
+/** Lo que escala del lado del jugador con el tramo (tope de Escudo, Escudo por Basto, cura por Copa): ×1, ×2, ×3. */
+export function tramoJugador(p: Pick<Partida, 'acto'>): number {
+  const e = B.jugador.escalaTramo;
+  return e[Math.min(p.acto, e.length - 1)];
+}
+/** El tope de tu Escudo en este tramo. */
+export const escudoTope = (p: Pick<Partida, 'acto'>): number => B.jugador.escudoMax * tramoJugador(p);
+
 export function carga(p: Partida, rey: Palo): number {
   if (!sirveA(p, rey)) return 0;
   const c = p.cargas[rey];

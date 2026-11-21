@@ -11,7 +11,7 @@ import type { Enemigo, Partida } from '../../rules/estado';
 import { tieneAmuleto } from '../../rules/estado';
 import { MAZO } from '../../rules/mazos';
 import * as juego from '../../rules/partida';
-import { donesDe } from '../../rules/estado';
+import { donesDe, escudoTope } from '../../rules/estado';
 import { ver } from '../../rules/perfil';
 import { REY_DEF } from '../../rules/reyes';
 import { ajustes, alAzar, guardarPerfil, idioma, perfil, t, tx } from '../almacen';
@@ -28,7 +28,7 @@ import { cifra, lienzoNaipe, pxHud, pxInmune, pxNaipe, pxPalo } from '../sprites
 import { JUGADA_NOMBRE, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_NOMBRE, RANGO_NOMBRE, TRAMO_NOMBRE } from '../textos';
 import { ENSENANZA, GRITO, VOZ } from '../voces';
 import { $, bufonHtml, esc, fichaDe, gestoBufon, reyHtml, tip, type Pantalla } from '../ui';
-import { porTeclado } from '../nav';
+import { glifo, porTeclado } from '../nav';
 import { pausa, quieto } from '../ritmo';
 import { accionesComunes, calentarOfertas, modalJugadas } from './camino';
 
@@ -104,11 +104,13 @@ export function pantallaMesa(p: Partida): Pantalla {
     const e = enemigo;
     if (!e) return '';
     const palo = tx(PALO_NOMBRE[e.palo]);
+    // «INMUNE A ESPADAS»: el rótulo dice a qué (en el móvil, donde no entra, queda «INMUNE» y el palo va en el escudo)
+    const aQue = t('inmuneA', { palo }).slice(t('inmune').length);
     const inmune = tieneAmuleto(p, 'doscaras')
       ? ''
-      : `<span class="e-sello e-inmune" ${tip(`${t('inmune')}: ${palo}`, idioma() === 'en' ? `${palo} cards deal no Damage to this enemy.` : `Las cartas de ${palo} no le hacen Daño.`)}>${pxInmune(e.palo)}<b class="rotulo">${t('inmune')}</b></span>`;
-    const estados = `${e.aturdido > 0 ? `<span class="e-sello" ${tip(t('aturdido'), idioma() === 'en' ? 'Skips its next Counterattack.' : 'Se salta su próximo Contraataque.')}>${pxHud('aturdido')}<b class="rotulo">${t('aturdido')}${e.aturdido > 1 ? ` ${e.aturdido}` : ''}</b></span>` : ''}${e.elite ? `<span class="chip maldicion">${t('elite')}</span>` : ''}`;
-    const rasgo = e.jefe ? `<span class="chip canto e-rasgo" ${tip(tx(REY_DEF[e.palo].rasgo), tx(REY_DEF[e.palo].rasgoDesc))}>${esc(tx(REY_DEF[e.palo].rasgo))}</span>` : '';
+      : `<span class="e-sello e-inmune mirable" tabindex="0" ${tip(`${t('inmune')}: ${palo}`, idioma() === 'en' ? `${palo} cards deal no Damage to this enemy.` : `Las cartas de ${palo} no le hacen Daño.`)}>${pxInmune(e.palo)}<b class="rotulo">${t('inmune')}<span class="solo-ancho">${esc(aQue)}</span></b></span>`;
+    const estados = `${e.aturdido > 0 ? `<span class="e-sello mirable" tabindex="0" ${tip(t('aturdido'), idioma() === 'en' ? 'Skips its next Counterattack.' : 'Se salta su próximo Contraataque.')}>${pxHud('aturdido')}<b class="rotulo">${t('aturdido')}${e.aturdido > 1 ? ` ${e.aturdido}` : ''}</b></span>` : ''}${e.elite ? `<span class="chip maldicion">${t('elite')}</span>` : ''}`;
+    const rasgo = e.jefe ? `<span class="chip canto e-rasgo mirable" tabindex="0" ${tip(tx(REY_DEF[e.palo].rasgo), tx(REY_DEF[e.palo].rasgoDesc))}>${esc(tx(REY_DEF[e.palo].rasgo))}</span>` : '';
     const pct = Math.max(0, Math.round((100 * e.vida) / e.vidaMax));
     return `<div class="e-sellos">${inmune}${estados}</div>
       <div class="e-centro" data-soltar="enemigo">
@@ -117,9 +119,10 @@ export function pantallaMesa(p: Partida): Pantalla {
         <i class="e-halo" aria-hidden="true"></i>
         <span class="e-suelta chip canto">${t('soltaAca')}</span>
       </div>
-      <div class="e-ataque ${e.aturdido > 0 ? 'dormido' : ''}" data-ataque ${tip(`${t('ataque')} ${e.ataque + furia}`, idioma() === 'en' ? 'What hits you at the end of the turn if it still stands.' : 'Lo que te pega al final del turno si sigue en pie.', furia ? `${t('furia')}: ${t('furiaTip', { n: furia })}${e.jefe ? ` · ${t('furiaTurno', { n: B.furia.reyPorTurno })}` : ''}` : '')}>
+      <div class="e-ataque mirable ${e.aturdido > 0 ? 'dormido' : ''}" data-ataque tabindex="0" ${tip(`${t('ataque')} ${e.ataque + furia}`, idioma() === 'en' ? 'What hits you at the end of the turn if it still stands.' : 'Lo que te pega al final del turno si sigue en pie.', furia ? `${t('furia')}: ${t('furiaTip', { n: furia })}${e.jefe ? ` · ${t('furiaTurno', { n: B.furia.reyPorTurno })}` : ''}` : '')}>
+        <b class="rotulo e-pega solo-ancho">${t('tePegaRotulo')}</b>
         ${furia ? `<i class="e-llamas n${furia >= 8 ? 3 : furia >= 4 ? 2 : 1}" aria-hidden="true">${pxHud('furia')}${pxHud('furia')}${pxHud('furia')}</i>` : ''}${pxHud('ataque')}<span data-n="ataque">${cifra(e.ataque + furia, 'roja', 'grande')}</span>
-        ${furia ? `<span class="e-furia">${pxHud('furia')}${cifra(`+${furia}`, 'oro')}</span>` : ''}
+        ${furia ? `<span class="e-furia">${pxHud('furia')}${cifra(`+${furia}`, 'oro')}<b class="rotulo solo-ancho">${t('furia')}</b></span>` : ''}
       </div>
       <div class="e-barras">
         <div class="e-vida" role="img" aria-label="${esc(nombreEnemigo(e))}: ${t('vida')} ${e.vida}/${e.vidaMax}">
@@ -135,9 +138,9 @@ export function pantallaMesa(p: Partida): Pantalla {
     if (!resto.length) return '';
     return `<span class="rotulo">${t('corte')}</span>
       <div class="corte-pila">${resto
-        .map((e, i) => `<span class="corte-carta" style="--i:${i}" ${tip(nombreEnemigo(e), `${t('vida')} ${e.vida} · ${t('ataque')} ${e.ataque}`, e.jefe ? tx(REY_DEF[e.palo].rasgoDesc) : '')}>${pxNaipe({ palo: e.palo, n: e.rango })}</span>`)
+        .map((e, i) => `<span class="corte-carta mirable" tabindex="0" style="--i:${i}" ${tip(nombreEnemigo(e), `${t('vida')} ${e.vida} · ${t('ataque')} ${e.ataque}`, e.jefe ? tx(REY_DEF[e.palo].rasgoDesc) : '')}>${pxNaipe({ palo: e.palo, n: e.rango })}</span>`)
         .join('')}</div>
-      ${cifra(resto.length, 'hueso', 'grande')}`;
+      <b class="rotulo corte-quedan">${t(resto.length === 1 ? 'queda' : 'quedan', { n: resto.length })}</b><span class="corte-n">${cifra(resto.length, 'hueso', 'grande')}</span>`;
   }
   function pasoNombre(de: string): string {
     const [clase, id] = de.split(':');
@@ -154,17 +157,26 @@ export function pantallaMesa(p: Partida): Pantalla {
   }
   function cuentaHtml(q: Cuenta, sel: Carta[]): string {
     // en reposo, la zona de la cuenta dice qué hacer
-    if (!sel.length) return `<div class="cuenta reposo"><span class="sub">${t('elegiCartas')}</span></div>`;
+    // (con mando o teclado, la pista es de botones: el CSS enseña la que toca según `html[data-entrada]`)
+    if (!sel.length)
+      return `<div class="cuenta reposo"><span class="sub pista p-puntero">${t('elegiCartas')}</span><span class="sub pista p-botones">${glifo('A', 'ENTER')} ${t('pistaElige')} · ${glifo('X', 'G')} ${t('pistaGolpea')} · ${glifo('Y', 'D')} ${t('pistaDescarta')}</span></div>`;
     if (!q.ok) {
       const motivo = q.motivo === 'comodines' ? t('soloComodines') : q.motivo === 'muchas' ? t('muchas') : t('noJugada');
       return `<div class="cuenta invalida"><span class="chip">${motivo}</span></div>`;
     }
     const d = q.pasos.filter((x) => x.tipo === 'd').map((x) => `${pasoNombre(x.de)} +${x.v}`).join(' · ');
     const m = q.pasos.filter((x) => x.tipo !== 'd').map((x) => `${pasoNombre(x.de)} ${x.tipo === 'x' ? '×' : '+'}${x.v}`).join(' · ');
+    // el desglose a la vista, antes de golpear: una línea fija bajo la fórmula con qué suma el Daño («7 + 7 · Par +4 ·
+    // Dado cargado +8») y qué arma el Multi («Par +2 · Cáliz +2»)
+    const esCarta = (x: { tipo: string; de: string }): boolean => x.tipo === 'd' && x.de.startsWith('c:');
+    const mas = (v: number): string => (v < 0 ? `−${-v}` : `+${v}`);
+    const sumaD = [q.pasos.filter(esCarta).map((x) => x.v).join(' + '), ...q.pasos.filter((x) => x.tipo === 'd' && !esCarta(x) && x.v !== 0).map((x) => `${pasoNombre(x.de)} ${mas(x.v)}`)].filter(Boolean).join(' · ');
+    const sumaM = q.pasos.filter((x) => x.tipo !== 'd' && x.v !== 0).map((x) => `${pasoNombre(x.de)} ${x.tipo === 'x' ? `×${x.v}` : mas(x.v)}`).join(' · ');
+    const desglose = `<span class="c-desglose"><span class="d-d">${esc(sumaD)}</span>${sumaM ? `<span class="d-x" aria-hidden="true">×</span><span class="d-m">${esc(sumaM)}</span>` : ''}</span>`;
     // cuánto sobra o cuánto le queda: lo que hace falta para buscar el Golpe exacto
     const vidaE = enemigo?.vida ?? 0;
     const queda = !q.abate && !q.ejecuta && enemigo ? `<span class="chip c-queda">${t('leQuedan', { n: Math.max(0, vidaE - q.aVida) })}</span>` : '';
-    const destino = (q.abate ? (q.exacto ? `<span class="chip canto c-exacto">${t('exacto')}</span>` : `<span class="chip verde">${t('cae')} · ${t('sobran', { n: q.aVida - vidaE })}</span>`) : q.ejecuta ? `<span class="chip verde">${t('ejecuta')}</span>` : q.contra && q.contra > 0 ? `<span class="chip rojo">${t('tePega', { n: q.contra })}</span>` : `<span class="chip azul">${t('noTePega')}</span>`) + queda;
+    const destino = (q.abate ? (q.exacto ? `<span class="chip canto c-exacto">${t('exacto')}</span>` : `${q.alPelo ? `<span class="chip canto c-exacto">${t('alPelo')}</span>` : ''}<span class="chip verde">${t('cae')} · ${t('sobran', { n: q.aVida - vidaE })}</span>`) : q.ejecuta ? `<span class="chip verde">${t('ejecuta')}</span>` : q.contra && q.contra > 0 ? `<span class="chip rojo">${t('tePega', { n: q.contra })}</span>` : `<span class="chip azul">${t('noTePega')}</span>`) + queda;
     const efectos = `${q.escudo ? `<span class="c-efecto">${pxHud('escudo')}${cifra(`+${q.escudo}`, 'azul')}</span>` : ''}${q.cura ? `<span class="c-efecto">${pxHud('vida')}${cifra(`+${q.cura}`, 'verde')}</span>` : ''}${q.oro ? `<span class="c-efecto">${pxHud('oro')}${cifra(`+${q.oro}`, 'oro')}</span>` : ''}`;
     return `<div class="cuenta ${q.abate || q.ejecuta ? 'abate' : ''}" ${tip(`${t('dano')} ${q.dano} × ${t('multi')} ${q.multi} = ${q.total}`, d, m)}>
       <span class="chip c-jugada">${esc(tx(JUGADA_NOMBRE[q.jugada]))}</span>
@@ -174,6 +186,7 @@ export function pantallaMesa(p: Partida): Pantalla {
       ${cifra('=', 'hueso')}
       <span class="c-total" data-total>${cifra(q.total, 'oro', 'grande')}</span>
       <span class="c-chips">${q.canto ? `<span class="chip canto c-canto">${esc(tx(MAZO[p.mazoId].canto))}</span>` : ''}${q.critico ? `<span class="chip canto">${t('critico')}</span>` : ''}${q.perfora && enemigo && enemigo.escudo > 0 ? `<span class="chip azul">${t('perfora')}</span>` : ''}${destino}${efectos}</span>
+      ${desglose}
     </div>`;
   }
   function pintarCuenta(): void {
@@ -231,7 +244,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     const modo = puedeDescartar(p, sel.length);
     if (d) {
       d.disabled = ocupado || !sel.length || !modo;
-      d.innerHTML = `${modo === 'gratis' || (c().pasar && !sel.length) ? `${pxHud('pasar')} ${t('pasar')}` : `${t('descartar')} <span class="b-quedan">(${c().descartes})</span>`}`;
+      d.innerHTML = `${glifo('Y', 'D')}${modo === 'gratis' || (c().pasar && !sel.length) ? `${pxHud('pasar')} ${t('pasar')}` : `${t('descartar')} <span class="b-quedan">(${c().descartes})</span>`}`;
     }
     const e = $<HTMLButtonElement>('[data-accion="engano"]');
     if (e) {
@@ -325,6 +338,35 @@ export function pantallaMesa(p: Partida): Pantalla {
           await pausa(160);
           break;
         }
+        case 'alpelo': {
+          // te pasaste por un pelo: no cobra, pero la racha sigue viva
+          sonar('frena');
+          gestoRetrato('feroz', 900);
+          if (Math.random() < 0.5) gritar(p.mazoId, t('alPelo'));
+          break;
+        }
+        case 'segunda': {
+          // a media Vida el Rey muestra su segunda cara: la mesa se frena, su naipe se enciende y dice cómo cambia la pelea
+          if (enemigo) enemigo.segunda = true;
+          pintarEnemigo();
+          sonar('rey');
+          fogonazo('blanco');
+          sacudir($('[data-escena]'), 2);
+          if (!quieto()) {
+            const en = centro(carta());
+            const g = document.createElement('b');
+            g.className = 'canto-grande titulo segunda-cara';
+            g.textContent = tx(REY_DEF[ev.palo].segunda);
+            g.style.left = `${Math.round(en.x)}px`;
+            g.style.top = `${Math.round(en.y)}px`;
+            $('#capa')?.append(g);
+            window.setTimeout(() => g.remove(), 1300);
+            decir(tx(REY_DEF[ev.palo].segundaDesc), 'sombria', 0);
+            await frenar(160);
+            await pausa(700);
+          }
+          break;
+        }
         case 'exacto': {
           const en = centro(carta());
           destello(en.x, en.y, RAMPA_PALO.D, 26);
@@ -336,7 +378,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           break;
         }
         case 'escudo': {
-          hud.escudo = Math.min(B.jugador.escudoMax, hud.escudo + ev.n);
+          hud.escudo = Math.min(escudoTope(p), hud.escudo + ev.n);
           ponerHud(hud);
           const en = centro($('[data-hud-escudo]'));
           motas(en.x, en.y, RAMPA_ESCUDO, 8, 24);
@@ -769,7 +811,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     html: () => `<main class="pantalla en-partida mesa">
       <header class="cabecera mesa-top">
         <div class="lado"><span class="rotulo">${esc(tramo)} · ${esc(tx(NODO_NOMBRE[tipo]))}</span><span class="sub" data-turno></span></div>
-        <div class="lado"><button class="btn marco chico b-jugadas" data-accion="jugadas" data-foco="jugadas" data-tecla="j" aria-label="${t('jugadas')}">? <span class="solo-ancho">${t('jugadas')}</span></button><button class="btn marco chico" data-accion="menu" data-foco="menu" aria-label="${t('menu')}">≡ <span class="solo-ancho">${t('menu')}</span></button></div>
+        <div class="lado"><button class="btn marco chico b-jugadas" data-accion="jugadas" data-foco="jugadas" data-tecla="j" aria-label="${t('jugadas')}">${glifo('SEL', 'J')}<span class="b-signo">?</span> <span class="solo-ancho">${t('jugadas')}</span></button><button class="btn marco chico" data-accion="menu" data-foco="menu" aria-label="${t('menu')}">≡ <span class="solo-ancho">${t('menu')}</span></button></div>
       </header>
       <section class="escena" data-escena>
         <div class="esc-bufon">${bufonHtml(p.afinidad <= -2 ? 'sombria' : 'reposo')}<p class="bocadillo" data-voz hidden></p></div>
@@ -781,9 +823,9 @@ export function pantallaMesa(p: Partida): Pantalla {
         <div class="descarte-zona" data-soltar="descarte">${pxHud('descarte')}<span class="rotulo">${t('alDescarte')}</span></div>
         <div class="mano" data-mano role="group" aria-label="${t('mazo')}"></div>
         <div class="botones">
-          <button class="btn marco oro grande" data-accion="golpear" data-foco="golpear" data-tecla="g" disabled>${t('golpear')}</button>
-          <button class="btn marco hierro" data-accion="descartar" data-foco="descartar" data-tecla="d" disabled>${t('descartar')}</button>
-          ${p.mazoId === 'mentiroso' ? `<button class="btn marco prisma chico" data-accion="engano" data-foco="engano" data-tecla="e" aria-pressed="false" ${tip(t('engano'), tx(MAZO.mentiroso.reglas[1]))}>${pxHud('engano')} ${t('engano')}</button>` : ''}
+          <button class="btn marco oro grande" data-accion="golpear" data-foco="golpear" data-tecla="g" disabled>${glifo('X', 'G')}${t('golpear')}</button>
+          <button class="btn marco hierro" data-accion="descartar" data-foco="descartar" data-tecla="d" disabled>${glifo('Y', 'D')}${t('descartar')}</button>
+          ${p.mazoId === 'mentiroso' ? `<button class="btn marco prisma chico" data-accion="engano" data-foco="engano" data-tecla="e" aria-pressed="false" ${tip(t('engano'), tx(MAZO.mentiroso.reglas[1]))}>${glifo('LT', 'E')}${pxHud('engano')} ${t('engano')}</button>` : ''}
         </div>
       </section>
       ${hudHtml(p, hud)}

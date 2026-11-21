@@ -91,6 +91,7 @@ export function hudHtml(p: Partida, v: VistaHud = vistaDe(p)): string {
         <span class="valor">${pxHud('mazo')}<span data-n="mazo">${cifra(v.mazo, 'hueso', 'grande')}</span></span>
       </button>
       <button class="hud-tiras" data-tiras data-accion="ver-piezas" data-foco="hud-piezas" aria-label="${t('verLlevas')}">${tiras(p)}</button>
+      <kbd class="glifo g-mando g-rt hud-glifo" aria-hidden="true">RT</kbd>
     </div>
   </footer>`;
 }
@@ -224,8 +225,16 @@ export function dispararFicha(pieza: string): { x: number; y: number } | null {
   void el.offsetWidth;
   el.classList.add('dispara');
   const rc = el.getBoundingClientRect();
-  return { x: rc.left + rc.width / 2, y: rc.top };
+  if (innerWidth > 700) return { x: rc.left + rc.width / 2, y: rc.top };
+  // en el móvil la bandeja es angosta y va pegada a la esquina: los números de una misma cuenta salen escalonados
+  // (tres alturas) y lejos del borde, para que no se monten unos sobre otros ni sobre el retrato
+  const ahora = performance.now();
+  escalon = ahora - ultimoDisparo > 1200 ? 0 : (escalon + 1) % 3;
+  ultimoDisparo = ahora;
+  return { x: Math.max(56, Math.min(innerWidth - 56, rc.left + rc.width / 2)), y: rc.top - escalon * 22 };
 }
+let escalon = 0;
+let ultimoDisparo = 0;
 
 /** El Personaje grita algo: un bocadillo corto sobre su retrato, con su voz, que se va solo. */
 export function gritar(mazo: MazoId, texto: string): void {
@@ -315,6 +324,10 @@ if (typeof document !== 'undefined') {
     requestAnimationFrame(() => ajustarBandeja());
   });
   addEventListener('resize', () => ajustarBandeja());
+  // la letra del «+N» llega después que la pantalla: medido con la letra de reserva, el «+N» quedaba solo en una
+  // segunda fila (y en el móvil empujaba la mesa)
+  void document.fonts?.ready.then(() => ajustarBandeja());
+  document.fonts?.addEventListener?.('loadingdone', () => ajustarBandeja());
 }
 
 /** El retrato sigue con los ojos lo que arrastrás (`null`: vuelve a mirar por su cuenta). */

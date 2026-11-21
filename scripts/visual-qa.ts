@@ -298,6 +298,9 @@ await conServidor(5191, async (url) => {
           // en Steam Deck se juega solo con mando: el foco siempre está a la vista (se pone como lo pondría la cruceta)
           await pagina.keyboard.press('ArrowDown');
         }
+        // las flechas de la QA hacen de cruceta: en Steam Deck y en los estados «-mando» los glifos son los del mando
+        // (X, Y, LT…), no los del teclado (G, D, E…), como los vería quien juega con el mando de verdad
+        if (estado.endsWith('-mando') || (v.nombre === '1280x800' && estado !== 'mesa-arrastrando')) await pagina.evaluate(() => (document.documentElement.dataset.entrada = 'mando'));
         await pagina.waitForTimeout(120);
         const fallos = await pagina.evaluate(auditar, { esMovil: v.w < 700, idioma: lang });
         for (const e of errores) fallos.push({ regla: 'error-js', detalle: e.slice(0, 200) });

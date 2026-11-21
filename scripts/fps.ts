@@ -25,6 +25,7 @@ interface Medida {
 
 const ventanas = [
   { nombre: '1366x768', w: 1366, h: 768 },
+  { nombre: '1280x800', w: 1280, h: 800 }, // Steam Deck
   { nombre: '1920x1080', w: 1920, h: 1080 },
   { nombre: '390x844', w: 390, h: 844 },
 ];

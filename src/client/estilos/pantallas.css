@@ -1784,3 +1784,151 @@ button.visor-carta:disabled {
     min-width: 0;
   }
 }
+
+/* ───────────── 0.15.0 · Deck de verdad ───────────── */
+
+/* el Mapa: lo que va bajo cada nodo es a qué son Inmunes los de adentro: el escudo tachado de la mesa, entero y a
+   escala 1 (antes, la pinta pelada a media escala: ni se leía ni decía qué era) */
+@media (min-width: 701px) {
+  .nodo .nodo-palos {
+    --k: 1;
+    bottom: -22px;
+    transform: translateX(-50%);
+    gap: 2px;
+    padding: 2px 3px;
+  }
+}
+
+@media (min-width: 1100px) and (max-width: 1699px) {
+  /* la letra de rótulo, siempre en su múltiplo de 8 (donde heredaba el tamaño del cuerpo quedaba a 18 o 20 px) */
+  .col-mazo b,
+  .col-rey b,
+  .pieza-texto b,
+  .jugadas-tabla thead th,
+  .jugadas-tabla tbody th,
+  .palos-lista li b,
+  .canto-regla b {
+    font-size: var(--fr);
+  }
+  /* JUGADAS y «Lo que llevás» usan el ancho de la ventana: con la letra a 18–24 px, la tabla no parte cada renglón */
+  .piezas,
+  .jugadas {
+    width: min(96vw, 1180px);
+    max-width: 96vw;
+  }
+  .jugadas-cuerpo {
+    grid-template-columns: 1.6fr 1fr;
+  }
+  .jugadas-tabla th,
+  .jugadas-tabla td {
+    padding: 2px 6px;
+    line-height: 1.15;
+  }
+  /* «VER LAS QUE PIDEN MÁS CARTAS (N)»: en los renglones que haga falta */
+  .jugadas-pie .btn {
+    white-space: normal;
+    text-align: center;
+    line-height: 1.1;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    min-width: 0;
+  }
+  .pieza-lista {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  }
+  /* los iconos de «Lo que llevás», al doble como en la bandeja (a escala 1 eran 28 px) */
+  .pieza-icono {
+    --k: 2;
+  }
+  .pieza-icono .pinta {
+    --k: 2;
+  }
+
+  /* «ELEGÍ UNA…»: tarjetas más anchas, para que el nombre y el efecto no se partan en cinco renglones */
+  .opcion {
+    width: 256px;
+  }
+  .opciones.chicas .opcion {
+    width: 210px;
+  }
+  .cabala .opcion {
+    width: 340px;
+  }
+
+  /* la Pulpería: las bandejas toman el ancho que deja el Bufón y cada venta se reparte ese ancho (con la letra a
+     18–24 px, a 190 px de tarjeta el efecto pedía seis renglones y la bandeja se salía por arriba y por abajo) */
+  .pulperia .pul-cuerpo {
+    gap: calc(var(--u) * 2);
+    align-items: stretch;
+  }
+  .pantalla.pulperia .pul-bufon {
+    width: 300px;
+    align-self: center;
+  }
+  .pulperia .bandejas {
+    flex: 1 1 0;
+    justify-content: center;
+    gap: calc(var(--u) * 0.75);
+  }
+  .pulperia .bandeja {
+    gap: 6px;
+  }
+  .pulperia .bandeja > .rotulo {
+    line-height: 1.1;
+  }
+  .pulperia .ventas {
+    justify-content: stretch;
+  }
+  .pulperia .venta,
+  .pulperia .venta.hierro {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+  }
+  /* el icono y la rareza comparten renglón: un renglón menos de alto por tarjeta */
+  .pulperia .venta:not(.hierro) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr auto auto;
+    justify-items: center;
+    align-items: center;
+    column-gap: var(--u);
+    row-gap: 2px;
+    padding-top: 2px;
+    padding-bottom: 4px;
+  }
+  .pulperia .venta:not(.hierro) > * {
+    grid-column: 1 / -1;
+  }
+  .pulperia .venta:not(.hierro) > .op-icono {
+    grid-column: 1;
+    justify-self: end;
+  }
+  .pulperia .venta:not(.hierro) > .op-clase {
+    grid-column: 2;
+    justify-self: start;
+  }
+  .pulperia .venta:not(.hierro) > .op-desc {
+    align-self: start;
+  }
+  .pulperia .venta .op-nombre {
+    line-height: 1.05;
+  }
+  .pulperia .venta .op-sinergia {
+    margin-top: 0;
+    min-height: 0;
+  }
+  .pulperia .venta .precio {
+    margin-top: 0;
+  }
+  .pulperia .venta.hierro {
+    padding-top: 2px;
+    padding-bottom: 2px;
+    row-gap: 0;
+  }
+}
+@media (min-width: 701px) {
+  .nodo .nodo-palos {
+    bottom: -30px;
+  }
+}

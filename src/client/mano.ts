@@ -30,6 +30,8 @@ interface Naipe {
   vy: number;
   /** Inclinación actual y a la que tiende (grados). */
   rot: number;
+  /** Escala actual (1 en la mano; el grupo que se arrastra con el dedo va más chico). */
+  esc: number;
   elegida: boolean;
   /** Milisegundos que le faltan para empezar a moverse (el reparto escalonado). */
   espera: number;
@@ -58,6 +60,13 @@ const ALZA = 70;
 const SUBIDA = 40;
 /** Lo que tiene que quedar tocable de cada carta de la fila de atrás (px). */
 const DIANA = 48;
+/** Lo que tiene que moverse el puntero para que un toque pase a ser un arrastre (px): el dedo resbala más que el ratón. */
+const UMBRAL = 8;
+const UMBRAL_DEDO = 14;
+/** Un arrastre que no se alejó más que esto de donde empezó y se suelta en ninguna zona fue un toque que resbaló (px). */
+const RESBALON = 30;
+/** Con el dedo, el tamaño del grupo que va en el aire: más chico, deja ver al enemigo y la cuenta. */
+const ESCALA_DEDO = 0.8;
 
 /** Una vibración corta (solo con el dedo, si el aparato vibra y no se pidió «Reducir movimiento»). */
 function vibrar(): void {
@@ -79,7 +88,10 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
   let bloqueada = false;
   let viva = true;
   /** `alza`: lo que el centro del grupo va por encima del dedo (0 con ratón o lápiz); crece al alejarse de donde se tomó. */
-  let arrastre: { ids: string[]; dx: number; dy: number; x: number; y: number; zona: Zona | null; tactil: boolean; alza: number } | null = null;
+  /** `previa`: lo elegido antes de empezar (un arrastre que no llega a ninguna zona lo deja como estaba); `lejos`: lo más que se alejó de donde empezó. */
+  let arrastre: { ids: string[]; dx: number; dy: number; x: number; y: number; zona: Zona | null; tactil: boolean; alza: number; previa: string[]; lejos: number } | null = null;
+  /** Lo más que llegó a tener la mano: con eso se decide si va en dos filas (no cambia de alto en mitad de un turno). */
+  let tope = 0;
   let presion: { id: string; x: number; y: number; puntero: number } | null = null;
   let cursor: { x: number; y: number } | null = null;
   let ultimo = performance.now();
@@ -89,6 +101,12 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
   const medidas = () => {
     const k = kNaipe();
     return { w: 100 * k, h: 140 * k, k };
+  };
+  const sinAlza = () => getComputedStyle(raiz).getPropertyValue('--sin-alza').trim() === '1';
+  /** ¿Entran `n` cartas en una fila sin montarse de más? (si no, el móvil las pone en dos filas y la mano pide más alto) */
+  const pideDosFilas = (n: number): boolean => {
+    const { w, k } = medidas();
+    return n > 1 && raiz.clientWidth > 0 && Math.min(w + Math.round(6 * k), (raiz.clientWidth - w) / (n - 1)) < w * 0.8;
   };
 
   /** Dónde descansa cada carta: una fila centrada, sin solapes si cabe; si no, apretada lo justo. */
@@ -104,12 +122,14 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
     const base = alto - h;
     const out = new Map<string, { x: number; y: number }>();
     const sube = Math.round(18 * k);
+    // (pantalla baja del móvil, `--sin-alza` en el CSS: la fila de atrás no sube al elegirse, se marca con su canto)
+    const subeAtras = sinAlza() ? 0 : sube;
     // si en una fila las cartas se montarían mucho (el móvil) y hay alto, van en dos filas: de la de atrás asoma la
     // parte de arriba de cada naipe (su número y sus primeras pintas) y ninguna tapa de costado a otra
-    if (n > 1 && paso < w * 0.8 && alto >= h * 1.4) {
+    if (n > 1 && paso < w * 0.8 && alto >= h + DIANA - 1) {
       const atras = Math.ceil(n / 2);
       // la de adelante, al elegirse, sube solo lo que deja tocable (≥ 48 px) a la carta de atrás que tiene encima
-      const subeDelante = Math.max(0, Math.min(sube, base - sube - DIANA));
+      const subeDelante = Math.max(0, Math.min(sube, base - subeAtras - DIANA));
       const fila = (cuantas: number, desde: number, y: number, alza: number): void => {
         const p2 = cuantas > 1 ? Math.min(w + hueco, (ancho - w) / (cuantas - 1)) : 0;
         const t2 = cuantas > 1 ? p2 * (cuantas - 1) + w : w;
@@ -119,7 +139,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
           out.set(c.carta.id, { x: Math.round(x2 + j * p2), y: y - (c.elegida ? alza : 0) });
         }
       };
-      fila(atras, 0, sube, sube);
+      fila(atras, 0, subeAtras, subeAtras);
       fila(n - atras, atras, base, subeDelante);
       return out;
     }
@@ -129,7 +149,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
 
   const puesto = new WeakMap<HTMLElement, string>();
   function aplicar(c: Naipe, z = 0): void {
-    const t = `translate3d(${Math.round(c.x)}px,${Math.round(c.y)}px,0)${Math.abs(c.rot) > 0.05 ? ` rotate(${c.rot.toFixed(1)}deg)` : ''}`;
+    const t = `translate3d(${Math.round(c.x)}px,${Math.round(c.y)}px,0)${Math.abs(c.rot) > 0.05 ? ` rotate(${c.rot.toFixed(1)}deg)` : ''}${c.esc < 0.995 ? ` scale(${c.esc.toFixed(2)})` : ''}`;
     const clave = `${t}|${z}`;
     if (puesto.get(c.el) === clave) return;
     puesto.set(c.el, clave);
@@ -145,6 +165,11 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
     const dest = destinos();
     const { k } = medidas();
     const caja = raiz.getBoundingClientRect();
+    // con el dedo, el grupo que apunta al enemigo se posa sobre su naipe, por encima de la barra de Vida: la cuenta
+    // (Daño × Multi = total) queda entera a la vista mientras se decide
+    // (la pose de la QA hace lo mismo en el móvil: fotografía el gesto tal como se ve con el dedo)
+    const dedo = arrastre ? arrastre.tactil && arrastre.zona === 'enemigo' : !!posado && innerWidth <= 700;
+    const blanco = dedo ? document.querySelector('[data-soltar="enemigo"]')?.getBoundingClientRect() : undefined;
     naipes.forEach((c, i) => {
       if (c.espera > 0) {
         c.espera -= dt * 1000;
@@ -154,6 +179,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
       let tx: number;
       let ty: number;
       let trot = 0;
+      let tesc = 1;
       let z = i;
       const enGrupo = arrastre?.ids.indexOf(c.carta.id) ?? -1;
       const enPose = posado?.ids.indexOf(c.carta.id) ?? -1;
@@ -169,12 +195,21 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
         // `ALZA` px más arriba): el dedo no tapa las cartas
         const dy = arrastre.dy + (70 * k + ALZA - arrastre.dy) * (arrastre.alza / ALZA);
         ty = arrastre.y - caja.top - dy - Math.abs(enGrupo - medio) * -4 * k;
+        if (arrastre.tactil) {
+          // se achica a medida que se despega de la mano
+          tesc = 1 - (1 - ESCALA_DEDO) * (arrastre.alza / ALZA);
+          if (blanco && blanco.height > 0) ty = Math.min(ty, blanco.bottom - caja.top - 140 * k * (0.5 + tesc / 2) - 10);
+        }
         trot = (enGrupo - medio) * 4 + c.vx * 0.01;
         z = 100 + enGrupo;
       } else if (posado && enPose >= 0) {
         const medio = (posado.ids.length - 1) / 2;
         tx = posado.x - caja.left - 50 * k + (enPose - medio) * 34 * k;
         ty = posado.y - caja.top - 70 * k;
+        if (blanco && blanco.height > 0) {
+          tesc = ESCALA_DEDO;
+          ty = Math.min(ty, blanco.bottom - caja.top - 140 * k * (0.5 + tesc / 2) - 10);
+        }
         trot = (enPose - medio) * 4;
         z = 100 + enPose;
       } else {
@@ -202,6 +237,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
         c.x = tx;
         c.y = ty;
         c.rot = trot;
+        c.esc = tesc;
         c.vx = c.vy = 0;
       } else {
         // resorte amortiguado: rápido al salir, suave al llegar
@@ -212,6 +248,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
         c.x += c.vx * dt;
         c.y += c.vy * dt;
         c.rot += (trot - c.rot) * Math.min(1, dt * 14);
+        c.esc += (tesc - c.esc) * Math.min(1, dt * 18);
       }
       aplicar(c, z);
     });
@@ -245,14 +282,21 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
     return null;
   }
   /** Termina el arrastre y devuelve lo que llevaba (las cartas vuelven solas a su sitio). */
-  function soltarGrupo(): { zona: Zona | null; ids: string[]; tactil: boolean } | null {
+  function soltarGrupo(jugar = true): { zona: Zona | null; ids: string[]; tactil: boolean; resbalon: boolean } | null {
     if (!arrastre) return null;
-    const { zona, ids, tactil } = arrastre;
+    const { zona, ids, tactil, previa, lejos } = arrastre;
     arrastre = null;
     raiz.classList.remove('arrastrando');
     document.body.classList.remove('arrastrando');
     oye.alApuntar(null, ids);
-    return { zona, ids, tactil };
+    // con el dedo, si no se jugó nada (se soltó en ninguna zona o el sistema canceló el gesto): la selección queda como estaba antes
+    // de empezar; arrastrar una carta sin elegir ya no borra las que estaban elegidas
+    if (tactil && (!zona || !jugar) && !bloqueada && (previa.length !== ids.length || previa.some((id) => !ids.includes(id)))) {
+      for (const c of naipes) c.elegida = previa.includes(c.carta.id);
+      marcar();
+      oye.alCambiar(elegidas());
+    }
+    return { zona, ids, tactil, resbalon: tactil && !zona && lejos < RESBALON };
   }
 
   // ── puntero: clic para elegir, arrastre para jugar
@@ -270,10 +314,11 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
     cursor = { x: ev.clientX, y: ev.clientY };
     if (!presion || ev.pointerId !== presion.puntero) return;
     if (!arrastre) {
-      if (Math.hypot(ev.clientX - presion.x, ev.clientY - presion.y) < 8) return;
+      if (Math.hypot(ev.clientX - presion.x, ev.clientY - presion.y) < (ev.pointerType === 'touch' ? UMBRAL_DEDO : UMBRAL)) return;
       // empieza el arrastre: si la carta está elegida, va todo el grupo; si no, va ella sola
       const c = naipes.find((x) => x.carta.id === presion!.id);
       if (!c) return;
+      const previa = elegidas();
       if (!c.elegida) {
         for (const o of naipes) o.elegida = false;
         c.elegida = true;
@@ -281,12 +326,13 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
         oye.alCambiar(elegidas());
       }
       const caja = raiz.getBoundingClientRect();
-      arrastre = { ids: elegidas(), dx: presion.x - caja.left - c.x, dy: presion.y - caja.top - c.y, x: ev.clientX, y: ev.clientY, zona: null, tactil: ev.pointerType === 'touch', alza: 0 };
+      arrastre = { ids: elegidas(), dx: presion.x - caja.left - c.x, dy: presion.y - caja.top - c.y, x: ev.clientX, y: ev.clientY, zona: null, tactil: ev.pointerType === 'touch', alza: 0, previa, lejos: 0 };
       raiz.classList.add('arrastrando');
       document.body.classList.add('arrastrando');
     }
     arrastre.x = ev.clientX;
     arrastre.y = ev.clientY;
+    arrastre.lejos = Math.max(arrastre.lejos, Math.hypot(ev.clientX - presion.x, ev.clientY - presion.y));
     // con el dedo el grupo se despega de la yema a medida que se aleja de donde se tomó (sin salto al empezar)
     if (arrastre.tactil) arrastre.alza = Math.max(arrastre.alza, Math.min(ALZA, Math.hypot(ev.clientX - presion.x, ev.clientY - presion.y) * 1.5));
     const zona = zonaEn(ev.clientX, ev.clientY, arrastre.alza, presion.y - ev.clientY);
@@ -309,6 +355,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
     if (suelto) {
       if (suelto.zona && suelto.tactil) vibrar();
       oye.alSoltar(suelto.zona, suelto.ids);
+      // un toque que resbaló un poco y no fue a ningún lado sigue siendo un toque: elige (o suelta) su carta
+      if (suelto.resbalon) alternar(id);
       return;
     }
     alternar(id);
@@ -323,7 +371,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
     } catch {
       // ya estaba suelto
     }
-    soltarGrupo();
+    soltarGrupo(false);
   };
   const sale = () => {
     cursor = null;
@@ -377,10 +425,13 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
         const { h } = medidas();
         const x0 = desde ? desde.x - caja.left : raiz.clientWidth / 2;
         const y0 = desde ? desde.y - caja.top : raiz.clientHeight - h;
-        nuevas.push({ carta, el, x: x0, y: y0, vx: 0, vy: 0, rot: desde ? -12 : 0, elegida: false, espera: desde ? recien++ * 55 : 0, vuela: null });
+        nuevas.push({ carta, el, x: x0, y: y0, vx: 0, vy: 0, rot: desde ? -12 : 0, esc: 1, elegida: false, espera: desde ? recien++ * 55 : 0, vuela: null });
       }
       for (const c of viejas.values()) c.el.remove();
       naipes = nuevas;
+      // la mano que necesita dos filas (el móvil) lo dice con una clase: el CSS le da el alto de dos filas solo a ella
+      tope = Math.max(tope, naipes.length);
+      raiz.classList.toggle('dos-filas', pideDosFilas(tope));
       // el orden del DOM sigue al de la fila: el foco del teclado y del mando va de izquierda a derecha
       for (const c of naipes) raiz.append(c.el);
       marcar();

@@ -50,6 +50,8 @@ export interface OpcionCabala {
   id: string;
   texto: L;
   detalle: L;
+  /** El detalle con las cifras del tramo en que estás (si las apuestas crecen con el tramo). */
+  detalleEn?: (p: Partida) => L;
   /** Aceptar el truco sube el humor del Bufón; rechazarlo lo baja. */
   acepta: boolean;
   /** Se juega a la suerte (la moneda del Bufón). */
@@ -67,7 +69,24 @@ export interface CabalaDef {
   opciones: OpcionCabala[];
 }
 
-const nada = (texto: L): OpcionCabala => ({ id: 'no', texto, detalle: L('El Bufón se ofende un poco.', 'The Jester takes mild offense.'), acepta: false, hacer: () => ({ texto: L('«Vos te lo perdés.»', '"Your loss."'), bueno: false }) });
+const DESPECHO: L[] = [
+  L('«Vos te lo perdés.»', '"Your loss."'),
+  L('«Anotado. Tengo buena memoria para los desaires.»', '"Noted. I have a fine memory for slights."'),
+  L('«Cobarde con suerte sigue siendo cobarde.»', '"A lucky coward is still a coward."'),
+  L('«Después no vengas llorando al mostrador.»', '"Do not come crying to the counter later."'),
+];
+const nada = (texto: L): OpcionCabala => ({
+  id: 'no',
+  texto,
+  detalle: L('El Bufón se ofende: su humor baja un punto.', "The Jester takes offense: his mood drops a point."),
+  acepta: false,
+  hacer: (p) => ({ texto: DESPECHO[Math.min(DESPECHO.length - 1, Math.max(0, 1 - p.afinidad))], bueno: false }),
+});
+/** Lo que se apuesta crece con el tramo: en el tercero nadie juega por monedas. */
+const tramo = (p: Partida): number => Math.min(2, p.acto) + 1;
+const porTramo = (f: (t: number) => L): { detalle: L; detalleEn: (p: Partida) => L } => ({ detalle: f(1), detalleEn: (p) => f(tramo(p)) });
+/** El detalle de una opción tal como vale ahora. */
+export const detalleDe = (o: OpcionCabala, p: Partida): L => o.detalleEn?.(p) ?? o.detalle;
 
 /** Las cartas de número más bajo del Mazo (para quemarlas o pintarlas). */
 function masBajas(p: Partida, n: number) {
@@ -92,14 +111,16 @@ export const CABALAS: readonly CabalaDef[] = [
     opciones: [
       {
         id: 'si',
-        texto: L('Apostar 10 de oro', 'Bet 10 gold'),
-        detalle: L('Si sale bien, +15 de oro. Si no, perdés los 10.', 'If it goes well, +15 gold. If not, you lose the 10.'),
+        texto: L('Apostar oro', 'Bet gold'),
+        ...porTramo((t) => fillL(L('Apostás {a} de oro. Sale bien: +{g}. Si no, los perdés.', 'You bet {a} gold. Goes well: +{g}. If not, you lose it.'), { a: k.moneda.apuesta * t, g: k.moneda.paga * t })),
         acepta: true,
         aSuerte: true,
-        puede: (p) => p.oro >= 10,
+        puede: (p) => p.oro >= k.moneda.apuesta * tramo(p),
         hacer: (p, sale) => {
-          p.oro += sale ? 15 : -10;
-          return sale ? { texto: L('¡Cara! +15 de oro.', 'Heads! +15 gold.'), bueno: true } : { texto: L('Cruz. Chau 10 de oro.', 'Tails. Goodbye, 10 gold.'), bueno: false };
+          const a = k.moneda.apuesta * tramo(p);
+          const g = k.moneda.paga * tramo(p);
+          p.oro += sale ? g : -a;
+          return sale ? { texto: fillL(L('¡Cara! +{g} de oro.', 'Heads! +{g} gold.'), { g }) , bueno: true } : { texto: fillL(L('Cruz. Chau {a} de oro.', 'Tails. Goodbye, {a} gold.'), { a }), bueno: false };
         },
       },
       nada(L('No juego', "I'm out")),
@@ -204,13 +225,13 @@ export const CABALAS: readonly CabalaDef[] = [
       {
         id: 'si',
         texto: L('Jugar la bolsa', 'Play the purse'),
-        detalle: L('Si sale bien, duplicás tu oro (tope +25). Si no, perdés la mitad.', 'If it goes well, you double your gold (max +25). If not, you lose half.'),
+        ...porTramo((t) => fillL(L('Si sale bien, duplicás tu oro (tope +{t}). Si no, perdés la mitad.', 'If it goes well, you double your gold (max +{t}). If not, you lose half.'), { t: k.dobleTope * t })),
         acepta: true,
         aSuerte: true,
         puede: (p) => p.oro >= 6,
         hacer: (p, sale) => {
           if (sale) {
-            const n = Math.min(25, p.oro);
+            const n = Math.min(k.dobleTope * tramo(p), p.oro);
             p.oro += n;
             return { texto: fillL(L('¡Doble! +{n} de oro.', 'Double! +{n} gold.'), { n }), bueno: true };
           }
@@ -245,6 +266,87 @@ export const CABALAS: readonly CabalaDef[] = [
         },
       },
       nada(L('Dejala así', 'Leave it be')),
+    ],
+  },
+  {
+    id: 'soplo',
+    humor: 'normal',
+    titulo: L('El soplo', 'The Tip-Off'),
+    propone: L('Sé dónde duerme el próximo Rey. Por unas monedas, alguien le afloja la montura.', 'I know where the next King sleeps. For a few coins, someone loosens his saddle.'),
+    opciones: [
+      {
+        id: 'si',
+        texto: L('Pagar la trampa', 'Pay for the trap'),
+        ...porTramo((t) => fillL(L('Pagás {o} de oro. Sale bien: el Rey llega con {v} % menos de Vida. Si no: +{f} de Furia.', 'Pay {o} gold. Goes well: the King arrives with {v}% less Health. If not: +{f} Fury.'), { o: k.soplo.oro * t, v: Math.round(k.soplo.vida * 100), f: k.soplo.furia })),
+        acepta: true,
+        aSuerte: true,
+        puede: (p) => p.oro >= k.soplo.oro * tramo(p),
+        hacer: (p, sale) => {
+          p.oro -= k.soplo.oro * tramo(p);
+          if (sale) {
+            p.reyHerido = k.soplo.vida;
+            return { texto: L('Hecho. El Rey va a llegar rengo.', 'Done. The King will arrive limping.'), bueno: true };
+          }
+          p.furiaRey += k.soplo.furia;
+          return { texto: fillL(L('Le cobré a los dos. El Rey ya sabe: +{f} de Furia.', 'I charged you both. The King knows: +{f} Fury.'), { f: k.soplo.furia }), bueno: false };
+        },
+      },
+      nada(L('No me meto', 'I stay out')),
+    ],
+  },
+  {
+    id: 'robo',
+    humor: 'normal',
+    titulo: L('Mano larga', 'Sticky Fingers'),
+    propone: L('La Corte guarda sus mejores naipes en un cajón sin llave. Yo distraigo, vos metés la mano.', 'The Court keeps its best cards in an unlocked drawer. I distract, you reach in.'),
+    opciones: [
+      {
+        id: 'si',
+        texto: L('Robarle a la Corte', 'Rob the Court'),
+        ...porTramo((t) => fillL(L('Sale bien: un 9 Templado (+{t} de Daño, +1 de Multi) a tu Mazo. Si no: −{v} de Vida.', 'Goes well: a Tempered 9 (+{t} Damage, +1 Mult) to your deck. If not: −{v} Health.'), { t: k.robo.temple, v: k.robo.vida * t })),
+        acepta: true,
+        aSuerte: true,
+        puede: (p) => p.vida > k.robo.vida * tramo(p),
+        hacer: (p, sale) => {
+          if (!sale) {
+            const v = k.robo.vida * tramo(p);
+            p.vida = Math.max(1, p.vida - v);
+            return { texto: fillL(L('Te vieron. −{v} de Vida y el cajón, con llave.', 'They saw you. −{v} Health, and the drawer is locked now.'), { v }), bueno: false };
+          }
+          const palo = elegir(p, ['S', 'C', 'D', 'H'] as const);
+          p.robadas = (p.robadas ?? 0) + 1;
+          p.mazo.push({ id: `R${palo}${p.robadas}`, palo, n: 9, temple: k.robo.temple, templada: true });
+          return { texto: L('Un 9 al rojo, de la Corte a tu Mazo.', 'A red-hot 9, from the Court to your deck.'), bueno: true };
+        },
+      },
+      nada(L('Las manos quietas', 'Hands to myself')),
+    ],
+  },
+  {
+    id: 'aciegas',
+    humor: 'normal',
+    titulo: L('Firmar a ciegas', 'Sign It Blind'),
+    propone: L('Un papelito, una firmita. ¿Leerlo? Qué desconfiado. Firmá y después vemos.', 'A little paper, a little signature. Read it? So distrustful. Sign and we shall see.'),
+    opciones: [
+      {
+        id: 'si',
+        texto: L('Firmar sin leer', 'Sign unread'),
+        detalle: fillL(L('Sale bien: una Cábala gratis. Si no: perdés un Amuleto al azar (sin Amuletos, −{v} de Vida máxima).', 'Goes well: a free Cábala. If not: you lose a random Amulet (with none, −{v} max Health).'), { v: k.aciegas.vida }),
+        acepta: true,
+        aSuerte: true,
+        hacer: (p, sale) => {
+          if (sale) return { texto: L('Letra chica a tu favor, por una vez.', 'Fine print in your favor, for once.'), bueno: true, oferta: 'aumento' };
+          if (p.amuletos.length) {
+            const id = elegir(p, p.amuletos);
+            p.amuletos = p.amuletos.filter((x) => x !== id);
+            return { texto: fillL(L('La letra chica decía: «{a}, para el Bufón».', 'The fine print said: "{b}, for the Jester".'), { a: AMULETO[id].nombre.es, b: AMULETO[id].nombre.en }), bueno: false };
+          }
+          p.vidaMax = Math.max(10, p.vidaMax - k.aciegas.vida);
+          p.vida = Math.min(p.vida, p.vidaMax);
+          return { texto: fillL(L('La letra chica decía: −{v} de Vida máxima.', 'The fine print said: −{v} max Health.'), { v: k.aciegas.vida }), bueno: false };
+        },
+      },
+      nada(L('Primero lo leo', 'I read it first')),
     ],
   },
   {

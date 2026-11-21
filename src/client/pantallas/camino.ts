@@ -4,7 +4,7 @@ import { AMULETO, AMULETOS, RAREZA_NOMBRE } from '../../rules/amuletos';
 import { AUMENTO, AUMENTOS, NIVEL_NOMBRE } from '../../rules/aumentos';
 import type { AmuletoId } from '../../rules/amuletos';
 import { B } from '../../rules/balance';
-import { CABALA, HUMOR_NOMBRE, humorDe, suerte } from '../../rules/bufon';
+import { CABALA, HUMOR_NOMBRE, detalleDe, humorDe, suerte } from '../../rules/bufon';
 import { JUGADAS, PALOS, ordenar } from '../../rules/cartas';
 import type { Carta, Jugada, Palo } from '../../rules/cartas';
 import { carga, sirveA } from '../../rules/estado';
@@ -25,7 +25,7 @@ import { enFoto } from '../fx/motor';
 import { avivarRetrato, hudHtml } from '../hud';
 import { avanzar, guardar, irPortada, sesion, soltarPartida } from '../juego';
 import type { Expresion } from '../pixel/bufon';
-import { lienzoNaipe, cifra, pxAmuleto, pxAumento, pxBendicion, pxHud, pxNaipe, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
+import { lienzoNaipe, cifra, pxAmuleto, pxAumento, pxBendicion, pxHud, pxInmune, pxNaipe, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
 import { JUGADA_COMO, JUGADA_NOMBRE, NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, TRAMO_NOMBRE } from '../textos';
 import { VOZ } from '../voces';
 import { bufonDice } from '../bufon-vivo';
@@ -64,7 +64,7 @@ export function modalMazo(p: Partida, titulo: string, elegir?: (id: string) => v
 /** «LO QUE LLEVÁS»: cada Amuleto, Cábala, carga y Bendición con su texto entero (la tira del HUD es su resumen). */
 export function modalPiezas(p: Partida): void {
   const fila = (icono: string, nombre: string, clase: string, desc: string): string =>
-    `<li class="pieza-fila"><span class="pieza-icono">${icono}</span><div class="pieza-texto"><b>${esc(nombre)}</b><span class="sub">${esc(clase)}</span><p>${esc(desc)}</p></div></li>`;
+    `<li class="pieza-fila" tabindex="0"><span class="pieza-icono">${icono}</span><div class="pieza-texto"><b>${esc(nombre)}</b><span class="sub">${esc(clase)}</span><p>${esc(desc)}</p></div></li>`;
   const vacio = `<li class="pieza-fila vacia"><p class="sub">${t('nada')}</p></li>`;
   const amuletos = p.amuletos.map((id) => fila(pxAmuleto(id), tx(AMULETO[id].nombre), tx(RAREZA_NOMBRE[AMULETO[id].rareza]), tx(AMULETO[id].desc)));
   const aumentos = p.aumentos.map((id) => fila(pxAumento(id), tx(AUMENTO[id].nombre), AUMENTO[id].maldicion ? t('maldicion') : tx(NIVEL_NOMBRE[AUMENTO[id].nivel]), tx(AUMENTO[id].desc)));
@@ -75,7 +75,7 @@ export function modalPiezas(p: Partida): void {
     return fila(pxBendicion(id), tx(d.nombre), `${tx(REY_DEF[d.rey].apodo)}${d.dual ? ` + ${tx(REY_DEF[d.dual].apodo)}` : ''}${d.niveles > 1 ? ` · ${t('nivel', { n })}` : ''}`, tx(d.desc(n)));
   });
   const bloque = (titulo: string, filas: string[]): string => `<h3 class="rotulo">${esc(titulo)}</h3><ul class="pieza-lista">${filas.length ? filas.join('') : vacio}</ul>`;
-  abrirModal(
+  const velo = abrirModal(
     `<div class="panel piezas">
       <header class="cabecera"><h2 class="titulo">${t('llevas')}</h2><button class="btn marco chico" data-accion="cerrar" data-inicio>${t('cerrar')}</button></header>
       <div class="piezas-cuerpo rollo">
@@ -86,6 +86,21 @@ export function modalPiezas(p: Partida): void {
     </div>`,
     { cerrar: () => cerrarModal() },
   );
+  avisarRollo(velo);
+}
+
+/**
+ * La lista que no entra entera avisa que sigue: mientras quede algo debajo, su panel lleva `hay-mas` (una flecha al
+ * pie y el último renglón que se esfuma). Con la cruceta se baja de pieza en pieza; con la palanca derecha, de corrido.
+ */
+function avisarRollo(velo: HTMLElement): void {
+  const rollo = velo.querySelector<HTMLElement>('.rollo');
+  const panel = velo.querySelector<HTMLElement>('.panel');
+  if (!rollo || !panel) return;
+  const mirar = (): void => void panel.classList.toggle('hay-mas', rollo.scrollHeight - rollo.scrollTop - rollo.clientHeight > 8);
+  rollo.addEventListener('scroll', mirar, { passive: true });
+  mirar();
+  requestAnimationFrame(mirar);
 }
 
 /** La tabla de JUGADAS: lo que vale cada una, lo que hace cada palo y las dos reglas que más se preguntan. */
@@ -102,7 +117,7 @@ export function modalJugadas(p: Partida, actual?: Jugada | null): void {
   const filas = cerca.map(fila).join('');
   const mz = MAZO[p.mazoId];
   const palos = PALOS.map((s) => `<li>${pxPalo(s)}<b>${esc(tx(PALO_NOMBRE[s]))}</b><span>${esc(tx(PALO_PODER[s]))}</span></li>`).join('');
-  abrirModal(
+  const velo = abrirModal(
     `<div class="panel jugadas">
       <header class="cabecera"><h2 class="titulo">${t('jugadas')}</h2><button class="btn marco chico" data-accion="cerrar" data-inicio>${t('cerrar')}</button></header>
       <div class="jugadas-cuerpo rollo">
@@ -127,10 +142,13 @@ export function modalJugadas(p: Partida, actual?: Jugada | null): void {
       'ver-lejos': (el) => {
         const tb = $('[data-lejos]');
         if (tb) tb.hidden = false;
+        const lista = el.closest('.rollo');
         el.closest('p')?.remove();
+        lista?.dispatchEvent(new Event('scroll'));
       },
     },
   );
+  avisarRollo(velo);
 }
 
 /** El menú de la partida: guardar y salir, o rendirse. */
@@ -201,7 +219,7 @@ export function pantallaMapa(p: Partida): Pantalla {
     const desc = n.tipo === 'rey' ? `${tx(rey.rasgo)}: ${tx(rey.rasgoDesc)}` : tx(NODO_DESC[n.tipo]);
     return `<button class="nodo n-${n.tipo} ${estado}" style="left:${(nx * 100).toFixed(2)}%;top:${(ny * 100).toFixed(2)}%" data-accion="nodo" data-id="${n.id}" data-foco="nodo-${n.id}" ${estado === 'abierto' ? '' : 'aria-disabled="true"'} ${abiertos[0] === n.id ? 'data-inicio' : ''} aria-label="${esc(nombre)}" ${tip(nombre, desc, inmune)}>
       ${pxNodo(n.tipo)}
-      ${n.palos?.length ? `<span class="nodo-palos">${n.palos.map((s) => pxPalo(s)).join('')}</span>` : ''}
+      ${n.palos?.length ? `<span class="nodo-palos">${n.palos.map((s) => pxInmune(s)).join('')}</span>` : ''}
       ${estado === 'actual' ? `<span class="nodo-aca chip">${t('vosAca')}</span>` : ''}
     </button>`;
   };
@@ -588,7 +606,8 @@ export function pantallaFogon(p: Partida): Pantalla {
         <b class="op-nombre">${enFuego.brava ? t('forjada') : enFuego.templada ? t('templadaMulti', { n: enFuego.temple ?? 0, m: B.fogon.multiTemplada }) : t('templada', { n: enFuego.temple ?? 0 })}</b>
         ${juego.puedeArrimar(p) ? `<button class="btn marco ${(p.fogonPasadas ?? 0) >= 2 ? 'oro' : 'prisma'} chico" data-accion="arrimar" data-foco="arrimar">${(p.fogonPasadas ?? 0) >= 2 ? t('forjaBrava') : t('arrimar')}</button><span class="op-desc">${(p.fogonPasadas ?? 0) >= 2 ? t('riesgoBrava', { p: Math.round(B.fogon.riesgos[2] * 100) }) : t('riesgo', { n: B.fogon.temple, m: B.fogon.multiTemplada, p: Math.round(B.fogon.riesgos[1] * 100) })}</span>` : ''}
       </div>`;
-    return `<button class="opcion marco hierro" data-accion="templar" data-foco="templar" ${p.fogonHecho ? 'disabled' : ''}>
+    // (con la Vida llena, DESCANSAR está apagado: el foco inicial pasa a TEMPLAR)
+    return `<button class="opcion marco hierro" data-accion="templar" data-foco="templar" ${!p.fogonHecho && p.vida >= p.vidaMax ? 'data-inicio' : ''} ${p.fogonHecho ? 'disabled' : ''}>
       <span class="op-icono grande">${pxHud('furia')}</span><b class="op-nombre">${t('templar')}</b><span class="op-desc">${t('templarDesc', { n: B.fogon.temple })}</span>
     </button>`;
   };
@@ -702,7 +721,7 @@ export function pantallaCabala(p: Partida): Pantalla {
                 .map((o, i) => {
                   const puede = !o.puede || o.puede(p);
                   return `<button class="opcion marco ${o.acepta ? 'prisma' : 'hierro'}" data-accion="opcion" data-id="${o.id}" data-foco="cab-${i}" ${puede ? '' : 'disabled'} ${i === 0 ? 'data-inicio' : ''}>
-                    <b class="op-nombre">${esc(tx(o.texto))}</b><span class="op-desc">${esc(tx(o.detalle))}</span>${o.aSuerte ? `<span class="chip canto">${pxHud('dado5')} ${t('aSuerte', { p: pct })}</span>` : ''}
+                    <b class="op-nombre">${esc(tx(o.texto))}</b><span class="op-desc">${esc(tx(detalleDe(o, p)))}</span>${o.aSuerte ? `<span class="chip canto">${pxHud('dado5')} ${t('aSuerte', { p: pct })}</span>` : ''}
                   </button>`;
                 })
                 .join('')}</div>`

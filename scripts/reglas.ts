@@ -26,7 +26,7 @@ p(`*${MARCA.es.lema}* ${MARCA.es.subtitulo} para un jugador. Elegís un Mazo, el
 p('## La baraja');
 p(`Tu Mazo lleva las cartas del **1 al 9** de los cuatro palos (36) y **${B.jugador.comodines} Comodines**. La Corte —**Sota (10)**, **Caballo (11)** y **Rey (12)** de cada palo— son los enemigos y nunca entran en tu mano.`);
 tabla(['Palo', 'Poder'], PALOS.map((s) => [`**${PALO_NOMBRE[s].es}**`, PALO_PODER[s].es]));
-p(`Cifras: cada Basto da **${B.palos.escudoPorBasto} de Escudo**, cada Copa cura **${B.palos.curaPorCopa} de Vida**, cada Oro paga **${B.palos.oroPorOro} de oro**. El Escudo frena el Contraataque antes que tu Vida (tope ${B.jugador.escudoMax}).`);
+p(`Cifras: cada Basto da **${B.palos.escudoPorBasto} de Escudo**, cada Copa cura **${B.palos.curaPorCopa} de Vida**, cada Oro paga **${B.palos.oroPorOro} de oro**. El Escudo frena el Contraataque antes que tu Vida (tope ${B.jugador.escudoMax}). **La defensa crece con el tramo:** en el segundo tramo el Escudo por Basto, la cura por Copa y el tope de Escudo valen ×${B.jugador.escalaTramo[1]}, y en el tercero ×${B.jugador.escalaTramo[2]}.`);
 p(`**El Comodín** vale como una copia de tu carta más alta del golpe: mismo número y mismo palo. Al elegirlo, el naipe muestra qué número y qué palo copia. Necesita al menos otra carta a su lado.`);
 
 p('## El turno');
@@ -46,6 +46,7 @@ tabla(['Jugada', 'Cartas', 'Daño base', 'Multi'], [...JUGADAS, 'quince' as Juga
 p('### Inmune');
 p('Una sola regla: **cada enemigo es Inmune a su propio palo**: las cartas de ese palo no le hacen Daño. En tu mano se ven oscurecidas mientras ese enemigo está activo, y el Mapa te muestra de antemano los palos que te esperan.');
 p('### Golpe exacto');
+p(`**Al pelo:** si te pasás por muy poco (hasta el ${Math.round(B.exacto.alPelo * 100)} % de la Vida máxima del enemigo), no cobrás el premio, pero la racha no se corta y el Cetro del Bufón se recarga.`);
 p(`Abatir a un enemigo con un TOTAL **igual a su Vida** es ¡EXACTO!: cobrás **${B.exacto.oro} de oro** y tu próximo golpe lleva **+${B.exacto.multi} de Multi**. La mesa te dice cuánto le queda al enemigo o cuánto te sobra. **Racha:** cada exacto seguido sube el premio (+2 con el segundo, +${B.exacto.rachaTope} con el tercero, que es el tope); se corta al abatir a un enemigo sin exactitud.`);
 p('### Aturdido y Furia');
 p(`Un enemigo **Aturdido** se salta su próximo Contraataque. La **Furia** es Ataque de más de la Corte durante un combate, y se ve sumada junto al Ataque del enemigo. Sube por dos motivos: **+${B.furia.reyPorTurno}** cada turno que un Rey sigue en pie, y **+${B.furia.mazoAgotado}** cada vez que se te acaba el Mazo y se baraja el Descarte.`);
@@ -58,6 +59,8 @@ p(`La **Guardia Brava** (élite) tiene ×${en.elite.vida} de Vida y +${en.elite.
 p('## Los 4 Reyes');
 p('Cada Rey te corteja con Bendiciones y, si es el jefe de un tramo, te enfrenta con su rasgo. Cada uno tiene **una carga** con una sola regla para los cuatro: **cada enemigo que abatís con su palo en el golpe, +1** (si llevás algún don suyo).');
 tabla(['Rey', 'Apodo', 'Carga', 'Lo que da cada punto', 'Rasgo de jefe'], PALOS.map((s) => [REY_DEF[s].nombre.es, `**${REY_DEF[s].apodo.es}**`, REY_DEF[s].carga.es, REY_DEF[s].cargaDa.es, `*${REY_DEF[s].rasgo.es}*: ${REY_DEF[s].rasgoDesc.es}`]));
+p('**La segunda cara.** Cuando un Rey baja a media Vida, la pelea cambia:');
+for (const s of PALOS) p(`- **${REY_DEF[s].apodo.es} · ${REY_DEF[s].segunda.es}.** ${REY_DEF[s].segundaDesc.es}`);
 p('### Bendiciones');
 p('Tras cada combate de Guardia, tres Reyes ofrecen un don cada uno: te quedás con uno. Repetir un don **sube su nivel** (hasta 3). Los **Pactos Duales** solo aparecen si ya llevás un don de cada uno de sus dos Reyes.');
 tabla(

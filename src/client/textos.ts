@@ -45,6 +45,8 @@ export const ES = {
   muchas: 'Hasta 5 cartas por golpe',
   cae: 'CAE',
   exacto: '¡EXACTO!',
+  alPelo: '¡AL PELO!',
+  segundaCara: 'SEGUNDA CARA',
   critico: '¡CRÍTICO!',
   ejecuta: 'DEGÜELLO',
   tePega: 'Te pega {n}',
@@ -184,6 +186,13 @@ export const ES = {
   creditos: 'Un juego de ifbotech. Pixel-art forjado a mano en código.',
   cargaRey: '{c} {n}',
   elegiUnaTecla: 'Enter o A: elegir',
+  // 0.15.0 · Deck de verdad: la pista de botones y los rótulos fijos del enemigo
+  pistaElige: 'elige',
+  pistaGolpea: 'golpea',
+  pistaDescarta: 'descarta',
+  tePegaRotulo: 'TE PEGA',
+  quedan: 'QUEDAN {n}',
+  queda: 'QUEDA {n}',
 };
 
 export const EN: Record<keyof typeof ES, string> = {
@@ -224,6 +233,8 @@ export const EN: Record<keyof typeof ES, string> = {
   muchas: 'Up to 5 cards per hit',
   cae: 'FALLS',
   exacto: 'EXACT!',
+  alPelo: 'CLOSE SHAVE!',
+  segundaCara: 'SECOND FACE',
   critico: 'CRITICAL!',
   ejecuta: 'THROAT-CUT',
   tePega: 'Hits you for {n}',
@@ -359,6 +370,12 @@ export const EN: Record<keyof typeof ES, string> = {
   creditos: 'A game by ifbotech. Pixel art forged by hand in code.',
   cargaRey: '{c} {n}',
   elegiUnaTecla: 'Enter or A: choose',
+  pistaElige: 'picks',
+  pistaGolpea: 'strikes',
+  pistaDescarta: 'discards',
+  tePegaRotulo: 'HITS YOU',
+  quedan: '{n} LEFT',
+  queda: '{n} LEFT',
 };
 
 export type Clave = keyof typeof ES;

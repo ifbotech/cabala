@@ -31,7 +31,7 @@ const a = B.amuletos;
 const PALO_ES: Record<Palo, string> = { S: 'Espadas', C: 'Bastos', D: 'Oros', H: 'Copas' };
 const PALO_EN: Record<Palo, string> = { S: 'Swords', C: 'Clubs', D: 'Coins', H: 'Cups' };
 const porCarta = (p: Palo): L =>
-  fillL(L('+{n} de Daño por cada carta de {p} del golpe.', '+{n} Damage for each {q} card in the hit.'), { n: a.danoPorCarta, p: PALO_ES[p], q: PALO_EN[p] });
+  fillL(L('+{n} de Daño por carta de {p} del golpe, y +{c} por punto de carga de su Rey (tope +{t}).', '+{n} Damage per {q} card in the hit, and +{c} per charge point of its King (max +{t}).'), { n: a.danoPorCarta, p: PALO_ES[p], q: PALO_EN[p], c: a.comunPorCarga, t: a.comunTope });
 
 const lista: AmuletoDef[] = [
   { id: 'cuchillo', palo: 'S', rareza: 'comun', nombre: L('Cuchillo criollo', 'Criollo Knife'), desc: porCarta('S') },

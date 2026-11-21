@@ -67,6 +67,19 @@
   }
 }
 
+/* 0.15.0 · Deck de verdad: el escalón de portátil y Steam Deck (1280×800, 1366×768). Los sprites siguen a escala 1,
+   pero la letra sube: el texto corrido pasa de 16 a 20 px (18 el chico) y el rótulo de píxel salta de 16 a 24, que
+   es su siguiente múltiplo de 8 (a 18 o 20 se deforma). El piso de lectura a 40 cm es 18 px. */
+@media (min-width: 1100px) and (max-width: 1699px) {
+  :root {
+    --fs: 20px;
+    --fs-s: 18px;
+    --fs-l: 24px;
+    --fr: 24px;
+    --fr-l: 24px;
+  }
+}
+
 @media (max-width: 700px) {
   :root {
     --k-bufon: 1;
@@ -1200,4 +1213,175 @@ button.hud-tiras .ficha {
     calc(4px * var(--k)) calc(4px * var(--k)) 0 var(--oro),
     calc(-4px * var(--k)) calc(4px * var(--k)) 0 var(--oro),
     0 calc(8px * var(--k)) 0 var(--oro);
+}
+
+/* ───────────── 0.15.0 · Deck de verdad ───────────── */
+
+/* Los glifos de botón: una chapa de píxeles con la letra del botón del mando (A, B, X, Y redondos y de su color;
+   gatillos y Select, en pastilla) o de la tecla. Van dentro de cada botón, escondidos; se enseña el juego que toca
+   según con qué se viene jugando (`html[data-entrada]`, lo pone nav.ts). Con ratón o dedo no se ve ninguno. */
+.glifo {
+  --gp: 3px;
+  display: none;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: calc(var(--gp) * 7);
+  height: calc(var(--gp) * 7);
+  padding: 0 calc(var(--gp) * 1.5) 0 calc(var(--gp) * 1.5 + 1px);
+  font-family: var(--rot);
+  font-size: var(--fr);
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  white-space: nowrap;
+  vertical-align: middle;
+  color: #14101e;
+  background: #d9ceb4;
+  box-shadow:
+    inset 0 calc(-1 * var(--gp)) 0 rgba(11, 7, 17, 0.32),
+    inset 0 var(--gp) 0 rgba(255, 255, 255, 0.3);
+  /* las esquinas, comidas un píxel */
+  clip-path: polygon(
+    var(--gp) 0,
+    calc(100% - var(--gp)) 0,
+    calc(100% - var(--gp)) var(--gp),
+    100% var(--gp),
+    100% calc(100% - var(--gp)),
+    calc(100% - var(--gp)) calc(100% - var(--gp)),
+    calc(100% - var(--gp)) 100%,
+    var(--gp) 100%,
+    var(--gp) calc(100% - var(--gp)),
+    0 calc(100% - var(--gp)),
+    0 var(--gp),
+    var(--gp) var(--gp)
+  );
+}
+@media (min-width: 1100px) {
+  .glifo {
+    --gp: 4px;
+  }
+}
+/* los cuatro botones de la cara del mando: redondos (un círculo de píxeles de 7 × 7) y cada uno de su color */
+.glifo:is(.g-a, .g-b, .g-x, .g-y) {
+  width: calc(var(--gp) * 7);
+  padding: 0 0 0 1px;
+  color: #fff;
+  clip-path: polygon(
+    calc(var(--gp) * 2) 0,
+    calc(var(--gp) * 5) 0,
+    calc(var(--gp) * 5) var(--gp),
+    calc(var(--gp) * 6) var(--gp),
+    calc(var(--gp) * 6) calc(var(--gp) * 2),
+    100% calc(var(--gp) * 2),
+    100% calc(var(--gp) * 5),
+    calc(var(--gp) * 6) calc(var(--gp) * 5),
+    calc(var(--gp) * 6) calc(var(--gp) * 6),
+    calc(var(--gp) * 5) calc(var(--gp) * 6),
+    calc(var(--gp) * 5) 100%,
+    calc(var(--gp) * 2) 100%,
+    calc(var(--gp) * 2) calc(var(--gp) * 6),
+    var(--gp) calc(var(--gp) * 6),
+    var(--gp) calc(var(--gp) * 5),
+    0 calc(var(--gp) * 5),
+    0 calc(var(--gp) * 2),
+    var(--gp) calc(var(--gp) * 2),
+    var(--gp) var(--gp),
+    calc(var(--gp) * 2) var(--gp)
+  );
+}
+.glifo.g-a {
+  background: #128a3a;
+}
+.glifo.g-b {
+  background: #c40d3f;
+}
+.glifo.g-x {
+  background: #1f5fd0;
+}
+.glifo.g-y {
+  background: #ffd500;
+  color: #14101e;
+}
+.glifo:is(.g-lb, .g-rb, .g-lt, .g-rt, .g-sel) {
+  background: #9a90a8;
+}
+html[data-entrada='mando'] .glifo.g-mando,
+html[data-entrada='teclado'] .glifo.g-tecla {
+  display: inline-flex;
+}
+/* dentro de un botón apagado, el glifo se apaga con él */
+.btn:disabled .glifo {
+  opacity: 0.55;
+}
+/* el «?» de JUGADAS le deja el sitio al glifo */
+html:is([data-entrada='mando'], [data-entrada='teclado']) .b-signo {
+  display: none;
+}
+
+/* lo que se inspecciona con la cruceta sin pulsarse (el enemigo, La Corte, cada pieza de «Lo que llevás») */
+.mirable,
+.pieza-fila {
+  cursor: help;
+}
+
+/* la lista que no entra entera avisa que sigue: el último renglón se esfuma y una flecha late al pie del panel */
+.velo > .panel {
+  position: relative;
+}
+.panel.hay-mas .rollo {
+  -webkit-mask-image: linear-gradient(#000 calc(100% - 56px), transparent);
+  mask-image: linear-gradient(#000 calc(100% - 56px), transparent);
+}
+.panel.hay-mas::after {
+  /* una flecha hacia abajo, en escalera de píxeles */
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: calc(6px * var(--k));
+  width: calc(4px * var(--k));
+  height: calc(4px * var(--k));
+  margin-left: calc(-2px * var(--k));
+  background: var(--oro);
+  box-shadow:
+    calc(-4px * var(--k)) calc(-4px * var(--k)) 0 var(--oro),
+    0 calc(-4px * var(--k)) 0 var(--oro),
+    calc(4px * var(--k)) calc(-4px * var(--k)) 0 var(--oro),
+    calc(-8px * var(--k)) calc(-8px * var(--k)) 0 var(--oro),
+    calc(-4px * var(--k)) calc(-8px * var(--k)) 0 var(--oro),
+    0 calc(-8px * var(--k)) 0 var(--oro),
+    calc(4px * var(--k)) calc(-8px * var(--k)) 0 var(--oro),
+    calc(8px * var(--k)) calc(-8px * var(--k)) 0 var(--oro);
+  pointer-events: none;
+  animation: hay-mas 0.7s steps(2) infinite alternate;
+}
+@keyframes hay-mas {
+  to {
+    translate: 0 calc(3px * var(--k));
+  }
+}
+
+@media (min-width: 1100px) and (max-width: 1699px) {
+  /* el «+N» de la bandeja va con la letra del cuerpo: a 24 px de rótulo se comía el sitio de una ficha */
+  .hud-mas {
+    font-family: inherit;
+    font-size: var(--fs);
+    line-height: 1.5;
+    padding: 0 5px;
+  }
+  /* el tooltip, con el título a 24 px, pide un renglón más ancho */
+  .tip {
+    max-width: min(38ch, 86vw);
+  }
+  .tip b {
+    line-height: 1.1;
+  }
+  /* la letra de rótulo, siempre en su múltiplo de 8 (donde heredaba el tamaño del cuerpo quedaba a 20 px, deformada) */
+  .tip b,
+  .hud-grito {
+    font-size: var(--fr);
+  }
 }

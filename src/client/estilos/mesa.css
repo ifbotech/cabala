@@ -1551,24 +1551,7 @@ button:disabled .b-quedan {
       0 0 0 5px rgba(11, 7, 17, 0.85);
   }
 }
-/* pantalla baja (el navegador con sus barras, o instalada con muesca): el renglón de más no entra; los tres van en
-   uno y ENGAÑO queda en su antifaz (el nombre lo conserva para el lector de pantalla y la ayuda) */
-@media (max-width: 700px) and (max-height: 800px), (max-width: 700px) and (max-height: 890px) and (display-mode: standalone) {
-  .mano-zona:has([data-accion='engano']) {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) 56px;
-    grid-template-areas:
-      'mano mano mano'
-      'golpear descartar engano';
-  }
-  .mano-zona:has([data-accion='engano']) .mano {
-    margin-top: 0;
-  }
-  .botones [data-accion='engano'] {
-    font-size: 0;
-    gap: 0;
-    padding: 0;
-  }
-}
+/* (la pantalla baja ya no se consulta por `display-mode`: ver «0.15.0 · cualquier teléfono», al final) */
 @keyframes descarte-llama {
   to {
     outline-color: #ffd500;
@@ -1616,4 +1599,449 @@ button:disabled .b-quedan {
 }
 .hud [data-mas].dispara {
   animation: ficha-dispara 0.32s steps(4);
+}
+
+/* ───────────── 0.15.0 · Deck de verdad ───────────── */
+
+/* ── la pista de reposo: con ratón o dedo, «arrastralas»; con mando o teclado, los botones ── */
+.cuenta.reposo .p-botones {
+  display: none;
+  align-items: center;
+  gap: calc(var(--u) * 0.75);
+}
+html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-botones {
+  display: inline-flex;
+}
+html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-puntero {
+  display: none;
+}
+
+/* ── los rótulos fijos del enemigo: «INMUNE A ESPADAS», «TE PEGA», «FURIA», «QUEDAN N» ── */
+.e-sello .rotulo {
+  max-width: calc(var(--fr) * 7);
+  text-align: center;
+  line-height: 1.05;
+}
+.e-pega {
+  color: #ff8aa5;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+.e-furia .rotulo {
+  margin-left: calc(4px * var(--k));
+  color: var(--oro);
+  line-height: 1;
+}
+.corte-quedan {
+  color: var(--hueso);
+  white-space: nowrap;
+}
+/* lo que se inspecciona con la cruceta: la carta de La Corte que tiene el foco sale de la pila, entera y sin velo */
+.corte-carta:focus-visible {
+  position: relative;
+  z-index: 2;
+}
+.corte-carta:focus-visible .px {
+  filter: none;
+}
+.e-nombre {
+  line-height: 1;
+}
+@media (min-width: 701px) {
+  /* el Ataque y el sello pesan lo mismo a cada lado: el naipe del enemigo queda en el centro aunque un rótulo sea largo */
+  .enemigo {
+    grid-template-columns: 1fr auto 1fr;
+  }
+  /* con «TE PEGA» encima, las llamas de la Furia bajan hasta el emblema */
+  .e-llamas {
+    top: calc(var(--fr) * 1.05 - 4px * var(--k));
+  }
+  /* la cifra suelta de La Corte ya la dice el rótulo («QUEDAN 2»); en el móvil, donde no entra, sigue la cifra */
+  .corte .corte-n {
+    display: none;
+  }
+}
+.corte-n {
+  display: contents;
+}
+
+/* ── el desglose a la vista antes de golpear: una línea fija bajo la fórmula ── */
+.c-desglose {
+  display: none;
+}
+@media (min-width: 701px) {
+  /* la cuenta tiene siempre el mismo ancho: no baila al cambiar la selección y el desglose sabe cuánto sitio tiene */
+  .cuenta-zona > .cuenta:not(.reposo):not(.invalida) {
+    width: min(100%, calc(430px * var(--k) + 430px));
+  }
+  .cuenta .c-desglose {
+    order: 1;
+    display: flex;
+    justify-content: center;
+    gap: 0.6em;
+    flex: 0 0 100%;
+    width: 0;
+    min-width: 100%;
+    font-size: var(--fs-s);
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+  .c-desglose > * {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .c-desglose .d-d {
+    color: #ff9db4;
+  }
+  .c-desglose .d-m {
+    color: #8fdcff;
+  }
+  .c-desglose .d-x {
+    flex: none;
+    color: var(--hueso-2);
+  }
+}
+@media (max-width: 700px) {
+  /* la cuenta del móvil lleva las palabras: DAÑO y MULTI, sobre cada cifra y de su color */
+  .cuenta .c-parte {
+    flex-direction: column;
+    gap: 0;
+  }
+  .cuenta .c-parte .rotulo {
+    display: block;
+    line-height: 1;
+  }
+}
+.cuenta [data-cd] .rotulo {
+  color: #ff9db4;
+}
+.cuenta [data-cm] .rotulo {
+  color: #8fdcff;
+}
+
+/* ── los botones de la mesa ── */
+/* apagados, sobre el escenario: en vez de volverse transparentes (se perdían contra las tablas), se hunden y su
+   rótulo queda en gris: se leen, y se nota que todavía no se pueden pulsar */
+.mesa .botones .btn:disabled {
+  opacity: 1;
+  color: var(--gris);
+  border-image-source: var(--m-hundido);
+}
+.mesa .botones .btn:disabled .b-quedan {
+  color: inherit;
+}
+@media (min-width: 701px) {
+  /* ENGAÑO es un botón de pleno derecho, del alto de DESCARTAR */
+  .botones .btn.chico {
+    min-height: calc(48px * var(--k) * 0.5 + 24px);
+  }
+}
+
+/* ── el naipe enfocado a 1,1×: su índice grande crece con él (antes asomaba el del dibujo por debajo: «77») ── */
+@media (min-width: 701px) and (max-width: 1500px) {
+  .mano .carta:focus-visible .c-indice {
+    transform: scale(1.1);
+    /* el centro del naipe (100 × 140), visto desde la esquina del índice (5, 5) */
+    transform-origin: 45px 65px;
+  }
+}
+
+/* ── portátil y Steam Deck: el rótulo va a 24 px ── */
+@media (min-width: 1100px) and (max-width: 1699px) {
+  /* el alto no sobra (768 y 800 px) y la cuenta ganó un renglón: la cabecera de la mesa flota sobre la escena (el
+     tramo a la izquierda, JUGADAS y MENÚ a la derecha; el enemigo, en el centro, no los toca) y la cuenta va como a
+     1080p: la fórmula y lo que pasa en un renglón, el desglose debajo, a todo el ancho */
+  .mesa .mesa-top {
+    position: absolute;
+    left: calc(var(--u) * 2);
+    right: calc(var(--u) * 2);
+    top: var(--u);
+    width: auto;
+    z-index: 4;
+    pointer-events: none;
+  }
+  .mesa .mesa-top > * {
+    pointer-events: auto;
+  }
+  .cuenta-zona > .cuenta:not(.reposo):not(.invalida) {
+    width: min(100%, 1180px);
+  }
+  .cuenta .c-chips {
+    flex-basis: auto;
+  }
+  .cuenta-zona > .cuenta {
+    padding-top: 2px;
+    padding-bottom: 2px;
+    row-gap: 2px;
+  }
+  /* «AL DESCARTE» entra en su zona (a 24 px, «DESCARTE» pedía 132 px y la zona tenía 120) */
+  .mano-zona {
+    grid-template-columns: 152px minmax(0, 1fr) auto;
+  }
+  .descarte-zona .rotulo {
+    text-align: center;
+    line-height: 1.05;
+  }
+  /* «(3)»: del tamaño del rótulo (a 1,25× se salía de la rejilla de la letra) */
+  .b-quedan {
+    font-size: 1em;
+  }
+  /* el nombre del Comodín y la marca del temple, sobre un naipe de 100 px: con la letra del cuerpo, que a 18 px entra */
+  .c-rotulo,
+  .c-temple {
+    font-family: inherit;
+    font-size: var(--fs-s);
+    text-transform: uppercase;
+  }
+  /* la bandeja del HUD: seis fichas de 46 px en vez de cuatro de 64 (el icono sigue al doble, entero, y la ficha le
+     recorta el aire de los bordes): menos piezas detrás del «+N» */
+  button.hud-tiras {
+    gap: 4px;
+    padding: 0 4px;
+  }
+  .hud-tiras .ficha:not(.carga) {
+    width: 46px;
+    height: 46px;
+    overflow: hidden;
+  }
+  .hud-tiras .ficha.carga {
+    height: 46px;
+  }
+  .hud-tiras .hud-tira + .hud-tira > :first-child {
+    margin-left: 4px;
+  }
+}
+/* el glifo de «Lo que llevás» (RT), montado en la esquina de la bandeja */
+.hud-glifo {
+  display: none;
+}
+@media (min-width: 701px) {
+  .hud-lado.der {
+    position: relative;
+  }
+  html[data-entrada='mando'] .hud-glifo {
+    display: inline-flex;
+    position: absolute;
+    right: calc(-4px * var(--k));
+    top: calc(-4px * var(--k));
+    z-index: 2;
+  }
+}
+
+/* ───────────── 0.15.0 · cualquier teléfono ───────────── */
+
+/* La mesa del móvil ya no es una suma de alturas fijas: la escena (el enemigo) toma lo que sobra y se encoge antes de
+   que nada se pise; la mano es alta solo si va en dos filas; la cuenta va compacta y siempre por encima del enemigo.
+   El alto se consulta sobre la propia mesa (`@container`), que ya viene sin las zonas seguras (las descuenta `#app`
+   con `env(safe-area-inset-*)`): vale igual para el navegador con sus barras y para la app instalada con muesca.
+   (Una `@media (max-height: calc(… + env(…)))` no sirve: Chromium la da siempre por falsa.) */
+@media (max-width: 700px) {
+  .mesa {
+    container: mesa / size;
+  }
+  .escena {
+    min-height: 88px;
+  }
+  /* el enemigo ocupa el alto de la escena: su naipe asoma lo que haya (entero, si sobra) por detrás de la barra de Vida */
+  .enemigo {
+    align-self: stretch;
+    min-height: 0;
+    grid-template-rows: minmax(0, calc(140px * var(--k-enemigo))) auto;
+    align-content: center;
+  }
+  /* se recorta solo por abajo (lo que queda tras la barra de Vida): el halo y el cartel «SOLTÁ ACÁ» viven fuera de la
+     caja y tienen que verse */
+  .e-centro {
+    height: auto;
+    align-self: stretch;
+    overflow: visible;
+    clip-path: inset(-72px -60vw 0 -60vw);
+  }
+  .e-pano {
+    display: none;
+  }
+  .e-sellos,
+  .e-ataque {
+    align-self: end;
+    margin-bottom: 8px;
+  }
+  /* el Rey dice lo último sobre su naipe (debajo quedaba recortado) */
+  .e-dice {
+    top: auto;
+    bottom: 18px;
+    margin-top: 0;
+  }
+
+  /* el destino principal avisa: las esquinas doradas laten mientras arrastrás (por abajo no pasan de la barra de
+     Vida) y, al apuntar, se encienden el cartel, la barra de Vida y el marco de la cuenta */
+  .e-halo {
+    inset: -8px -8px 10px -8px;
+  }
+  .arrastrando .e-halo {
+    opacity: 1;
+    animation: e-llama-movil 0.5s steps(2) infinite alternate;
+  }
+  .e-centro.apunta .e-halo {
+    animation: e-apunta-movil 0.3s steps(2) infinite alternate;
+  }
+  @keyframes e-llama-movil {
+    to {
+      opacity: 0.55;
+    }
+  }
+  @keyframes e-apunta-movil {
+    to {
+      inset: -14px -14px 10px -14px;
+    }
+  }
+  .e-suelta {
+    top: 6px;
+    z-index: 1;
+  }
+  .enemigo:has(.e-centro.apunta) .e-vida {
+    box-shadow:
+      0 0 0 2px var(--oro),
+      0 0 0 4px var(--abismo);
+  }
+  .escena:has(.e-centro.apunta) + .cuenta-zona .cuenta:not(.reposo, .invalida) {
+    border-image-source: var(--m-dorado);
+    box-shadow: 0 0 0 2px var(--oro);
+  }
+  /* mientras arrastrás, el Bufón calla: su bocadillo tapaba la cabecera y el índice del enemigo */
+  body.arrastrando .esc-bufon .bocadillo {
+    visibility: hidden;
+  }
+
+  /* la cuenta: nunca bajo el enemigo, y en dos pisos (arriba Daño × Multi = total; debajo, todos los rótulos) */
+  .cuenta-zona {
+    position: relative;
+    z-index: 3;
+    flex: none;
+  }
+  .cuenta {
+    padding: 2px 6px;
+    row-gap: 4px;
+    background-color: rgba(11, 7, 17, 0.9);
+  }
+  .cuenta.reposo,
+  .cuenta.invalida {
+    background-color: transparent;
+  }
+  .cuenta:not(.reposo, .invalida)::after {
+    content: '';
+    flex-basis: 100%;
+    height: 0;
+    margin-bottom: -4px;
+    order: 1;
+  }
+  .cuenta .c-chips {
+    display: contents;
+  }
+  .cuenta .c-jugada,
+  .cuenta .c-chips > * {
+    order: 2;
+  }
+  .cuenta .c-exacto,
+  .cuenta .c-canto {
+    margin-right: 0;
+  }
+
+  /* la mano: alta solo cuando va en dos filas (la clase la pone mano.ts) */
+  .mano {
+    height: calc(140px + 20px);
+  }
+  .mano.dos-filas {
+    height: calc(140px + 46px + 20px);
+  }
+  .mano-zona:has([data-accion='engano']) .mano {
+    margin-top: 0;
+  }
+
+  /* la cabecera: el tramo arriba y el turno debajo (en inglés «THE OUTSKIRTS · GUARD» se cortaba contra «Turn 4») */
+  .mesa-top .lado:first-child {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+  }
+  .mesa-top .rotulo {
+    max-width: 100%;
+    text-overflow: ellipsis;
+  }
+  .mesa-top .sub {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+  }
+
+  /* la bandeja del HUD es de una fila, pase lo que pase: si el «+N» llegara a caer a una segunda, no se ve ni empuja */
+  .mesa button.hud-tiras {
+    max-height: 44px;
+    align-content: flex-start;
+    padding-top: 6px;
+  }
+}
+
+/* pantalla media o baja (el navegador con sus barras, la app instalada con muesca, un Android de 360×740): el renglón
+   de más del Mentiroso no entra; los tres botones van en uno y ENGAÑO queda en su antifaz (el nombre lo conserva para
+   el lector de pantalla y la ayuda) */
+@container mesa (max-height: 790px) {
+  .mano-zona:has([data-accion='engano']) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) 56px;
+    grid-template-areas:
+      'mano mano mano'
+      'golpear descartar engano';
+  }
+  .botones [data-accion='engano'] {
+    font-size: 0;
+    gap: 0;
+    padding: 0;
+  }
+}
+/* pantalla baja (390×664: Safari con sus barras): la fila de atrás de la mano no sube al elegirse (se marca con su
+   canto, como la de adelante) y el enemigo se lee en un renglón: sus sellos, la barra de Vida y el Ataque, con el
+   naipe asomando arriba (a los costados del naipe quedan el Bufón y La Corte, sin nada que se les monte) */
+@container mesa (max-height: 700px) {
+  .mano.dos-filas {
+    height: calc(140px + 48px);
+    --sin-alza: 1;
+  }
+  .e-sello .rotulo,
+  .e-ataque .rotulo,
+  .cuenta .c-parte .rotulo {
+    display: none;
+  }
+  .enemigo {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'centro centro centro'
+      'sellos barras ataque';
+    gap: 4px 6px;
+  }
+  .e-barras {
+    width: 100%;
+  }
+  .e-sellos,
+  .e-ataque {
+    align-self: center;
+    margin-bottom: 0;
+    min-width: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2px 4px;
+  }
+  .e-sellos {
+    max-width: 64px;
+  }
+  .e-ataque {
+    max-width: 84px;
+  }
+  .e-sello,
+  .e-sello .inmune,
+  .e-ataque > .icono {
+    --k: 1;
+  }
 }

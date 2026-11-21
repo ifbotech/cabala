@@ -1,5 +1,7 @@
 // Teclado y mando, sin huecos: las flechas (o la cruceta y la palanca del mando) mueven el foco hacia donde apuntan;
-// Enter, Espacio o A activan; Escape o B vuelven; G / X golpea, D / Y descarta, E arma el Engaño y Start abre el menú.
+// Enter, Espacio o A activan; Escape o B vuelven; G / X golpea, D / Y descarta, E / LT arma el Engaño, J / Select abre
+// JUGADAS, RT abre «Lo que llevás», LB y RB saltan entre la mano y los botones, la palanca derecha desplaza lo que se
+// desplaza y Start abre el menú. Lo que se inspecciona sin pulsarse (el enemigo, La Corte) lleva `tabindex="0"`.
 import { $, $$, atras, hayModal } from './ui';
 
 const FOCO = 'button:not(:disabled):not([aria-disabled="true"]), [tabindex="0"]';
@@ -18,7 +20,7 @@ export function mover(dx: number, dy: number): void {
   if (!lista.length) return;
   const actual = document.activeElement as HTMLElement | null;
   if (!actual || !lista.includes(actual)) {
-    (lista.find((el) => el.dataset.inicio !== undefined) ?? lista[0]).focus();
+    principal(lista)?.focus();
     return;
   }
   const a = actual.getBoundingClientRect();
@@ -44,9 +46,54 @@ export function mover(dx: number, dy: number): void {
   mejor?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 
-let conTeclado = false;
+/** Lo principal de una pantalla: lo que lleva `data-inicio`; en la mesa, la primera carta de la mano; si no, lo primero. */
+function principal(lista: HTMLElement[] = visibles()): HTMLElement | undefined {
+  return lista.find((el) => el.dataset.inicio !== undefined) ?? lista.find((el) => el.classList.contains('carta') && !!el.closest('[data-mano]')) ?? lista[0];
+}
+
+/** Con qué se viene jugando: de eso depende adónde va el foco y qué glifos se enseñan (los del mando o los del teclado). */
+export type Entrada = 'puntero' | 'teclado' | 'mando';
+let entrada: Entrada = 'puntero';
+function ponerEntrada(e: Entrada): void {
+  if (entrada === e) return;
+  entrada = e;
+  document.documentElement.dataset.entrada = e;
+}
+export const entradaActual = (): Entrada => entrada;
 /** Si se viene jugando con teclado o mando (sin ratón ni dedo): entonces el foco va solo a lo principal de cada pantalla. */
-export const porTeclado = (): boolean => conTeclado;
+export const porTeclado = (): boolean => entrada !== 'puntero';
+
+export type GlifoMando = 'A' | 'B' | 'X' | 'Y' | 'LB' | 'RB' | 'LT' | 'RT' | 'SEL';
+/**
+ * El glifo de un botón, dos veces: el del mando y el de la tecla. Van escondidos; el CSS enseña el que toca según
+ * con qué se viene jugando (`html[data-entrada]`), así que nada se repinta al pasar del ratón al mando.
+ */
+export const glifo = (mando: GlifoMando, tecla: string): string =>
+  `<kbd class="glifo g-mando g-${mando.toLowerCase()}" aria-hidden="true">${mando}</kbd><kbd class="glifo g-tecla" aria-hidden="true">${tecla}</kbd>`;
+
+/** LB y RB: el foco salta de los botones de la mesa a la mano (la carta elegida, o la primera) y de la mano a los botones. */
+function saltar(aBotones: boolean): void {
+  if (hayModal()) return;
+  const lista = visibles();
+  const enMano = (el: HTMLElement): boolean => el.classList.contains('carta') && !!el.closest('[data-mano]');
+  const destino = aBotones ? (lista.find((el) => el.dataset.accion === 'golpear') ?? lista.find((el) => !!el.closest('.botones'))) : (lista.find((el) => enMano(el) && el.classList.contains('elegida')) ?? lista.find(enMano));
+  destino?.focus();
+}
+
+/** Abre un modal de la partida con su botón (o lo cierra, si es el que ya está abierto). */
+function alternar(accion: string, panel: string): void {
+  if (hayModal()) {
+    if ($(`#capa .velo ${panel}`)) atras();
+    return;
+  }
+  $<HTMLButtonElement>(`[data-accion="${accion}"]`)?.click();
+}
+
+/** Lo que se desplaza en la pantalla (o en el modal) que está a la vista: lo mueve la palanca derecha. */
+function rollo(): HTMLElement | null {
+  const raiz = hayModal() ? $('#capa .velo')! : $('#app')!;
+  return $$('.rollo, .mapa-rollo, .visor-cartas, .pul-cuerpo, .col-cuerpo', raiz).find((el) => el.scrollHeight > el.clientHeight + 2) ?? null;
+}
 
 /** Activa lo que tiene el foco (una carta se alterna; un botón se pulsa). */
 function activar(): void {
@@ -82,10 +129,10 @@ export function iniciarNav(): void {
     }
   });
   // al cambiar de pantalla, el foco va a lo principal (si se viene jugando sin ratón)
-  document.addEventListener('keydown', () => (conTeclado = true), true);
-  document.addEventListener('pointerdown', () => (conTeclado = false), true);
+  document.addEventListener('keydown', () => ponerEntrada('teclado'), true);
+  document.addEventListener('pointerdown', () => ponerEntrada('puntero'), true);
   document.addEventListener('cabala:pantalla', () => {
-    if (conTeclado) requestAnimationFrame(() => (visibles().find((el) => el.dataset.inicio !== undefined) ?? visibles()[0])?.focus());
+    if (porTeclado()) requestAnimationFrame(() => principal()?.focus());
   });
 
   // el mando: se lee una vez por cuadro; cada botón actúa al pulsarse, y la dirección repite si se mantiene
@@ -102,19 +149,26 @@ export function iniciarNav(): void {
       const dy = b[12] || ey < -0.5 ? -1 : b[13] || ey > 0.5 ? 1 : 0;
       if (dx || dy) {
         if (ahora > repite) {
-          conTeclado = true;
+          ponerEntrada('mando');
           mover(dx, dx ? 0 : dy);
           repite = ahora + (repite ? 150 : 320);
         }
       } else repite = 0;
-      if (recien(0)) {
-        conTeclado = true;
-        activar();
-      }
+      // cualquier botón del mando cuenta como «se juega con mando»: los glifos aparecen al primer toque
+      if (b.some((x, i) => x && !antes[i])) ponerEntrada('mando');
+      if (recien(0)) activar();
       if (recien(1)) atras();
       if (recien(2)) atajo('g');
       if (recien(3)) atajo('d');
+      if (recien(4)) saltar(false);
+      if (recien(5)) saltar(true);
+      if (recien(6)) atajo('e');
+      if (recien(7)) alternar('ver-piezas', '.piezas');
+      if (recien(8)) alternar('jugadas', '.jugadas');
       if (recien(9)) $<HTMLButtonElement>('[data-accion="menu"]')?.click();
+      // la palanca derecha desplaza la lista que no entra (JUGADAS, «Lo que llevás», el Mapa)
+      const ry = mando.axes[3] ?? 0;
+      if (Math.abs(ry) > 0.3) rollo()?.scrollBy(0, Math.round(ry * 16));
       for (let i = 0; i < b.length; i++) antes[i] = b[i];
     }
     requestAnimationFrame(leer);

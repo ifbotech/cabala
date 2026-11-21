@@ -14,7 +14,7 @@ Tu Mazo lleva las cartas del **1 al 9** de los cuatro palos (36) y **2 Comodines
 | **Oros** | Cada Oro paga una moneda. |
 | **Copas** | Cada Copa te cura. |
 
-Cifras: cada Basto da **2 de Escudo**, cada Copa cura **2 de Vida**, cada Oro paga **1 de oro**. El Escudo frena el Contraataque antes que tu Vida (tope 20).
+Cifras: cada Basto da **2 de Escudo**, cada Copa cura **2 de Vida**, cada Oro paga **1 de oro**. El Escudo frena el Contraataque antes que tu Vida (tope 20). **La defensa crece con el tramo:** en el segundo tramo el Escudo por Basto, la cura por Copa y el tope de Escudo valen ×2, y en el tercero ×3.
 
 **El Comodín** vale como una copia de tu carta más alta del golpe: mismo número y mismo palo. Al elegirlo, el naipe muestra qué número y qué palo copia. Necesita al menos otra carta a su lado.
 
@@ -52,6 +52,8 @@ Una sola regla: **cada enemigo es Inmune a su propio palo**: las cartas de ese p
 
 ### Golpe exacto
 
+**Al pelo:** si te pasás por muy poco (hasta el 5 % de la Vida máxima del enemigo), no cobrás el premio, pero la racha no se corta y el Cetro del Bufón se recarga.
+
 Abatir a un enemigo con un TOTAL **igual a su Vida** es ¡EXACTO!: cobrás **3 de oro** y tu próximo golpe lleva **+1 de Multi**. La mesa te dice cuánto le queda al enemigo o cuánto te sobra. **Racha:** cada exacto seguido sube el premio (+2 con el segundo, +3 con el tercero, que es el tope); se corta al abatir a un enemigo sin exactitud.
 
 ### Aturdido y Furia
@@ -69,8 +71,8 @@ Un enemigo **Aturdido** se salta su próximo Contraataque. La **Furia** es Ataqu
 | Tramo | Lugar | Vida | Ataque |
 |---|---|---|---|
 | 1 | El Arrabal | ×1.18 | +1 |
-| 2 | El Reñidero | ×3.4 | +9 |
-| 3 | La Corte de Medianoche | ×9.5 | +20 |
+| 2 | El Reñidero | ×3.4 | +12 |
+| 3 | La Corte de Medianoche | ×10.5 | +28 |
 
 La **Guardia Brava** (élite) tiene ×1.4 de Vida y +2 de Ataque. El **Rey** de cada tramo llega detrás de su Sota y su Caballo, con ×1.6 de Vida. Por cada Bendición suya que llevés, arranca con 5 % menos de Vida (tope 20 %).
 
@@ -85,6 +87,16 @@ Cada Rey te corteja con Bendiciones y, si es el jefe de un tramo, te enfrenta co
 | El Rey de Oros | **El Caudal** | Fortuna | +1 de oro al ganar cada combate por punto (tope 10). | *Diezmo del Caudal*: Cada Contraataque te cobra 3 de oro, y cada moneda que te saca es +1 de Furia. |
 | El Rey de Copas | **El Bacanal** | Brindis | +1 de Vida curada al ganar cada combate por punto (tope 10). | *Brindis del Bacanal*: Se cura 14 por turno; lo que no le cabe se le vuelve Furia. |
 
+**La segunda cara.** Cuando un Rey baja a media Vida, la pelea cambia:
+
+- **El Caudillo · Degüello.** A media Vida: si repetís la jugada de tu golpe anterior, +2 de Furia.
+
+- **El Cacique · Empalizada.** A media Vida: recupera todo su Escudo de golpe, una sola vez.
+
+- **El Caudal · Remate.** A media Vida: su Diezmo cobra ×2.
+
+- **El Bacanal · Última ronda.** A media Vida: lo que vos te curás, él también se lo cura.
+
 ### Bendiciones
 
 Tras cada combate de Guardia, tres Reyes ofrecen un don cada uno: te quedás con uno. Repetir un don **sube su nivel** (hasta 3). Los **Pactos Duales** solo aparecen si ya llevás un don de cada uno de sus dos Reyes.
@@ -95,7 +107,7 @@ Tras cada combate de Guardia, tres Reyes ofrecen un don cada uno: te quedás con
 | **Punta y hacha** | El Caudillo | Uno de cada 4 golpes es Crítico: ×2 de Multi. | Uno de cada 3 golpes es Crítico: ×2 de Multi. | Uno de cada 2 golpes es Crítico: ×2 de Multi. |
 | **Primera sangre** | El Caudillo | +8 de Daño en tu primer golpe contra cada enemigo. | +12 de Daño en tu primer golpe contra cada enemigo. | +16 de Daño en tu primer golpe contra cada enemigo. |
 | **Empalizada** | El Cacique | Cada carta de Bastos da +1 de Escudo más. | Cada carta de Bastos da +2 de Escudo más. | Cada carta de Bastos da +3 de Escudo más. |
-| **Contragolpe** | El Cacique | Si tu Escudo frena entero un Contraataque, el enemigo recibe 10 más tu Coraza. | Si tu Escudo frena entero un Contraataque, el enemigo recibe 16 más tu Coraza. | Si tu Escudo frena entero un Contraataque, el enemigo recibe 22 más tu Coraza. |
+| **Contragolpe** | El Cacique | Si tu Escudo frena la mitad o más de un Contraataque, devuelve lo frenado ×2, más tu Coraza. | Si tu Escudo frena la mitad o más de un Contraataque, devuelve lo frenado ×3, más tu Coraza. | Si tu Escudo frena la mitad o más de un Contraataque, devuelve lo frenado ×4, más tu Coraza. |
 | **Palo y palo** | El Cacique | +1 de Daño por cada 2 de Escudo que tengas. | +2 de Daño por cada 2 de Escudo que tengas. | +3 de Daño por cada 2 de Escudo que tengas. |
 | **Interés compuesto** | El Caudal | Al ganar un combate: +1 de oro por cada 10 que tengas (tope 5). | Al ganar un combate: +1 de oro por cada 8 que tengas (tope 7). | Al ganar un combate: +1 de oro por cada 6 que tengas (tope 9). |
 | **Peso fuerte** | El Caudal | +1 de Multi por cada 40 de oro en tu bolsa (tope +2). | +1 de Multi por cada 30 de oro en tu bolsa (tope +2). | +1 de Multi por cada 25 de oro en tu bolsa (tope +2). |
@@ -106,7 +118,7 @@ Tras cada combate de Guardia, tres Reyes ofrecen un don cada uno: te quedás con
 | **Hoja y broquel** | El Caudillo + El Cacique | Cada Golpe exacto: +5 de Escudo y +1 de Filo. | — | — |
 | **Filo dorado** | El Caudillo + El Caudal | +1 de Daño por cada 5 de oro que tengas (tope +12). | — | — |
 | **Sangría** | El Caudillo + El Bacanal | Cada enemigo abatido te cura 3. | — | — |
-| **Peaje** | El Cacique + El Caudal | Cada Contraataque que tu Escudo frena entero: +2 de oro. | — | — |
+| **Peaje** | El Cacique + El Caudal | Cada Contraataque que tu Escudo frena por la mitad o más: +2 de oro. | — | — |
 | **Rescoldo** | El Cacique + El Bacanal | Al ganar un combate, cada 2 de Escudo que te queda te cura 1. | — | — |
 | **Convite** | El Caudal + El Bacanal | Al ganar un combate: +1 de Vida máxima por cada 15 de oro (tope +3). | — | — |
 
@@ -116,16 +128,16 @@ Exactamente **15**: tres por palo (uno Común, uno Raro, uno Épico) y tres del 
 
 | Amuleto | De | Rareza | Efecto | Precio |
 |---|---|---|---|---|
-| **Cuchillo criollo** | Espadas | Común | +3 de Daño por cada carta de Espadas del golpe. | 10 |
+| **Cuchillo criollo** | Espadas | Común | +3 de Daño por carta de Espadas del golpe, y +1 por punto de carga de su Rey (tope +6). | 10 |
 | **Facón de plata** | Espadas | Raro | Abatir a un enemigo con Espadas en el golpe: +1 de Multi en tu próximo golpe. | 16 |
 | **Lanza del Caudillo** | Espadas | Épico | Todos tus golpes Perforan, y lo que sobra pasa ×2 al siguiente. | 24 |
-| **Rebenque** | Bastos | Común | +3 de Daño por cada carta de Bastos del golpe. | 10 |
+| **Rebenque** | Bastos | Común | +3 de Daño por carta de Bastos del golpe, y +1 por punto de carga de su Rey (tope +6). | 10 |
 | **Boleadoras** | Bastos | Raro | Golpe con 2 o más Bastos: el enemigo queda Aturdido (una vez por enemigo). | 16 |
 | **Poncho del Cacique** | Bastos | Épico | Con 6 o más de Escudo: +2 de Multi. | 24 |
-| **Moneda falsa** | Oros | Común | +3 de Daño por cada carta de Oros del golpe. | 10 |
+| **Moneda falsa** | Oros | Común | +3 de Daño por carta de Oros del golpe, y +1 por punto de carga de su Rey (tope +6). | 10 |
 | **Taba** | Oros | Raro | Cada turno se tira la taba: con 4 o más, +1 de Multi. | 16 |
 | **Cofre del Caudal** | Oros | Épico | +1 de Multi por cada 30 de oro que tengas (tope +2). | 24 |
-| **Mate curado** | Copas | Común | +3 de Daño por cada carta de Copas del golpe. | 10 |
+| **Mate curado** | Copas | Común | +3 de Daño por carta de Copas del golpe, y +1 por punto de carga de su Rey (tope +6). | 10 |
 | **Bota de vino** | Copas | Raro | Al empezar cada combate curás 8 de Vida. | 16 |
 | **Cáliz del Bacanal** | Copas | Épico | Con 80 % de Vida o más: +2 de Multi. | 24 |
 | **Cascabel del Bufón** | El Bufón | Legendario | Los cantos de tu Mazo valen doble, y cada canto te deja +1 de Multi para el resto del combate. | 40 |
@@ -163,10 +175,10 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 
 | Mazo | Personaje | Vida · mano | Regla estrella | Se abre con |
 |---|---|---|---|---|
-| **Escoba** · Escoba del 15 | La Barrendera | 70 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×2 y más Daño para siempre. | abierto desde el principio |
-| **Truco** · Envido y Bravas | El Paisano Bravo | 79 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
-| **Chinchón** · Pierna y Escalera | La Timbera del Club | 53 · 7 | Piernas y Escaleras de palo crecen siempre y frenan el Contraataque. | Vencé a un Rey. |
-| **El Mentiroso** · Cara de Piedra | El Chamuyero | 56 · 8 | Cuatro Comodines y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
+| **Escoba** · Escoba del 15 | La Barrendera | 74 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×2 y más Daño para siempre. | abierto desde el principio |
+| **Truco** · Envido y Bravas | El Paisano Bravo | 90 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
+| **Chinchón** · Pierna y Escalera | La Timbera del Club | 51 · 7 | Piernas y Escaleras de palo crecen siempre y frenan el Contraataque. | Vencé a un Rey. |
+| **El Mentiroso** · Cara de Piedra | El Chamuyero | 49 · 8 | Cuatro Comodines y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
 | **Chancho Va** · Mano al Centro | El Manotazo | 87 · 4 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
 
 **Escoba** (¡ESCOBA!)
@@ -223,16 +235,19 @@ El Bufón es el único anfitrión del juego y un chanta. Te sigue pantalla por p
 
 | Cábala | Humor | Opciones |
 |---|---|---|
-| **Cara o cruz** | cualquiera | *Apostar 10 de oro*: Si sale bien, +15 de oro. Si no, perdés los 10. · *No juego*: El Bufón se ofende un poco. |
-| **La carta tapada** | cualquiera | *Dar vuelta una*: Si sale bien, un Amuleto. Si no, −8 de Vida. · *Paso*: El Bufón se ofende un poco. |
-| **Pacto de sangre** | cualquiera | *Firmar*: −6 de Vida máxima. Elegís una Bendición. · *Ni loco*: El Bufón se ofende un poco. |
-| **El vale** | cualquiera | *Tomar el vale*: +15 de oro ya. El próximo Rey arranca con +3 de Furia. · *Rechazar*: El Bufón se ofende un poco. |
-| **Naipes al fuego** | cualquiera | *Entregarlas*: Tus 2 cartas más bajas salen del Mazo para siempre. · *Me las quedo*: El Bufón se ofende un poco. |
-| **Doble o nada** | cualquiera | *Jugar la bolsa*: Si sale bien, duplicás tu oro (tope +25). Si no, perdés la mitad. · *Guardar la bolsa*: El Bufón se ofende un poco. |
-| **El naipe pintado** | cualquiera | *Pagar 6 de Vida*: Tu carta más baja se vuelve Comodín. · *Dejala así*: El Bufón se ofende un poco. |
+| **Cara o cruz** | cualquiera | *Apostar oro*: Apostás 10 de oro. Sale bien: +15. Si no, los perdés. · *No juego*: El Bufón se ofende: su humor baja un punto. |
+| **La carta tapada** | cualquiera | *Dar vuelta una*: Si sale bien, un Amuleto. Si no, −8 de Vida. · *Paso*: El Bufón se ofende: su humor baja un punto. |
+| **Pacto de sangre** | cualquiera | *Firmar*: −6 de Vida máxima. Elegís una Bendición. · *Ni loco*: El Bufón se ofende: su humor baja un punto. |
+| **El vale** | cualquiera | *Tomar el vale*: +15 de oro ya. El próximo Rey arranca con +3 de Furia. · *Rechazar*: El Bufón se ofende: su humor baja un punto. |
+| **Naipes al fuego** | cualquiera | *Entregarlas*: Tus 2 cartas más bajas salen del Mazo para siempre. · *Me las quedo*: El Bufón se ofende: su humor baja un punto. |
+| **Doble o nada** | cualquiera | *Jugar la bolsa*: Si sale bien, duplicás tu oro (tope +25). Si no, perdés la mitad. · *Guardar la bolsa*: El Bufón se ofende: su humor baja un punto. |
+| **El naipe pintado** | cualquiera | *Pagar 6 de Vida*: Tu carta más baja se vuelve Comodín. · *Dejala así*: El Bufón se ofende: su humor baja un punto. |
+| **El soplo** | cualquiera | *Pagar la trampa*: Pagás 12 de oro. Sale bien: el Rey llega con 20 % menos de Vida. Si no: +3 de Furia. · *No me meto*: El Bufón se ofende: su humor baja un punto. |
+| **Mano larga** | cualquiera | *Robarle a la Corte*: Sale bien: un 9 Templado (+8 de Daño, +1 de Multi) a tu Mazo. Si no: −6 de Vida. · *Las manos quietas*: El Bufón se ofende: su humor baja un punto. |
+| **Firmar a ciegas** | cualquiera | *Firmar sin leer*: Sale bien: una Cábala gratis. Si no: perdés un Amuleto al azar (sin Amuletos, −8 de Vida máxima). · *Primero lo leo*: El Bufón se ofende: su humor baja un punto. |
 | **Te tiro la buena** | de tu lado | *+18 de Vida*: Un trago que cura. · *+12 de oro*: De la caja de otro. |
-| **Invita la casa** | de tu lado | *Elegir una Cábala*: Un Aumento del Bufón, gratis. · *Otro día*: El Bufón se ofende un poco. |
-| **La apuesta trampa** | garca | *Apostar 8 de Vida*: Si sale bien, +20 de oro. Si no, −8 de Vida. La moneda está cargada. · *Rechazar*: El Bufón se ofende un poco. |
+| **Invita la casa** | de tu lado | *Elegir una Cábala*: Un Aumento del Bufón, gratis. · *Otro día*: El Bufón se ofende: su humor baja un punto. |
+| **La apuesta trampa** | garca | *Apostar 8 de Vida*: Si sale bien, +20 de oro. Si no, −8 de Vida. La moneda está cargada. · *Rechazar*: El Bufón se ofende: su humor baja un punto. |
 
 ## El Altar
 

@@ -358,7 +358,7 @@ describe('una partida entera', () => {
           expect(p.afinidad).toBeLessThanOrEqual(B.bufon.afinidadMax);
           for (const [id, n] of Object.entries(p.bendiciones)) expect(n).toBeLessThanOrEqual(BENDICION[id as BendicionId].niveles);
           if (p.combate) {
-            expect(p.combate.escudo).toBeLessThanOrEqual(B.jugador.escudoMax);
+            expect(p.combate.escudo).toBeLessThanOrEqual(B.jugador.escudoMax * B.jugador.escalaTramo[Math.min(p.acto, 2)]);
             expect(p.combate.fila.every((e) => e.rango >= 10 && e.rango <= 12 && e.vida > 0)).toBe(true);
             const m = mejorGolpe(p);
             expect(m).not.toBeNull();
@@ -381,5 +381,71 @@ describe('una partida entera', () => {
       expect(Number.isInteger(q.total), id).toBe(true);
       expect(q.total, id).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('0.15.0: la defensa escala, el Golpe al pelo, la segunda cara y el soplo', () => {
+  it('Bastos, Copas y el tope de Escudo crecen con el tramo', () => {
+    const mano = [c('C', 5), c('D', 5)];
+    const p0 = mesa('chinchon', mano);
+    const q0 = cuenta(p0, mano);
+    const p2 = mesa('chinchon', mano, {}, (p) => void (p.acto = 2));
+    const q2 = cuenta(p2, mano);
+    expect(q0.escudo).toBe(B.palos.escudoPorBasto * B.jugador.escalaTramo[0]);
+    expect(q2.escudo).toBe(B.palos.escudoPorBasto * B.jugador.escalaTramo[2]);
+    p2.combate!.escudo = 0;
+    for (let i = 0; i < 12; i++) {
+      p2.combate!.mano = [c('C', 5), c('D', 5)];
+      golpear(p2, p2.combate!.mano.map((k) => k.id));
+      if (!p2.combate) break;
+      expect(p2.combate.escudo).toBeLessThanOrEqual(B.jugador.escudoMax * B.jugador.escalaTramo[2]);
+    }
+  });
+  it('al pelo: pasarse por muy poco no cobra, pero sostiene la racha y recarga el Cetro', () => {
+    const mano = [c('C', 7), c('D', 7)];
+    const p = mesa('chinchon', mano, { vidaMax: 400 });
+    p.amuletos.push('cetro');
+    p.combate!.golpes = 1; // el Cetro ya se gastó
+    const q = cuenta(p, mano);
+    p.combate!.fila[0].vida = q.aVida - 3; // sobra 3 de 400: al pelo (tope 5 %)
+    p.racha = 2;
+    const k = cuenta(p, mano);
+    expect(k.exacto).toBe(false);
+    expect(k.alPelo).toBe(true);
+    const oro = p.oro;
+    const evs = golpear(p, mano.map((x) => x.id));
+    expect(evs.some((e) => e.t === 'alpelo')).toBe(true);
+    expect(evs.some((e) => e.t === 'exacto')).toBe(false);
+    expect(p.racha).toBe(2);
+    expect(p.combate!.cetro).toBe(true);
+    expect(p.oro - oro).toBeLessThan(B.exacto.oro + 3);
+    // pasarse por mucho corta la racha
+    const p2 = mesa('chinchon', mano, { vidaMax: 100, vida: 5 });
+    p2.racha = 2;
+    golpear(p2, mano.map((x) => x.id));
+    expect(p2.racha).toBe(0);
+  });
+  it('la segunda cara: a media Vida el Cacique recupera todo su Escudo, una sola vez', () => {
+    const mano = [c('S', 7), c('D', 7)];
+    const p = mesa('chinchon', mano, { palo: 'C', rango: 12, jefe: true, vidaMax: 1000, vida: 510, escudo: 0, escudoMax: 30 });
+    const evs = golpear(p, mano.map((x) => x.id));
+    const e = p.combate!.fila[0];
+    expect(evs.some((x) => x.t === 'segunda')).toBe(true);
+    expect(e.segunda).toBe(true);
+    expect(e.escudo).toBeGreaterThanOrEqual(30);
+    e.escudo = 0;
+    p.combate!.mano = [c('S', 6), c('D', 6)];
+    const otra = golpear(p, p.combate!.mano.map((x) => x.id));
+    expect(otra.some((x) => x.t === 'segunda')).toBe(false);
+  });
+  it('el soplo del Bufón: el próximo Rey llega con menos Vida, y una sola vez', () => {
+    const p = juego.nuevaPartida({ mazo: 'escoba', semilla: 'SOPLO' });
+    juego.elegirOferta(p, 0, null);
+    juego.seguir(p);
+    p.reyHerido = B.bufon.soplo.vida;
+    const rey = { ...crearEnemigo(p, 'S', 12, { jefe: true }), vida: 400, vidaMax: 400 };
+    iniciarCombate(p, 'rey', [rey]);
+    expect(p.combate!.fila[0].vida).toBe(320);
+    expect(p.reyHerido).toBe(0);
   });
 });
