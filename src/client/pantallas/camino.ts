@@ -443,6 +443,8 @@ function modalOferta(p: Partida, indice: number, alTerminar: () => void): void {
   const pieza = $(`#app main.botin:not(.directo) [data-accion="abrir"][data-i="${indice}"]`)?.closest<HTMLElement>('.botin-fila');
   if (pieza) {
     velo.classList.add('sobre-botin');
+    // (el Bufón del Botín pasa entero al costado de las cartas, por encima del velo: es quien te las ofrece)
+    velo.insertAdjacentHTML('afterbegin', `<div class="oferta-bufon-lado" aria-hidden="true">${bufonHtml('brillo')}</div>`);
     const d = pieza.getBoundingClientRect();
     if (!quieto())
       for (const o of velo.querySelectorAll<HTMLElement>('.opciones > .opcion')) {
