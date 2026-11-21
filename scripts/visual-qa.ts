@@ -202,7 +202,7 @@ function auditar(o: { esMovil: boolean; idioma: string }): Fallo[] {
       if (asoma < 80) fallos.push({ regla: 'solape-enemigo', detalle: `el naipe del enemigo asoma solo ${asoma} px (mínimo 80)` });
     }
   }
-  // el grito del Personaje: cerca de su retrato (a no más de 120 px en el teléfono y 220 en el escritorio, hueco entre
+  // el grito del Personaje: cerca de su retrato (a no más de 120 px en el teléfono y 280 en el escritorio, hueco entre
   // las dos cajas), dentro de la pantalla, sin tapar controles que se puedan tocar, la mano, la cuenta, las cifras del
   // HUD (Vida, Escudo, oro, Mazo) ni la cabecera
   for (const g of [...document.querySelectorAll('.hud-grito')].filter(visible)) {
@@ -210,7 +210,7 @@ function auditar(o: { esMovil: boolean; idioma: string }): Fallo[] {
     const ret = document.querySelector('.hud-retrato')?.getBoundingClientRect();
     if (ret) {
       const hueco = Math.round(Math.hypot(Math.max(0, ret.left - r.right, r.left - ret.right), Math.max(0, ret.top - r.bottom, r.top - ret.bottom)));
-      const tope = W < 700 ? 120 : 220;
+      const tope = W < 700 ? 120 : 280;
       if (hueco > tope + 4) fallos.push({ regla: 'grito-tapa', detalle: `«${(g.textContent ?? '').trim()}» queda a ${hueco} px de su retrato (máximo ${tope})` });
     }
     for (const el of [...document.querySelectorAll('#app button:not(:disabled), #app .mano .carta, #app .cuenta:not(.reposo), #app [data-hud-vida], #app [data-hud-escudo], #app [data-hud-oro], #app .hud [data-n], #app .mesa-top .lado > *')].filter(visible)) {

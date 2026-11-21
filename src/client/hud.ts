@@ -294,7 +294,9 @@ export const ZONAS_SIN_GRITO =
 /** Lo que mejor no tapa (si no hay otro hueco, tapa lo menos posible): lo del enemigo, el Bufón y lo que dice, el Botín. */
 const ZONAS_MEJOR_NO = '#app .e-centro, #app .e-vida, #app .e-ataque, #app .e-rasgo, #app .e-sellos > *, #app .corte-carta, #app .esc-bufon .bufon, #app .bocadillo:not([hidden]), #app .botin-panel > .titulo, #app .botin-fila, #app button:disabled';
 /** Lo más lejos que puede caer el grito de su retrato (el hueco entre las dos cajas), salvo que cerca no haya lugar. */
-export const GRITO_LEJOS = (ancho: number): number => (ancho < 700 ? 120 : 220);
+// (en la Deck y el portátil, con la mano entera tapando el aire sobre el HUD, el hueco más cercano queda justo encima de
+// los naipes, a unos 260 px)
+export const GRITO_LEJOS = (ancho: number): number => (ancho < 700 ? 120 : 280);
 /**
  * Ubica el grito en el hueco libre más cercano a su retrato, dentro de la pantalla y a no más de `GRITO_LEJOS` de él,
  * con la cola apuntándole (abajo si el globo queda arriba del retrato, arriba si queda debajo).

@@ -22,7 +22,7 @@ import { chispas, destello, haloRey, humo, lluviaDeMonedas, monedas, numero, par
 import { teclear } from '../habla';
 import { RAPIDO, pausa, quieto } from '../ritmo';
 import { enFoto } from '../fx/motor';
-import { avivarRetrato, cargaQue, hudHtml } from '../hud';
+import { avivarRetrato, cargaQue, hudHtml, reubicarGrito } from '../hud';
 import { avanzar, guardar, irPortada, sesion, soltarPartida } from '../juego';
 import type { Expresion } from '../pixel/bufon';
 import { lienzoNaipe, cifra, pxAmuleto, pxAumento, pxBendicion, pxHud, pxInmune, pxMitades, pxNaipe, pxNaipeSegunda, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
@@ -522,6 +522,8 @@ export function pantallaBotin(p: Partida, desdeMesa = false): Pantalla {
     </main>`,
     alMontar: () => {
       avivarRetrato(p);
+      // el grito del Personaje que venía de la mesa se vuelve a ubicar cuando el panel ya brotó (no mientras crece)
+      if (!directo && !enFoto()) window.setTimeout(reubicarGrito, 380);
       if (directo && pendiente() >= 0) modalOferta(p, pendiente(), trasElegir);
       else if (!directo && !enFoto() && desdeMesa && !quieto()) {
         // recién ganado: el oro ya se cobró en la mesa; el panel brota al centro, muestra lo cobrado un instante y la

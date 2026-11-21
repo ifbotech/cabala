@@ -2750,8 +2750,19 @@ button.visor-carta:disabled {
   }
 }
 @media (min-width: 1700px) and (min-height: 950px) {
+  .botin:not(.directo) .botin-lista:has(> :nth-child(4)) {
+    /* (más juntas: en inglés, las 5 piezas pedían 2 px más de lo que deja el Bufón) */
+    gap: var(--u);
+  }
   .botin:not(.directo) .botin-lista:has(> :nth-child(4)) > .botin-fila.bp {
     --kp: 4;
+  }
+  /* (y ELEGIR, con menos aire y un punto menos de letra: «CHOOSE» cabe en su pieza) */
+  .botin:not(.directo) .botin-lista:has(> :nth-child(4)) > .botin-fila.bp > .btn {
+    padding-left: 4px;
+    padding-right: 4px;
+    max-width: 100%;
+    font-size: 20px;
   }
 }
 /* el teléfono: cada pieza en su renglón, con el dibujo a la izquierda, el nombre y (si lo tiene) su porqué debajo, y

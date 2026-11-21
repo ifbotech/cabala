@@ -212,14 +212,49 @@ export function pantallaMesa(p: Partida): Pantalla {
     if (de === 'combate') return pxAumento('manocaliente' as AumentoId, 'd-i');
     return pxHud('ataque', 'd-i');
   }
-  /** Si tu Escudo frena parte del golpe, la causa chica junto al TE PEGA neto («(21 − 2 ESCUDO)»; en el teléfono, en su ayuda). */
-  function frenaEscudo(q: Cuenta): string {
+  /** Si tu Escudo frena parte del golpe, la causa chica junto al TE PEGA neto («(21 − 2 ESCUDO)»), y también en la
+   *  ayuda del chip: si la cuenta no cabe en un renglón, es lo primero que se va de la vista (`apretarCuenta`). */
+  function frenaEscudo(q: Cuenta): { html: string; ayuda: string } {
+    const nada = { html: '', ayuda: '' };
     const e = c().fila[0];
-    if (!e || q.contra === null || q.contra <= 0) return '';
+    if (!e || q.contra === null || q.contra <= 0) return nada;
     const k = contraataque(p, e, { mitiga: q.canto && p.mazoId === 'chinchon', sinVida: q.aVida === 0, repite: repiteJugada(c().ultimaJugada, q.jugada) });
     const frena = k.n - q.contra;
-    if (frena <= 0) return '';
-    return `<b class="c-tajo-x solo-ancho">(${k.n} − ${frena} ${esc(t('escudo'))})</b>`;
+    if (frena <= 0) return nada;
+    const causa = `${k.n} − ${frena} ${t('escudo')}`;
+    return { html: `<b class="c-tajo-x c-frena">(${esc(causa)})</b>`, ayuda: tip(t('tePega', { n: q.contra }), causa) };
+  }
+  /**
+   * La cuenta va en un solo renglón de chips más su desglose: si en la Deck o el portátil (701–1699 px) no cabe, se
+   * aprieta por pasos en lugar de crecer un renglón (que achicaba la escena y la hacía saltar al elegir): primero se va
+   * la causa del TE PEGA neto (queda en la ayuda del chip); después los efectos quedan con su icono y su cifra, sin el
+   * nombre (como en el teléfono); después se va el chip de la jugada (su nombre sigue en el desglose); por último, la
+   * causa de NO TE PEGA (en la ayuda de su chip).
+   */
+  function apretarCuenta(zona: HTMLElement): void {
+    const cu = zona.querySelector<HTMLElement>('.cuenta.previa');
+    if (!cu) return;
+    cu.classList.remove('apretada', 'apretada-2', 'apretada-3', 'apretada-4', 'apretada-tel', 'apretada-tel-2');
+    // en el teléfono, si el desglose pasa de dos renglones, la cuenta pierde su aire (y sus términos se juntan) para
+    // que el naipe del Rey siga asomando por arriba
+    if (window.innerWidth <= 700) {
+      const dd = cu.querySelector<HTMLElement>('.c-desglose');
+      if (dd && dd.offsetHeight > 46) cu.classList.add('apretada-tel');
+      // y si los chips no caben en un renglón, el del canto se va (el canto sigue en el desglose: «¡ESCOBA! ×2»)
+      const ch = cu.querySelector<HTMLElement>('.c-chips');
+      if (ch && ch.offsetHeight > 42 && cu.querySelector('.c-canto')) cu.classList.add('apretada-tel-2');
+      return;
+    }
+    if (window.innerWidth >= 1700) return;
+    const f = cu.querySelector<HTMLElement>('.c-formula');
+    const rev = cu.querySelector<HTMLElement>('.c-revelado');
+    const chips = cu.querySelector<HTMLElement>('.c-chips');
+    if (!f || !rev) return;
+    const parte = (): boolean => f.offsetHeight > rev.offsetHeight + 10 || (!!chips && chips.offsetTop > f.offsetTop + 10);
+    for (const nivel of ['apretada', 'apretada-2', 'apretada-3', 'apretada-4']) {
+      if (!parte()) return;
+      cu.classList.add(nivel);
+    }
   }
   function cuentaHtml(q: Cuenta, sel: Carta[]): string {
     // en reposo, la zona de la cuenta dice qué hacer
@@ -266,11 +301,14 @@ export function pantallaMesa(p: Partida): Pantalla {
     const k = B.reyes.S.deguello;
     const pega = tajo
       ? `<span class="chip rojo c-tajo" ${tip(t('tajoAviso', { nombre: tx(REY_DEF.S.segunda) }), tx(REY_DEF.S.segundaDesc))}>${pxHud('ataque')}${t('tePega', { n: q.contra ?? 0 })}<b class="c-tajo-x">(${Math.round((q.contra ?? 0) / k)} ×${k})</b></span>`
-      : `<span class="chip rojo">${t('tePega', { n: q.contra ?? 0 })}${frenaEscudo(q)}</span>`;
+      : (() => {
+          const f = frenaEscudo(q);
+          return `<span class="chip rojo${f.ayuda ? ' mirable' : ''}" ${f.ayuda}>${t('tePega', { n: q.contra ?? 0 })}${f.html}</span>`;
+        })();
     // «NO TE PEGA» dice por qué: aturdido, lo aturdís, Cara de Póker o tu Escudo
     const sinContra = (): string => {
       const causa = causaSinContra(q);
-      return `<span class="chip azul c-nopega">${t('noTePega')}${causa ? `<span class="c-causa"><i class="c-sep"> · </i>${esc(causa)}</span>` : ''}</span>`;
+      return `<span class="chip azul c-nopega" ${causa ? tip(t('noTePega'), causa) : ''}>${t('noTePega')}${causa ? `<span class="c-causa"><i class="c-sep"> · </i>${esc(causa)}</span>` : ''}</span>`;
     };
     const veredicto = q.abate
       ? q.exacto
@@ -332,7 +370,12 @@ export function pantallaMesa(p: Partida): Pantalla {
     const sel = seleccion();
     const q = cuenta(p, sel);
     const el = $('[data-cuenta]');
-    if (el) el.innerHTML = cuentaHtml(q, sel);
+    if (el) {
+      el.innerHTML = cuentaHtml(q, sel);
+      apretarCuenta(el);
+      // con la letra recién cargada, se vuelve a medir (la de respaldo es de otro ancho)
+      if (document.fonts.status !== 'loaded') void document.fonts.ready.then(() => el.isConnected && apretarCuenta(el));
+    }
     marcarTajada(sel.length ? q : null);
     reubicarGrito();
     // el Ataque del enemigo late más fuerte cuando el golpe elegido no lo abate
@@ -870,7 +913,7 @@ export function pantallaMesa(p: Partida): Pantalla {
   function carrilDano(): { x: number; y: number } {
     const r = ($('[data-enemigo] .e-centro') ?? carta())?.getBoundingClientRect();
     if (!r) return { x: innerWidth / 2, y: innerHeight / 3 };
-    return { x: r.left + r.width * 0.16, y: r.top + r.height * 0.46 };
+    return { x: r.left + r.width * 0.04, y: r.top + r.height * 0.5 };
   }
   /** Lo que el Rey hace por su cuenta (sus poderes de cara y de segunda cara), a la vista: número y rótulo. */
   async function poderRey(que: 'cura' | 'escudo' | 'diezmo' | 'deguello', n: number): Promise<void> {

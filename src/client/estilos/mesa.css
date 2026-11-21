@@ -3174,7 +3174,7 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 }
 @keyframes revela-chip {
   from {
-    scale: 1.6;
+    scale: 1.18;
     filter: brightness(1.8);
   }
 }
@@ -3394,15 +3394,15 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 }
 @keyframes critico-estalla {
   0% {
-    scale: 1.6;
+    scale: 1.14;
     filter: brightness(2.4);
     box-shadow: 0 0 0 4px #fff799;
   }
   35% {
-    scale: 0.94;
+    scale: 0.97;
   }
   65% {
-    scale: 1.1;
+    scale: 1.05;
     filter: brightness(1.4);
   }
   100% {
@@ -3415,7 +3415,7 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 }
 @keyframes multi-critico {
   0% {
-    scale: 1.35;
+    scale: 1.12;
     filter: brightness(2) sepia(1) saturate(4) hue-rotate(5deg);
   }
   100% {
@@ -3558,6 +3558,60 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     align-self: start;
   }
   .mesa .corte > .corte-n {
+    display: none;
+  }
+}
+
+/* la mesa quieta también en 1080p: la cuenta tiene siempre el alto de la previa (con su desglose de dos renglones) */
+@media (min-width: 1100px) and (max-width: 1699px) {
+  .mesa [data-cuenta] {
+    min-height: 110px;
+  }
+}
+@media (min-width: 1700px) {
+  .mesa [data-cuenta] {
+    min-height: 138px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+}
+/* la cuenta apretada (701–1699 px, la pone `apretarCuenta` si los chips no caben en un renglón): primero se va la causa
+   del TE PEGA neto («(21 − 2 ESCUDO)», queda en la ayuda del chip), después el nombre de los efectos (queda su icono con
+   su cifra, como en el teléfono), después el chip de la jugada (su nombre sigue en el desglose) y al final la causa de
+   NO TE PEGA (en la ayuda del chip) */
+.mesa .cuenta.apretada .c-frena,
+.mesa .cuenta.apretada-2 .c-ef-rot,
+.mesa .cuenta.apretada-3 .c-jugada,
+.mesa .cuenta.apretada-4 .c-causa {
+  display: none;
+}@media (max-width: 700px) {
+  .mesa .cuenta-zona > .cuenta.apretada-tel {
+    padding-top: 2px;
+    padding-bottom: 2px;
+    row-gap: 0;
+  }
+  .mesa .cuenta.apretada-tel .c-desglose .d-terminos {
+    column-gap: 0.2em;
+  }
+  .mesa .cuenta.apretada-tel .c-desglose {
+    gap: 0;
+  }
+}@media (max-width: 700px) {
+  .mesa .cuenta.apretada-tel .c-desglose .d-t,
+  .mesa .cuenta.apretada-tel .c-desglose .d-cartas {
+    gap: 0;
+  }
+  .mesa .cuenta.apretada-tel .c-desglose .d-i {
+    margin: -6px -4px -6px -3px;
+  }
+}@media (max-width: 700px) {
+  .mesa .cuenta.apretada-tel .c-desglose .d-t.d-nombre {
+    gap: 0.25em;
+  }
+}@media (max-width: 700px) {
+  .mesa .cuenta.apretada-tel-2 .c-canto {
     display: none;
   }
 }
