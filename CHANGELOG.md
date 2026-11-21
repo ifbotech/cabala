@@ -3,6 +3,51 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.16.0 · Cambiá de plan (2026-11-21)
+
+Paquete dictado por los P0 y P1 del Jurado Fable sobre la 0.15.0: el conteo que tapaba su propio desglose (los seis
+jurados), la Furia que parecía sumable, segundas caras que no pesaban, el audio sin bus y la mesa muerta antes del botín.
+
+**La cuenta, de una sola lectura**
+- **El conteo se enciende dentro del desglose.** No hay más cartel flotante: cada término se prende en su lugar y queda
+  encendido; el total sube contando y cierra en oro. Los «+N» de los naipes salen dentro de la carta, sin tapar índices.
+- **Dos renglones rotulados, DAÑO y MULTI**, cada pieza con su icono, y la cura como «CURA ♥ +N». El desglose se ve
+  también en el teléfono (390×664 y 360×740), compacto, con iconos y valores.
+- **La cuenta tiene marco** (hierro, dorado si abate) y el ancho de su fórmula, en vez de una franja negra de lado a lado.
+- **La Furia no se suma dos veces:** TE PEGA lleva al lado un chip de llama «FURIA n · ya incluida · +n por turno».
+  Un solo nombre para el golpe del enemigo: «TE PEGA» (adiós «Contraataque»).
+- **Glosario en JUGADAS** (Multi, Furia, Escudo, Golpe exacto, ¡Al pelo!, Racha, segunda cara, Engaño) con los números
+  reales del motor. La Escoba dice ×3 en todos lados (la regla decía ×2 y JUGADAS ×1).
+
+**Segundas caras que obligan a cambiar de plan**
+- **El Caudillo · Tajo de revés:** si repetís la jugada del golpe anterior, ese turno pega ×2 y atraviesa todo tu Escudo.
+  TE PEGA lo avisa antes de soltar.
+- **El Cacique · Fortín:** levanta un Escudo de un cuarto de su Vida máxima y lo recupera ×2; solo las Espadas lo atraviesan.
+- **El Caudal · Remate:** cada vez que te pega se lleva un cuarto de tu bolsa (mínimo 6) y cada moneda es Furia.
+- **El Bacanal · Última ronda:** se cura ×2 lo que vos te curás, y su cura por turno también va ×2.
+- El volteo del naipe del Rey, cartel propio, sonido propio y rótulos sobre el Rey cuando cada cara dispara.
+- «¡AL PELO!» vale también con Espadas en el golpe, y se cuenta en las estadísticas de la partida.
+
+**Sensación**
+- **Audio con bus maestro y compresor**, buses de efectos y música, ruido blanco para golpes y variación de altura.
+  Sonidos propios para «¡AL PELO!», la segunda cara, el Tajo de revés, el remate, el Fortín, el Diezmo y el cobro.
+- **La caída del Rey encadena con el botín:** la mesa se despeja, el oro vuela al HUD contando y el botín brota al
+  centro; la elección «ELEGÍ UNA» reemplaza al panel en vez de montarse encima.
+- **Letra de cuerpo nueva, Bitcount Prop Single:** pixel y proporcional. Se acabaron los «Caudi l lo» y «Vida l lena».
+
+**Steam Deck, mando y teléfono**
+- Con mando no hay zona de descarte: la mano usa ese ancho (la de 8 del Mentiroso entra sin cortes).
+- La bandeja del HUD va en dos filas de fichas de 42 px entre 1100 y 1699 px; la que dispara brinca con su número.
+- El daño recibido sale por encima de la Vida, sin taparla. En el teléfono el Bufón ya no pisa la cabecera, SEGUIR del
+  Botín y del Fogón quedan en la zona del pulgar y se puede hacer zoom (sin `user-scalable=no`).
+- Las secuencias del Jurado ahora van en español y con un recorrido en modo mando; estado nuevo de QA `mesa-segunda`.
+
+**Balance** (laboratorio, 3.000 partidas por celda, certificado con las mismas notas internas que se publican):
+Altar vacío / lleno — Escoba 32,7 / 47,0 · Truco 28,2 / 45,5 · Chinchón 30,9 / 46,7 · Mentiroso 29,0 / 48,5 (antes se
+escapaba a 55,8) · Chancho Va 31,0 / 48,2. Vida de los Mazos: Escoba 80, Truco 96, Chinchón 63, Mentiroso 43, Chancho 90.
+
+**Medición.** Jurado Fable 7,3 · 7,2 · 7,9 · 7,3 (claridad · diversión · estética · veredicto; antes 7,1 · 7,0 · 7,8 · 7,1).
+
 ## 0.15.0 · La segunda cara (2026-11-21)
 
 Paquete dictado por los P0 y P1 del Jurado Fable sobre la 0.14.0: la defensa plana, los Reyes de una sola nota, el

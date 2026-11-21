@@ -411,3 +411,26 @@ rotulado e inspeccionable; mesa móvil con consultas de contenedor y arrastre qu
 **Medición.** Jurado 7,1 · 7,0 · 7,8 · 7,1 (claridad · diversión · estética · veredicto). Panel pulso-60 simulado
 (n = 60, ruido ±10 puntos): aprobación 71,7 % (+8,4), F 194,93 (+11,5 contra la 0.14), Móvil 86,7 %, Deck 66,7 %,
 claridad 6,08 (−0,3).
+
+## 0.16.0 · Cambiá de plan (publicada)
+
+**Qué se buscó.** Los P0/P1 del Jurado sobre la 0.15.0: el cartel del conteo tapando el desglose (unánime), la Furia
+sumable, segundas caras sin peso, audio sin bus, mesa muerta antes del botín, letra con huecos y Mentiroso escapado.
+
+**Qué entró.** Conteo encendido dentro del desglose (DAÑO / MULTI rotulados, también en el teléfono); cuenta con
+marco; chip de Furia «ya incluida»; glosario en JUGADAS; segundas caras Tajo de revés (×2 y atraviesa si repetís),
+Fortín (Escudo de 25 % de la Vida, Espadas lo atraviesan), Remate (25 % de la bolsa), Última ronda (cura ×2);
+audio con compresor y sonidos propios; caída del Rey encadenada al botín; letra Bitcount Prop Single; mando sin zona
+de descarte; bandeja en dos filas. Dos agentes en serie (claridad, luego juice y letra) y yo en el motor.
+
+**Lecciones.**
+- El orden del laboratorio importa: primero `--solo-notas` (calcula las notas que se van a publicar) y **después**
+  `--sin-notas` (certifica con esas notas). Al revés, el informe certifica un bot que no es el que queda en el repo:
+  de ahí salía el 55,8 % del Mentiroso.
+- `huella` incluye los textos de las reglas: cambiar una palabra en `mazos.ts` obliga a recertificar.
+- PowerShell aplana `@(@(a,b))` de un solo par: un reemplazo masivo rompió `aumentos.ts` (se restauró con git).
+- Con mano de 3 la única jugada a veces es Carta sola: el Tajo de revés castiga sin salida (P0 de diseño para la 0.17).
+- Tres jurados ven al rótulo del Rey en segunda cara pisando la cuenta a 1366 y 1920, y la QA da 0 solapes: falta la
+  regla.
+
+**Medición.** Jurado 7,3 · 7,2 · 7,9 · 7,3 (+0,2 · +0,2 · +0,1 · +0,2). Panel: ver la entrada de la 0.17.0.

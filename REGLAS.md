@@ -1,5 +1,5 @@
 # CÁBALA — Reglas
-> Versión 0.15.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
+> Versión 0.16.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
 
 *Todo es cuestión de cábala.* Roguelike de baraja española para un jugador. Elegís un Mazo, el Bufón te lleva por tres tramos de caminos y al fondo de cada uno te espera un Rey. Tu mano contra la Corte: cada golpe es **DAÑO × MULTI**.
 
@@ -82,20 +82,20 @@ Cada Rey te corteja con Bendiciones y, si es el jefe de un tramo, te enfrenta co
 
 | Rey | Apodo | Carga | Lo que da cada punto | Rasgo de jefe |
 |---|---|---|---|---|
-| El Rey de Espadas | **El Caudillo** | Filo | +1 de Daño en todos tus golpes por punto. | *Filo del Caudillo*: Su Furia sube 2 por turno y la mitad de su Contraataque atraviesa tu Escudo. |
+| El Rey de Espadas | **El Caudillo** | Filo | +1 de Daño en todos tus golpes por punto. | *Filo del Caudillo*: Su Furia sube 2 por turno y la mitad de lo que TE PEGA atraviesa tu Escudo. |
 | El Rey de Bastos | **El Cacique** | Coraza | +1 de Escudo al empezar cada combate por punto (tope 12). | *Coraza del Cacique*: Arranca con 30 de Escudo y recupera 12 por turno. Si tu golpe no le saca Vida, pega más fuerte. |
-| El Rey de Oros | **El Caudal** | Fortuna | +1 de oro al ganar cada combate por punto (tope 10). | *Diezmo del Caudal*: Cada Contraataque te cobra 3 de oro, y cada moneda que te saca es +1 de Furia. |
+| El Rey de Oros | **El Caudal** | Fortuna | +1 de oro al ganar cada combate por punto (tope 10). | *Diezmo del Caudal*: Cada vez que TE PEGA te cobra 3 de oro, y cada moneda que te saca es +1 de Furia. |
 | El Rey de Copas | **El Bacanal** | Brindis | +1 de Vida curada al ganar cada combate por punto (tope 10). | *Brindis del Bacanal*: Se cura 14 por turno; lo que no le cabe se le vuelve Furia. |
 
 **La segunda cara.** Cuando un Rey baja a media Vida, la pelea cambia:
 
-- **El Caudillo · Degüello.** A media Vida: si repetís la jugada de tu golpe anterior, +2 de Furia.
+- **El Caudillo · Tajo de revés.** A media Vida: si repetís la jugada de tu golpe anterior, ese turno TE PEGA ×2 y atraviesa todo tu Escudo. Cambiá de jugada cada golpe.
 
-- **El Cacique · Empalizada.** A media Vida: recupera todo su Escudo de golpe, una sola vez.
+- **El Cacique · Fortín.** A media Vida: levanta un Escudo de un 25 % de su Vida máxima y desde ahí lo recupera ×2 por turno. Las Espadas lo atraviesan.
 
-- **El Caudal · Remate.** A media Vida: su Diezmo cobra ×2.
+- **El Caudal · Remate.** A media Vida: cada vez que TE PEGA se lleva el 25 % de tu bolsa (mínimo 6), y cada moneda es +1 de Furia. Terminalo rápido o quedate sin plata.
 
-- **El Bacanal · Última ronda.** A media Vida: lo que vos te curás, él también se lo cura.
+- **El Bacanal · Última ronda.** A media Vida: lo que vos te curás, él se lo cura ×2, y su cura por turno también va ×2. Guardá las Copas.
 
 ### Bendiciones
 
@@ -107,7 +107,7 @@ Tras cada combate de Guardia, tres Reyes ofrecen un don cada uno: te quedás con
 | **Punta y hacha** | El Caudillo | Uno de cada 4 golpes es Crítico: ×2 de Multi. | Uno de cada 3 golpes es Crítico: ×2 de Multi. | Uno de cada 2 golpes es Crítico: ×2 de Multi. |
 | **Primera sangre** | El Caudillo | +8 de Daño en tu primer golpe contra cada enemigo. | +12 de Daño en tu primer golpe contra cada enemigo. | +16 de Daño en tu primer golpe contra cada enemigo. |
 | **Empalizada** | El Cacique | Cada carta de Bastos da +1 de Escudo más. | Cada carta de Bastos da +2 de Escudo más. | Cada carta de Bastos da +3 de Escudo más. |
-| **Contragolpe** | El Cacique | Si tu Escudo frena la mitad o más de un Contraataque, devuelve lo frenado ×2, más tu Coraza. | Si tu Escudo frena la mitad o más de un Contraataque, devuelve lo frenado ×3, más tu Coraza. | Si tu Escudo frena la mitad o más de un Contraataque, devuelve lo frenado ×4, más tu Coraza. |
+| **Contragolpe** | El Cacique | Si tu Escudo frena la mitad o más de lo que TE PEGA, devuelve lo frenado ×2, más tu Coraza. | Si tu Escudo frena la mitad o más de lo que TE PEGA, devuelve lo frenado ×3, más tu Coraza. | Si tu Escudo frena la mitad o más de lo que TE PEGA, devuelve lo frenado ×4, más tu Coraza. |
 | **Palo y palo** | El Cacique | +1 de Daño por cada 2 de Escudo que tengas. | +2 de Daño por cada 2 de Escudo que tengas. | +3 de Daño por cada 2 de Escudo que tengas. |
 | **Interés compuesto** | El Caudal | Al ganar un combate: +1 de oro por cada 10 que tengas (tope 5). | Al ganar un combate: +1 de oro por cada 8 que tengas (tope 7). | Al ganar un combate: +1 de oro por cada 6 que tengas (tope 9). |
 | **Peso fuerte** | El Caudal | +1 de Multi por cada 40 de oro en tu bolsa (tope +2). | +1 de Multi por cada 30 de oro en tu bolsa (tope +2). | +1 de Multi por cada 25 de oro en tu bolsa (tope +2). |
@@ -118,7 +118,7 @@ Tras cada combate de Guardia, tres Reyes ofrecen un don cada uno: te quedás con
 | **Hoja y broquel** | El Caudillo + El Cacique | Cada Golpe exacto: +5 de Escudo y +1 de Filo. | — | — |
 | **Filo dorado** | El Caudillo + El Caudal | +1 de Daño por cada 5 de oro que tengas (tope +12). | — | — |
 | **Sangría** | El Caudillo + El Bacanal | Cada enemigo abatido te cura 3. | — | — |
-| **Peaje** | El Cacique + El Caudal | Cada Contraataque que tu Escudo frena por la mitad o más: +2 de oro. | — | — |
+| **Peaje** | El Cacique + El Caudal | Cada golpe que TE PEGAN y tu Escudo frena por la mitad o más: +2 de oro. | — | — |
 | **Rescoldo** | El Cacique + El Bacanal | Al ganar un combate, cada 2 de Escudo que te queda te cura 1. | — | — |
 | **Convite** | El Caudal + El Bacanal | Al ganar un combate: +1 de Vida máxima por cada 15 de oro (tope +3). | — | — |
 
@@ -162,7 +162,7 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 | **Mano Caliente** | Oro | Cada canto de tu Mazo: +1 de Multi por el resto del combate (tope +4). |
 | **Chamuyo** | Oro | La Pulpería te cobra 25 % menos y el humor del Bufón nunca baja de neutral. |
 | **Retruco** | Oro | Si el enemigo sobrevivió a tu golpe anterior: +1 de Multi. |
-| **Cara de Póker** | Oro | El primer Contraataque de cada combate no llega. |
+| **Cara de Póker** | Oro | Lo primero que TE PEGAN en cada combate no llega. |
 | **Irse al Mazo** | Oro | Una vez por partida, el golpe que te mataría no llega y curás 30 % de tu Vida. |
 | **Falta Envido** | Prismático | Al golpear con 40 % de Vida o menos: ×3 de Multi. |
 | **Vale Cuatro** | Prismático | Golpes con toda tu mano (o con 5 cartas): ×2 de Multi. |
@@ -175,11 +175,11 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 
 | Mazo | Personaje | Vida · mano | Regla estrella | Se abre con |
 |---|---|---|---|---|
-| **Escoba** · Escoba del 15 | La Barrendera | 77 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×2 y más Daño para siempre. | abierto desde el principio |
+| **Escoba** · Escoba del 15 | La Barrendera | 80 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×3 y más Daño para siempre. | abierto desde el principio |
 | **Truco** · Envido y Bravas | El Paisano Bravo | 96 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
-| **Chinchón** · Pierna y Escalera | La Timbera del Club | 60 · 7 | Piernas y Escaleras de palo crecen siempre y frenan el Contraataque. | Vencé a un Rey. |
-| **El Mentiroso** · Cara de Piedra | El Chamuyero | 45 · 8 | Cuatro Comodines y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
-| **Chancho Va** · Mano al Centro | El Manotazo | 87 · 4 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
+| **Chinchón** · Pierna y Escalera | La Timbera del Club | 63 · 7 | Piernas y Escaleras de palo crecen siempre y te cubren. | Vencé a un Rey. |
+| **El Mentiroso** · Cara de Piedra | El Chamuyero | 43 · 8 | Cuatro Comodines y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
+| **Chancho Va** · Mano al Centro | El Manotazo | 90 · 4 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
 
 **Escoba** (¡ESCOBA!)
 - Mano de 3 cartas, como en la mesa: tus golpes llevan +4 de Multi.
@@ -191,12 +191,12 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 - Mano de 3 cartas, como en la mesa: tus golpes llevan +3 de Multi.
 - Tu Mazo va del 1 al 7, y barajarlo no sube la Furia.
 - Las 4 Bravas pegan de más: 1 de Espadas +24, 1 de Bastos +20, 7 de Espadas +16, 7 de Oros +12.
-- Dos cartas del mismo palo: ¡ENVIDO!, ×2 de Multi y +28 de Daño, más +1 por cada Envido ya cantado.
+- Dos cartas del mismo palo: ¡ENVIDO!, Multi 2 y +28 de Daño, más +1 por cada Envido ya cantado.
 
 **Chinchón** (¡CHINCHÓN!)
 - Mano de 7 cartas.
 - Cada Pierna o Escalera de palo: ¡CHINCHÓN!, +2 de Daño para siempre en esas jugadas.
-- Ese turno, el Contraataque te llega a la mitad.
+- Ese turno, lo que TE PEGA llega a la mitad.
 
 **El Mentiroso** (¡MENTIRA!)
 - Mano de 8 cartas.
