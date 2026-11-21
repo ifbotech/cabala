@@ -110,7 +110,12 @@ export function pantallaMesa(p: Partida): Pantalla {
       ? ''
       : `<span class="e-sello e-inmune mirable" tabindex="0" ${tip(`${t('inmune')}: ${palo}`, idioma() === 'en' ? `${palo} cards deal no Damage to this enemy.` : `Las cartas de ${palo} no le hacen Daño.`)}>${pxInmune(e.palo)}<b class="rotulo">${t('inmune')}<span class="solo-ancho">${esc(aQue)}</span></b></span>`;
     const estados = `${e.aturdido > 0 ? `<span class="e-sello mirable" tabindex="0" ${tip(t('aturdido'), idioma() === 'en' ? 'Skips its next Counterattack.' : 'Se salta su próximo Contraataque.')}>${pxHud('aturdido')}<b class="rotulo">${t('aturdido')}${e.aturdido > 1 ? ` ${e.aturdido}` : ''}</b></span>` : ''}${e.elite ? `<span class="chip maldicion">${t('elite')}</span>` : ''}`;
-    const rasgo = e.jefe ? `<span class="chip canto e-rasgo mirable" tabindex="0" ${tip(tx(REY_DEF[e.palo].rasgo), tx(REY_DEF[e.palo].rasgoDesc))}>${esc(tx(REY_DEF[e.palo].rasgo))}</span>` : '';
+    // a media Vida el rasgo cede su lugar a la segunda cara, que queda a la vista hasta el final del duelo
+    const rasgo = !e.jefe
+      ? ''
+      : e.segunda
+        ? `<span class="chip canto e-rasgo e-segunda mirable" tabindex="0" ${tip(tx(REY_DEF[e.palo].segunda), tx(REY_DEF[e.palo].segundaDesc))}>${esc(tx(REY_DEF[e.palo].segunda))}</span>`
+        : `<span class="chip canto e-rasgo mirable" tabindex="0" ${tip(tx(REY_DEF[e.palo].rasgo), tx(REY_DEF[e.palo].rasgoDesc))}>${esc(tx(REY_DEF[e.palo].rasgo))}</span>`;
     const pct = Math.max(0, Math.round((100 * e.vida) / e.vidaMax));
     return `<div class="e-sellos">${inmune}${estados}</div>
       <div class="e-centro" data-soltar="enemigo">
@@ -176,7 +181,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     // cuánto sobra o cuánto le queda: lo que hace falta para buscar el Golpe exacto
     const vidaE = enemigo?.vida ?? 0;
     const queda = !q.abate && !q.ejecuta && enemigo ? `<span class="chip c-queda">${t('leQuedan', { n: Math.max(0, vidaE - q.aVida) })}</span>` : '';
-    const destino = (q.abate ? (q.exacto ? `<span class="chip canto c-exacto">${t('exacto')}</span>` : `${q.alPelo ? `<span class="chip canto c-exacto">${t('alPelo')}</span>` : ''}<span class="chip verde">${t('cae')} · ${t('sobran', { n: q.aVida - vidaE })}</span>`) : q.ejecuta ? `<span class="chip verde">${t('ejecuta')}</span>` : q.contra && q.contra > 0 ? `<span class="chip rojo">${t('tePega', { n: q.contra })}</span>` : `<span class="chip azul">${t('noTePega')}</span>`) + queda;
+    const destino = (q.abate ? (q.exacto ? `<span class="chip canto c-exacto">${t('exacto')}</span>` : `${q.alPelo ? `<span class="chip c-exacto c-alpelo">${t('alPelo')}</span>` : ''}<span class="chip verde">${t('cae')} · ${t('sobran', { n: q.aVida - vidaE })}</span>`) : q.ejecuta ? `<span class="chip verde">${t('ejecuta')}</span>` : q.contra && q.contra > 0 ? `<span class="chip rojo">${t('tePega', { n: q.contra })}</span>` : `<span class="chip azul">${t('noTePega')}</span>`) + queda;
     const efectos = `${q.escudo ? `<span class="c-efecto">${pxHud('escudo')}${cifra(`+${q.escudo}`, 'azul')}</span>` : ''}${q.cura ? `<span class="c-efecto">${pxHud('vida')}${cifra(`+${q.cura}`, 'verde')}</span>` : ''}${q.oro ? `<span class="c-efecto">${pxHud('oro')}${cifra(`+${q.oro}`, 'oro')}</span>` : ''}`;
     return `<div class="cuenta ${q.abate || q.ejecuta ? 'abate' : ''}" ${tip(`${t('dano')} ${q.dano} × ${t('multi')} ${q.multi} = ${q.total}`, d, m)}>
       <span class="chip c-jugada">${esc(tx(JUGADA_NOMBRE[q.jugada]))}</span>

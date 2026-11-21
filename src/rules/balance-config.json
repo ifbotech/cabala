@@ -142,7 +142,7 @@
   },
   "mazos": {
     "escoba": {
-      "vida": 74,
+      "vida": 77,
       "mano": 3,
       "hasta": 9,
       "comodines": 2,
@@ -151,7 +151,7 @@
       "multiMano": 4
     },
     "truco": {
-      "vida": 90,
+      "vida": 96,
       "mano": 3,
       "hasta": 7,
       "comodines": 2,
@@ -166,16 +166,16 @@
       "multiMano": 3
     },
     "chinchon": {
-      "vida": 51,
+      "vida": 60,
       "mano": 7,
       "hasta": 9,
       "comodines": 2,
-      "cargaDano": 3,
+      "cargaDano": 2,
       "mitiga": 0.5,
       "multiMano": 0
     },
     "mentiroso": {
-      "vida": 49,
+      "vida": 45,
       "mano": 8,
       "hasta": 9,
       "comodines": 4,

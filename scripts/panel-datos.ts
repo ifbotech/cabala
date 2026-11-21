@@ -94,6 +94,16 @@ const FUNCIONES = {
   dedoPrimero: true,
   /** 0.14.0: con la Vida llena, Descansar en el Fogón sale apagado. */
   fogonSinNulo: true,
+  /** 0.15.0: el Escudo de Bastos, la cura de Copas y el tope de Escudo crecen ×2 y ×3 en el segundo y tercer tramo. */
+  defensaPorTramo: true,
+  /** 0.15.0: pasarse por muy poco (≤ 5 % de la Vida) es «¡AL PELO!»: no cobra, pero sostiene la racha y recarga el Cetro. */
+  golpeAlPelo: true,
+  /** 0.15.0: cada Rey, a media Vida, muestra su segunda cara (un cartel y una regla nueva). */
+  segundaCara: true,
+  /** 0.15.0: el Bufón ofrece tres Cábalas picantes nuevas (soplo contra el próximo Rey, robo a La Corte, a ciegas). */
+  cabalasPicantes: true,
+  /** 0.15.0: en Steam Deck y portátil la letra mínima sube a 18 px, los botones llevan glifos del mando y los números del enemigo tienen rótulo. */
+  deckDeVerdad: true,
 };
 
 const c = (palo: PaloCarta, n: number): Carta => ({ id: `${palo}${n}`, palo, n });

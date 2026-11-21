@@ -1775,6 +1775,11 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     padding-bottom: 2px;
     row-gap: 2px;
   }
+  /* la barra de Vida se arrima al pie del naipe: con el rasgo del Rey debajo y la cuenta de tres renglones, a 768 px
+     de alto el rasgo pisaba la cuenta */
+  .mesa .e-barras {
+    margin-top: -16px;
+  }
   /* «AL DESCARTE» entra en su zona (a 24 px, «DESCARTE» pedía 132 px y la zona tenía 120) */
   .mano-zona {
     grid-template-columns: 152px minmax(0, 1fr) auto;
@@ -1994,16 +1999,20 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
       'mano mano mano'
       'golpear descartar engano';
   }
+  /* (el rótulo no se achica a 0 px: se vuelve invisible y sin ancho, y la letra conserva su tamaño) */
   .botones [data-accion='engano'] {
-    font-size: 0;
+    color: transparent;
+    letter-spacing: -1em;
+    white-space: nowrap;
     gap: 0;
     padding: 0;
   }
 }
 /* pantalla baja (390×664: Safari con sus barras): la fila de atrás de la mano no sube al elegirse (se marca con su
-   canto, como la de adelante) y el enemigo se lee en un renglón: sus sellos, la barra de Vida y el Ataque, con el
-   naipe asomando arriba (a los costados del naipe quedan el Bufón y La Corte, sin nada que se les monte) */
-@container mesa (max-height: 700px) {
+   canto, como la de adelante). Del enemigo asoma poco naipe: sus sellos van chicos y sin rótulo junto al Bufón, y el
+   Ataque es una placa sobre la esquina del naipe (a la derecha queda La Corte, sin nada que se le monte). La barra
+   de Vida conserva su ancho: «CABALLO DE ESPADAS 340/340» no entra en menos */
+@container mesa (max-height: 740px) {
   .mano.dos-filas {
     height: calc(140px + 48px);
     --sin-alza: 1;
@@ -2014,19 +2023,10 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     display: none;
   }
   .enemigo {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-areas:
-      'centro centro centro'
-      'sellos barras ataque';
-    gap: 4px 6px;
-  }
-  .e-barras {
-    width: 100%;
+    grid-template-columns: 1fr auto 1fr;
   }
   .e-sellos,
   .e-ataque {
-    align-self: center;
-    margin-bottom: 0;
     min-width: 0;
     flex-direction: row;
     flex-wrap: wrap;
@@ -2034,14 +2034,57 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     gap: 2px 4px;
   }
   .e-sellos {
+    justify-self: end;
     max-width: 64px;
   }
   .e-ataque {
-    max-width: 84px;
+    grid-area: centro;
+    justify-self: end;
+    z-index: 1;
+    max-width: 96px;
+    padding: 2px 4px;
+    background: rgba(11, 7, 17, 0.88);
   }
   .e-sello,
   .e-sello .inmune,
   .e-ataque > .icono {
     --k: 1;
   }
+}
+/* teléfono angosto (360 px): la Vida «81/81» se cortaba en el HUD; va sin su corazón (la cifra roja sobre su barra ya
+   lo dice) y toma el ancho que pide */
+@media (max-width: 380px) {
+  .hud-lado.izq {
+    gap: 2px;
+  }
+  .hud .hud-vida {
+    flex: none;
+  }
+  .hud .hud-vida .valor {
+    gap: 0;
+  }
+  .hud .hud-vida .valor > .icono {
+    display: none;
+  }
+}
+
+/* ───────────── 0.15.0 · la segunda cara a la vista y el «al pelo» quieto ───────────── */
+/* la segunda cara del Rey reemplaza a su rasgo: carmesí y con un latido lento, para que se note que la pelea cambió */
+.mesa .e-rasgo.e-segunda {
+  background: #8a0f2e;
+  color: #fff3e0;
+  box-shadow: 0 0 0 2px #ff4d6d, 0 0 14px rgba(255, 77, 109, 0.55);
+  animation: segunda-late 1.6s ease-in-out infinite;
+}
+@keyframes segunda-late {
+  50% { box-shadow: 0 0 0 2px #ff4d6d, 0 0 22px rgba(255, 77, 109, 0.85); }
+}
+/* «¡AL PELO!» no salta como el Golpe exacto: es un aviso, no un premio */
+.mesa .chip.c-alpelo {
+  animation: none;
+  transform: none;
+  filter: saturate(0.6);
+}
+@media (prefers-reduced-motion: reduce) {
+  .mesa .e-rasgo.e-segunda { animation: none; }
 }

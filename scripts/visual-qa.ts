@@ -1,12 +1,14 @@
 // QA visual: monta cada estado fijo (`?qa=…`) en las cuatro ventanas, lo captura y audita el DOM. Falla si algo se
 // sale de la ventana, si hay texto de menos de 14 px, una diana chica, una caja clara de HTML, un borde liso de
 // HTML, texto recortado (también el rótulo que no entra en su botón) o algo que desborda de costado dentro de un
-// modal o un panel.
+// modal o un panel. En el móvil, además, la mesa no puede pisarse: la cuenta, la barra de Vida del enemigo y la mano
+// van cada una en su sitio (regla «solape-mesa»), también en la ventana baja de 390×664 (Safari con sus barras), que
+// se monta solo para los estados de mesa.
 //
 //   npm run qa:visual                      español, las 4 ventanas, todos los estados
 //   npm run qa:visual -- --lang=en         inglés (capturas en artifacts/visual-qa-en/)
 //   npm run qa:visual -- mesa mapa         solo esos estados
-//   npm run qa:visual -- --ventana=390x844 solo esa ventana
+//   npm run qa:visual -- --ventana=390x844 solo esa ventana (también 390x664, la baja del móvil)
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 import { guardian } from './guardian';
@@ -20,7 +22,10 @@ const lang = args.find((a) => a.startsWith('--lang='))?.split('=')[1] === 'en' ?
 const soloVentana = args.find((a) => a.startsWith('--ventana='))?.split('=')[1];
 const pedidos = args.filter((a) => !a.startsWith('-'));
 const estados = ESTADOS.filter((e) => !pedidos.length || pedidos.includes(e));
-const ventanas = VENTANAS.filter((v) => !soloVentana || v.nombre === soloVentana);
+/** El móvil bajo (390 de ancho en Safari, con sus barras): solo los estados de mesa, que son los que ceden por alto. */
+const VENTANA_BAJA = { nombre: '390x664', w: 390, h: 664 } as const;
+const ESTADOS_BAJA: readonly string[] = ['mesa', 'mesa-seleccion', 'mesa-mentiroso', 'mesa-rey'];
+const ventanas = [...VENTANAS, VENTANA_BAJA].filter((v) => !soloVentana || v.nombre === soloVentana);
 const carpeta = `artifacts/visual-qa${lang === 'en' ? '-en' : ''}`;
 
 interface Fallo {
@@ -108,6 +113,32 @@ function auditar(o: { esMovil: boolean; idioma: string }): Fallo[] {
       if (r.right > p.right + 1 + cola || r.left < p.left - 1) {
         fuera++;
         fallos.push({ regla: 'desborde-panel', detalle: `${nombre(el)} asoma fuera de ${nombre(panel)}: ${Math.round(r.left)} → ${Math.round(r.right)} en un panel de ${Math.round(p.left)} → ${Math.round(p.right)}` });
+      }
+    }
+  }
+  // la mesa del móvil no se pisa: la barra de Vida del enemigo, la cuenta y la mano, cada una en su franja, y la
+  // cuenta a la vista (nada encima). No cuenta el grupo que va en el aire al arrastrar, ni la mesa tapada por un modal.
+  if (esMovil && document.querySelector('.mesa [data-cuenta]') && !document.querySelector('#capa .velo')) {
+    const franja = (r: { top: number; bottom: number } | undefined) => (r ? { t: Math.round(r.top), b: Math.round(r.bottom) } : null);
+    const vida = franja(document.querySelector('.mesa .e-vida')?.getBoundingClientRect());
+    const cuentaEl = document.querySelector('.mesa [data-cuenta] .cuenta');
+    const cuenta = franja(cuentaEl?.getBoundingClientRect());
+    const enMano = [...document.querySelectorAll<HTMLElement>('.mesa .mano .carta')].filter((c) => Number(c.style.zIndex || 0) < 100).map((c) => c.getBoundingClientRect());
+    const mano = enMano.length ? { t: Math.round(Math.min(...enMano.map((c) => c.top))), b: Math.round(Math.max(...enMano.map((c) => c.bottom))) } : null;
+    const pisa = (a: { t: number; b: number } | null, b: { t: number; b: number } | null, que: string): void => {
+      if (a && b && a.b > b.t + 1 && b.b > a.t + 1) fallos.push({ regla: 'solape-mesa', detalle: `${que}: ${a.t} → ${a.b} con ${b.t} → ${b.b}` });
+    };
+    pisa(vida, cuenta, 'la barra de Vida pisa la cuenta');
+    pisa(cuenta, mano, 'la cuenta pisa la mano');
+    pisa(vida, mano, 'la barra de Vida pisa la mano');
+    if (cuentaEl && !document.body.classList.contains('arrastrando')) {
+      const r = cuentaEl.getBoundingClientRect();
+      for (const fx of [0.2, 0.5, 0.8]) {
+        const encima = document.elementFromPoint(r.left + r.width * fx, r.top + r.height / 2);
+        if (encima && !cuentaEl.contains(encima) && !encima.contains(cuentaEl)) {
+          fallos.push({ regla: 'solape-mesa', detalle: `la cuenta queda bajo ${nombre(encima)}` });
+          break;
+        }
       }
     }
   }
@@ -281,6 +312,7 @@ await conServidor(5191, async (url) => {
       pagina.on('console', (m) => m.type() === 'error' && errores.push(m.text()));
       mkdirSync(`${carpeta}/${v.nombre}`, { recursive: true });
       for (const estado of estados) {
+        if (v.nombre === VENTANA_BAJA.nombre && !ESTADOS_BAJA.includes(estado)) continue;
         errores.length = 0;
         await pagina.goto(`${url}/?qa=${estado}&lang=${lang}`, { waitUntil: 'domcontentloaded' });
         await pagina.waitForSelector('html[data-qa="listo"]', { timeout: 15000 });

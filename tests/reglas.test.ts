@@ -420,9 +420,13 @@ describe('0.15.0: la defensa escala, el Golpe al pelo, la segunda cara y el sopl
     expect(p.combate!.cetro).toBe(true);
     expect(p.oro - oro).toBeLessThan(B.exacto.oro + 3);
     // pasarse por mucho corta la racha
-    const p2 = mesa('chinchon', mano, { vidaMax: 100, vida: 5 });
+    const mano2 = [c('C', 7), c('D', 7)];
+    const p2 = mesa('chinchon', mano2, { vidaMax: 20, vida: 1, escudo: 0 });
     p2.racha = 2;
-    golpear(p2, mano.map((x) => x.id));
+    const k2 = cuenta(p2, mano2);
+    expect(k2.aVida - 1, k2.motivo).toBeGreaterThan(1); // sobra mucho más que el 5 % de 20
+    expect(k2.alPelo).toBe(false);
+    golpear(p2, mano2.map((x) => x.id));
     expect(p2.racha).toBe(0);
   });
   it('la segunda cara: a media Vida el Cacique recupera todo su Escudo, una sola vez', () => {

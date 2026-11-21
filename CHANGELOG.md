@@ -3,6 +3,41 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.15.0 · La segunda cara (2026-11-21)
+
+Paquete dictado por los P0 y P1 del Jurado Fable sobre la 0.14.0: la defensa plana, los Reyes de una sola nota, el
+Bufón sin dilemas y la letra chica en Steam Deck.
+
+**Reglas y builds**
+- **La defensa escala con el tramo.** El Escudo de los Bastos, la cura de las Copas y el tope de Escudo valen ×1, ×2
+  y ×3 en los tres tramos: armar un mazo defensivo ya no es tirar cartas al final del Reinado. Para compensar,
+  La Corte pega más en el segundo y el tercer tramo y los Mazos tienen más Vida.
+- **Golpe al pelo.** Pasarse por muy poco (hasta el 5 % de la Vida del enemigo) no cobra el premio del Golpe exacto,
+  pero sostiene la racha y recarga el Cetro. La cuenta lo canta: «¡AL PELO!».
+- **Amuletos comunes que crecen con su Rey:** suman Daño por carta de su palo y, además, por cada punto de carga de
+  ese Rey (con tope). Peaje y Contragolpe se disparan cuando frenás al menos la mitad del golpe.
+
+**Los cuatro Reyes, con segunda cara**
+- A media Vida cada Rey cambia: el de Espadas cobra Furia si repetís la jugada (Degüello), el de Bastos recupera todo
+  su Escudo una vez (Empalizada), el de Oros duplica su Diezmo (Remate) y el de Copas se cura lo que vos te curás
+  (Última ronda). Un cartel grande «SEGUNDA CARA» lo anuncia y el Rey lo dice.
+
+**El Bufón chanta**
+- **Tres Cábalas nuevas con dilema:** *El soplo* (pagás para que el próximo Rey llegue herido), *Mano larga* (le robás
+  a La Corte un naipe templado, y te puede costar Vida) y *Firmar a ciegas* (un pacto que se lee después).
+  La moneda y el doble o nada escalan con el tramo, y el Bufón ya no repite la misma frase cuando le decís que no.
+
+**Steam Deck y portátil**
+- **Ninguna letra por debajo de 18 px** entre 1100 y 1699 px de ancho (antes 16): cuerpo 20, rótulos 24.
+- **Glifos del mando** en GOLPEAR, DESCARTAR, ENGAÑO, JUGADAS y la bandeja; el juego distingue puntero, teclado y
+  mando y muestra los del que estás usando. Select abre JUGADAS, LT arma el Engaño, RT abre «Lo que llevás», LB/RB
+  saltan entre mano y botones y la palanca derecha desplaza listas.
+- **Todo lo del enemigo se inspecciona con la cruceta**, y sus números llevan rótulo: TE PEGA, FURIA, QUEDAN N,
+  INMUNE A ESPADAS. El desglose de Daño y Multi vive en una línea fija bajo la cuenta.
+
+**Móvil**
+- (ver abajo)
+
 ## 0.14.0 · Cada pantalla, un lugar (2026-11-20)
 
 Primera versión dictada por el **Jurado Fable**: seis especialistas (diseño, arte, Steam Deck, móvil, jugo y novato)

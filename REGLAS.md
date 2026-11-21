@@ -1,5 +1,5 @@
 # CÁBALA — Reglas
-> Versión 0.14.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
+> Versión 0.15.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
 
 *Todo es cuestión de cábala.* Roguelike de baraja española para un jugador. Elegís un Mazo, el Bufón te lleva por tres tramos de caminos y al fondo de cada uno te espera un Rey. Tu mano contra la Corte: cada golpe es **DAÑO × MULTI**.
 
@@ -175,10 +175,10 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 
 | Mazo | Personaje | Vida · mano | Regla estrella | Se abre con |
 |---|---|---|---|---|
-| **Escoba** · Escoba del 15 | La Barrendera | 74 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×2 y más Daño para siempre. | abierto desde el principio |
-| **Truco** · Envido y Bravas | El Paisano Bravo | 90 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
-| **Chinchón** · Pierna y Escalera | La Timbera del Club | 51 · 7 | Piernas y Escaleras de palo crecen siempre y frenan el Contraataque. | Vencé a un Rey. |
-| **El Mentiroso** · Cara de Piedra | El Chamuyero | 49 · 8 | Cuatro Comodines y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
+| **Escoba** · Escoba del 15 | La Barrendera | 77 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×2 y más Daño para siempre. | abierto desde el principio |
+| **Truco** · Envido y Bravas | El Paisano Bravo | 96 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
+| **Chinchón** · Pierna y Escalera | La Timbera del Club | 60 · 7 | Piernas y Escaleras de palo crecen siempre y frenan el Contraataque. | Vencé a un Rey. |
+| **El Mentiroso** · Cara de Piedra | El Chamuyero | 45 · 8 | Cuatro Comodines y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
 | **Chancho Va** · Mano al Centro | El Manotazo | 87 · 4 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
 
 **Escoba** (¡ESCOBA!)
@@ -195,7 +195,7 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 
 **Chinchón** (¡CHINCHÓN!)
 - Mano de 7 cartas.
-- Cada Pierna o Escalera de palo: ¡CHINCHÓN!, +3 de Daño para siempre en esas jugadas.
+- Cada Pierna o Escalera de palo: ¡CHINCHÓN!, +2 de Daño para siempre en esas jugadas.
 - Ese turno, el Contraataque te llega a la mitad.
 
 **El Mentiroso** (¡MENTIRA!)

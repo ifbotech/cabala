@@ -1313,6 +1313,12 @@ html[data-entrada='mando'] .glifo.g-mando,
 html[data-entrada='teclado'] .glifo.g-tecla {
   display: inline-flex;
 }
+/* en el teléfono no hay mando ni teclado que enseñar: los botones de la barra del pulgar no ceden ancho a un glifo */
+@media (max-width: 700px) {
+  html[data-entrada] .glifo:is(.g-mando, .g-tecla, .glifo) {
+    display: none;
+  }
+}
 /* dentro de un botón apagado, el glifo se apaga con él */
 .btn:disabled .glifo {
   opacity: 0.55;
