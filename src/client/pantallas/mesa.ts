@@ -611,7 +611,15 @@ export function pantallaMesa(p: Partida): Pantalla {
     const cartas = q.pasos.filter(esCarta);
     const orden = { d: 0, m: 1, x: 2 } as const;
     const piezas = q.pasos.filter((x) => !esCarta(x) && x.v !== 0).sort((u, v) => orden[u.tipo] - orden[v.tipo]);
-    const paso = Math.max(42, Math.min(95, Math.round(820 / (cartas.length + piezas.length + 1))));
+    // el ritmo: arranca despacio (se lee qué suma) y acelera; con muchas piezas se aprieta para no pasar de 1,6 s
+    const pasos = cartas.length + piezas.length;
+    const crudo = (k: number): number => 115 - (70 * k) / Math.max(1, pasos - 1);
+    let suma = 0;
+    for (let k = 0; k < pasos; k++) suma += crudo(k);
+    const apuro = Math.min(1, 1600 / Math.max(1, suma));
+    const ritmo = (k: number): number => Math.max(40, Math.round(crudo(k) * apuro));
+    const cuentaEl = $('[data-cuenta]');
+    let cartel: HTMLElement | null = null;
     const vd = $('[data-cuenta] [data-cd] [data-v]');
     const vm = $('[data-cuenta] [data-cm] [data-v]');
     const total = $('[data-total]');
@@ -622,6 +630,8 @@ export function pantallaMesa(p: Partida): Pantalla {
     const poner = (): void => {
       if (vd) vd.innerHTML = cifra(Math.max(0, dano), 'roja', 'grande');
       if (vm) vm.innerHTML = cifra(Math.max(0, multi), 'azul', 'grande');
+      // el Multi no se enseña en cero: espera a lo primero que lo pone
+      vm?.classList.toggle('espera', multi <= 0);
     };
     const brinco = (el: Element | null | undefined): void => {
       if (!el) return;
@@ -632,8 +642,6 @@ export function pantallaMesa(p: Partida): Pantalla {
     total?.classList.add('espera');
     poner();
     let i = 0;
-    // los nombres se apilan hacia arriba (hasta cuatro por cifra) para que no se pisen entre sí
-    const pila = { d: 0, m: 0 };
     for (const x of cartas) {
       const el = $(`[data-mano] .carta[data-id="${x.de.slice(2)}"]`);
       if (el) {
@@ -645,8 +653,8 @@ export function pantallaMesa(p: Partida): Pantalla {
       }
       dano += x.v;
       poner();
+      await pausa(ritmo(i));
       nota(i++);
-      await pausa(paso);
     }
     for (const x of piezas) {
       const parte = x.tipo === 'd' ? $('[data-cuenta] [data-cd]') : $('[data-cuenta] [data-cm]');
@@ -655,25 +663,23 @@ export function pantallaMesa(p: Partida): Pantalla {
       else multi *= x.v;
       poner();
       brinco(parte);
-      // el nombre de lo que suma sube desde la cifra: así se aprende qué pieza da qué
-      const rp = parte?.getBoundingClientRect();
-      if (rp) {
-        const n = document.createElement('b');
-        n.className = `c-vuela v-${x.tipo}`;
-        n.textContent = `${pasoNombre(x.de)} ${x.tipo === 'x' ? '×' : '+'}${x.v}`;
-        n.style.left = `${Math.round(rp.left + rp.width / 2)}px`;
-        const k = x.tipo === 'd' ? pila.d++ : pila.m++;
-        n.style.top = `${Math.round(rp.top)}px`;
-        n.style.marginTop = `${-(k % 4) * 1.7}em`;
-        $('#capa')?.append(n);
-        window.setTimeout(() => n.remove(), 900);
+      // el nombre de lo que suma: un solo cartel a la vez, en el renglón de abajo de la cuenta (nunca sobre el enemigo)
+      const rc = cuentaEl?.getBoundingClientRect();
+      if (rc) {
+        cartel?.remove();
+        cartel = document.createElement('b');
+        cartel.className = `c-vuela v-${x.tipo}`;
+        cartel.textContent = `${pasoNombre(x.de)} ${x.tipo === 'x' ? '×' : '+'}${x.v}`;
+        cartel.style.left = `${Math.round(rc.left + rc.width / 2)}px`;
+        cartel.style.top = `${Math.round(rc.bottom)}px`;
+        $('#capa')?.append(cartel);
       }
       const f = dispararFicha(x.de);
       if (f) numero(`${x.tipo === 'x' ? 'x' : '+'}${x.v}`, f.x, f.y - 6, x.tipo === 'd' ? 'roja' : x.tipo === 'm' ? 'azul' : 'oro', x.tipo === 'x' ? 2 : 1);
       if (x.de === 'canto') brinco($('[data-cuenta] .c-canto'));
-      nota(i++, x.tipo === 'x');
       if (x.tipo === 'x') await frenar(60);
-      await pausa(paso);
+      await pausa(ritmo(i));
+      nota(i++, x.tipo === 'x');
     }
     dano = q.dano;
     multi = q.multi;
@@ -681,7 +687,9 @@ export function pantallaMesa(p: Partida): Pantalla {
     total?.classList.remove('espera');
     total?.classList.add('vibra');
     nota(i + 3, true);
-    await pausa(paso + 60);
+    // el total tiene su instante antes de que las cartas vuelen
+    await pausa(280);
+    cartel?.remove();
   }
 
   // ───────────── acciones ─────────────

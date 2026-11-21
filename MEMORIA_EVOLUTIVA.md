@@ -359,3 +359,30 @@ Diversión 7,52; Steam Deck 66,7 %; Móvil 86,7 %. Empate.
 Tres versiones seguidas suben un poco la Aprobación y la Claridad, siempre dentro del ruido de una tirada. El Móvil
 cumple su meta en las dos últimas. Ninguna versión se despega del Campeón de forma significativa: con este instrumento,
 F ronda 200 desde la 0.6.0.
+
+## 0.14.0 · Cada pantalla, un lugar (publicada; el Jurado sube, el panel local baja)
+
+**Cambio de instrumento.** El dueño pidió agrandar el panel con un Jurado de seis subagentes Fable en paralelo y
+versiones con paquetes agresivos. El Jurado lee capturas, secuencias de cuadros (`scripts/secuencias.ts`), medidas del
+DOM, el laboratorio y el código; devuelve puntajes y tres defectos con archivo. `node scripts/jurado-resumen.mjs <v>`
+copia los veredictos a `jurado/<v>/` y arma la tabla.
+
+**Jurado, 0.13.0 → 0.14.0** (media de seis): Claridad 6,3 → 6,5 · Diversión 6,5 → 7,0 · Estética 7,5 → 7,8 ·
+Veredicto 6,5 → 6,8. Por jurado (veredicto): arte 6,6 → 7,0; diseño 6,4 → 6,7; jugo 6,8 → 7,3; novato 6,2 → 6,6;
+Deck 6,3 → 6,4; móvil 6,6 → 6,9.
+
+**Panel local** (`pulso-60-20261120-225613`, snapshot `20261120-223544`): F 183,5; Aprobación 63,3 %; Claridad 6,37;
+Diversión 7,48; Deck 66,7 %; Móvil 73,3 %. McNemar 2 suben / 9 bajan (p = 0,065).
+
+**Lecciones.**
+- El cuadro frío no era JavaScript ni decodificación de imágenes: la traza del navegador mostró una tarea de raster
+  de 114 ms en la GPU (compilación de sombreadores) la primera vez que se pinta algo nuevo. Se arregla pintándolo
+  antes, casi invisible, con el contenido de verdad; un modal de mentira no alcanzó.
+- Los jurados aciertan en lo que una puerta no mide: los seis vieron que los carteles del conteo se pisaban; la QA
+  visual, que fotografía todo quieto, no podía verlo.
+- El Jurado puntúa su especialidad sin piedad: Deck apenas se movió (6,3 → 6,4) porque su P0 (texto a 16 px) no se
+  tocó. Un defecto P0 que se deja para «la versión que le toca» frena la nota de todas las intermedias.
+- El Jurado y el panel local se contradicen en esta versión. No hay forma de saber cuál acierta sin el dueño
+  jugando; lo que coinciden en señalar es el texto chico.
+- Se añadió al panel el preset `deck-36` (solo personas de Steam Deck) para hitos; todavía sin correr.
+- Dos agentes editando a la vez funcionó con una regla: carpetas disjuntas y CSS nuevo en secciones propias al final.

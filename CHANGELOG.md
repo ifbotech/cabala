@@ -3,6 +3,68 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.14.0 · Cada pantalla, un lugar (2026-11-20)
+
+Primera versión dictada por el **Jurado Fable**: seis especialistas (diseño, arte, Steam Deck, móvil, jugo y novato)
+que miran las capturas y las secuencias de cuadros reales, puntúan de 1 a 10 y señalan tres defectos cada uno con
+archivo y línea. Sus fichas están en `.claude/agents/`, el protocolo en `.claude/jurado/PROTOCOLO.md` y los veredictos
+de cada versión en `jurado/`.
+
+**Rendimiento**
+- **Cero tirones, también en frío.** El cuadro de ~120 ms al brotar «ELEGÍ UNA» era la GPU compilando sus sombreadores
+  la primera vez que pintaba el modal. Ahora, al entrar a la mesa y bajo la cortina, se pinta una vez casi invisible
+  una oferta de cada tipo y los efectos que estrena el golpe. La puerta de FPS pasó de tolerar 80 ms por cuadro y
+  250 ms en el cambio de pantalla a **50 ms en los dos**; mide 8–23 ms.
+
+**Escenarios y clima**
+- **La mesa** es de tablas, con vela, humo y un candil que salta con cada golpe. **La Pulpería** tiene estantes,
+  damajuanas y un farol que se hamaca. **El Mapa**, luna, ranchos, molinos y niebla, y el camino andado se traza con
+  tinta. **El Fogón**, leños, pava y un redondel de luz que respira.
+- **Cada Rey trae su clima:** relámpagos y llovizna (Espadas), hojas y esporas (Bastos), monedas que caen (Oros) y
+  bruma carmesí (Copas).
+
+**El golpe**
+- **Conteo pieza por pieza.** Después de las cartas dispara cada cosa que suma (la jugada, el canto, cada Amuleto,
+  Cábala y Bendición): un cartel dice su nombre y cuánto pone, su ficha del HUD pega un brinco con el número, y el
+  Daño y el Multi suben a la vista. Arranca despacio y acelera; el total aparece al final y tiene su instante.
+- **Peso en tres escalones:** golpe, golpazo (media Vida o más) y remate. El hitstop ahora frena de verdad la mesa
+  (60, 110 y 170 ms), la escena se sacude y el Golpe exacto que mata da un fogonazo dorado.
+- **La caída de un Rey es una escena:** la música calla, fogonazo blanco, su última frase bajo el naipe, lluvia de
+  monedas y fanfarria. El que sigue ya no entra encimado sobre la rajadura.
+- **Los Reyes hablan en pelea:** se burlan cuando te lastiman de verdad y se quejan del golpazo.
+
+**Presencia**
+- **Tres gestos nuevos en los cinco retratos:** carcajada (Golpe exacto, Rey vencido), pavor (cuando quedás en las
+  últimas) y guiño (al armar el Engaño), con el cuerpo acompañando.
+- El Bufón reacciona con todo el cuerpo según su expresión, y el HUD ya no parpadea al cambiar de pantalla.
+
+**Móvil: el dedo primero**
+- Al arrastrar, el descarte es el propio botón DESCARTAR (ya no una franja cruzada en el camino al enemigo) y el naipe
+  va por encima del dedo. Un gesto cancelado por el sistema devuelve las cartas sin jugar.
+- JUGADAS entra entera en 390 px (antes se perdía la columna Multi). El Mentiroso tiene GOLPEAR a renglón entero y
+  DESCARTAR + ENGAÑO debajo. Zonas seguras de iOS.
+
+**Menores**
+- En el Fogón, con la Vida llena, «Descansar» sale apagado.
+- La QA visual suma dos reglas: panel que desborda a lo ancho y rótulo de botón cortado.
+- Balance: Vida de Truco 81 → 79 y de El Chancho Va 89 → 87 (el laboratorio rozaba el techo por décimas).
+
+**Medido**
+- 61 pruebas, QA visual ES y EN sin fallos, humo, FPS con el tope nuevo. Laboratorio: 28,2–31,6 % con Altar vacío
+  y 45,2–48,7 % con Altar lleno, sin avisos.
+- **Jurado Fable** (media de seis, contra su propio veredicto de la 0.13.0): Claridad 6,3 → **6,5**, Diversión 6,5 →
+  **7,0**, Estética 7,5 → **7,8**, Veredicto 6,5 → **6,8**. Lejos del 8,5 pedido. Juzgó antes del último arreglo del
+  conteo (un cartel a la vez), que era la queja de los seis.
+- **Panel simulado local** (una tirada): **mide peor.** Aprobación 63,3 % (venía de 76,7), Claridad 6,37, Diversión
+  7,48, Steam Deck 66,7 %, Móvil 73,3 %, F 183,5 contra 200,7 del Campeón. Nueve votos bajan y dos suben
+  (p = 0,065: no llega a significativo). Quienes bajaron repiten el texto chico en portátil y Steam Deck, que es
+  también el defecto número uno del jurado de Deck y va en la 0.15.0.
+
+**Pendiente, dicho por el Jurado**
+- Texto de lectura a 16 px en Steam Deck y portátil; el mando sin glifos ni gatillos; la defensa del jugador no
+  escala con el tramo; mano de 3 con pocas decisiones; la mesa del móvil no cede en pantallas bajas o con muesca;
+  el botín sigue siendo un panel pobre; el sonido del golpe no acompaña el peso nuevo.
+
 ## 0.13.0 · Leer a 40 cm (2026-11-20)
 
 Primera ronda de pulido por inspección de capturas y por lo que más repite el panel simulado.

@@ -215,8 +215,11 @@ export function poseRetrato(pose: 'festeja' | 'tiembla' | 'guina', ms = 900): vo
 
 /** La ficha de una pieza en la bandeja pega un brinco (dispara en el conteo). Devuelve su centro, o null si no está a la vista. */
 export function dispararFicha(pieza: string): { x: number; y: number } | null {
-  const el = $<HTMLElement>(`.hud [data-pieza="${pieza}"]`);
-  if (!el || el.hidden || !el.offsetParent) return null;
+  let el = $<HTMLElement>(`.hud [data-pieza="${pieza}"]`);
+  if (!el) return null;
+  // si la pieza quedó detrás del «+N» de la bandeja, salta el «+N»
+  if (el.hidden || !el.offsetParent) el = $<HTMLElement>('.hud [data-mas]:not([hidden])');
+  if (!el || !el.offsetParent) return null;
   el.classList.remove('dispara');
   void el.offsetWidth;
   el.classList.add('dispara');

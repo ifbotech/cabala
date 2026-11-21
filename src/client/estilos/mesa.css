@@ -1594,3 +1594,26 @@ button:disabled .b-quedan {
 #app.recien > main.en-partida > :not(.hud) {
   animation: pantalla-entra 0.22s steps(5) both;
 }
+
+/* el cartel del conteo: uno solo a la vez, sobre el renglón de abajo de la cuenta, grande y sin tapar al enemigo */
+.c-vuela {
+  translate: -50% calc(-100% - 2px * var(--k));
+  font-size: var(--fs);
+  animation: c-cartel 0.14s steps(3) both;
+}
+@media (min-width: 1100px) {
+  .c-vuela {
+    font-size: max(var(--fs), 20px);
+  }
+}
+@keyframes c-cartel {
+  from {
+    scale: 1.25;
+  }
+}
+[data-cm] [data-v].espera {
+  opacity: 0;
+}
+.hud [data-mas].dispara {
+  animation: ficha-dispara 0.32s steps(4);
+}

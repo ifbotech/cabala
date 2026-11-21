@@ -41,6 +41,21 @@ await conServidor(5198, async (url) => {
       await p.waitForSelector('.mesa');
       await rafaga('rey-irrumpe', 7, 260);
 
+      // 1b · la caída del Rey, entera: fogonazo, última frase, rajadura y lluvia de monedas
+      await mesa('mesa-rey');
+      await p.waitForTimeout(500);
+      await p.evaluate(() => {
+        const g = window as unknown as G;
+        const x = g.__cabala.sesion.partida;
+        x.combate.fila[0].vida = 1;
+        x.combate.fila[0].escudo = 0;
+        g.__mesa.sincronizar();
+        const m = g.__cabala.mejorGolpe(x);
+        if (m) g.__mesa.golpear(m.ids);
+      });
+      await p.waitForTimeout(900);
+      await rafaga('rey-cae', 10, 380);
+
       // 2 · el golpe: elegir, conteo en cadena, daño, respuesta del enemigo
       await mesa('mesa');
       await p.waitForTimeout(700);

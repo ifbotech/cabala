@@ -260,7 +260,8 @@ export function monedas(x0: number, y0: number, x1: number, y1: number, n = 8, a
 export function numero(texto: string | number, x: number, y: number, tono: TonoCifra = 'hueso', escala = 1): void {
   const glifos = [...String(texto).replace('×', 'x').replace('−', '-')].map((ch) => lienzo(`cf:${tono}:${ch}`, () => cifraMapa(ch, tono)));
   const ancho = glifos.reduce((s, g) => s + g.width - 1, 0) * escala;
-  let px = aCelda(x) - ancho / 2;
+  // dentro de la pantalla: un número sobre una ficha de la esquina no se sale por el borde
+  let px = Math.max(1, Math.min(aCelda(innerWidth) - ancho - 1, aCelda(x) - ancho / 2));
   let py = aCelda(y);
   let vx = entre(-14, 14);
   let vy = -70;
