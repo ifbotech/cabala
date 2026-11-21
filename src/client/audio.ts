@@ -68,6 +68,10 @@ const SONIDO = {
   despeja: [[330, 0.12, 'triangle', 0.08, 140]],
   // el oro que cuenta en el HUD (cada moneda que entra)
   tintin: [[1568, 0.03, 'square', 0.07], [2093, 0.05, 'triangle', 0.08]],
+  // una Cábala del Bufón que se estampa (Cara de Póker, Seña Falsa): el sello seco y su cascabel, que se ríe
+  mascara: [[180, 0.05, 'square', 0.2, 90], [1175, 0.04, 'square', 0.1], [988, 0.04, 'square', 0.1], [1319, 0.09, 'triangle', 0.14]],
+  // el naipe del Rey que se raja antes de partirse: un crujido seco y corto
+  grieta: [[420, 0.03, 'sawtooth', 0.12, 180], [95, 0.06, 'square', 0.14, 50]],
 } satisfies Record<string, Nota[]>;
 
 /** Las capas de ruido: el transitorio que hace que un golpe pegue y no suene a pitido. */
@@ -91,6 +95,8 @@ const RUIDO: Partial<Record<keyof typeof SONIDO | 'segunda', Ruido[]>> = {
   ],
   fortin: [{ dur: 0.08, vol: 0.26, filtro: 'bandpass', corte: 2600, q: 5 }],
   despeja: [{ dur: 0.32, vol: 0.16, filtro: 'bandpass', corte: 1800, hasta: 300, q: 1.2 }],
+  mascara: [{ dur: 0.05, vol: 0.3, filtro: 'lowpass', corte: 900 }],
+  grieta: [{ dur: 0.07, vol: 0.32, filtro: 'highpass', corte: 2600, hasta: 1200 }],
   segunda: [{ dur: 0.8, vol: 0.26, filtro: 'bandpass', corte: 400, hasta: 3000, q: 1.5 }],
 };
 

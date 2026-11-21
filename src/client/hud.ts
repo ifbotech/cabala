@@ -11,6 +11,7 @@ import type { Palo } from '../rules/cartas';
 import { carga, sirveA } from '../rules/estado';
 import type { Partida } from '../rules/estado';
 import { MAZO } from '../rules/mazos';
+import { B } from '../rules/balance';
 import { BENDICION, REY_DEF } from '../rules/reyes';
 import type { BendicionId } from '../rules/reyes';
 import { ajustes, t, tx } from './almacen';
@@ -18,7 +19,7 @@ import { enFoto } from './fx/motor';
 import type { Cuadro, Gesto, Herida, Mirada } from './pixel/personajes';
 import { cifra, pxAmuleto, pxAumento, pxBendicion, pxHud, pxPalo, urlRetrato } from './sprites';
 import { PALO_NOMBRE } from './textos';
-import { $, tip } from './ui';
+import { $, hayModal, tip } from './ui';
 
 /** Lo que el HUD enseña (la mesa lo anima paso a paso; fuera del combate sale de la partida). */
 export interface VistaHud {
@@ -33,6 +34,13 @@ export const vistaDe = (p: Partida): VistaHud => ({ vida: p.vida, vidaMax: p.vid
 
 /** Las heridas del retrato según la Vida que queda. */
 export const heridaDe = (vida: number, max: number): Herida => (vida * 3 <= max ? 2 : vida * 3 <= max * 2 ? 1 : 0);
+
+/** Qué hace una carga ahora, con su cifra: «Filo 2: +2 de Daño en cada golpe». */
+export function cargaQue(p: Partida, s: Palo): string {
+  const n = carga(p, s);
+  const efecto = t(`cargaEf${s}` as const, { n: s === 'S' ? n * B.cargas.filoDano : n });
+  return t('cargaQue', { carga: tx(REY_DEF[s].carga), n, efecto });
+}
 
 function tiras(p: Partida): string {
   // solo lo que llevás (los huecos libres se cuentan en «LO QUE LLEVÁS»: un cuadro vacío parecía un error de carga)
@@ -50,7 +58,7 @@ function tiras(p: Partida): string {
     .map((s) => {
       const r = REY_DEF[s];
       const regla = ajustes.idioma === 'en' ? `+1 for each enemy you take down with ${PALO_NOMBRE[s].en} in the hit.` : `+1 por cada enemigo que abatís con ${PALO_NOMBRE[s].es} en el golpe.`;
-      return `<span class="ficha carga" data-carga="${s}" ${tip(`${tx(r.carga)} ${carga(p, s)}`, tx(r.cargaDa), regla)}>${pxPalo(s)}${cifra(carga(p, s), 'oro')}</span>`;
+      return `<span class="ficha carga" data-carga="${s}" ${tip(cargaQue(p, s), tx(r.cargaDa), regla)}>${pxPalo(s)}${cifra(carga(p, s), 'oro')}</span>`;
     })
     .join('');
   const bendiciones = (Object.keys(p.bendiciones) as BendicionId[])
@@ -90,7 +98,7 @@ export function hudHtml(p: Partida, v: VistaHud = vistaDe(p)): string {
         <span class="rotulo">${t('mazo')}</span>
         <span class="valor">${pxHud('mazo')}<span data-n="mazo">${cifra(v.mazo, 'hueso', 'grande')}</span></span>
       </button>
-      <button class="hud-tiras" data-tiras data-accion="ver-piezas" data-foco="hud-piezas" aria-label="${t('verLlevas')}" ${tip(t('llevas'), t('llevasTip'))}>${tiras(p)}</button>
+      <button class="hud-tiras" data-tiras data-accion="ver-piezas" data-foco="hud-piezas" aria-label="${t('verLlevas')}" ${tip(t('llevas'), t('llevasTip'), PALOS.filter((s) => sirveA(p, s)).map((s) => cargaQue(p, s)).join('\n'))}>${tiras(p)}</button>
       <kbd class="glifo g-mando g-rt hud-glifo" aria-hidden="true">RT</kbd>
     </div>
   </footer>`;
@@ -236,27 +244,79 @@ export function dispararFicha(pieza: string): { x: number; y: number } | null {
 let escalon = 0;
 let ultimoDisparo = 0;
 
-/** El Personaje grita algo: un bocadillo corto sobre su retrato, con su voz, que se va solo. */
-export function gritar(mazo: MazoId, texto: string): void {
+/**
+ * El Personaje grita algo: un bocadillo corto AL COSTADO de su retrato (nunca encima de la mano, de los botones ni de
+ * la cuenta), con su voz, que se va solo. Se mide antes de ubicarse: va del lado del retrato donde hay más sitio sin
+ * controles (en el escritorio, sobre la Vida, el Escudo y el oro; en el teléfono, a la derecha del retrato y antes del
+ * Mazo), partido en dos renglones si hace falta y siempre dentro de la pantalla. Nunca sale con un modal abierto (ni
+ * queda encima de uno: va por debajo del velo y se borra al abrirse), y si la pantalla cambia se vuelve a ubicar junto
+ * al retrato nuevo. `foto` lo deja quieto para la QA visual.
+ */
+export function gritar(mazo: MazoId, texto: string, o: { foto?: boolean } = {}): void {
   const retrato = $('.hud-retrato');
-  if (!retrato || !texto || enFoto()) return;
-  document.querySelector('.hud-grito')?.remove();
-  const r = retrato.getBoundingClientRect();
+  if (!retrato || !texto || (enFoto() && !o.foto) || hayModal()) return;
+  ocultarGrito();
   const b = document.createElement('p');
-  b.className = 'bocadillo sin-cola hud-grito';
+  b.className = `bocadillo sin-cola hud-grito${o.foto ? ' quieto' : ''}`;
   b.textContent = texto;
-  // dentro de la pantalla aunque el retrato esté en una esquina (móvil)
-  const x = Math.max(80, Math.min(innerWidth - 80, r.left + r.width / 2));
-  b.style.left = `${Math.round(x)}px`;
-  b.style.top = `${Math.round(r.top - 6)}px`;
   ($('#capa') ?? document.body).append(b);
+  ubicarGrito(b);
+  // (la letra llega después: medido con la de reserva, el bocadillo cambiaría de ancho)
+  void document.fonts?.ready.then(() => b.isConnected && ubicarGrito(b));
+  if (o.foto) return;
   vocear(mazo, texto);
   // el retrato da un salto al gritar
   retrato.classList.remove('grita');
   void retrato.offsetWidth;
   retrato.classList.add('grita');
-  window.setTimeout(() => b.remove(), 1500);
+  relojGrito = window.setTimeout(() => b.remove(), 1500);
 }
+let relojGrito = 0;
+/** Borra el grito que esté a la vista. */
+export function ocultarGrito(): void {
+  clearTimeout(relojGrito);
+  document.querySelector('.hud-grito')?.remove();
+}
+/** Ubica el grito al costado del retrato, del lado con más sitio libre de controles, dentro de la pantalla. */
+function ubicarGrito(b: HTMLElement): void {
+  const retrato = $('.hud-retrato');
+  if (!retrato) {
+    b.remove();
+    return;
+  }
+  const r = retrato.getBoundingClientRect();
+  const m = 8;
+  // los controles que están a la altura del retrato (el Mazo, la bandeja): el grito no los tapa
+  const controles = [...document.querySelectorAll<HTMLElement>('#app button, #app [data-accion]')]
+    .map((el) => el.getBoundingClientRect())
+    .filter((c) => c.width > 0 && c.bottom > r.top + 4 && c.top < r.bottom - 4);
+  let desde = m;
+  let hasta = innerWidth - m;
+  for (const c of controles) {
+    if (c.right <= r.left + 1) desde = Math.max(desde, c.right + m);
+    if (c.left >= r.right - 1) hasta = Math.min(hasta, c.left - m);
+  }
+  const izq = r.left - m - desde;
+  const der = hasta - (r.right + m);
+  const lado = izq >= der ? 'izq' : 'der';
+  const ancho = Math.max(96, Math.floor(lado === 'izq' ? izq : der));
+  b.style.maxWidth = `${ancho}px`;
+  b.dataset.lado = lado;
+  const w = b.offsetWidth;
+  const h = b.offsetHeight;
+  const x = Math.max(m, Math.min(innerWidth - w - m, lado === 'izq' ? r.left - m - w : r.right + m));
+  const y = Math.max(m, Math.min(innerHeight - h - m, r.top + r.height / 2 - h / 2));
+  b.style.left = `${Math.round(x)}px`;
+  b.style.top = `${Math.round(y)}px`;
+}
+// al abrirse un modal el grito se borra; al cambiar de pantalla, se vuelve a ubicar junto al retrato nuevo (o se va)
+if (typeof document !== 'undefined')
+  document.addEventListener('cabala:pantalla', (ev) => {
+    const b = document.querySelector<HTMLElement>('.hud-grito');
+    if (!b) return;
+    if ((ev as CustomEvent<string>).detail === 'modal' || hayModal()) ocultarGrito();
+    else requestAnimationFrame(() => b.isConnected && ubicarGrito(b));
+  });
 
 /**
  * La bandeja del HUD: una fila en el teléfono y a 1080p, dos filas de fichas en el portátil y la Steam Deck (el CSS

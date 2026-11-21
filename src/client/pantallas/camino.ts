@@ -22,7 +22,7 @@ import { chispas, destello, haloRey, humo, lluviaDeMonedas, monedas, numero, par
 import { teclear } from '../habla';
 import { RAPIDO, pausa, quieto } from '../ritmo';
 import { enFoto } from '../fx/motor';
-import { avivarRetrato, hudHtml } from '../hud';
+import { avivarRetrato, cargaQue, hudHtml } from '../hud';
 import { avanzar, guardar, irPortada, sesion, soltarPartida } from '../juego';
 import type { Expresion } from '../pixel/bufon';
 import { lienzoNaipe, cifra, pxAmuleto, pxAumento, pxBendicion, pxHud, pxInmune, pxNaipe, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
@@ -68,7 +68,7 @@ export function modalPiezas(p: Partida): void {
   const vacio = `<li class="pieza-fila vacia"><p class="sub">${t('nada')}</p></li>`;
   const amuletos = p.amuletos.map((id) => fila(pxAmuleto(id), tx(AMULETO[id].nombre), tx(RAREZA_NOMBRE[AMULETO[id].rareza]), tx(AMULETO[id].desc)));
   const aumentos = p.aumentos.map((id) => fila(pxAumento(id), tx(AUMENTO[id].nombre), AUMENTO[id].maldicion ? t('maldicion') : tx(NIVEL_NOMBRE[AUMENTO[id].nivel]), tx(AUMENTO[id].desc)));
-  const cargas = PALOS.filter((s) => sirveA(p, s)).map((s) => fila(pxPalo(s), `${tx(REY_DEF[s].carga)} ${carga(p, s)}`, tx(REY_DEF[s].apodo), tx(REY_DEF[s].cargaDa)));
+  const cargas = PALOS.filter((s) => sirveA(p, s)).map((s) => fila(pxPalo(s), cargaQue(p, s), tx(REY_DEF[s].apodo), tx(REY_DEF[s].cargaDa)));
   const bendiciones = (Object.keys(p.bendiciones) as BendicionId[]).map((id) => {
     const d = BENDICION[id];
     const n = p.bendiciones[id] ?? 1;
@@ -259,10 +259,11 @@ export function pantallaMapa(p: Partida): Pantalla {
   const abiertos = juego.nodosAlcanzables(p).map((n) => n.id);
   const rey = REY_DEF[tramo.rey];
   const voz = tx(alAzar(VOZ.mapa[humorDe(p.afinidad)], fijo()));
+  // el temblor de cada nodo: de costado algo más; de alto, poco (con más, el «ESTÁS ACÁ» quedaba bajo los sellos del nodo de arriba)
   const corrimiento = (id: string): [number, number] => {
     let h = 2166136261;
     for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619);
-    return [(((h >>> 0) % 1000) / 1000 - 0.5) * 0.16, (((h >>> 10) % 1000) / 1000 - 0.5) * 0.24];
+    return [(((h >>> 0) % 1000) / 1000 - 0.5) * 0.16, (((h >>> 10) % 1000) / 1000 - 0.5) * 0.1];
   };
   const lugar = (n: Nodo): [number, number] => {
     const [dx, dy] = n.tipo === 'rey' ? [0, 0] : corrimiento(n.id);
@@ -390,8 +391,9 @@ export function calentarOfertas(p: Partida): void {
   el.setAttribute('aria-hidden', 'true');
   el.inert = true;
   el.innerHTML = muestras.map((o) => `<div class="velo-c recien">${ofertaHtml(p, o, '…').replaceAll('data-foco=', 'data-x=').replaceAll('data-accion=', 'data-y=').replaceAll('data-inicio', '')}</div>`).join('');
-  // y lo que el golpe estrena: los fogonazos, el nombre que sube, la ficha que dispara y el naipe que salta
-  el.insertAdjacentHTML('beforeend', '<i class="fogonazo f-oro"></i><i class="fogonazo f-blanco"></i><b class="c-vuela v-x">×2</b><b class="c-vuela v-d">+1</b><span class="hud"><span class="ficha dispara" style="display:inline-block;width:40px;height:40px;background:#555"></span></span><div class="carta cuenta-pop" style="position:absolute;left:0;top:0;width:60px;height:90px;background:#ccc"></div>');
+  // y lo que el golpe estrena: los fogonazos, el nombre que sube, la ficha que dispara y el naipe que salta (con su
+  // índice y su sello de Templada: rasterizar esa letra escalada y con brillo la primera vez costaba ~150 ms)
+  el.insertAdjacentHTML('beforeend', '<i class="fogonazo f-oro"></i><i class="fogonazo f-blanco"></i><b class="c-vuela v-x">×2</b><b class="c-vuela v-d">+1</b><span class="hud"><span class="ficha dispara" style="display:inline-block;width:40px;height:40px;background:#555"></span></span><div class="carta cuenta-pop" style="position:absolute;left:0;top:0;width:60px;height:90px;background:#ccc"><span class="c-indice" data-palo="D">9</span><span class="c-temple">+8★</span></div>');
   $('#capa')?.append(el);
   el.querySelectorAll('.opcion').forEach((b, i) => b.classList.toggle('caliente-foco', i % 2 === 0));
   setTimeout(() => el.remove(), 900);

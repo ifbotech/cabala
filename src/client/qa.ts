@@ -7,7 +7,9 @@ import type { Partida, TipoNodo } from '../rules/estado';
 import type { MazoId } from '../rules/mazos';
 import * as juego from '../rules/partida';
 import { altarLleno, perfilNuevo, type Perfil } from '../rules/perfil';
-import { ajustes, usarPerfil } from './almacen';
+import { ajustes, tx, usarPerfil } from './almacen';
+import { gritar } from './hud';
+import { GRITO } from './voces';
 import { modoFoto } from './fx/motor';
 import { irAjustes, irAltar, irColeccion, irCronica, irMazo, irPortada, pintarFase, sesion } from './juego';
 import { $ } from './ui';
@@ -15,6 +17,7 @@ import { $ } from './ui';
 export const ESTADOS = [
   'portada', 'elegir-mazo', 'elegi-una', 'mapa', 'mesa', 'mesa-seleccion', 'mesa-arrastrando', 'mesa-rey', 'mesa-segunda', 'mesa-mentiroso', 'botin', 'elegi-bendicion', 'elegi-amuleto',
   'pulperia', 'fogon', 'cabala', 'mazo', 'jugadas', 'piezas', 'mesa-mando', 'mapa-mando', 'altar', 'coleccion', 'coleccion-reyes', 'coleccion-amuletos', 'cronica', 'ajustes', 'fin-victoria', 'fin-derrota',
+  'mesa-grito', 'botin-grito',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
 /** Estados que solo tienen sentido en vivo (`&vivo`, para las secuencias del Jurado): no entran en la QA visual. */
@@ -110,8 +113,8 @@ export function montarQa(estado: string): void {
     case 'mesa-mando': // el foco lo pone la QA visual con el teclado, como lo pondría el mando
       montar(partida(mazo, (p) => enCombate(p)));
       break;
-    case 'mapa-mando':
-      montar(partida(mazo, (p) => p.fase === 'mapa' && p.camino.length >= 2));
+    case 'mapa-mando': // en el segundo tramo, donde el Jurado vio el «ESTÁS ACÁ» bajo los sellos de arriba
+      montar(partida(mazo, (p) => p.fase === 'mapa' && p.acto >= 1 && p.camino.length >= 2));
       break;
     case 'mesa-seleccion':
     case 'mesa-arrastrando': {
@@ -141,14 +144,26 @@ export function montarQa(estado: string): void {
       const p = partida(mazo, (x) => x.fase === 'combate' && !!x.combate!.fila[0]?.jefe);
       const e = p.combate!.fila[0];
       e.segunda = true;
-      e.vida = Math.floor(e.vidaMax * 0.46);
-      montar(p);
+      e.vida = Math.floor(e.vidaMax * 0.5);
       const mano = p.combate!.mano;
-      const posibles = [...mano.map((k) => [k]), ...mano.flatMap((k, i) => mano.slice(i + 1).map((j) => [k, j]))];
-      const sel = posibles.find((x) => {
-        const q = cuenta(p, x);
-        return q.ok && !q.abate && !q.ejecuta && !!q.contra && q.contra > 0;
-      });
+      const posibles = () => [...mano.map((k) => [k]), ...mano.flatMap((k, i) => mano.slice(i + 1).map((j) => [k, j]))];
+      // (la Carta sola no arma el Tajo: se busca otra jugada que no lo abata; si la mano no la tiene, sus dos cartas
+      // más bajas que le hacen Daño se vuelven un par bajo: es una foto de QA, no una partida)
+      const vivas = () =>
+        posibles().filter((x) => {
+          const q = cuenta(p, x);
+          return q.ok && !q.abate && !q.ejecuta && !!q.contra && q.contra > 0;
+        });
+      if (e.jefe && e.palo === 'S' && !vivas().some((x) => cuenta(p, x).jugada !== 'sola')) {
+        const bajas = mano.filter((k) => k.palo !== e.palo && k.palo !== 'X').sort((u, v) => u.n - v.n);
+        for (const n of [bajas[0]?.n, 2, 1]) {
+          if (bajas.length < 2 || n === undefined || vivas().some((x) => cuenta(p, x).jugada !== 'sola')) break;
+          bajas[0].n = n;
+          bajas[1].n = n;
+        }
+      }
+      montar(p);
+      const sel = vivas().find((x) => cuenta(p, x).jugada !== 'sola') ?? vivas()[0];
       const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[]): void }; sincronizar(): void } }).__mesa;
       if (sel && mesa) {
         p.combate!.ultimaJugada = cuenta(p, sel).jugada;
@@ -209,6 +224,18 @@ export function montarQa(estado: string): void {
       let p: Partida | null = null;
       for (let i = 0; i < 40 && (!p || p.fin?.victoria); i++) p = partida('truco', (x) => x.fase === 'fin', `QA${i}`, {});
       montar(p!);
+      break;
+    }
+    case 'mesa-grito': {
+      // el grito del Personaje a la vista (quieto), en plena mesa: no tapa la mano, los botones ni la cuenta
+      montar(partida(mazo, (p) => p.fase === 'combate' && !!p.combate!.fila[0]?.jefe));
+      gritar(mazo, tx(GRITO[mazo].dolor[0]), { foto: true });
+      break;
+    }
+    case 'botin-grito': {
+      // y en el botín, recién ganado: no tapa SEGUIR
+      montar(partida(mazo, (p) => p.fase === 'botin' && p.botin!.de === 'guardia' && p.acto >= 1));
+      gritar(mazo, tx(GRITO[mazo].gana), { foto: true });
       break;
     }
     default:

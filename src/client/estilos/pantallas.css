@@ -2199,3 +2199,23 @@ button.visor-carta:disabled {
 .botin.eligiendo .anfitrion .bocadillo {
   visibility: hidden;
 }
+
+/* ───────────── 0.17.0 · el Mapa con mando ───────────── */
+
+/* cada piso, más alto en pantallas de escritorio: entre un nodo y el de arriba caben sus sellos y el «ESTÁS ACÁ» */
+@media (min-width: 701px) {
+  .mapa-lienzo {
+    height: calc(var(--pisos) * var(--n) * 1.85);
+  }
+}
+/* el nodo donde estás va por encima de los demás: su «ESTÁS ACÁ» nunca queda bajo los sellos de otro */
+.nodo.actual {
+  z-index: 3;
+}
+.nodo:focus-visible {
+  z-index: 4;
+}
+.nodo-aca {
+  z-index: 1;
+  white-space: nowrap;
+}

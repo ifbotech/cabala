@@ -1066,18 +1066,23 @@ button.hud-tiras .ficha {
     scale: 1.35;
   }
 }
-/* el grito del Personaje: un bocadillo corto sobre su retrato */
+/* el grito del Personaje: un bocadillo corto al costado de su retrato (lo ubica hud.ts: nunca sobre la mano, los
+   botones ni la cuenta, y por debajo del velo de los modales) */
 .hud-grito {
   position: fixed;
-  z-index: 60;
-  translate: -50% -100%;
+  z-index: 45;
   margin: 0;
-  max-width: none;
-  white-space: nowrap;
+  width: max-content;
+  white-space: normal;
+  line-height: 1.15;
+  text-align: center;
   pointer-events: none !important;
   font-family: var(--rot);
   text-transform: uppercase;
   animation: grito 1.5s steps(12) both;
+}
+.hud-grito.quieto {
+  animation: none;
 }
 @keyframes grito {
   0% {
@@ -1096,7 +1101,12 @@ button.hud-tiras .ficha {
   }
   100% {
     opacity: 0;
-    translate: -50% calc(-100% - 8px * var(--k));
+    translate: 0 calc(-8px * var(--k));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hud-grito {
+    animation: none;
   }
 }
 
@@ -1408,4 +1418,9 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .b-signo {
   .hud-grito {
     font-size: var(--fr);
   }
+}
+
+/* 0.17.0 · el pie de una ayuda puede venir en renglones (las cargas de los Reyes, una por renglón, en «LO QUE LLEVÁS») */
+.tip .apagado {
+  white-space: pre-line;
 }

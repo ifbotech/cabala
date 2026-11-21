@@ -2674,3 +2674,404 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     pointer-events: none;
   }
 }
+
+/* ───────────── 0.17.0 · nada se tapa: la cara del Rey, el Tajo que dice la verdad y la caída sin baches ───────────── */
+
+/* ── la segunda cara (y el rasgo) del Rey: su nombre y, debajo, su regla en un renglón corto, siempre a la vista ── */
+.mesa .e-rasgo.e-segunda {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 4px 10px 5px;
+  background: #4a0818;
+  color: #fff3e0;
+  /* el latido va en píxel: un borde de 2 px que alterna dos tintas (sin halo borroso) */
+  box-shadow:
+    0 0 0 2px #ff4d6d,
+    0 0 0 4px #09070f;
+  animation: segunda-borde 1.2s steps(1) infinite;
+  cursor: help;
+}
+@keyframes segunda-borde {
+  50% {
+    box-shadow:
+      0 0 0 2px #ffd0d8,
+      0 0 0 4px #09070f;
+  }
+}
+.e-seg-nombre {
+  font-size: var(--fr);
+  line-height: 1.05;
+  color: #ffffff;
+  white-space: nowrap;
+}
+.e-regla {
+  font-size: var(--fs-s);
+  line-height: 1.15;
+  color: #ffc9d3;
+  white-space: nowrap;
+}
+.e-vida .e-alias {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mesa .e-rasgo.e-segunda {
+    animation: none;
+  }
+}
+
+/* ── escritorio: el rasgo va al costado de la barra de Vida (a la derecha, al pie), no debajo: la escena no crece un
+   renglón. Y si aun así el alto no alcanza (768 px con la cuenta llena, 1080p con los sprites al doble), la barra se
+   arrima al pie del naipe lo justo, medido contra el alto real de la escena (nunca se monta sobre la cuenta) ── */
+@media (min-width: 701px) {
+  .mesa .escena {
+    container: escena / size;
+  }
+  .mesa .e-barras,
+  .mesa .e-barras:has(.e-rasgo) {
+    --alto-barra: calc(24px * var(--k));
+    margin-top: clamp(-56px, calc(100cqh - 140px * var(--k-enemigo) - var(--alto-barra) - var(--u) * 0.75 - 4px), 0px);
+  }
+  .mesa .e-barras > .e-rasgo {
+    position: absolute;
+    left: calc(100% + var(--u) * 1.25);
+    bottom: 0;
+    z-index: 2;
+  }
+  /* la cuenta, por encima de la escena: el cetro del Bufón no le cruza las cifras */
+  .mesa .cuenta-zona {
+    position: relative;
+    z-index: 3;
+  }
+}
+
+/* ── TE PEGA del Caudillo con el Tajo de revés armado: la cifra grande dice el golpe de verdad (42) y a su lado va
+   el ×2 en grande y rojo; el Ataque de siempre (21), chico y tachado junto al rótulo ── */
+.e-golpe {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(4px * var(--k));
+}
+.e-ataque .e-tajo,
+.e-ataque.tajo .e-tajo {
+  display: none;
+}
+.mesa .e-ataque.tajo .e-tajo {
+  display: inline-flex;
+  padding: 2px 4px;
+  background: #2a0812;
+  box-shadow:
+    0 0 0 2px #ff1453,
+    0 0 0 4px #09070f;
+  animation: tajo-late 0.45s steps(2) infinite alternate;
+}
+.e-base {
+  display: none;
+}
+.mesa .e-ataque.tajo .e-base {
+  position: relative;
+  display: inline-flex;
+  margin-left: 6px;
+  vertical-align: middle;
+  opacity: 0.85;
+}
+.mesa .e-ataque.tajo .e-base::after {
+  content: '';
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: calc(50% - 1px);
+  height: 2px;
+  background: #ff1453;
+}
+/* con el Tajo armado, la nota «incluida +3/turno» se va (la cifra tachada y el chip de la Furia ya la dicen): la placa
+   no crece más que el naipe */
+.mesa .e-ataque.tajo .e-furia-nota {
+  display: none;
+}
+@media (max-width: 700px) {
+  .mesa .e-ataque.tajo .e-tajo {
+    display: inline-flex;
+    padding: 1px 2px;
+  }
+  .mesa .e-ataque.tajo .e-base {
+    display: none;
+  }
+  .mesa .e-golpe {
+    gap: 2px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mesa .e-ataque.tajo .e-tajo {
+    animation: none;
+  }
+}
+
+/* ── la cuenta: el Tajo fundido en TE PEGA («TE PEGA 42 · TAJO ×2»), el ¡CRÍTICO! apagado si compite con él y la
+   causa de NO TE PEGA ── */
+.cuenta .chip.c-tajo .c-tajo-x {
+  margin-left: 0.35em;
+  font-weight: 400;
+  color: #ffd0d8;
+}
+.cuenta .chip.c-critico.menor {
+  border-image: none;
+  background: transparent;
+  color: #c9a200;
+  animation: none;
+  min-height: 0;
+}
+.cuenta .chip.c-nopega .c-causa {
+  color: #b8f6ff;
+}
+
+/* ── teléfono: la segunda cara va debajo de la barra, centrada, con su regla ── */
+@media (max-width: 700px) {
+  .mesa .e-rasgo.e-segunda {
+    align-items: center;
+    padding: 2px 8px 3px;
+  }
+  .mesa .e-seg-nombre {
+    font-size: var(--fr);
+  }
+}
+
+/* ── teléfono bajo (Safari con sus barras): no hay alto para un renglón bajo la barra. El nombre de la segunda cara
+   (o del rasgo) va dentro de la barra de Vida, en lugar del apodo del Rey (se inspecciona tocándolo); el Ataque deja
+   de montarse sobre el naipe: va a su derecha, al pie, en una placa compacta (debajo de La Corte, si la hay), y la nota
+   de la Furia queda en la ayuda. Así el naipe del enemigo asoma entero hasta la barra ── */
+@container mesa (max-height: 740px) {
+  .mesa .e-barras > .e-rasgo {
+    display: none;
+  }
+  .mesa .e-vida:has(.e-alias) > .e-nombre:not(.e-alias) {
+    display: none;
+  }
+  .mesa .e-vida .e-alias {
+    display: block;
+    padding: 0 6px;
+    background: #2a0812;
+    color: #ffffff;
+    cursor: help;
+  }
+  .mesa .e-vida .e-alias.seg {
+    background: #8a0f2e;
+    box-shadow: inset 0 0 0 2px #ff4d6d;
+  }
+  .mesa .e-ataque {
+    grid-area: ataque;
+    justify-self: center;
+    align-self: end;
+    max-width: none;
+    margin-bottom: 6px;
+    padding: 2px 4px;
+  }
+  .mesa .e-furia-nota {
+    display: none;
+  }
+  /* la cuenta, sin renglones de más: lo que dan los palos va con su icono y su cifra («♥ +2»: el nombre, en la ayuda)
+     junto al total, y el chip del Tajo se abrevia a «TE PEGA 42 ×2» para compartir renglón con «LE QUEDAN» */
+  .mesa .cuenta .c-efecto .c-ef-rot {
+    display: none;
+  }
+  .mesa .c-desglose .d-terminos {
+    column-gap: 0.3em;
+  }
+  .mesa .c-desglose .d-rot {
+    width: auto;
+  }
+  /* (el rótulo largo cede al corto donde lo hay: «DAMAGE» → «DMG») */
+  .mesa .c-desglose .d-rot:has(.d-rot-c) .d-rot-l {
+    display: none;
+  }
+  .mesa .c-desglose .d-rot .d-rot-c {
+    display: inline;
+  }
+  .mesa .c-desglose > .d-fila {
+    gap: 0.35em;
+  }
+  /* la causa de NO TE PEGA, en la letra de cuerpo (más angosta que la de rótulo): el chip comparte renglón con
+     «LE QUEDAN» */
+  .mesa .cuenta .c-nopega .c-causa {
+    font-family: var(--cuerpo);
+    font-size: var(--fs-s);
+    text-transform: none;
+  }
+  .mesa .cuenta .c-chips {
+    gap: 2px;
+  }
+}
+/* teléfono: el chip del Tajo se abrevia a «TE PEGA 42 ×2» (el nombre del Tajo está en la barra del Rey) y comparte
+   renglón con «LE QUEDAN» */
+@media (max-width: 700px) {
+  .mesa .cuenta .c-tajo .c-tajo-p,
+  .mesa .cuenta .c-tajo > .icono {
+    display: none;
+  }
+  .mesa .cuenta .c-tajo .c-tajo-x {
+    margin-left: 0.3em;
+  }
+}
+
+/* ── la caída del Rey: el naipe se raja en tres pasos (el temblor crece) mientras dice lo último ── */
+.mesa .e-carta.jefe.grieta-1,
+.mesa .e-carta.jefe.grieta-2,
+.mesa .e-carta.jefe.grieta-3 {
+  animation: grieta 0.1s steps(2) infinite !important;
+}
+.mesa .e-carta.jefe.grieta-1 {
+  --g: 1px;
+}
+.mesa .e-carta.jefe.grieta-2 {
+  --g: 2px;
+  filter: brightness(1.15);
+}
+.mesa .e-carta.jefe.grieta-3 {
+  --g: 3px;
+  filter: brightness(1.35) saturate(1.2);
+}
+@keyframes grieta {
+  50% {
+    translate: calc(var(--g) * var(--k-enemigo)) calc(var(--g) * -0.5);
+  }
+}
+
+/* ── una Cábala del Bufón que hace lo suyo (Cara de Póker, Seña Falsa): un sello corto sobre lo que toca ── */
+.sello-bufon {
+  position: fixed;
+  z-index: 45;
+  translate: -50% -50%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 8px;
+  white-space: nowrap;
+  pointer-events: none !important;
+  background: #170c24;
+  box-shadow:
+    0 0 0 2px #c88bff,
+    0 0 0 4px #09070f,
+    4px 4px 0 4px #09070f;
+  animation: sello-bufon 1s steps(10) both;
+}
+.sello-bufon .sb-i {
+  --k: 2;
+}
+.sb-txt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.sb-txt .rotulo {
+  font-size: var(--fr);
+  color: #e6c8ff;
+}
+.sb-extra {
+  font-family: var(--rot);
+  font-size: var(--fr);
+  color: #8fdcff;
+  text-transform: uppercase;
+}
+@keyframes sello-bufon {
+  0% {
+    opacity: 0;
+    scale: 1.7;
+    rotate: -8deg;
+  }
+  20% {
+    opacity: 1;
+    scale: 0.94;
+    rotate: -3deg;
+  }
+  30% {
+    scale: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: -50% calc(-50% - 14px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sello-bufon {
+    animation: none;
+  }
+}
+@container mesa (max-height: 740px) {
+  /* el TE PEGA, en una sola fila al pie («⚔ 22 🔥3»): puede montarse sobre la esquina de abajo del naipe, nunca
+     trepar a la cabecera ni a La Corte */
+  .mesa .e-ataque {
+    grid-column: 2 / 4;
+    grid-row: 1;
+    justify-self: end;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 4px;
+  }
+  /* el sello INMUNE, al pie y arrimado al naipe: no cae sobre la cara del Bufón */
+  .mesa .e-sellos {
+    align-self: end;
+    margin-bottom: 4px;
+    margin-right: -12px;
+  }
+}
+@media (min-width: 701px) {
+  /* el bocadillo del Bufón no sube a la cabecera: su pie se mide contra el alto real de la escena */
+  .mesa .esc-bufon .bocadillo {
+    bottom: min(calc(96px * var(--k-bufon)), calc(100cqh - 5.2em));
+  }
+}
+@media (min-width: 701px) {
+  /* «SOLTÁ ACÁ» va sobre el borde de arriba del naipe (encima no hay sitio: la escena empieza en el naipe) */
+  .mesa .e-suelta {
+    top: calc(var(--u) * 0.5);
+    z-index: 3;
+  }
+}
+@media (max-width: 700px) {
+  /* «TE PEGA» vuelve al teléfono, encima de la cifra: las llamas de la Furia bajan hasta el emblema */
+  .mesa .e-pega {
+    font-size: var(--fs-s);
+  }
+  .mesa .e-llamas {
+    top: calc(var(--fs-s) * 1.05 - 4px);
+  }
+}
+@container mesa (max-height: 740px) {
+  .mesa .e-llamas {
+    top: -6px;
+  }
+  .mesa .e-sellos {
+    position: relative;
+    z-index: 1;
+  }
+}
+/* el rótulo corto del desglose solo se usa en el teléfono bajo */
+.d-rot-c {
+  display: none;
+}
+.c-sep {
+  font-style: normal;
+}
+@container mesa (max-height: 740px) {
+  /* NO TE PEGA con su causa, en dos renglones dentro del chip: entra en el renglón de «LE QUEDAN» */
+  .mesa .cuenta .chip.c-nopega:has(.c-causa) {
+    flex-direction: column;
+    gap: 0;
+    line-height: 1;
+    padding-top: 1px;
+    padding-bottom: 1px;
+  }
+  .mesa .cuenta .c-nopega .c-sep {
+    display: none;
+  }
+  /* con La Corte a la derecha, el TE PEGA va al pie del naipe (sobre su esquina de abajo), no sobre la pila */
+  .mesa:has(.corte .corte-carta) .e-ataque {
+    grid-column: 2 / 3;
+  }
+}

@@ -42,8 +42,11 @@ export function mover(dx: number, dy: number): void {
       mejor = el;
     }
   }
-  mejor?.focus();
-  mejor?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  if (!mejor) return;
+  // primero se trae a la vista y después se enfoca (así su ayuda se ubica donde quedó). En el Mapa, el nodo va al
+  // centro del rollo: nada queda bajo la cabecera, el HUD ni los bordes que se funden
+  mejor.scrollIntoView({ block: mejor.closest('.mapa-rollo') ? 'center' : 'nearest', inline: 'nearest' });
+  mejor.focus({ preventScroll: true });
 }
 
 /** Lo principal de una pantalla: lo que lleva `data-inicio`; en la mesa, la primera carta de la mano; si no, lo primero. */

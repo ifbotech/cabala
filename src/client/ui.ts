@@ -119,10 +119,20 @@ export function iniciarUi(): void {
     if (!(ev.target as HTMLElement).closest?.('[data-tip]')) ocultarTip();
   });
   document.addEventListener('focusout', ocultarTip);
-  window.addEventListener('scroll', ocultarTip, true);
+  // al desplazarse, la ayuda de lo que tiene el foco (un nodo del Mapa que el mando trae a la vista) lo acompaña; la
+  // del cursor se va
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (tipAncla?.isConnected && document.activeElement === tipAncla) ubicarTip(tipAncla);
+      else ocultarTip();
+    },
+    true,
+  );
 }
 
 let tipEl: HTMLElement | null = null;
+let tipAncla: HTMLElement | null = null;
 function mostrarTip(el: HTMLElement): void {
   ocultarTip();
   const titulo = el.dataset.tipT ?? '';
@@ -134,7 +144,16 @@ function mostrarTip(el: HTMLElement): void {
   tipEl.setAttribute('role', 'tooltip');
   tipEl.innerHTML = `${titulo ? `<b>${esc(titulo)}</b>` : ''}${cuerpo ? `<span>${esc(cuerpo)}</span>` : ''}${pie ? `<span class="apagado">${esc(pie)}</span>` : ''}`;
   document.body.append(tipEl);
+  tipAncla = el;
+  ubicarTip(el);
+}
+function ubicarTip(el: HTMLElement): void {
+  if (!tipEl) return;
   const r = el.getBoundingClientRect();
+  // un nodo del Mapa: la ayuda va al costado del lienzo, a la altura del nodo (nunca encima de él ni de sus vecinos)
+  if (carrilDelMapa(el, r)) return;
+  tipEl.classList.remove('tip-carril');
+  tipEl.style.maxWidth = '';
   const w = tipEl.offsetWidth;
   const h = tipEl.offsetHeight;
   const x = Math.max(4, Math.min(innerWidth - w - 4, r.left + r.width / 2 - w / 2));
@@ -142,9 +161,34 @@ function mostrarTip(el: HTMLElement): void {
   tipEl.style.left = `${Math.round(x)}px`;
   tipEl.style.top = `${Math.round(arriba >= 4 ? arriba : Math.min(innerHeight - h - 4, r.bottom + 6))}px`;
 }
+/** La ayuda de un nodo del Mapa, en el carril libre a un costado del lienzo (si lo hay): devuelve si la ubicó. */
+function carrilDelMapa(el: HTMLElement, r: DOMRect): boolean {
+  const lienzo = el.closest<HTMLElement>('.mapa-lienzo');
+  if (!lienzo || !tipEl) return false;
+  const L = lienzo.getBoundingClientRect();
+  const rollo = lienzo.closest<HTMLElement>('.mapa-rollo')?.getBoundingClientRect() ?? L;
+  const techo = ($('.pantalla > .cabecera')?.getBoundingClientRect().bottom ?? 0) + 6;
+  const piso = ($('.pantalla > .hud')?.getBoundingClientRect().top ?? innerHeight) - 6;
+  const margen = 12;
+  const derecha = Math.min(innerWidth, rollo.right) - L.right - margen - 6;
+  const izquierda = L.left - Math.max(0, rollo.left) - margen - 6;
+  const ancho = Math.max(derecha, izquierda);
+  if (ancho < 200) return false;
+  tipEl.classList.add('tip-carril');
+  tipEl.style.maxWidth = `${Math.floor(Math.min(ancho, 380))}px`;
+  const w = tipEl.offsetWidth;
+  const h = tipEl.offsetHeight;
+  const x = derecha >= izquierda ? L.right + margen : L.left - margen - w;
+  const y = Math.max(techo, Math.min(piso - h, r.top + r.height / 2 - h / 2));
+  tipEl.style.left = `${Math.round(x)}px`;
+  tipEl.style.top = `${Math.round(y)}px`;
+  tipEl.dataset.lado = derecha >= izquierda ? 'der' : 'izq';
+  return true;
+}
 export function ocultarTip(): void {
   tipEl?.remove();
   tipEl = null;
+  tipAncla = null;
 }
 
 /** Atributos de inspección de un elemento. */

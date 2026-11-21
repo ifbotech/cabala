@@ -2,6 +2,7 @@
 // datos en src/rules (cada uno en los dos idiomas); aquí solo va lo que dice la pantalla. Mínimo texto.
 import type { Jugada, Palo, Rango } from '../rules/cartas';
 import type { TipoNodo } from '../rules/estado';
+import { B } from '../rules/balance';
 
 export const ES = {
   // portada
@@ -38,6 +39,7 @@ export const ES = {
   pasar: 'PASAR',
   engano: 'ENGAÑO',
   dano: 'DAÑO',
+  danoCorto: 'DAÑO',
   multi: 'MULTI',
   elegiCartas: 'Elegí cartas y arrastralas al enemigo',
   noJugada: 'Eso no es jugada',
@@ -216,12 +218,23 @@ export const ES = {
   gExacto: 'Dejar al enemigo justo en 0: +{o} de oro y Multi de más en tu próximo golpe.',
   gAlPelo: 'Te pasaste por muy poco (hasta {p} % de su Vida): no cobra, pero la racha sigue viva.',
   gRacha: 'Golpes exactos seguidos: el próximo golpe suma {lista} de Multi según la racha.',
-  gSegunda: 'A media Vida cada Rey cambia de juego: el cartel rojo bajo su barra dice cómo.',
+  gSegunda: 'A media Vida cada Rey cambia de juego: el cartel rojo junto a su barra dice cómo, y queda a la vista hasta el final.',
   gEngano: 'El Mentiroso, {n} por combate: las cartas del golpe fingen ser tu carta más alta y nada les es Inmune. Si no lo abate, su Furia sube {f}.',
   templeTip: 'Naipe templado en el Fogón',
   llevasTip: 'Amuletos, Cábalas, cargas de los Reyes (la cifra junto a la pinta) y Bendiciones. Tocá para leerlas enteras.',
   masPiezas: '{n} piezas más',
   masPiezasTip: 'No entran en la bandeja: tocala para verlas.',
+  // 0.17.0 · nada se tapa: la segunda cara con su regla, el Tajo fundido en TE PEGA, la causa de NO TE PEGA y las cargas
+  aturdidoCausa: 'aturdido',
+  loAturdis: 'lo aturdís',
+  tuEscudo: 'tu Escudo lo para',
+  tajoPal: 'TAJO',
+  noLlega: 'NO LLEGA',
+  cargaEfS: '+{n} de Daño en cada golpe',
+  cargaEfC: '+{n} de Escudo al empezar cada combate',
+  cargaEfD: '+{n} de oro al ganar cada combate',
+  cargaEfH: '+{n} de Vida al ganar cada combate',
+  cargaQue: '{carga} {n}: {efecto}',
 };
 
 export const EN: Record<keyof typeof ES, string> = {
@@ -255,6 +268,7 @@ export const EN: Record<keyof typeof ES, string> = {
   pasar: 'PASS',
   engano: 'BLUFF',
   dano: 'DAMAGE',
+  danoCorto: 'DMG',
   multi: 'MULT',
   elegiCartas: 'Pick cards and drag them onto the enemy',
   noJugada: 'That is not a play',
@@ -427,12 +441,22 @@ export const EN: Record<keyof typeof ES, string> = {
   gExacto: 'Leaving the enemy at exactly 0: +{o} gold and extra Mult on your next hit.',
   gAlPelo: 'You went over by a hair (up to {p}% of its Health): no pay, but your streak stays alive.',
   gRacha: 'Exact hits in a row: your next hit adds {lista} Mult depending on the streak.',
-  gSegunda: 'At half Health every King changes his game: the red sign under his bar says how.',
+  gSegunda: 'At half Health every King changes his game: the red sign by his bar says how, and it stays in sight to the end.',
   gEngano: 'The Liar, {n} per fight: every card in the hit poses as your highest card and nothing is Immune to them. If it does not take the enemy down, its Fury rises {f}.',
   templeTip: 'Card tempered at the Bonfire',
   llevasTip: "Amulets, Cábalas, Kings' charges (the number next to the suit) and Blessings. Tap to read them in full.",
   masPiezas: '{n} more pieces',
   masPiezasTip: 'They do not fit in the tray: tap it to see them.',
+  aturdidoCausa: 'stunned',
+  loAturdis: 'you stun it',
+  tuEscudo: 'your Shield stops it',
+  tajoPal: 'CUT',
+  noLlega: 'MISSES',
+  cargaEfS: '+{n} Damage on every hit',
+  cargaEfC: '+{n} Shield at the start of each fight',
+  cargaEfD: '+{n} gold on winning each fight',
+  cargaEfH: '+{n} Health on winning each fight',
+  cargaQue: '{carga} {n}: {efecto}',
 };
 
 export type Clave = keyof typeof ES;
@@ -440,6 +464,16 @@ export type Clave = keyof typeof ES;
 type Par = { es: string; en: string };
 const P = (es: string, en: string): Par => ({ es, en });
 
+/**
+ * La regla de la segunda cara de cada Rey en un renglón corto, a la vista bajo su nombre mientras dure (la regla
+ * entera va al inspeccionarla). Las cifras salen del balance.
+ */
+export const SEGUNDA_CORTA: Record<Palo, Par> = {
+  S: P(`Si repetís jugada, TE PEGA ×${B.reyes.S.deguello}`, `Repeat a play and HE HITS ×${B.reyes.S.deguello}`),
+  C: P(`Escudo que vuelve ×${B.reyes.C.empalizadaRegenera} · Espadas lo cruzan`, `Shield regrows ×${B.reyes.C.empalizadaRegenera} · Swords cut it`),
+  D: P(`Cada golpe suyo: −${Math.round(B.reyes.D.remate * 100)} % de tu oro`, `Each hit he lands: −${Math.round(B.reyes.D.remate * 100)}% of your gold`),
+  H: P(`Lo que te curás, él se cura ×${B.reyes.H.ultimaRonda}`, `Whatever you heal, he heals ×${B.reyes.H.ultimaRonda}`),
+};
 export const PALO_NOMBRE: Record<Palo, Par> = { S: P('Espadas', 'Swords'), C: P('Bastos', 'Clubs'), D: P('Oros', 'Coins'), H: P('Copas', 'Cups') };
 /** El poder de cada palo, en tres palabras. */
 export const PALO_PODER: Record<Palo, Par> = {

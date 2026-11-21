@@ -3,7 +3,10 @@
 // HTML, texto recortado (también el rótulo que no entra en su botón) o algo que desborda de costado dentro de un
 // modal o un panel. En el móvil, además, la mesa no puede pisarse: la cuenta, la barra de Vida del enemigo y la mano
 // van cada una en su sitio (regla «solape-mesa»), también en la ventana baja de 390×664 (Safari con sus barras), que
-// se monta solo para los estados de mesa.
+// se monta solo para los estados de mesa. En todas las ventanas, lo del enemigo (barra, rótulo del Rey, TE PEGA,
+// sellos) no se monta sobre la cuenta, la cabecera, la mano ni los botones, y lo que dice la cuenta se ve («solape-
+// enemigo»); el grito del Personaje no tapa controles («grito-tapa»). En el Mapa, el «ESTÁS ACÁ» se ve, el nodo con
+// el foco queda entero a la vista y su ayuda no tapa ningún nodo («mapa-foco»).
 //
 //   npm run qa:visual                      español, las 4 ventanas, todos los estados
 //   npm run qa:visual -- --lang=en         inglés (capturas en artifacts/visual-qa-en/)
@@ -138,6 +141,107 @@ function auditar(o: { esMovil: boolean; idioma: string }): Fallo[] {
         if (encima && !cuentaEl.contains(encima) && !encima.contains(cuentaEl)) {
           fallos.push({ regla: 'solape-mesa', detalle: `la cuenta queda bajo ${nombre(encima)}` });
           break;
+        }
+      }
+    }
+  }
+  // la mesa no se pisa, en TODAS las ventanas: lo del enemigo (su barra de Vida, el rótulo del rasgo o de la segunda
+  // cara, la placa del TE PEGA con su Furia y sus sellos) no se monta sobre la cuenta, la cabecera (su rótulo, el
+  // turno, JUGADAS y MENÚ), la mano, los botones, La Corte, el Bufón ni el HUD, ni sus piezas entre sí. Y lo que dice la
+  // cuenta (la jugada, Daño, Multi, el total y sus chips) se ve: nada encima. No cuenta la mesa ya despejada (cobro),
+  // la tapada por un modal ni el grupo que va en el aire al arrastrar.
+  const mesa = document.querySelector('.mesa');
+  if (mesa && !mesa.classList.contains('cobra') && !document.querySelector('#capa .velo')) {
+    const caja = (el: Element) => el.getBoundingClientRect();
+    const de = (sel: string) => [...document.querySelectorAll(sel)].filter((el) => visible(el) && caja(el).width > 2 && caja(el).height > 2);
+    const cruzan = (a: DOMRect, b: DOMRect) => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 2 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 2;
+    const donde = (r: DOMRect) => `${Math.round(r.left)},${Math.round(r.top)} → ${Math.round(r.right)},${Math.round(r.bottom)}`;
+    const piezas: [string, Element[]][] = [
+      ['la barra de Vida', de('.mesa .e-vida')],
+      ['el rótulo del Rey', de('.mesa .e-barras > .e-rasgo')],
+      ['el TE PEGA', de('.mesa .e-ataque')],
+      ['los sellos', de('.mesa .e-sellos > *')],
+    ];
+    const ajenos: [string, Element[]][] = [
+      ['la cuenta', de('.mesa [data-cuenta] .cuenta:not(.reposo)')],
+      ['la cabecera', de('.mesa .mesa-top .lado > *')],
+      ['la mano', de('.mesa .mano .carta').filter((c) => Number((c as HTMLElement).style.zIndex || 0) < 100)],
+      ['los botones', de('.mesa .botones .btn')],
+      ['La Corte', de('.mesa .corte .corte-carta')],
+      ['el Bufón', de('.mesa .esc-bufon .bufon')],
+      ['el HUD', de('.mesa .hud')],
+    ];
+    // (y lo que dice el Bufón tampoco sube a la cabecera ni baja a la cuenta)
+    for (const b of de('.mesa .esc-bufon .bocadillo')) for (const [otro, ys] of ajenos.slice(0, 2)) for (const y of ys) if (cruzan(caja(b), caja(y))) fallos.push({ regla: 'solape-enemigo', detalle: `el bocadillo del Bufón (${donde(caja(b))}) pisa ${otro} (${nombre(y)})` });
+    const vistos = new Set<string>();
+    const pisa = (que: string, a: Element, otro: string, b: Element): void => {
+      const clave = `${que}|${otro}`;
+      if (vistos.has(clave) || !cruzan(caja(a), caja(b))) return;
+      vistos.add(clave);
+      fallos.push({ regla: 'solape-enemigo', detalle: `${que} (${nombre(a)}, ${donde(caja(a))}) pisa ${otro} (${nombre(b)}, ${donde(caja(b))})` });
+    };
+    for (const [que, xs] of piezas) for (const a of xs) for (const [otro, ys] of ajenos) for (const b of ys) pisa(que, a, otro, b);
+    for (let i = 0; i < piezas.length; i++)
+      for (let j = i + 1; j < piezas.length; j++) for (const a of piezas[i][1]) for (const b of piezas[j][1]) pisa(piezas[i][0], a, piezas[j][0], b);
+    if (!document.body.classList.contains('arrastrando')) {
+      for (const el of de('.mesa [data-cuenta] .cuenta:not(.reposo) :is(.c-jugada, .c-parte, [data-total], .c-chips > .chip, .c-efecto)')) {
+        const r = caja(el);
+        const encima = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        if (encima && !el.contains(encima) && !encima.contains(el) && !encima.closest('.tip')) {
+          fallos.push({ regla: 'solape-enemigo', detalle: `«${(el.textContent ?? '').trim().slice(0, 24)}» de la cuenta queda bajo ${nombre(encima)}` });
+          break;
+        }
+      }
+    }
+    // en el teléfono, el naipe del enemigo asoma de verdad (no una tira) entre lo de arriba y su barra de Vida
+    const centro = document.querySelector('.mesa .e-centro');
+    const vida = document.querySelector('.mesa .e-vida');
+    if (esMovil && centro && vida && visible(vida)) {
+      const arriba = Math.max(caja(centro).top, caja(document.querySelector('.mesa .mesa-top') ?? centro).bottom);
+      const asoma = Math.round(Math.min(caja(centro).bottom, caja(vida).top) - arriba);
+      if (asoma < 80) fallos.push({ regla: 'solape-enemigo', detalle: `el naipe del enemigo asoma solo ${asoma} px (mínimo 80)` });
+    }
+  }
+  // el grito del Personaje: al costado de su retrato, dentro de la pantalla, sin tapar controles ni la cuenta
+  for (const g of [...document.querySelectorAll('.hud-grito')].filter(visible)) {
+    const r = g.getBoundingClientRect();
+    for (const el of [...document.querySelectorAll('#app button, #app .mano .carta, #app .cuenta:not(.reposo)')].filter(visible)) {
+      const c = el.getBoundingClientRect();
+      if (Math.min(r.right, c.right) - Math.max(r.left, c.left) > 2 && Math.min(r.bottom, c.bottom) - Math.max(r.top, c.top) > 2) {
+        fallos.push({ regla: 'grito-tapa', detalle: `«${(g.textContent ?? '').trim()}» tapa ${nombre(el)} «${(el.textContent ?? '').trim().slice(0, 20)}»` });
+        break;
+      }
+    }
+  }
+  // el Mapa («mapa-foco»): el «ESTÁS ACÁ» se ve (nada encima); el nodo con el foco queda entero a la vista dentro del
+  // rollo (ni bajo la cabecera ni bajo el HUD ni en los bordes que se funden), y su ayuda no tapa ningún nodo
+  const rollo = document.querySelector('.mapa-rollo');
+  if (rollo && !document.querySelector('#capa .velo')) {
+    const R = rollo.getBoundingClientRect();
+    const cruza = (a: DOMRect, b: DOMRect) => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 2 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 2;
+    const aca = document.querySelector('.nodo-aca');
+    if (aca && visible(aca)) {
+      const r = aca.getBoundingClientRect();
+      if (r.top >= R.top && r.bottom <= R.bottom) {
+        const encima = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        if (encima && !aca.contains(encima) && !encima.closest('.tip')) fallos.push({ regla: 'mapa-foco', detalle: `«${(aca.textContent ?? '').trim()}» queda bajo ${nombre(encima)}` });
+      }
+    }
+    const foco = document.activeElement?.closest('.nodo');
+    if (foco) {
+      const f = foco.getBoundingClientRect();
+      const borde = R.height * 0.07;
+      if (f.top < R.top + borde - 1 || f.bottom > R.bottom - borde + 1) fallos.push({ regla: 'mapa-foco', detalle: `el nodo con el foco (${Math.round(f.top)} → ${Math.round(f.bottom)}) no queda entero en el rollo (${Math.round(R.top + borde)} → ${Math.round(R.bottom - borde)})` });
+      // (en el teléfono no hay carril al costado del lienzo: la ayuda se toca y se va)
+      for (const t of esMovil ? [] : [...document.querySelectorAll('.tip')].filter(visible)) {
+        const T = t.getBoundingClientRect();
+        for (const n of [...document.querySelectorAll('.nodo')].filter(visible)) {
+          const N = n.getBoundingClientRect();
+          if (N.bottom < R.top || N.top > R.bottom) continue;
+          if (cruza(T, N)) {
+            fallos.push({ regla: 'mapa-foco', detalle: `la ayuda (${Math.round(T.left)},${Math.round(T.top)} → ${Math.round(T.right)},${Math.round(T.bottom)}) tapa ${n === foco ? 'el nodo con el foco' : 'un nodo vecino'} (${n.getAttribute('aria-label')})` });
+            break;
+          }
         }
       }
     }
