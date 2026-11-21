@@ -3,6 +3,35 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.18.0 · El golpe se descubre (2026-11-21)
+
+Paquete dictado por el Jurado Fable sobre la 0.17.0: más suspenso en el conteo, un solo número para el Tajo, el grito
+que no tapa nada, la Vida que crece con cada Rey y la Steam Deck con la mano grande.
+
+**El golpe**
+- La vista previa encabeza con su veredicto cuando abatís: **LO ABATÍS**, **¡EXACTO!** o **¡AL PELO!** (este último con
+  su propio contador en la Crónica); al soltar, la fórmula sube término a término y el total cae en oro y se asienta,
+  con sonido y sacudida. El total, «LE QUEDAN n» y «SOBRAN n» se siguen leyendo antes de soltar.
+- **Tajo de revés con una sola fórmula**: «TE PEGA 48 (24 ×2)» en el chip y en la placa del Rey, sostenida hasta que pega.
+- El naipe del Rey ordena su centro por carriles: tu golpe arriba, el cartel del Rey al medio, lo que te pega abajo.
+
+**Reglas**
+- **Cada Rey vencido sube 12 tu Vida máxima** (el Botín lo muestra y el HUD lo cobra a la vista).
+- **El Mentiroso**: Cara de Piedra (empieza cada combate con Escudo, ×2 y ×3 en los tramos 2 y 3) y Vida chica.
+- **Un costo de Vida máxima siempre cuesta**: los pactos, la Cábala y Heridas viejas ya no la suben ni salen gratis con
+  una Vida chica; nunca la bajan de la mitad.
+- La Estocada del Caudillo cambia de nombre para no confundirse con el Contraataque; la moneda del Bufón va pareja (10/10).
+
+**Mesa, mando y teléfono**
+- El grito del Personaje dura 1,2 s y busca un hueco libre: nunca sobre Vida, Escudo, Oro, la cuenta, la mano ni botones.
+- **Steam Deck**: naipes de la mano a 2×, ayuda del naipe al costado, cargas rotuladas, «+N» escalonados.
+
+**Balance** (laboratorio, 3000 partidas por celda, sin avisos) · Altar vacío / lleno: Escoba 32,1 / 47,9 · Truco
+30,5 / 48,3 · Chinchón 28,2 / 48,3 · Mentiroso 31,1 / 47,0 · Chancho 30,2 / 47,1.
+
+**Jurado Fable** (sobre la versión anterior a los dos arreglos de cierre): Claridad 7,3 · Diversión 7,4 · Estética 8,0 ·
+Veredicto 7,4. El arreglo del piso de Vida máxima (su P0) y la vuelta del total a la previa (su regresión de Claridad)
+entraron después del dictamen.
 ## 0.17.0 · La cara verdadera (2026-11-21)
 
 Paquete dictado por los P0 y P1 del Jurado Fable sobre la 0.16.0: el Rey en segunda cara pisando la cuenta, el Tajo de

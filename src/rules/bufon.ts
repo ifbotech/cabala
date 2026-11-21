@@ -6,7 +6,7 @@ import { AMULETO, AMULETOS } from './amuletos';
 import type { AmuletoId } from './amuletos';
 import { B, L, fillL } from './balance';
 import { esComodin } from './cartas';
-import { curar, tieneAumento } from './estado';
+import { curar, pagarVidaMax, tieneAumento } from './estado';
 import type { Botin, Partida } from './estado';
 import { azar, elegir } from './rng';
 
@@ -167,8 +167,7 @@ export const CABALAS: readonly CabalaDef[] = [
         detalle: L('−6 de Vida máxima. Elegís una Bendición.', '−6 max Health. You choose a Blessing.'),
         acepta: true,
         hacer: (p) => {
-          p.vidaMax = Math.max(10, p.vidaMax - 6);
-          p.vida = Math.min(p.vida, p.vidaMax);
+          pagarVidaMax(p, 6);
           return { texto: L('Firmado. Un Rey te mira con interés.', 'Signed. A King eyes you with interest.'), bueno: true, oferta: 'bendicion' };
         },
       },
@@ -341,8 +340,7 @@ export const CABALAS: readonly CabalaDef[] = [
             p.amuletos = p.amuletos.filter((x) => x !== id);
             return { texto: fillL(L('La letra chica decía: «{a}, para el Bufón».', 'The fine print said: "{b}, for the Jester".'), { a: AMULETO[id].nombre.es, b: AMULETO[id].nombre.en }), bueno: false };
           }
-          p.vidaMax = Math.max(10, p.vidaMax - k.aciegas.vida);
-          p.vida = Math.min(p.vida, p.vidaMax);
+          pagarVidaMax(p, k.aciegas.vida);
           return { texto: fillL(L('La letra chica decía: −{v} de Vida máxima.', 'The fine print said: −{v} max Health.'), { v: k.aciegas.vida }), bueno: false };
         },
       },

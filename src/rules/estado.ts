@@ -232,6 +232,15 @@ export function carga(p: Partida, rey: Palo): number {
 /** El enemigo activo del combate. */
 export const activo = (p: Partida): Enemigo | undefined => p.combate?.fila[0];
 
+/** Lo que queda de una Vida máxima `v` después de pagar `n`: un costo nunca la sube ni la deja gratis
+ *  (El Mentiroso arranca con poquísima), y nunca la baja de la mitad. */
+export const vidaMaxTrasCosto = (v: number, n: number): number => Math.min(v, Math.max(Math.ceil(v / 2), Math.round(v - n)));
+/** Cobra un costo de Vida máxima y recorta la Vida al nuevo tope. */
+export function pagarVidaMax(p: Partida, n: number): void {
+  p.vidaMax = vidaMaxTrasCosto(p.vidaMax, n);
+  p.vida = Math.min(p.vida, p.vidaMax);
+}
+
 /** Cura sin pasarse del máximo; devuelve lo que no cupo. */
 export function curar(p: Partida, n: number): number {
   const antes = p.vida;

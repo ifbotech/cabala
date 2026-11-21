@@ -177,7 +177,7 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 |---|---|---|---|---|
 | **Escoba** · Escoba del 15 | La Barrendera | 58 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×3 y más Daño para siempre. | abierto desde el principio |
 | **Truco** · Envido y Bravas | El Paisano Bravo | 54 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
-| **Chinchón** · Pierna y Escalera | La Timbera del Club | 26 · 7 | Piernas y Escaleras de palo crecen siempre y te cubren. | Vencé a un Rey. |
+| **Chinchón** · Pierna y Escalera | La Timbera del Club | 25 · 7 | Piernas y Escaleras de palo crecen siempre y te cubren. | Vencé a un Rey. |
 | **El Mentiroso** · Cara de Piedra | El Chamuyero | 9 · 8 | Comodines, Escudo de entrada y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
 | **Chancho Va** · Mano al Centro | El Manotazo | 64 · 4 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
 

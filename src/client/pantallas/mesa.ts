@@ -238,10 +238,9 @@ export function pantallaMesa(p: Partida): Pantalla {
     const filaM = [...sumanM.map((x, i) => termino(x, i === 0 && x.v > 0 ? `${x.v}` : mas(x.v))), ...porM.map((x) => termino(x, `×${x.v}`))];
     const fila = (cls: string, rotulo: string, xs: string[], corto = rotulo): string => `<span class="d-fila ${cls}"><b class="d-rot"><span class="d-rot-l">${rotulo}</span>${corto !== rotulo ? `<span class="d-rot-c">${corto}</span>` : ''}</b><span class="d-terminos">${xs.length ? xs.join('<i class="d-sep" aria-hidden="true">·</i>') : '<b class="d-v">1</b>'}</span></span>`;
     const desglose = `<span class="c-desglose">${fila('d-fd', t('dano'), filaD, t('danoCorto'))}${fila('d-fm', t('multi'), filaM)}</span>`;
-    // el golpe se DESCUBRE: antes de soltar, la cuenta dice el veredicto («LO ABATÍS», «NO LO ABATÍS», «¡EXACTO!»,
-    // «¡AL PELO!») y todo lo que hace falta para decidir (TE PEGA, lo que dan los palos, el canto, el desglose con
-    // sus términos, y en la barra del enemigo la tajada que le sacás); el TOTAL exacto y «LE QUEDAN»/«SOBRAN» los
-    // revela el conteo al soltar. (Las cifras finales ya están en su lugar, invisibles: la cuenta no cambia de ancho)
+    // antes de soltar, la cuenta lo dice todo: el veredicto («LO ABATÍS», «NO LO ABATÍS», «¡EXACTO!», «¡AL PELO!»)
+    // encabeza los chips, y la fórmula con su TOTAL, «LE QUEDAN»/«SOBRAN», TE PEGA y el desglose quedan a la vista
+    // (0.18.1: esconder el total confundía); al soltar, el conteo vuelve a subir la fórmula término a término
     const vidaE = enemigo?.vida ?? 0;
     const revela = q.abate ? (q.exacto ? '' : t('sobran', { n: q.aVida - vidaE })) : !q.ejecuta && enemigo ? t('leQuedan', { n: Math.max(0, vidaE - q.aVida) }) : '';
     const queda = revela ? `<span class="chip c-queda c-revela">${esc(revela)}</span>` : '';
@@ -264,7 +263,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           : `<b class="c-veredicto v-abate">${t('loAbatis')}</b>`
       : q.ejecuta
         ? `<b class="c-veredicto v-abate">${t('ejecuta')}</b>`
-        : `<b class="c-veredicto v-no">${t('noLoAbatis')}</b>`;
+        : ''; // si no lo abate, ya lo dicen «LE QUEDAN n» y TE PEGA: el veredicto no ocupa otro lugar
     const destino = (q.abate || q.ejecuta ? '' : q.contra && q.contra > 0 ? pega : sinContra()) + queda;
     // el ¡CRÍTICO! dorado no le compite al aviso rojo del Tajo: va después y apagado
     const critico = q.critico ? `<span class="chip canto c-critico${tajo ? ' menor' : ''}">${t('critico')}</span>` : '';
@@ -276,7 +275,6 @@ export function pantallaMesa(p: Partida): Pantalla {
       <span class="c-formula">
         <span class="chip c-jugada">${esc(tx(JUGADA_NOMBRE[q.jugada]))}</span>
         <span class="c-revelado">
-          ${veredicto}
           <span class="c-numeros">
             <span class="c-parte" data-cd><span class="rotulo">${t('dano')}</span><span data-v>${cifra(q.dano, 'roja', 'grande')}</span></span>
             ${cifra('x', 'hueso')}
@@ -287,7 +285,7 @@ export function pantallaMesa(p: Partida): Pantalla {
         </span>
         ${efectos}
       </span>
-      <span class="c-chips">${q.canto ? `<span class="chip canto c-canto">${esc(tx(MAZO[p.mazoId].canto))}</span>` : ''}${tajo ? '' : critico}${q.perfora && enemigo && enemigo.escudo > 0 ? `<span class="chip azul">${t('perfora')}</span>` : ''}${destino}${tajo ? critico : ''}</span>
+      <span class="c-chips">${veredicto}${q.canto ? `<span class="chip canto c-canto">${esc(tx(MAZO[p.mazoId].canto))}</span>` : ''}${tajo ? '' : critico}${q.perfora && enemigo && enemigo.escudo > 0 ? `<span class="chip azul">${t('perfora')}</span>` : ''}${destino}${tajo ? critico : ''}</span>
       ${desglose}
     </div>`;
   }

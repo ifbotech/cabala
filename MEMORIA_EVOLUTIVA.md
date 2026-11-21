@@ -452,3 +452,20 @@ victoria, derrota, botín, ajustes y crónica. Tres agentes en serie (mesa, arte
 - El panel 0.16.0 dio 75,0 % (IC95 63–84 %, n = 60), F 203,3, claridad 6,3, Deck 77,8 % (n = 9), Móvil 80,0 %.
 
 **Medición.** Jurado 7,4 · 7,3 · 8,0 · 7,4 (+0,1 en las cuatro).
+## 0.18.0 · El golpe se descubre (publicada)
+
+**Qué se buscó.** Diversión: suspenso en el conteo, el Tajo con un solo número, el grito que no tapa, la Vida que crece con
+cada Rey, el Mentiroso con su defensa propia y la Steam Deck con la mano grande.
+
+**Qué entró.** Veredicto en la previa y remate del conteo (sonido, sacudida, total que se asienta); Tajo «TE PEGA n (k ×2)»;
+carriles en el naipe del Rey; grito que busca hueco; +12 de Vida máxima por Rey; Cara de Piedra; mano 2× en la Deck.
+
+**Lecciones.**
+- Esconder el total y «LE QUEDAN» hasta el conteo subió Diversión (+0,1) pero bajó Claridad (-0,1): el novato y la Deck
+  dejaron de poder decidir. El suspenso tiene que estar en *cómo* se cuenta, no en *qué* se sabe antes de soltar.
+- Una Vida de arranque muy chica (Mentiroso 9) choca con cualquier piso absoluto (`Math.max(10, …)`): el costo se vuelve
+  gratis o hasta suma. Los costos de Vida máxima pasan por `pagarVidaMax` (nunca suben, nunca bajan de la mitad).
+- Un veredicto nuevo en la fila de chips empujó la cuenta y achicó el naipe del enemigo en el teléfono bajo (QA visual
+  «solape-enemigo»): «NO LO ABATÍS» sobraba, porque «LE QUEDAN n» ya lo dice.
+
+**Medición.** Jurado 7,3 · 7,4 · 8,0 · 7,4 (sobre la build previa a los dos arreglos de cierre).

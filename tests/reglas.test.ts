@@ -7,6 +7,7 @@ import { jugarEntera, mejorGolpe, paso } from '../src/rules/bot';
 import { clasificar, resolver } from '../src/rules/cartas';
 import type { Carta, PaloCarta } from '../src/rules/cartas';
 import { crearEnemigo, cuenta, descartar, golpear, iniciarCombate, repiteJugada } from '../src/rules/combate';
+import { vidaMaxTrasCosto } from '../src/rules/estado';
 import type { Enemigo, Partida } from '../src/rules/estado';
 import { COLUMNAS, PISOS, REGLAS_MAPA, TRAMOS, cumple, generarTramo } from '../src/rules/mapa';
 import { MAZOS } from '../src/rules/mazos';
@@ -452,6 +453,25 @@ describe('0.15.0: la defensa escala, el Golpe al pelo, la segunda cara y el sopl
     iniciarCombate(p, 'rey', [rey]);
     expect(p.combate!.fila[0].vida).toBe(320);
     expect(p.reyHerido).toBe(0);
+  });
+});
+
+describe('0.18.1: un costo de Vida máxima siempre cuesta', () => {
+  it('nunca la sube, nunca sale gratis y nunca la baja de la mitad', () => {
+    for (const v of [1, 2, 5, 9, 10, 21, 40, 64, 120]) {
+      for (const n of [1, 6, 8, 15, 40]) {
+        const r = vidaMaxTrasCosto(v, n);
+        expect(r).toBeLessThanOrEqual(v);
+        expect(r).toBeGreaterThanOrEqual(Math.ceil(v / 2));
+        if (v >= 2) expect(r).toBeLessThan(v);
+      }
+    }
+  });
+  it('El Mentiroso, con su Vida chica, paga Heridas viejas en el Reinado 6', () => {
+    const r1 = juego.nuevaPartida({ mazo: 'mentiroso', semilla: 'HERIDA', reinado: 1 });
+    const r6 = juego.nuevaPartida({ mazo: 'mentiroso', semilla: 'HERIDA', reinado: 6 });
+    expect(r6.vidaMax).toBeLessThan(r1.vidaMax);
+    expect(r6.vidaMax).toBeGreaterThanOrEqual(Math.ceil(r1.vidaMax / 2));
   });
 });
 

@@ -11,7 +11,7 @@ import { CABALLO, PALOS, REY, SOTA, barajaBase } from './cartas';
 import type { Palo } from './cartas';
 import * as combate from './combate';
 import type { Ev } from './combate';
-import { carga, curar, donesDe, nivelBend, tieneAumento } from './estado';
+import { carga, curar, donesDe, nivelBend, pagarVidaMax, tieneAumento, vidaMaxTrasCosto } from './estado';
 import type { Enemigo, ItemBotin, Nodo, Oferta, Partida, TipoCombate } from './estado';
 import { TRAMOS, alcanzables, generarTramo, sortearReyes } from './mapa';
 import type { MazoId } from './mazos';
@@ -96,7 +96,7 @@ export function nuevaPartida(o: OpcionesPartida): Partida {
   const reinado = Math.max(1, Math.min(8, o.reinado ?? 1));
   const m = B.mazos[o.mazo];
   const semilla = (o.semilla ?? 'CABALA').toUpperCase();
-  const vida = vidaInicial(o.mazo, altar.vida) - (reinado >= 6 ? B.reinados.vidaMax : 0);
+  const vida = vidaMaxTrasCosto(vidaInicial(o.mazo, altar.vida), reinado >= 6 ? B.reinados.vidaMax : 0);
   const p: Partida = {
     v: 1,
     semilla,
@@ -302,13 +302,11 @@ function tomar(p: Partida, oferta: Oferta, id: string, reemplaza?: AmuletoId): b
   }
   if (u === 'venderalma') {
     p.manoMax += au.venderalma.mano;
-    p.vidaMax = Math.max(10, p.vidaMax - au.venderalma.vida);
-    p.vida = Math.min(p.vida, p.vidaMax);
+    pagarVidaMax(p, au.venderalma.vida);
   }
   if (u === 'irsealmazo') p.irseAlMazo = true;
   if (u === 'contraflor') {
-    p.vidaMax = Math.max(10, Math.round(p.vidaMax * au.contraflor.vida));
-    p.vida = Math.min(p.vida, p.vidaMax);
+    pagarVidaMax(p, p.vidaMax * (1 - au.contraflor.vida));
   }
   if (u === 'chamuyo') moverAfinidad(p, 0);
   return true;
