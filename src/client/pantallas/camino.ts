@@ -493,6 +493,8 @@ export function pantallaBotin(p: Partida, desdeMesa = false): Pantalla {
     const cobrado = `<span class="bp-cobrado verde" aria-hidden="true">✓</span>`;
     if (it.t === 'oro') return pieza(pxHud('oro'), t('oroMas', { n: it.n }), cobrado, 'hecho oro');
     if (it.t === 'cura') return pieza(pxHud('vida'), t('vidaMas', { n: it.n }), cobrado, 'hecho cura');
+    // la Vida máxima que da el Rey vencido: el corazón con su «+», y debajo, chico, por qué
+    if (it.t === 'vidamax') return pieza(`${pxHud('vida')}<b class="bp-mas" aria-hidden="true">+</b>`, t('vidaMaxMas', { n: it.n }), `<span class="bp-pie">${t('vidaMaxPie')}</span>${cobrado}`, 'hecho cura vidamax');
     const icono = it.oferta.tipo === 'bendicion' ? pxNodo('rey') : it.oferta.tipo === 'amuleto' ? pxHud('candado') : pxNodo('cabala');
     return pieza(
       icono,

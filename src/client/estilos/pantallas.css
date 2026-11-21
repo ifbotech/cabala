@@ -2507,6 +2507,26 @@ button.visor-carta:disabled {
 .botin-fila.bp .btn {
   min-width: 80%;
 }
+/* la Vida máxima del Rey vencido: el corazón con un «+» dorado en la esquina y, debajo, por qué (chico) */
+.bp-arte:has(.bp-mas) {
+  position: relative;
+}
+.bp-mas {
+  position: absolute;
+  right: -0.35em;
+  top: -0.1em;
+  font-family: var(--rot);
+  font-size: var(--fr);
+  line-height: 1;
+  color: var(--oro, #ffd500);
+  text-shadow: 2px 2px 0 #1c1024;
+}
+.bp-pie {
+  font-size: var(--fs-s, 18px);
+  line-height: 1.2;
+  color: var(--hueso);
+  opacity: 0.85;
+}
 .botin:not(.directo) .botin-panel > [data-accion='seguir'] {
   min-width: calc(var(--fr) * 12);
 }

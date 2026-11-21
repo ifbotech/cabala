@@ -884,7 +884,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     const grito = (): void => void (tipo === 'rey' && gritar(p.mazoId, tx(GRITO[p.mazoId].gana)));
     const fin = vistaDe(p);
     if (quieto()) {
-      hud = { ...fin, vida: hud.vida, vidaMax: hud.vidaMax };
+      hud = { ...fin, vida: Math.max(hud.vida, fin.vida), vidaMax: fin.vidaMax };
       ponerHud(hud);
       grito();
       return;
@@ -927,8 +927,9 @@ export function pantallaMesa(p: Partida): Pantalla {
     // (el grito espera a que el «+N» del oro termine de caer: si no, se le monta encima)
     window.setTimeout(grito, 450);
     // la Vida del botín (el respiro tras un Rey, el Brindis): se llena a la vista
+    // (y la Vida máxima que suma el Rey vencido: la cifra «/N» crece a la vista aunque la Vida no cambie)
     const v = $('[data-hud-vida]');
-    if (v && p.vida > hud.vida) {
+    if (v && (p.vida > hud.vida || p.vidaMax !== hud.vidaMax)) {
       const cv = centro(v);
       motas(cv.x, cv.y, RAMPA_CURA, 14, 50);
       sonar('cura');
