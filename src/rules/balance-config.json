@@ -89,17 +89,17 @@
     "escudoCaballo": 14,
     "actos": [
       {
-        "vida": 1.18,
+        "vida": 1.5,
         "ataque": 1,
         "escudo": 1
       },
       {
-        "vida": 3.4,
+        "vida": 4.3,
         "ataque": 12,
         "escudo": 2
       },
       {
-        "vida": 10.5,
+        "vida": 13.3,
         "ataque": 28,
         "escudo": 4
       }
@@ -145,7 +145,7 @@
   },
   "mazos": {
     "escoba": {
-      "vida": 76,
+      "vida": 74,
       "mano": 3,
       "hasta": 9,
       "comodines": 2,
@@ -154,7 +154,7 @@
       "multiMano": 3
     },
     "truco": {
-      "vida": 63,
+      "vida": 62,
       "mano": 3,
       "hasta": 7,
       "comodines": 2,
@@ -169,7 +169,7 @@
       "multiMano": 4
     },
     "chinchon": {
-      "vida": 26,
+      "vida": 27,
       "mano": 7,
       "hasta": 9,
       "comodines": 2,
@@ -178,7 +178,7 @@
       "multiMano": 2
     },
     "mentiroso": {
-      "vida": 15,
+      "vida": 16,
       "mano": 8,
       "hasta": 7,
       "comodines": 3,
@@ -188,13 +188,13 @@
       "multiMano": 0
     },
     "chancho": {
-      "vida": 73,
+      "vida": 49,
       "mano": 4,
       "hasta": 9,
       "comodines": 2,
       "multi": 2,
       "aturde": 2,
-      "multiMano": 3
+      "multiMano": 5
     }
   },
   "botin": {

@@ -94,16 +94,23 @@ export function mejorGolpe(p: Partida): { ids: string[]; q: Cuenta; v: number; e
   const probar = (engano: boolean) => {
     const antes = c.engano;
     c.engano = engano;
+    // primero cada golpe con las Postas de por defecto; después, los mejores se prueban acomodados de otra manera
+    const vistos: { sel: Carta[]; v: number }[] = [];
+    const pesar = (sel: Carta[], postas?: number[]): number | null => {
+      const q = cuenta(p, sel, postas);
+      if (!q.ok) return null;
+      let v = valor(p, q, sel);
+      // el Engaño se guarda para cuando abate
+      if (engano) v -= q.abate ? 5 : 400;
+      if (!mejor || v > mejor.v) mejor = { ids: sel.map((k) => k.id), q, v, engano, postas: q.postas };
+      return v;
+    };
     for (const sel of combinaciones(c.mano)) {
-      for (const postas of acomodos(p, sel)) {
-        const q = cuenta(p, sel, postas);
-        if (!q.ok) break;
-        let v = valor(p, q, sel);
-        // el Engaño se guarda para cuando abate
-        if (engano) v -= q.abate ? 5 : 400;
-        if (!mejor || v > mejor.v) mejor = { ids: sel.map((k) => k.id), q, v, engano, postas };
-      }
+      const v = pesar(sel);
+      if (v !== null) vistos.push({ sel, v });
     }
+    vistos.sort((a, b) => b.v - a.v);
+    for (const { sel } of vistos.slice(0, 3)) if (sel.length > 1) for (const postas of acomodos(p, sel).slice(1)) pesar(sel, postas);
     c.engano = antes;
   };
   probar(false);
