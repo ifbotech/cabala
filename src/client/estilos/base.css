@@ -1483,3 +1483,24 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .b-signo {
 .btn:not(:focus) > .glifo.g-a + .glifo.g-tecla {
   visibility: hidden;
 }
+
+/* 0.21: la carga dice qué da, en criollo, bajo su nombre («FILO» / «+3 daño»); en el teléfono, en su ayuda */
+.ficha.carga .f-txt {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+.ficha.carga .f-ayuda {
+  font-family: var(--cuerpo);
+  font-size: 14px;
+  line-height: 1;
+  color: var(--hueso-2);
+  text-transform: none;
+  white-space: nowrap;
+}
+@media (max-width: 700px) {
+  .ficha.carga .f-txt {
+    display: none;
+  }
+}

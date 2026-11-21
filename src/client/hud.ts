@@ -43,6 +43,8 @@ export function cargaQue(p: Partida, s: Palo): string {
   return t('cargaQue', { carga: tx(REY_DEF[s].carga), n, efecto });
 }
 
+const AYUDA_CARGA = { S: 'filoAyuda', C: 'coraAyuda', D: 'fortunaAyuda', H: 'brindisAyuda' } as const;
+
 function tiras(p: Partida): string {
   // solo lo que llevás (los huecos libres se cuentan en «LO QUE LLEVÁS»: un cuadro vacío parecía un error de carga)
   const amuletos = p.amuletos.map((id) => {
@@ -60,7 +62,9 @@ function tiras(p: Partida): string {
     .map((s) => {
       const r = REY_DEF[s];
       const regla = ajustes.idioma === 'en' ? `+1 for each enemy you take down with ${PALO_NOMBRE[s].en} in the hit.` : `+1 por cada enemigo que abatís con ${PALO_NOMBRE[s].es} en el golpe.`;
-      return `<span class="ficha carga" data-carga="${s}" ${tip(cargaQue(p, s), tx(r.cargaDa), regla)}>${pxPalo(s)}<b class="f-rot">${esc(tx(r.carga))}</b>${cifra(carga(p, s), 'oro')}</span>`;
+      // (debajo del nombre, lo que da en criollo: «FILO · +3 daño»; la regla entera, en la ayuda)
+      const ayuda = t(AYUDA_CARGA[s], { n: s === 'S' ? carga(p, s) * B.cargas.filoDano : carga(p, s) });
+      return `<span class="ficha carga" data-carga="${s}" ${tip(cargaQue(p, s), tx(r.cargaDa), regla)}>${pxPalo(s)}<span class="f-txt"><b class="f-rot">${esc(tx(r.carga))}</b><small class="f-ayuda">${esc(ayuda)}</small></span>${cifra(carga(p, s), 'oro')}</span>`;
     })
     .join('');
   const bendiciones = (Object.keys(p.bendiciones) as BendicionId[])
