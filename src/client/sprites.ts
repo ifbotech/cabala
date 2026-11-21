@@ -8,7 +8,7 @@ import type { TipoOferta } from '../rules/estado';
 import type { MazoId } from '../rules/mazos';
 import type { BendicionId } from '../rules/reyes';
 import { cifraMapa, type TonoCifra } from './pixel/cifras';
-import { amuletoMapa, aumentoMapa, bendicionMapa, hudMapa, inmuneMapa, nodoMapa, paloMapa, estrellaMapa, type HudPx, type NodoPx } from './pixel/iconos';
+import { amuletoMapa, aumentoMapa, bendicionMapa, chicheMapa, hudMapa, inmuneMapa, nodoMapa, paloMapa, estrellaMapa, type HudPx, type NodoPx } from './pixel/iconos';
 import { logoMapa } from './pixel/logo';
 import { BARRAS, barraMapa, marcoMapa, panoMapa, type Estilo } from './pixel/marcos';
 import { comodinMapa, dorsoNaipe, naipeMapa, naipeSegundaMapa } from './pixel/naipes';
@@ -68,6 +68,7 @@ export const pxAumento = (id: AumentoId, cls = '') => px(`u:${id}`, () => aument
 export const pxBendicion = (id: BendicionId, cls = '') => px(`b:${id}`, () => bendicionMapa(id)!, `icono ${cls}`);
 export const pxPieza = (tipo: TipoOferta, id: string, cls = '') => (tipo === 'amuleto' ? pxAmuleto(id as AmuletoId, cls) : tipo === 'aumento' ? pxAumento(id as AumentoId, cls) : pxBendicion(id as BendicionId, cls));
 export const pxNodo = (id: NodoPx, cls = '') => px(`n:${id}`, () => nodoMapa(id), `icono ${cls}`);
+export const pxChiche = (id: string, cls = '') => px(`ch:${id}`, () => chicheMapa(id)!, `icono ${cls}`);
 export const pxHud = (id: HudPx, cls = '') => px(`h:${id}`, () => hudMapa(id), `icono ${cls}`);
 export const pxPalo = (s: Palo, cls = '') => px(`palo:${s}`, () => paloMapa(s), `pinta ${cls}`);
 export const pxInmune = (s: Palo, cls = '') => px(`inmune:${s}`, () => inmuneMapa(s), `inmune ${cls}`);

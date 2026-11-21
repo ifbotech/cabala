@@ -107,6 +107,21 @@ function saltar(aBotones: boolean): void {
   destino?.focus();
 }
 
+/** LB / RB con una carta del paño enfocada: la corren una Posta a la izquierda o a la derecha. */
+function correrPosta(dir: -1 | 1): boolean {
+  const el = document.activeElement as HTMLElement | null;
+  if (hayModal() || !el?.classList.contains('carta') || el.dataset.posta === undefined) return false;
+  el.parentElement?.dispatchEvent(new CustomEvent('cabala:correr', { detail: { id: el.dataset.id, dir } }));
+  return true;
+}
+/** El foco a la bandeja de Chiches de la mesa (el primero que haya; si no hay ninguno, no se mueve). */
+export function irAChiches(): boolean {
+  if (hayModal()) return false;
+  const b = $<HTMLButtonElement>('.chiches .chiche:not(:disabled)');
+  b?.focus();
+  return !!b;
+}
+
 /** Abre un modal de la partida con su botón (o lo cierra, si es el que ya está abierto). */
 function alternar(accion: string, panel: string): void {
   if (hayModal()) {
@@ -151,6 +166,8 @@ export function iniciarNav(): void {
     } else if (k === 'Escape') {
       ev.preventDefault();
       atras();
+    } else if (k === 'c' && irAChiches()) {
+      ev.preventDefault();
     } else if (k === 'g' || k === 'd' || k === 'e' || k === 'j') {
       if (atajo(k)) ev.preventDefault();
     } else if (k === 'm' && !hayModal()) {
@@ -196,8 +213,11 @@ export function iniciarNav(): void {
       if (recien(1)) atras();
       if (recien(2)) atajo('g');
       if (recien(3)) atajo('d');
-      if (recien(4)) saltar(false);
-      if (recien(5)) saltar(true);
+      // LB / RB: con una carta del paño enfocada, la corren de Posta; si no, saltan entre la mano y los botones
+      if (recien(4) && !correrPosta(-1)) saltar(false);
+      if (recien(5) && !correrPosta(1)) saltar(true);
+      // L3: el foco va a la bandeja de Chiches (y de ahí, A lo usa)
+      if (recien(10)) irAChiches();
       if (recien(6)) atajo('e');
       if (recien(7)) alternar('ver-piezas', '.piezas');
       if (recien(8)) alternar('jugadas', '.jugadas');

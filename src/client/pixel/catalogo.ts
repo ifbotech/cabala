@@ -4,7 +4,7 @@ import { MAZOS } from '../../rules/mazos';
 import { EXPRESIONES, bufonMapa } from './bufon';
 import { MAZOS as DORSOS } from './dorsos';
 import { GLIFOS, TONO_CIFRA, cifraMapa, type TonoCifra } from './cifras';
-import { AMULETOS_PX, AUMENTOS_PX, BENDICIONES_PX, HUD_PX, NODOS_PX, amuletoMapa, aumentoMapa, bendicionMapa, hudMapa, inmuneMapa, nodoMapa, estrellaMapa } from './iconos';
+import { AMULETOS_PX, AUMENTOS_PX, BENDICIONES_PX, CHICHES_PX, HUD_PX, NODOS_PX, amuletoMapa, aumentoMapa, bendicionMapa, chicheMapa, hudMapa, inmuneMapa, nodoMapa, estrellaMapa } from './iconos';
 import { logoMapa } from './logo';
 import { BARRAS, barraMapa, marcoMapa, panoMapa, type Estilo } from './marcos';
 import { comodinMapa, dorsoNaipe, naipeMapa, naipeSegundaMapa } from './naipes';
@@ -32,6 +32,7 @@ export function catalogo(): Pieza[] {
   for (const id of AMULETOS_PX) out.push({ grupo: 'amuletos', id, m: amuletoMapa(id)!, k: 4 });
   for (const id of AUMENTOS_PX) out.push({ grupo: 'aumentos', id, m: aumentoMapa(id)!, k: 4 });
   for (const id of BENDICIONES_PX) out.push({ grupo: 'bendiciones', id, m: bendicionMapa(id)!, k: 4 });
+  for (const id of CHICHES_PX) out.push({ grupo: 'chiches', id, m: chicheMapa(id)!, k: 4 });
   for (const id of NODOS_PX) out.push({ grupo: 'interfaz', id: `nodo-${id}`, m: nodoMapa(id), k: 4 });
   for (const id of HUD_PX) out.push({ grupo: 'interfaz', id: `hud-${id}`, m: hudMapa(id), k: 4 });
   for (const s of PALOS) out.push({ grupo: 'interfaz', id: `inmune-${s}`, m: inmuneMapa(s), k: 4 });

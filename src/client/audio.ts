@@ -28,6 +28,13 @@ interface Ruido {
 
 const SONIDO = {
   clic: [[520, 0.04, 'square', 0.12]],
+  // el paño (0.21): la Chispa del Comodín chisporrotea; el Escalón sube tres notas; un Chiche se usa con un toc de
+  // vidrio y madera; la Prenda vuela con un tintineo que sube
+  chispa: [[2349, 0.03, 'square', 0.07], [3136, 0.05, 'triangle', 0.07], [2637, 0.04, 'square', 0.05]],
+  escalon: [[392, 0.05, 'square', 0.1], [523, 0.05, 'square', 0.1], [659, 0.05, 'square', 0.1], [784, 0.09, 'triangle', 0.12]],
+  chiche: [[880, 0.03, 'triangle', 0.16], [330, 0.06, 'square', 0.12, 180]],
+  prenda: [[784, 0.04, 'square', 0.1], [1047, 0.04, 'square', 0.1], [1568, 0.1, 'triangle', 0.12]],
+  ficha: [[1175, 0.03, 'square', 0.08], [880, 0.05, 'triangle', 0.1]],
   carta: [[320, 0.03, 'triangle', 0.2], [480, 0.03, 'triangle', 0.14]],
   suelta: [[240, 0.05, 'triangle', 0.18]],
   // el golpe: el cuerpo grave (el ruido del impacto va en RUIDO)

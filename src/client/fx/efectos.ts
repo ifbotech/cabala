@@ -285,8 +285,8 @@ export interface Carril {
   y: number;
   alinear?: Alinear;
 }
-export function numero(texto: string | number, x: number, y: number, tono: TonoCifra = 'hueso', escala = 1, o: { alinear?: Alinear; vx?: number; carriles?: Carril[] } = {}): void {
-  if (!vivos()) return;
+export function numero(texto: string | number, x: number, y: number, tono: TonoCifra = 'hueso', escala = 1, o: { alinear?: Alinear; vx?: number; carriles?: Carril[]; vidaMin?: number } = {}): Caja | null {
+  if (!vivos()) return null;
   const glifos = glifosDe(texto, tono);
   const base = glifos.reduce((s, g) => s + g.width - 1, 0);
   const ancho = base * escala;
@@ -342,9 +342,15 @@ export function numero(texto: string | number, x: number, y: number, tono: TonoC
   ({ px, py } = nacimientos[pd.i]);
   let vx = vx0;
   let vy = vy0;
-  // (un cartel que entra los apaga: pasan directo a su parpadeo de salida)
+  // (un cartel que entra los apaga: pasan directo a su parpadeo de salida; el número grande tiene su vida garantizada
+  // —`vidaMin` segundos— y recién después se apaga)
+  let apagarEn = Infinity;
   const yo = {
     apagar: () => {
+      if (t < (o.vidaMin ?? 0)) {
+        apagarEn = o.vidaMin ?? 0;
+        return;
+      }
       t = Math.max(t, T - 0.22);
       soltar(pd.id);
     },
@@ -353,6 +359,10 @@ export function numero(texto: string | number, x: number, y: number, tono: TonoC
   efecto({
     paso(dt) {
       t += dt;
+      if (t >= apagarEn) {
+        apagarEn = Infinity;
+        yo.apagar();
+      }
       if (t >= T) {
         enVuelo.delete(yo);
         soltar(pd.id);
@@ -380,6 +390,8 @@ export function numero(texto: string | number, x: number, y: number, tono: TonoC
       }
     },
   });
+  // la caja donde nace (en píxeles de pantalla): para pegarle un sello en su mismo carril
+  return { x: px * S, y: py * S, w: base * escala * S, h: altoG * escala * S };
 }
 
 /**

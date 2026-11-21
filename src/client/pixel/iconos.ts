@@ -603,7 +603,7 @@ const NODO: Record<NodoPx, Dibujo> = {
 
 // ───────────────────────── HUD y emblemas ─────────────────────────
 
-export type HudPx = 'vida' | 'vidamax' | 'escudo' | 'oro' | 'mazo' | 'descarte' | 'poroto' | 'furia' | 'ataque' | 'aturdido' | 'candado' | 'engano' | 'pasar' | 'dado1' | 'dado2' | 'dado3' | 'dado4' | 'dado5' | 'dado6' | 'vela' | 'velaApagada';
+export type HudPx = 'vida' | 'vidamax' | 'escudo' | 'oro' | 'mazo' | 'descarte' | 'poroto' | 'furia' | 'ataque' | 'aturdido' | 'candado' | 'engano' | 'pasar' | 'dado1' | 'dado2' | 'dado3' | 'dado4' | 'dado5' | 'dado6' | 'vela' | 'velaApagada' | 'medio' | 'escalon' | 'chispa';
 
 const HUD: Record<HudPx, Dibujo> = {
   vida: (l) => {
@@ -695,6 +695,77 @@ const HUD: Record<HudPx, Dibujo> = {
   // el pabilo negro con su hilo de humo
   vela: (l) => velaPx(l, true),
   velaApagada: (l) => velaPx(l, false),
+  // las Postas del paño (0.21): el Medio es un rombo de oro con su centro de carmesí (ahí se pega doble); el Escalón,
+  // tres peldaños de piedra que suben a la derecha; la Chispa, la estrella de cuatro puntas que salta del Comodín
+  medio: (l) => {
+    l.poli([[14, 1], [27, 14], [14, 27], [1, 14]], '¤');
+    vol(l, ORO, { borde: 2, fuerzaBorde: 0.5, base: 0.62 });
+    l.poli([[14, 7], [21, 14], [14, 21], [7, 14]], '0');
+    l.poli([[14, 9], [19, 14], [14, 19], [9, 14]], '¤');
+    vol(l, ROJO, { borde: 1, base: 0.6 });
+    l.set(13, 11, 'e').set(12, 12, 'e');
+  },
+  escalon: (l) => {
+    l.rect(2, 19, 8, 7, '¤').rect(10, 12, 8, 14, '¤').rect(18, 4, 8, 22, '¤');
+    vol(l, PLATA, { borde: 1, fuerzaBorde: 0.4, base: 0.6 });
+    l.rect(2, 19, 8, 1, 'u').rect(10, 12, 8, 1, 'u').rect(18, 4, 8, 1, 'u');
+    l.rect(9, 20, 1, 6, 'i').rect(17, 13, 1, 13, 'i');
+    l.poli([[19, 1], [25, 1], [22, -2]], 'Y');
+  },
+  chispa: (l) => {
+    l.poli([[14, 0], [17, 11], [28, 14], [17, 17], [14, 28], [11, 17], [0, 14], [11, 11]], 'O');
+    l.poli([[14, 4], [16, 12], [24, 14], [16, 16], [14, 24], [12, 16], [4, 14], [12, 12]], 'y');
+    l.poli([[14, 8], [15.5, 12.5], [20, 14], [15.5, 15.5], [14, 20], [12.5, 15.5], [8, 14], [12.5, 12.5]], 'Y');
+    l.rect(13, 13, 2, 2, 'w');
+  },
+};
+
+// ───────────────────────── Chiches de Pulpería (0.21) ─────────────────────────
+
+const CHICHE: Record<string, Dibujo> = {
+  // el Vaso de Ginebra: vaso facetado de vidrio verdoso, lleno hasta tres cuartos, con su reflejo a la izquierda
+  ginebra: (l) => {
+    l.poli([[6, 4], [22, 4], [20, 25], [8, 25]], '¤');
+    vol(l, PLATA, { base: 0.55, borde: 1, fuerzaBorde: 0.4 });
+    l.poli([[7.4, 11], [20.6, 11], [19.4, 23], [8.6, 23]], '¤');
+    vol(l, VERDE, { base: 0.66, borde: 1, fuerzaBorde: 0.35 });
+    l.rect(8, 11, 12, 1, 'K');
+    l.rect(9, 6, 1, 15, 'u').rect(10, 6, 1, 4, 'w');
+    l.rect(8, 25, 12, 1, 'i');
+  },
+  // el Dado Cargado: dado de hueso con el cinco y la esquina cargada de plomo carmesí
+  dado: (l) => {
+    dadoPx(l, 4, 6, 19, 5);
+    l.poli([[18, 6], [23, 6], [23, 11]], 'R');
+    l.set(22, 7, 'r').set(21, 6, 'r');
+    destello(l, 24, 3, 2);
+  },
+  // el Fósforo de Fogón: palito de madera en diagonal con la cabeza prendida
+  fosforo: (l) => {
+    l.trazo(5, 25, 17, 11, 1.3, '¤');
+    vol(l, MADERA, { base: 0.7 });
+    l.elipse(18, 10, 2.6, 2.6, 'R').set(17, 9, 'r');
+    llama(l, 19, 8, 8, 3.4);
+  },
+  // el Polvo de Tiza: el cubito de tiza de billar, celeste, con su hueco y una nube de polvo
+  tiza: (l) => {
+    l.rect(5, 9, 15, 15, '¤');
+    vol(l, ACERO, { base: 0.62, borde: 2, fuerzaBorde: 0.45 });
+    l.poli([[5, 9], [10, 4], [25, 4], [20, 9]], '¤');
+    vol(l, ACERO, { base: 0.85, borde: 1 });
+    l.poli([[20, 9], [25, 4], [25, 19], [20, 24]], '¤');
+    vol(l, ACERO, { base: 0.4, borde: 1 });
+    hueco(l, 12.5, 6.5, 3.2, 1.4, '0Bb', { curva: 1 });
+    for (const [x, y] of [[3, 3], [6, 1], [1, 6], [26, 23], [24, 26]] as [number, number][]) l.set(x, y, 'C');
+  },
+  // el Poroto de Yapa: un poroto verde de la suerte con su brillo de oro
+  poroto: (l) => {
+    l.trazo(9, 10, 16, 20, 7, '¤').elipse(21.5, 11, 3.6, 4.4, '.');
+    vol(l, VERDE, { base: 0.6, borde: 3, fuerzaBorde: 0.5 });
+    l.rect(15, 11, 1, 4, 'L').rect(16, 12, 1, 2, 'K');
+    l.set(6, 8, 'K').set(7, 7, 'K');
+    destello(l, 22, 22, 3);
+  },
 };
 
 /** Una vela de sebo en su platito: el cuerpo hueso (claro arriba a la izquierda), el chorreo y, si está prendida, la llama. */
@@ -733,12 +804,14 @@ export const AUMENTOS_PX = Object.keys(AUMENTO);
 export const BENDICIONES_PX = Object.keys(BENDICION);
 export const NODOS_PX = Object.keys(NODO) as NodoPx[];
 export const HUD_PX = Object.keys(HUD) as HudPx[];
+export const CHICHES_PX = Object.keys(CHICHE);
 
 export const amuletoMapa = (id: string): Mapa | null => hacer(`a:${id}`, AMULETO[id]);
 export const aumentoMapa = (id: string): Mapa | null => hacer(`u:${id}`, AUMENTO[id]);
 export const bendicionMapa = (id: string): Mapa | null => hacer(`b:${id}`, BENDICION[id]);
 export const nodoMapa = (id: NodoPx): Mapa => hacer(`n:${id}`, NODO[id])!;
 export const hudMapa = (id: HudPx): Mapa => hacer(`h:${id}`, HUD[id])!;
+export const chicheMapa = (id: string): Mapa | null => hacer(`ch:${id}`, CHICHE[id]);
 
 /** La pinta de un palo como icono chico (la del naipe, sin recortar). */
 export const paloMapa = (s: Palo): Mapa => pintaNaipe(s, 'chica');

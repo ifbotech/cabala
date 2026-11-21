@@ -1,18 +1,23 @@
-// La mano: una fila respirada de naipes grandes con física de resorte. Cada carta flota con su propio desfase, se
-// levanta al elegirla y se inclina hacia el cursor; se puede ARRASTRAR una carta (o el grupo elegido) sobre el
-// enemigo para golpear, o sobre el descarte para descartar. También se juega con clic, teclado y mando.
+// La mano y el paño (0.21.0). Abajo, la mano: una fila respirada de naipes grandes con física de resorte; cada carta
+// flota con su propio desfase y se inclina hacia el cursor. Arriba, sobre el paño, las Postas: de 3 a 5 lugares donde
+// se apoyan los naipes elegidos (nunca quedan en la mano). La Posta del Medio pega doble; un Comodín le pasa su
+// Chispa al naipe de su derecha, y tres o más en orden creciente arman Escalón. Se elige con clic, toque, teclado o
+// mando; una carta (o el grupo apoyado) se ARRASTRA sobre el enemigo para golpear, al descarte para descartar o a otra
+// Posta para cambiarla de lugar. LB / RB (o Q / W) corren de Posta la carta con foco.
 // Con el dedo, el grupo va levantado por encima de la yema (no la tapa ni tapa al enemigo), cada zona avisa con una
-// vibración corta y un gesto que el sistema cancela devuelve las cartas a la mano sin jugar nada.
+// vibración corta y un gesto que el sistema cancela devuelve las cartas a su lugar sin jugar nada.
 import type { Carta } from '../rules/cartas';
+import { medioDe, postasPorDefecto } from '../rules/combate';
 import { t } from './almacen';
 import { quieto as todoQuieto } from './ritmo';
-import { pxNaipe } from './sprites';
+import { cifra, pxHud, pxNaipe } from './sprites';
+import { esc, tip } from './ui';
 import { B } from '../rules/balance';
 
 export type Zona = 'enemigo' | 'descarte';
 
 export interface OyenteMano {
-  /** Cambió la selección. */
+  /** Cambió la selección (o el lugar de una carta en el paño). */
   alCambiar: (ids: string[]) => void;
   /** Se soltó un arrastre sobre una zona (o en ninguna). */
   alSoltar: (zona: Zona | null, ids: string[]) => void;
@@ -40,11 +45,25 @@ interface Naipe {
   vuela: { x: number; y: number } | null;
 }
 
+/** Lo que el paño marca según la cuenta: dónde salta una Chispa (entre la Posta i y la i+1) y si hay Escalón. */
+export interface MarcasPano {
+  chispas: number[];
+  escalon: number;
+}
+
 export interface Mano {
   /** Pone la mano: las cartas nuevas entran volando desde `desde` (el Mazo). */
   poner(cartas: readonly Carta[], desde?: { x: number; y: number }): void;
+  /** Las elegidas, de izquierda a derecha en el paño. */
   seleccion(): string[];
-  elegir(ids: readonly string[]): void;
+  /** En qué Posta está cada carta (−1 si está en la mano). */
+  postaDe(id: string): number;
+  /** Elige esas cartas; con `postas`, cada una en la suya (mismo orden que `ids`). */
+  elegir(ids: readonly string[], postas?: readonly number[]): void;
+  /** Corre de Posta una carta elegida (−1 a la izquierda, +1 a la derecha); si la otra está ocupada, se cambian. */
+  correr(id: string, dir: -1 | 1): boolean;
+  /** Las marcas del paño (Chispa y Escalón) que dice la cuenta. */
+  marcar(m: MarcasPano): void;
   /** Las cartas elegidas vuelan a un punto y desaparecen (el golpe). */
   volar(ids: readonly string[], a: { x: number; y: number }): Promise<void>;
   /** Sacude las cartas elegidas (jugada que no vale). */
@@ -52,6 +71,8 @@ export interface Mano {
   bloquear(si: boolean): void;
   /** Deja un grupo «en el aire» sobre un punto (para la captura de la QA). */
   posar(ids: readonly string[], x: number, y: number): void;
+  /** Deja una carta del paño a medio camino hacia otra Posta (para la captura de la QA). */
+  arrastrarA(id: string, posta: number): void;
   destruir(): void;
 }
 
@@ -68,6 +89,8 @@ const UMBRAL_DEDO = 14;
 const RESBALON = 30;
 /** Con el dedo, el tamaño del grupo que va en el aire: más chico, deja ver al enemigo y la cuenta. */
 const ESCALA_DEDO = 0.8;
+/** Las capas de la mesa de cartas: el paño, sus naipes, sus marcas, la mano, la que pasa el cursor y la del foco. */
+const Z = { pano: 1, posta: 10, marca: 25, mano: 30, cerca: 60, foco: 90 } as const;
 
 /** Una vibración corta (solo con el dedo, si el aparato vibra y no se pidió «Reducir movimiento»). */
 function vibrar(): void {
@@ -84,78 +107,218 @@ function vibrar(): void {
 
 const orden = (a: Carta, b: Carta) => Number(a.palo === 'X') - Number(b.palo === 'X') || a.n - b.n || 'SCDH'.indexOf(a.palo) - 'SCDH'.indexOf(b.palo) || a.id.localeCompare(b.id);
 
-export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
+export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano {
   let naipes: Naipe[] = [];
   let bloqueada = false;
   let viva = true;
+  /** Qué carta está en cada Posta del paño (null: vacía). */
+  const enPosta: (string | null)[] = new Array(nPostas).fill(null);
+  const medio = medioDe(nPostas);
+  /** El orden en que se llenan las Postas si no se elige dónde: el Medio y después a los costados. */
+  const ordenLlenado = postasPorDefecto(nPostas, nPostas);
+  let marcas: MarcasPano = { chispas: [], escalon: 0 };
   /** `alza`: lo que el centro del grupo va por encima del dedo (0 con ratón o lápiz); crece al alejarse de donde se tomó. */
   /** `previa`: lo elegido antes de empezar (un arrastre que no llega a ninguna zona lo deja como estaba); `lejos`: lo más que se alejó de donde empezó. */
-  let arrastre: { ids: string[]; dx: number; dy: number; x: number; y: number; zona: Zona | null; tactil: boolean; alza: number; previa: string[]; lejos: number } | null = null;
+  /** `origen`: la carta que se tomó; `posta`: la Posta del paño sobre la que está (para cambiarla de lugar). */
+  let arrastre: {
+    ids: string[];
+    dx: number;
+    dy: number;
+    x: number;
+    y: number;
+    zona: Zona | null;
+    tactil: boolean;
+    alza: number;
+    previa: (string | null)[];
+    lejos: number;
+    origen: string;
+    posta: number;
+  } | null = null;
   /** Lo más que llegó a tener la mano: con eso se decide si va en dos filas (no cambia de alto en mitad de un turno). */
   let tope = 0;
   let presion: { id: string; x: number; y: number; puntero: number } | null = null;
   let cursor: { x: number; y: number } | null = null;
   let ultimo = performance.now();
   let posado: { ids: string[]; x: number; y: number } | null = null;
+  /** La pose de la QA: una carta del paño a medio camino hacia otra Posta. */
+  let haciaPosta: { id: string; posta: number } | null = null;
+
+  // ── el paño: una tira de fieltro con sus Postas (detrás de las cartas), sus marcas y las Chispas entre Postas
+  const pano = document.createElement('div');
+  pano.className = 'pano-postas';
+  pano.setAttribute('aria-hidden', 'true');
+  raiz.append(pano);
+  const ayudaPosta = (i: number): string => (i === medio ? t('postaMedioAyuda') : t('postaAyuda'));
+  const slots = enPosta.map((_, i) => {
+    const el = document.createElement('div');
+    el.className = `posta${i === medio ? ' p-medio' : ''}`;
+    el.dataset.posta = String(i);
+    el.innerHTML = `<span class="p-rot">${pxHud(i === medio ? 'medio' : 'escalon', 'p-icono')}<b class="p-ayuda">${esc(ayudaPosta(i))}</b></span>`;
+    pano.append(el);
+    return el;
+  });
+  // la marca del Medio sobre el naipe que se apoya ahí (va encima de su naipe y debajo de la mano)
+  const marcaMedio = document.createElement('span');
+  marcaMedio.className = 'posta-marca';
+  marcaMedio.setAttribute('aria-hidden', 'true');
+  marcaMedio.innerHTML = `${pxHud('medio', 'p-icono')}${cifra('x2', 'oro')}<b class="p-marca-txt">${esc(t('postaMedio'))}</b>`;
+  raiz.append(marcaMedio);
+  const chispas = enPosta.slice(1).map(() => {
+    const el = document.createElement('span');
+    el.className = 'posta-chispa';
+    el.setAttribute('aria-hidden', 'true');
+    el.innerHTML = pxHud('chispa');
+    raiz.append(el);
+    return el;
+  });
+  const rotEscalon = document.createElement('span');
+  rotEscalon.className = 'posta-escalon chip canto';
+  rotEscalon.setAttribute('role', 'status');
+  raiz.append(rotEscalon);
 
   const kNaipe = () => Number(getComputedStyle(raiz).getPropertyValue('--k-naipe')) || 1;
+  const asomaPx = () => parseFloat(getComputedStyle(raiz).getPropertyValue('--asoma')) || 48;
+  let cacheMedidas: { w: number; h: number; k: number; asoma: number; clave: string } | null = null;
   const medidas = () => {
+    // (se lee el estilo una vez por tamaño de ventana: es lo más caro del cuadro)
+    const clave = `${innerWidth}x${innerHeight}|${raiz.className}`;
+    if (cacheMedidas?.clave === clave) return cacheMedidas;
     const k = kNaipe();
-    return { w: 100 * k, h: 140 * k, k };
+    cacheMedidas = { w: 100 * k, h: 140 * k, k, asoma: asomaPx(), clave };
+    return cacheMedidas;
   };
-  const sinAlza = () => getComputedStyle(raiz).getPropertyValue('--sin-alza').trim() === '1';
   /** ¿Entran `n` cartas en una fila sin montarse de más? (si no, el móvil las pone en dos filas y la mano pide más alto) */
   const pideDosFilas = (n: number): boolean => {
     const { w, k } = medidas();
-    return n > 1 && raiz.clientWidth > 0 && Math.min(w + Math.round(6 * k), (raiz.clientWidth - w) / (n - 1)) < w * 0.8;
+    return innerWidth <= 700 && n > 1 && raiz.clientWidth > 0 && Math.min(w + Math.round(6 * k), (raiz.clientWidth - w) / (n - 1)) < w * 0.8;
   };
 
-  /** Dónde descansa cada carta: una fila centrada, sin solapes si cabe; si no, apretada lo justo. */
+  /** Dónde va cada Posta del paño (su esquina de arriba a la izquierda) y el paso entre una y otra. */
+  function lugaresPosta(): { xs: number[]; y: number; paso: number } {
+    const { w, h, k, asoma } = medidas();
+    const ancho = raiz.clientWidth;
+    const hueco = Math.round(6 * k);
+    const paso = nPostas > 1 ? Math.min(w + hueco, (ancho - w) / (nPostas - 1)) : 0;
+    const total = nPostas > 1 ? paso * (nPostas - 1) + w : w;
+    const x0 = Math.round((ancho - total) / 2);
+    const base = raiz.clientHeight - h;
+    const atras = raiz.classList.contains('dos-filas') ? DIANA - 2 : 0;
+    return { xs: enPosta.map((_, i) => Math.round(x0 + i * paso)), y: Math.max(0, base - atras - asoma), paso };
+  }
+
+  /** Dónde descansa cada carta: las elegidas en su Posta; las demás, en una fila centrada (o en dos, en el móvil). */
   function destinos(): Map<string, { x: number; y: number }> {
     const { w, h, k } = medidas();
     const ancho = raiz.clientWidth;
     const alto = raiz.clientHeight;
-    const n = naipes.length;
+    const out = new Map<string, { x: number; y: number }>();
+    const lp = lugaresPosta();
+    // el Escalón se ve: cada naipe de la escalera sube un poco más que el de su izquierda
+    let peldano = 0;
+    enPosta.forEach((id, i) => {
+      if (!id) return;
+      const sube = marcas.escalon ? Math.round(peldano++ * 2 * k) : 0;
+      out.set(id, { x: lp.xs[i], y: lp.y - sube });
+    });
+    const enMano = naipes.filter((c) => !c.elegida);
+    const n = enMano.length;
     const hueco = Math.round(6 * k);
     const paso = n > 1 ? Math.min(w + hueco, (ancho - w) / (n - 1)) : 0;
-    const total = n > 1 ? paso * (n - 1) + w : w;
-    const x0 = Math.round((ancho - total) / 2);
     const base = alto - h;
-    const out = new Map<string, { x: number; y: number }>();
-    const sube = Math.round(18 * k);
-    // (pantalla baja del móvil, `--sin-alza` en el CSS: la fila de atrás no sube al elegirse, se marca con su canto)
-    const subeAtras = sinAlza() ? 0 : sube;
     // si en una fila las cartas se montarían mucho (el móvil) y hay alto, van en dos filas: de la de atrás asoma la
     // parte de arriba de cada naipe (su número y sus primeras pintas) y ninguna tapa de costado a otra
-    if (n > 1 && paso < w * 0.8 && alto >= h + DIANA - 1) {
+    if (raiz.classList.contains('dos-filas') && n > 1 && paso < w * 0.8) {
       const atras = Math.ceil(n / 2);
-      // la de adelante, al elegirse, sube solo lo que deja tocable (≥ 48 px) a la carta de atrás que tiene encima
-      const subeDelante = Math.max(0, Math.min(sube, base - subeAtras - DIANA));
-      const fila = (cuantas: number, desde: number, y: number, alza: number): void => {
+      const fila = (cuantas: number, desde: number, y: number): void => {
         const p2 = cuantas > 1 ? Math.min(w + hueco, (ancho - w) / (cuantas - 1)) : 0;
         const t2 = cuantas > 1 ? p2 * (cuantas - 1) + w : w;
         const x2 = Math.round((ancho - t2) / 2);
-        for (let j = 0; j < cuantas; j++) {
-          const c = naipes[desde + j];
-          out.set(c.carta.id, { x: Math.round(x2 + j * p2), y: y - (c.elegida ? alza : 0) });
-        }
+        for (let j = 0; j < cuantas; j++) out.set(enMano[desde + j].carta.id, { x: Math.round(x2 + j * p2), y });
       };
-      fila(atras, 0, subeAtras, subeAtras);
-      fila(n - atras, atras, base, subeDelante);
+      fila(atras, 0, base - DIANA + 2);
+      fila(n - atras, atras, base);
       return out;
     }
-    naipes.forEach((c, i) => out.set(c.carta.id, { x: Math.round(x0 + i * paso), y: base - (c.elegida ? sube : 0) }));
+    const total = n > 1 ? paso * (n - 1) + w : w;
+    const x0 = Math.round((ancho - total) / 2);
+    enMano.forEach((c, i) => out.set(c.carta.id, { x: Math.round(x0 + i * paso), y: base }));
     return out;
   }
 
   const puesto = new WeakMap<HTMLElement, string>();
   function aplicar(c: Naipe, z = 0): void {
-    const t = `translate3d(${Math.round(c.x)}px,${Math.round(c.y)}px,0)${Math.abs(c.rot) > 0.05 ? ` rotate(${c.rot.toFixed(1)}deg)` : ''}${c.esc < 0.995 ? ` scale(${c.esc.toFixed(2)})` : ''}`;
-    const clave = `${t}|${z}`;
+    const tr = `translate3d(${Math.round(c.x)}px,${Math.round(c.y)}px,0)${Math.abs(c.rot) > 0.05 ? ` rotate(${c.rot.toFixed(1)}deg)` : ''}${c.esc < 0.995 ? ` scale(${c.esc.toFixed(2)})` : ''}`;
+    const clave = `${tr}|${z}`;
     if (puesto.get(c.el) === clave) return;
     puesto.set(c.el, clave);
-    c.el.style.transform = t;
+    c.el.style.transform = tr;
     c.el.style.zIndex = String(z);
+  }
+  const ponerEn = (el: HTMLElement, x: number, y: number, z: number, extra = ''): void => {
+    const clave = `${Math.round(x)}|${Math.round(y)}|${z}|${extra}`;
+    if (puesto.get(el) === clave) return;
+    puesto.set(el, clave);
+    el.style.transform = `translate3d(${Math.round(x)}px,${Math.round(y)}px,0)`;
+    el.style.zIndex = String(z);
+  };
+
+  /** Lo que se ve de cada carta de la fila (para centrar la flecha del foco en su franja). */
+  function franjas(dest: Map<string, { x: number; y: number }>): void {
+    const { w } = medidas();
+    const porFila = new Map<number, { id: string; x: number }[]>();
+    for (const [id, d] of dest) {
+      const f = porFila.get(d.y) ?? [];
+      f.push({ id, x: d.x });
+      porFila.set(d.y, f);
+    }
+    for (const f of porFila.values()) {
+      f.sort((a, b) => a.x - b.x);
+      f.forEach((c, i) => {
+        const franja = i + 1 < f.length ? Math.max(8, Math.min(w, f[i + 1].x - c.x)) : w;
+        const el = naipes.find((x) => x.carta.id === c.id)?.el;
+        const v = `${Math.round(franja / 2)}px`;
+        if (el && el.style.getPropertyValue('--fm') !== v) el.style.setProperty('--fm', v);
+      });
+    }
+  }
+
+  function pintarPano(): void {
+    const { w, h, k } = medidas();
+    const lp = lugaresPosta();
+    const visible = Math.min(w, lp.paso || w);
+    pano.style.transform = `translate3d(${Math.max(0, lp.xs[0] - 4 * k)}px,${lp.y - 4 * k}px,0)`;
+    pano.style.width = `${lp.xs[nPostas - 1] + w - lp.xs[0] + 8 * k}px`;
+    pano.style.height = `${h + 8 * k}px`;
+    slots.forEach((el, i) => {
+      ponerEn(el, lp.xs[i] - Math.max(0, lp.xs[0] - 4 * k), 4 * k, Z.pano);
+      el.style.width = `${w}px`;
+      el.style.height = `${h}px`;
+      el.style.setProperty('--visible', `${Math.round(visible)}px`);
+      el.classList.toggle('llena', !!enPosta[i]);
+      el.classList.toggle('apunta', (!!arrastre && arrastre.posta === i) || haciaPosta?.posta === i);
+    });
+    pano.classList.toggle('activo', enPosta.some(Boolean) || !!arrastre);
+    // la marca del Medio va pegada a su naipe (si lo hay), a la derecha de su número
+    const enMedio = enPosta[medio];
+    const nm = enMedio ? naipes.find((c) => c.carta.id === enMedio) : null;
+    marcaMedio.hidden = !nm;
+    if (nm) ponerEn(marcaMedio, nm.x + Math.round(visible) - marcaMedio.offsetWidth - 3 * k, nm.y + 3 * k, Z.marca);
+    // la Chispa: entre la Posta del Comodín y la de su derecha
+    chispas.forEach((el, i) => {
+      const si = marcas.chispas.includes(i);
+      el.hidden = !si;
+      if (si) ponerEn(el, lp.xs[i + 1] - el.offsetWidth / 2, lp.y + 8 * k, Z.marca + 1);
+    });
+    rotEscalon.hidden = !marcas.escalon;
+    if (marcas.escalon) {
+      const llenas = enPosta.map((id, i) => (id ? i : -1)).filter((i) => i >= 0);
+      const ultima = llenas[llenas.length - 1] ?? nPostas - 1;
+      const der = lp.xs[ultima] + Math.round(visible) + 6 * k;
+      const ancho = rotEscalon.offsetWidth;
+      // a la derecha del paño si entra; si no, sobre la esquina de la última carta de la escalera
+      const x = der + ancho <= raiz.clientWidth ? der : Math.max(0, lp.xs[ultima] + Math.round(visible) - ancho - 2 * k);
+      ponerEn(rotEscalon, x, lp.y + Math.round((medidas().asoma - rotEscalon.offsetHeight) / 2), Z.marca + 2);
+    }
   }
 
   function cuadro(ahora: number): void {
@@ -171,17 +334,20 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
     // (la pose de la QA hace lo mismo en el móvil: fotografía el gesto tal como se ve con el dedo)
     const dedo = arrastre ? arrastre.tactil && arrastre.zona === 'enemigo' : !!posado && innerWidth <= 700;
     const blanco = dedo ? document.querySelector('[data-soltar="enemigo"]')?.getBoundingClientRect() : undefined;
+    const foco = document.activeElement;
+    const lp = haciaPosta ? lugaresPosta() : null;
     naipes.forEach((c, i) => {
       if (c.espera > 0) {
         c.espera -= dt * 1000;
-        aplicar(c, i);
+        aplicar(c, Z.mano + i);
         return;
       }
       let tx: number;
       let ty: number;
       let trot = 0;
       let tesc = 1;
-      let z = i;
+      const p = c.elegida ? enPosta.indexOf(c.carta.id) : -1;
+      let z = p >= 0 ? Z.posta + p : Z.mano + i;
       const enGrupo = arrastre?.ids.indexOf(c.carta.id) ?? -1;
       const enPose = posado?.ids.indexOf(c.carta.id) ?? -1;
       if (c.vuela) {
@@ -213,6 +379,13 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
         }
         trot = (enPose - medio) * 4;
         z = 100 + enPose;
+      } else if (lp && haciaPosta?.id === c.carta.id) {
+        // (la QA: a mitad de camino entre su Posta y la de destino, levantada)
+        const d = dest.get(c.carta.id)!;
+        tx = Math.round((d.x + lp.xs[haciaPosta.posta]) / 2);
+        ty = lp.y - 30 * k;
+        trot = 4;
+        z = 100;
       } else {
         const d = dest.get(c.carta.id)!;
         tx = d.x;
@@ -220,8 +393,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
         if (!quieto) {
           // la micro-flotación desfasada: cada carta respira a su tiempo, en píxeles enteros
           ty += Math.round(Math.sin(ahora / 520 + i * 0.9) * 1.5 * k);
-          // se inclina hacia el cursor si lo tiene cerca
-          if (cursor && !arrastre) {
+          // se inclina hacia el cursor si lo tiene cerca (las de la mano; las del paño quedan apoyadas)
+          if (cursor && !arrastre && p < 0) {
             const cx = caja.left + c.x + 50 * k;
             const cy = caja.top + c.y + 70 * k;
             const dx = cursor.x - cx;
@@ -229,10 +402,13 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
             if (Math.abs(dx) < 90 * k && Math.abs(dy) < 120 * k) {
               trot = Math.max(-3, Math.min(3, dx / (30 * k)));
               ty -= Math.round(5 * k);
-              z = 50 + i;
+              z = Z.cerca + i;
             }
           }
         }
+        // la carta con el foco del mando o del teclado pasa al frente, sin moverse de su lugar (con mano de 8, la que
+        // tenés no queda debajo de su vecina)
+        if (foco === c.el) z = Z.foco;
       }
       if (quieto) {
         c.x = tx;
@@ -253,22 +429,62 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
       }
       aplicar(c, z);
     });
+    pintarPano();
+    franjas(dest);
     requestAnimationFrame(cuadro);
   }
 
-  function marcar(): void {
+  function sincronizarElegidas(): void {
     for (const c of naipes) {
+      c.elegida = enPosta.includes(c.carta.id);
       c.el.classList.toggle('elegida', c.elegida);
       c.el.setAttribute('aria-pressed', String(c.elegida));
+      const p = enPosta.indexOf(c.carta.id);
+      if (p >= 0) c.el.dataset.posta = String(p);
+      else delete c.el.dataset.posta;
     }
   }
-  const elegidas = () => naipes.filter((c) => c.elegida).map((c) => c.carta.id);
+  /** Las elegidas, de izquierda a derecha sobre el paño. */
+  const elegidas = (): string[] => enPosta.filter((x): x is string => !!x);
+  const cambio = (): void => {
+    sincronizarElegidas();
+    oye.alCambiar(elegidas());
+  };
+  /** Apoya una carta en el paño: en la Posta pedida o en la primera libre (el Medio, después a los costados). */
+  function apoyar(id: string, en?: number): boolean {
+    const ya = enPosta.indexOf(id);
+    if (en === undefined) {
+      if (ya >= 0) return true;
+      const libre = ordenLlenado.find((i) => !enPosta[i]);
+      if (libre === undefined) return false;
+      enPosta[libre] = id;
+      return true;
+    }
+    // a una Posta ocupada: se cambian (la de ahí va adonde estaba esta, o a la primera libre si venía de la mano)
+    const otra = enPosta[en];
+    if (ya >= 0) enPosta[ya] = otra;
+    else if (otra) {
+      const libre = ordenLlenado.find((i) => !enPosta[i] && i !== en);
+      if (libre === undefined) return false;
+      enPosta[libre] = otra;
+    }
+    enPosta[en] = id;
+    return true;
+  }
+  const quitar = (id: string): void => {
+    const i = enPosta.indexOf(id);
+    if (i >= 0) enPosta[i] = null;
+  };
   const alternar = (id: string) => {
     const c = naipes.find((x) => x.carta.id === id);
     if (!c || bloqueada) return;
-    c.elegida = !c.elegida;
-    marcar();
-    oye.alCambiar(elegidas());
+    if (enPosta.includes(id)) quitar(id);
+    else if (!apoyar(id)) {
+      // el paño está lleno: la carta no tiene dónde apoyarse
+      c.el.animate([{ marginTop: '0' }, { marginTop: '-6px' }, { marginTop: '0' }], { duration: 180, easing: 'steps(3)' });
+      return;
+    }
+    cambio();
   };
 
   /** Sobre qué zona está el grupo. Con el dedo (`alza` > 0) al enemigo se le apunta con las cartas, que van por
@@ -282,25 +498,43 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
     if (dentro(z.descarte, y)) return 'descarte';
     return null;
   }
+  /** La Posta del paño que queda bajo el puntero (la franja que asoma, con un poco de aire arriba), o −1. */
+  function postaEn(x: number, y: number): number {
+    const { w, k, asoma } = medidas();
+    const caja = raiz.getBoundingClientRect();
+    const lp = lugaresPosta();
+    const top = caja.top + lp.y - 24 * k;
+    const bajo = caja.top + lp.y + asoma + 8 * k;
+    if (y < top || y > bajo) return -1;
+    const visible = Math.min(w, lp.paso || w);
+    for (let i = nPostas - 1; i >= 0; i--) if (x >= caja.left + lp.xs[i] && x <= caja.left + lp.xs[i] + (i === nPostas - 1 ? w : visible)) return i;
+    return -1;
+  }
   /** Termina el arrastre y devuelve lo que llevaba (las cartas vuelven solas a su sitio). */
-  function soltarGrupo(jugar = true): { zona: Zona | null; ids: string[]; tactil: boolean; resbalon: boolean } | null {
+  function soltarGrupo(jugar = true): { zona: Zona | null; ids: string[]; tactil: boolean; resbalon: boolean; posta: number } | null {
     if (!arrastre) return null;
-    const { zona, ids, tactil, previa, lejos } = arrastre;
+    const { zona, ids, tactil, previa, lejos, origen, posta } = arrastre;
     arrastre = null;
     raiz.classList.remove('arrastrando');
     document.body.classList.remove('arrastrando');
     oye.alApuntar(null, ids);
-    // con el dedo, si no se jugó nada (se soltó en ninguna zona o el sistema canceló el gesto): la selección queda como estaba antes
-    // de empezar; arrastrar una carta sin elegir ya no borra las que estaban elegidas
-    if (tactil && (!zona || !jugar) && !bloqueada && (previa.length !== ids.length || previa.some((id) => !ids.includes(id)))) {
-      for (const c of naipes) c.elegida = previa.includes(c.carta.id);
-      marcar();
-      oye.alCambiar(elegidas());
+    // a otra Posta del paño: la carta tomada cambia de lugar (si venía de la mano, se suma a lo que ya estaba elegido)
+    if (jugar && !zona && posta >= 0 && !bloqueada) {
+      for (let i = 0; i < nPostas; i++) enPosta[i] = previa[i];
+      apoyar(origen, posta);
+      cambio();
+      return { zona: null, ids, tactil, resbalon: false, posta };
     }
-    return { zona, ids, tactil, resbalon: tactil && !zona && lejos < RESBALON };
+    // si no se jugó nada (se soltó en ninguna zona o el sistema canceló el gesto): la selección queda como estaba antes
+    // de empezar; arrastrar una carta sin elegir ya no borra las que estaban elegidas
+    if ((!zona || !jugar) && !bloqueada && previa.some((id, i) => id !== enPosta[i])) {
+      for (let i = 0; i < nPostas; i++) enPosta[i] = previa[i];
+      cambio();
+    }
+    return { zona, ids, tactil, resbalon: tactil && !zona && lejos < RESBALON, posta: -1 };
   }
 
-  // ── puntero: clic para elegir, arrastre para jugar
+  // ── puntero: clic para elegir, arrastre para jugar (o para cambiar de Posta)
   const abajo = (ev: PointerEvent) => {
     const el = (ev.target as HTMLElement).closest<HTMLButtonElement>('.carta');
     if (!el || bloqueada || (ev.pointerType === 'mouse' && ev.button !== 0)) return;
@@ -316,18 +550,17 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
     if (!presion || ev.pointerId !== presion.puntero) return;
     if (!arrastre) {
       if (Math.hypot(ev.clientX - presion.x, ev.clientY - presion.y) < (ev.pointerType === 'touch' ? UMBRAL_DEDO : UMBRAL)) return;
-      // empieza el arrastre: si la carta está elegida, va todo el grupo; si no, va ella sola
+      // empieza el arrastre: si la carta está en el paño, va todo el grupo; si no, va ella sola
       const c = naipes.find((x) => x.carta.id === presion!.id);
       if (!c) return;
-      const previa = elegidas();
+      const previa = [...enPosta];
       if (!c.elegida) {
-        for (const o of naipes) o.elegida = false;
-        c.elegida = true;
-        marcar();
-        oye.alCambiar(elegidas());
+        enPosta.fill(null);
+        apoyar(c.carta.id);
+        cambio();
       }
       const caja = raiz.getBoundingClientRect();
-      arrastre = { ids: elegidas(), dx: presion.x - caja.left - c.x, dy: presion.y - caja.top - c.y, x: ev.clientX, y: ev.clientY, zona: null, tactil: ev.pointerType === 'touch', alza: 0, previa, lejos: 0 };
+      arrastre = { ids: elegidas(), dx: presion.x - caja.left - c.x, dy: presion.y - caja.top - c.y, x: ev.clientX, y: ev.clientY, zona: null, tactil: ev.pointerType === 'touch', alza: 0, previa, lejos: 0, origen: c.carta.id, posta: -1 };
       raiz.classList.add('arrastrando');
       document.body.classList.add('arrastrando');
     }
@@ -337,6 +570,12 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
     // con el dedo el grupo se despega de la yema a medida que se aleja de donde se tomó (sin salto al empezar)
     if (arrastre.tactil) arrastre.alza = Math.max(arrastre.alza, Math.min(ALZA, Math.hypot(ev.clientX - presion.x, ev.clientY - presion.y) * 1.5));
     const zona = zonaEn(ev.clientX, ev.clientY, arrastre.alza, presion.y - ev.clientY);
+    // sobre el paño (y no sobre el enemigo): la Posta que la recibiría se enciende
+    const posta = zona ? -1 : postaEn(ev.clientX, ev.clientY);
+    if (posta !== arrastre.posta) {
+      arrastre.posta = posta;
+      if (posta >= 0 && arrastre.tactil) vibrar();
+    }
     if (zona !== arrastre.zona) {
       arrastre.zona = zona;
       oye.alApuntar(zona, arrastre.ids);
@@ -355,6 +594,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
     const suelto = soltarGrupo();
     if (suelto) {
       if (suelto.zona && suelto.tactil) vibrar();
+      if (suelto.posta >= 0) return;
       oye.alSoltar(suelto.zona, suelto.ids);
       // un toque que resbaló un poco y no fue a ningún lado sigue siendo un toque: elige (o suelta) su carta
       if (suelto.resbalon) alternar(id);
@@ -362,7 +602,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
     }
     alternar(id);
   };
-  /** El sistema canceló el gesto (una llamada, un gesto del borde, la palma): las cartas vuelven a la mano y no se
+  /** El sistema canceló el gesto (una llamada, un gesto del borde, la palma): las cartas vuelven a su lugar y no se
    * golpea ni se descarta, aunque el grupo estuviera sobre una zona. */
   const cancela = (ev: PointerEvent) => {
     if (!presion || ev.pointerId !== presion.puntero) return;
@@ -378,12 +618,25 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
     cursor = null;
   };
   const tecla = (ev: KeyboardEvent) => {
-    if (ev.key !== 'Enter' && ev.key !== ' ') return;
     const el = (ev.target as HTMLElement).closest<HTMLButtonElement>('.carta');
     if (!el) return;
-    ev.preventDefault();
-    alternar(el.dataset.id!);
+    if (ev.key === 'Enter' || ev.key === ' ') {
+      ev.preventDefault();
+      alternar(el.dataset.id!);
+    } else if ((ev.key === 'q' || ev.key === 'w') && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
+      // Q / W corren de Posta la carta con foco (como LB / RB del mando)
+      if (correr(el.dataset.id!, ev.key === 'q' ? -1 : 1)) ev.preventDefault();
+    }
   };
+  function correr(id: string, dir: -1 | 1): boolean {
+    if (bloqueada) return false;
+    const i = enPosta.indexOf(id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= nPostas) return false;
+    [enPosta[i], enPosta[j]] = [enPosta[j], enPosta[i]];
+    cambio();
+    return true;
+  }
   raiz.addEventListener('pointerdown', abajo);
   raiz.addEventListener('pointermove', mueve);
   raiz.addEventListener('pointerup', arriba);
@@ -391,9 +644,10 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
   raiz.addEventListener('pointerleave', sale);
   raiz.addEventListener('keydown', tecla);
   raiz.addEventListener('cabala:alternar', ((ev: CustomEvent<string>) => alternar(ev.detail)) as EventListener);
-  requestAnimationFrame((t) => {
-    ultimo = t;
-    cuadro(t);
+  raiz.addEventListener('cabala:correr', ((ev: CustomEvent<{ id: string; dir: -1 | 1 }>) => void correr(ev.detail.id, ev.detail.dir)) as unknown as EventListener);
+  requestAnimationFrame((tt) => {
+    ultimo = tt;
+    cuadro(tt);
   });
 
   return {
@@ -436,18 +690,30 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
       }
       for (const c of viejas.values()) c.el.remove();
       naipes = nuevas;
+      // lo que ya no está en la mano deja su Posta
+      for (let i = 0; i < nPostas; i++) if (enPosta[i] && !naipes.some((c) => c.carta.id === enPosta[i])) enPosta[i] = null;
       // la mano que necesita dos filas (el móvil) lo dice con una clase: el CSS le da el alto de dos filas solo a ella
       tope = Math.max(tope, naipes.length);
       raiz.classList.toggle('dos-filas', pideDosFilas(tope));
       // el orden del DOM sigue al de la fila: el foco del teclado y del mando va de izquierda a derecha
       for (const c of naipes) raiz.append(c.el);
-      marcar();
+      sincronizarElegidas();
     },
     seleccion: elegidas,
-    elegir(ids) {
-      for (const c of naipes) c.elegida = ids.includes(c.carta.id);
-      marcar();
-      oye.alCambiar(elegidas());
+    postaDe: (id) => enPosta.indexOf(id),
+    elegir(ids, postas) {
+      enPosta.fill(null);
+      ids.forEach((id, i) => {
+        const p = postas?.[i];
+        if (p !== undefined && p >= 0 && p < nPostas && !enPosta[p]) enPosta[p] = id;
+      });
+      for (const id of ids) if (!enPosta.includes(id)) apoyar(id);
+      cambio();
+    },
+    correr,
+    marcar(m) {
+      marcas = m;
+      rotEscalon.textContent = m.escalon ? `${t('escalon')} +${m.escalon}` : '';
     },
     volar(ids, a) {
       const { k } = medidas();
@@ -456,6 +722,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
         c.vuela = { x: a.x - 50 * k + (i - (grupo.length - 1) / 2) * 10 * k, y: a.y - 70 * k };
         c.el.classList.add('volando');
       });
+      for (const id of ids) quitar(id);
+      marcas = { chispas: [], escalon: 0 };
       const ms = todoQuieto() ? 0 : 190;
       return new Promise((ok) =>
         setTimeout(() => {
@@ -473,13 +741,19 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
       raiz.classList.toggle('bloqueada', si);
     },
     posar(ids, x, y) {
-      for (const c of naipes) c.elegida = ids.includes(c.carta.id);
-      marcar();
+      enPosta.fill(null);
+      for (const id of ids) apoyar(id);
       posado = { ids: [...ids], x, y };
       raiz.classList.add('arrastrando');
       document.body.classList.add('arrastrando');
-      oye.alCambiar(elegidas());
+      cambio();
       oye.alApuntar('enemigo', [...ids]);
+    },
+    arrastrarA(id, posta) {
+      haciaPosta = { id, posta };
+      const el = slots[posta];
+      el?.classList.add('apunta');
+      pano.classList.add('activo');
     },
     destruir() {
       viva = false;
