@@ -518,6 +518,9 @@ export function pantallaMesa(p: Partida): Pantalla {
     const neto = ataque.querySelector<HTMLElement>('.e-neto');
     if (neto) {
       neto.innerHTML = causa ? causa.split(/ (?=[^ ]+$)/).map((x) => `<span>${esc(x)}</span>`).join('') : '';
+      // (en el teléfono, la causa va en el renglón de abajo de la placa, corta y con su icono: «🛡 −20»)
+      const frena = /− (\d+)/.exec(causa)?.[1];
+      if (frena) neto.insertAdjacentHTML('beforeend', `<span class="neto-corto">${pxHud('escudo')}−${frena}</span>`);
       neto.hidden = !causa;
     }
     const nAtaque = ataque.querySelector<HTMLElement>('[data-n="ataque"]');
@@ -1112,9 +1115,19 @@ export function pantallaMesa(p: Partida): Pantalla {
         .join('') +
       '</span>';
     el.classList.toggle('sin-nada', !h.some(Boolean));
-    // (en el teléfono la columna de los botones es la barra del pulgar: la bandeja se apoya en la madera de la escena)
-    const destino = innerWidth <= 700 ? $('[data-escena]') : $('.mano-zona .botones');
-    if (destino && el.parentElement !== destino) destino.prepend(el);
+    // (en el teléfono la columna de los botones es la barra del pulgar y la escena no tiene alto de sobra: la bandeja va
+    // al borde derecho del renglón de las fichas del HUD, solo con lo que llevás, y las fichas le hacen lugar)
+    const tel = innerWidth <= 700;
+    const destino = tel ? $('[data-hud] .hud-lado.der') : $('.mano-zona .botones');
+    if (destino && el.parentElement !== destino) {
+      if (tel) destino.append(el);
+      else destino.prepend(el);
+    }
+    const hud = $<HTMLElement>('[data-hud]');
+    if (hud && tel) {
+      hud.style.setProperty('--ancho-chiches', `${el.classList.contains('sin-nada') ? 0 : el.offsetWidth + 10}px`);
+      actualizarTiras(p);
+    }
   }
   /** Un Chiche que vuela de un punto a otro de la mesa (lo que se usa, va a lo suyo; la Prenda, del caído a su hueco). */
   function volarChiche(id: ChicheId, de: { x: number; y: number }, a: { x: number; y: number }, ms = 320): Promise<void> {

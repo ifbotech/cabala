@@ -398,8 +398,9 @@ function ubicarGrito(b: HTMLElement): void {
     return mejor;
   };
   let mejor = buscar(true);
-  // (y si a 120 px del retrato no hay hueco limpio, ese grito no se dibuja)
-  if (botinTel && mejor.tapa >= 1e6) {
+  // (y si a 120 px del retrato no hay hueco limpio, ese grito no se dibuja: en el teléfono, también en la mesa; el
+  // grito que nace lejos del Personaje se lee como si hablara el enemigo)
+  if (innerWidth <= 700 && mejor.tapa >= 1e6) {
     ocultarGrito();
     return;
   }

@@ -3333,9 +3333,36 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 .e-ataque .e-neto[hidden] {
   display: none;
 }
+.e-ataque .e-neto .neto-corto {
+  display: none;
+}
+/* en el teléfono la causa va en el renglón de abajo de la placa, corta y con su icono («🛡 −20»): la placa dice por
+   qué te pega menos de lo que pega el naipe */
 @media (max-width: 700px) {
-  .mesa .e-ataque .e-neto {
+  .mesa .e-ataque .e-neto:not([hidden]) {
+    position: static;
+    translate: none;
+    display: flex;
+    flex-basis: 100%;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--rot);
+    font-size: 14px;
+    color: var(--cian);
+  }
+  .mesa .e-ataque .e-neto > span:not(.neto-corto) {
     display: none;
+  }
+  .mesa .e-ataque .e-neto .neto-corto {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .mesa .e-ataque .e-neto .neto-corto .px {
+    --k: 1;
+  }
+  .mesa .enemigo .e-ataque:has(.e-neto:not([hidden])) {
+    flex-wrap: wrap;
   }
 }
 /* el Rey que se planta en la mitad: celeste de piedra (no es un abatido ni un fallo; es la vuelta de su cara) */
@@ -4151,27 +4178,34 @@ button.chiche:focus-visible {
   font-size: 14px;
   color: var(--hueso-2);
 }
-/* el teléfono: la bandeja va de pie, a la derecha de la escena, bajo La Corte (en la madera libre) */
+/* el teléfono: la bandeja va al borde derecho del renglón de las fichas del HUD, solo con lo que llevás (las fichas le
+   dejan su ancho, `--ancho-chiches`, que pone la mesa) */
 @media (max-width: 700px) {
-  .escena > .chiches {
-    position: absolute;
-    right: 2px;
-    top: 64px;
-    bottom: 42px;
-    z-index: 4;
-    justify-content: flex-end;
+  .hud .chiches {
+    grid-area: tiras;
+    justify-self: end;
+    align-self: center;
   }
-  .escena > .chiches .ch-rot {
+  .hud .chiches .ch-rot,
+  .hud .chiches .chiche.vacio,
+  .hud .chiches.sin-nada {
     display: none;
   }
-  .escena > .chiches .ch-huecos {
-    flex-direction: column;
-    flex-wrap: wrap-reverse;
-    max-height: 100%;
+  .hud .chiches .ch-huecos {
     gap: 8px;
   }
-  .escena > .chiches.sin-nada {
-    display: none;
+  .hud .chiche {
+    width: 44px;
+    height: 44px;
+  }
+  .mesa .hud .hud-tiras {
+    margin-right: var(--ancho-chiches, 0px);
+  }
+}
+/* el teléfono bajo: el pie de la fila de adelante se mete un poco más tras la barra del pulgar */
+@container mesa (max-height: 700px) {
+  .mesa .mano {
+    margin-bottom: -42px;
   }
 }
 @media (min-width: 1100px) {
@@ -4323,4 +4357,11 @@ button.chiche:focus-visible {
   width: 26%;
   height: 17%;
   pointer-events: none;
+}
+/* el teléfono bajo (Safari con sus barras, 390×664): la causa de NO TE PEGA queda en la ayuda del chip (como en
+   `apretada-4` del escritorio): el chip no se parte en dos renglones */
+@container mesa (max-height: 700px) {
+  .mesa .cuenta .c-nopega .c-causa {
+    display: none;
+  }
 }
