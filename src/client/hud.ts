@@ -304,6 +304,8 @@ export const GRITO_LEJOS = (ancho: number): number => (ancho < 700 ? 120 : 280);
  * con la cola apuntándole (abajo si el globo queda arriba del retrato, arriba si queda debajo).
  */
 function ubicarGrito(b: HTMLElement): void {
+  // (en el teléfono, mientras el Botín entra, el grito espera escondido: se ubica cuando las piezas ya están quietas)
+  if (b.dataset.espera) return;
   const retrato = $('.hud-retrato');
   if (!retrato) {
     b.remove();
@@ -327,7 +329,9 @@ function ubicarGrito(b: HTMLElement): void {
   // (lo que no se puede tapar pesa un millón por píxel: un solo píxel de eso pierde contra tapar entero lo blando)
   // (y lo que el director de escena tiene en el aire, el número, el canto, el cartel, pesa casi como un control)
   const enAire = tomadas(turnoGrito).map((c) => ({ c: { left: c.x, top: c.y, right: c.x + c.w, bottom: c.y + c.h } as DOMRect, peso: 1e4 }));
-  const prohibidas = [...cajas(ZONAS_SIN_GRITO, 1e6), ...enAire, ...cajas(ZONAS_MEJOR_NO, 1)];
+  // (0.20) en el Botín del teléfono, una pieza por elegir es tan intocable como un botón: el grito no la tapa nunca
+  const botinTel = innerWidth <= 700 && !!document.querySelector('#app main.botin:not(.directo)');
+  const prohibidas = [...cajas(ZONAS_SIN_GRITO, 1e6), ...(botinTel ? cajas('#app .botin-fila.pendiente', 1e6) : []), ...enAire, ...cajas(ZONAS_MEJOR_NO, 1)];
   // (corta apenas supera lo que tapa el mejor hueco hallado: la búsqueda entera cabe en un par de milisegundos)
   const tapa = (x: number, y: number, tope: number): number => {
     let a = 0;
@@ -363,6 +367,11 @@ function ubicarGrito(b: HTMLElement): void {
     return mejor;
   };
   let mejor = buscar(true);
+  // (y si a 120 px del retrato no hay hueco limpio, ese grito no se dibuja)
+  if (botinTel && mejor.tapa >= 1e6) {
+    ocultarGrito();
+    return;
+  }
   if (mejor.tapa >= 1e6) {
     const lejano = buscar(false);
     if (lejano.tapa < mejor.tapa) mejor = lejano;

@@ -2846,3 +2846,42 @@ button.visor-carta:disabled {
     z-index: 2;
   }
 }
+/* «ELEGÍ UNA» desde el Botín: sin velo negro. El Botín queda atenuado detrás (sin su título ni su SEGUIR, que no
+   compiten con los de la oferta) y la pieza elegida se despliega en las tres cartas */
+.velo.sobre-botin {
+  background: rgba(9, 7, 15, 0.3);
+}
+.botin.eligiendo .botin-panel {
+  visibility: visible;
+  filter: brightness(0.38) saturate(0.55);
+  pointer-events: none;
+}
+.botin.eligiendo .botin-panel > .titulo,
+.botin.eligiendo .botin-panel > [data-accion='seguir'] {
+  visibility: hidden;
+}
+.velo.sobre-botin.recien .opciones > .opcion {
+  animation: despliega 0.36s steps(7) both;
+  animation-delay: calc(var(--orden, 0) * 45ms);
+}
+@keyframes despliega {
+  from {
+    translate: var(--dx, 0) var(--dy, 0);
+    scale: 0.22;
+    opacity: 0.5;
+  }
+  70% {
+    translate: 0 0;
+    scale: 1.04;
+    opacity: 1;
+  }
+  to {
+    translate: 0 0;
+    scale: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .velo.sobre-botin.recien .opciones > .opcion {
+    animation: none;
+  }
+}

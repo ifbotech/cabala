@@ -437,6 +437,19 @@ function modalOferta(p: Partida, indice: number, alTerminar: () => void): void {
     // B: primero lleva el foco a SALTAR (con su glifo B); otro B lo pulsa
     () => void irASalida($('#capa .velo')),
   );
+  // (0.20) desde el Botín no hay velo negro: el Botín queda atenuado detrás y la pieza elegida se despliega en las
+  // tres cartas (cada una sale del lugar de la pieza y vuela al suyo)
+  const pieza = $(`#app main.botin:not(.directo) [data-accion="abrir"][data-i="${indice}"]`)?.closest<HTMLElement>('.botin-fila');
+  if (pieza) {
+    velo.classList.add('sobre-botin');
+    const d = pieza.getBoundingClientRect();
+    if (!quieto())
+      for (const o of velo.querySelectorAll<HTMLElement>('.opciones > .opcion')) {
+        const r = o.getBoundingClientRect();
+        o.style.setProperty('--dx', `${Math.round(d.left + d.width / 2 - (r.left + r.width / 2))}px`);
+        o.style.setProperty('--dy', `${Math.round(d.top + d.height / 2 - (r.top + r.height / 2))}px`);
+      }
+  }
   if (oferta.tipo === 'bendicion' && habla && !quieto()) teclear($('[data-teclea]', velo), fraseRey, habla);
   // la irrupción del Rey que habla: su aura se abre desde el retrato
   if (habla) {
@@ -524,20 +537,31 @@ export function pantallaBotin(p: Partida, desdeMesa = false): Pantalla {
     alMontar: () => {
       avivarRetrato(p);
       // el grito del Personaje que venía de la mesa se vuelve a ubicar cuando el panel ya brotó (no mientras crece)
-      if (!directo && !enFoto()) window.setTimeout(reubicarGrito, 380);
+      // (en el teléfono, recién cuando terminó de entrar la última pieza: hasta entonces espera escondido)
+      if (!directo && !enFoto()) {
+        const tel = innerWidth <= 700;
+        const g = document.querySelector<HTMLElement>('.hud-grito');
+        if (tel && g) {
+          g.dataset.espera = '1';
+          g.style.visibility = 'hidden';
+        }
+        window.setTimeout(() => {
+          const h = document.querySelector<HTMLElement>('.hud-grito');
+          if (h) {
+            delete h.dataset.espera;
+            h.style.visibility = '';
+          }
+          reubicarGrito();
+        }, tel ? 120 + botin.items.length * 70 + 320 : 380);
+      }
       if (directo && pendiente() >= 0) modalOferta(p, pendiente(), trasElegir);
       else if (!directo && !enFoto() && desdeMesa && !quieto()) {
         // recién ganado: el oro ya se cobró en la mesa; el panel brota al centro, muestra lo cobrado un instante y la
-        // primera elección lo reemplaza (el panel se pliega y en su lugar se abre «ELEGÍ UNA»)
+        // pieza de la primera elección se despliega en «ELEGÍ UNA» (el Botín queda atenuado detrás, sin velo negro)
         const r = $('.botin-panel')?.getBoundingClientRect();
         if (r) lluviaDeMonedas(r.left, r.right, r.top - 30, 10);
         sonar('brota');
-        if (pendiente() >= 0)
-          void pausa(780).then(() => {
-            if (p.botin !== botin || pendiente() < 0 || $('.velo')) return;
-            $('#app main.botin')?.classList.add('pliega');
-            void pausa(170).then(() => p.botin === botin && pendiente() >= 0 && !$('.velo') && modalOferta(p, pendiente(), trasElegir));
-          });
+        if (pendiente() >= 0) void pausa(780).then(() => p.botin === botin && pendiente() >= 0 && !$('.velo') && modalOferta(p, pendiente(), trasElegir));
       } else if (!directo && !enFoto()) {
         // el botín pasa sobre la mesa: el oro vuela al HUD y la primera oferta brota sin cambiar de pantalla
         const r = $('.botin-panel')?.getBoundingClientRect();
