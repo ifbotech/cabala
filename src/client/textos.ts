@@ -68,6 +68,8 @@ export const ES = {
   racha: 'RACHA ×{n}',
   sobran: 'sobran {n}',
   leQuedan: 'le quedan {n}',
+  loAbatis: 'LO ABATÍS',
+  noLoAbatis: 'NO LO ABATÍS',
   copia: 'Copia',
   comodin: 'COMODÍN',
   perfora: 'PERFORA',
@@ -299,6 +301,8 @@ export const EN: Record<keyof typeof ES, string> = {
   racha: 'STREAK ×{n}',
   sobran: '{n} over',
   leQuedan: '{n} left',
+  loAbatis: 'TAKES IT DOWN',
+  noLoAbatis: 'NOT ENOUGH',
   copia: 'Copies',
   comodin: 'JOKER',
   perfora: 'PIERCES',
@@ -477,6 +481,13 @@ export const SEGUNDA_CORTA: Record<Palo, Par> = {
   C: P(`Escudo que vuelve ×${B.reyes.C.empalizadaRegenera} · Espadas lo cruzan`, `Shield regrows ×${B.reyes.C.empalizadaRegenera} · Swords cut it`),
   D: P(`Cada golpe suyo: −${Math.round(B.reyes.D.remate * 100)} % de tu oro`, `Each hit he lands: −${Math.round(B.reyes.D.remate * 100)}% of your gold`),
   H: P(`Lo que te curás, él se cura ×${B.reyes.H.ultimaRonda}`, `Whatever you heal, he heals ×${B.reyes.H.ultimaRonda}`),
+};
+/** Lo que el Bufón dice al voltearse un Rey: una burla de cinco palabras como mucho (la regla entera, en el chip y en su ayuda). */
+export const SEGUNDA_BURLA: Record<Palo, Par> = {
+  S: P('Ojo: no repitas jugada.', "Careful: don't repeat plays."),
+  C: P('Ahora se atrinchera, ojo.', 'Now he digs in.'),
+  D: P('Cuidá la bolsa, che.', 'Mind your purse.'),
+  H: P('No te cures de más.', "Don't over-heal now."),
 };
 export const PALO_NOMBRE: Record<Palo, Par> = { S: P('Espadas', 'Swords'), C: P('Bastos', 'Clubs'), D: P('Oros', 'Coins'), H: P('Copas', 'Cups') };
 /** El poder de cada palo, en tres palabras. */

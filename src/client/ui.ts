@@ -154,12 +154,42 @@ function ubicarTip(el: HTMLElement): void {
   if (carrilDelMapa(el, r)) return;
   tipEl.classList.remove('tip-carril');
   tipEl.style.maxWidth = '';
+  if (ayudaDeNaipe(el, r)) return;
   const w = tipEl.offsetWidth;
   const h = tipEl.offsetHeight;
   const x = Math.max(4, Math.min(innerWidth - w - 4, r.left + r.width / 2 - w / 2));
   const arriba = r.top - h - 6;
   tipEl.style.left = `${Math.round(x)}px`;
   tipEl.style.top = `${Math.round(arriba >= 4 ? arriba : Math.min(innerHeight - h - 4, r.bottom + 6))}px`;
+}
+/**
+ * La ayuda de un naipe de la mano (el temple, la copia del Comodín): nunca encima de la cuenta (con el mando el foco
+ * pasa por las cartas y la ayuda salía sola sobre el total, CURA y TE PEGA). Va al costado del naipe, dentro de la
+ * franja de la mano; si no hay costado (el teléfono), por arriba de la mano y por debajo de la cuenta.
+ */
+function ayudaDeNaipe(el: HTMLElement, r: DOMRect): boolean {
+  const mano = el.closest<HTMLElement>('.mano');
+  if (!mano || !tipEl) return false;
+  const M = mano.getBoundingClientRect();
+  const techo = ($('[data-cuenta] .cuenta:not(.reposo)') ?? $('[data-cuenta]'))?.getBoundingClientRect().bottom ?? 0;
+  tipEl.style.maxWidth = `${Math.min(320, innerWidth - 8)}px`;
+  const w = tipEl.offsetWidth;
+  const h = tipEl.offsetHeight;
+  const m = 8;
+  const y = Math.max(techo + 6, Math.min(innerHeight - h - 4, r.top + 12));
+  let x: number;
+  if (r.right + m + w <= Math.max(M.right, innerWidth * 0.6)) x = r.right + m;
+  else if (r.left - m - w >= Math.min(M.left, innerWidth * 0.4)) x = r.left - m - w;
+  else {
+    // sin costado: arriba de la mano, debajo de la cuenta
+    x = Math.max(4, Math.min(innerWidth - w - 4, r.left + r.width / 2 - w / 2));
+    tipEl.style.left = `${Math.round(x)}px`;
+    tipEl.style.top = `${Math.round(Math.max(techo + 6, Math.min(r.top - h - 6, innerHeight - h - 4)))}px`;
+    return true;
+  }
+  tipEl.style.left = `${Math.round(Math.max(4, Math.min(innerWidth - w - 4, x)))}px`;
+  tipEl.style.top = `${Math.round(y)}px`;
+  return true;
 }
 /** La ayuda de un nodo del Mapa, en el carril libre a un costado del lienzo (si lo hay): devuelve si la ubicó. */
 function carrilDelMapa(el: HTMLElement, r: DOMRect): boolean {

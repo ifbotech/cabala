@@ -1079,7 +1079,7 @@ button.hud-tiras .ficha {
   pointer-events: none !important;
   font-family: var(--rot);
   text-transform: uppercase;
-  animation: grito 1.5s steps(12) both;
+  animation: grito 1.2s steps(10) both;
 }
 .hud-grito.quieto {
   animation: none;
@@ -1423,4 +1423,45 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .b-signo {
 /* 0.17.0 · el pie de una ayuda puede venir en renglones (las cargas de los Reyes, una por renglón, en «LO QUE LLEVÁS») */
 .tip .apagado {
   white-space: pre-line;
+}
+
+/* ───────────── 0.18.0 · la bandeja se lee sin pasar el cursor ───────────── */
+/* el nivel de una Bendición: un numerito en la esquina de su ficha (antes heredaba la caja de la cuenta de la mesa y
+   tapaba el icono: el «∠» suelto) */
+.ficha .f-nivel {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 0 3px;
+  font-family: var(--cuerpo);
+  font-size: var(--fs-s);
+  font-weight: 400;
+  line-height: 1;
+  color: var(--oro);
+  background: var(--abismo);
+}
+/* las cargas llevan su nombre a la vista: «⚔ FILO 4» */
+.ficha.carga .f-rot {
+  font-family: var(--cuerpo);
+  font-size: var(--fs-s);
+  font-weight: 400;
+  line-height: 1;
+  color: var(--hueso);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+/* los Amuletos y las Cábalas del Bufón, separados por una raya */
+.hud-sep {
+  flex: none;
+  align-self: stretch;
+  width: 2px;
+  margin: 6px 2px;
+  background: #8a7fa6;
+  opacity: 0.7;
+}
+@media (max-width: 700px) {
+  /* (en el teléfono la bandeja es de una fila: el nombre de la carga, en su ayuda) */
+  .ficha.carga .f-rot {
+    display: none;
+  }
 }

@@ -798,6 +798,19 @@ button.visor-carta:disabled {
   align-items: center;
   gap: 2px;
 }
+/* las cifras de la Crónica, a la misma altura aunque el rótulo parta en dos renglones */
+.cr-datos {
+  align-items: stretch;
+}
+.cr-dato {
+  justify-content: space-between;
+}
+.cr-dato .rotulo {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  text-align: center;
+}
 .cr-lista {
   flex: 1;
   min-height: 0;
@@ -2294,6 +2307,11 @@ button.visor-carta:disabled {
   position: absolute;
   left: 0;
   top: 0;
+}
+/* cada mitad con su marco dorado, también partido (el filo de la rajadura lleva el oro): un cuadro roto, no un error */
+.fin-cara-partida .mitad {
+  filter: drop-shadow(calc(1px * var(--k)) 0 0 #ffd500) drop-shadow(calc(-1px * var(--k)) 0 0 #ffd500) drop-shadow(0 calc(1px * var(--k)) 0 #d86000)
+    drop-shadow(0 calc(-1px * var(--k)) 0 #ffd500) drop-shadow(calc(1px * var(--k)) calc(1px * var(--k)) 0 #09070f);
 }
 .fin-cara-partida .m-izq {
   translate: calc(-5px * var(--k)) calc(4px * var(--k));

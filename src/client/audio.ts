@@ -72,6 +72,8 @@ const SONIDO = {
   mascara: [[180, 0.05, 'square', 0.2, 90], [1175, 0.04, 'square', 0.1], [988, 0.04, 'square', 0.1], [1319, 0.09, 'triangle', 0.14]],
   // el naipe del Rey que se raja antes de partirse: un crujido seco y corto
   grieta: [[420, 0.03, 'sawtooth', 0.12, 180], [95, 0.06, 'square', 0.14, 50]],
+  // el total de la cuenta que se revela: un sello hondo y el acorde que lo corona
+  revela: [[98, 0.09, 'square', 0.24, 49], [523, 0.06, 'square', 0.12], [784, 0.08, 'square', 0.12], [1047, 0.22, 'triangle', 0.16]],
 } satisfies Record<string, Nota[]>;
 
 /** Las capas de ruido: el transitorio que hace que un golpe pegue y no suene a pitido. */
@@ -97,6 +99,7 @@ const RUIDO: Partial<Record<keyof typeof SONIDO | 'segunda', Ruido[]>> = {
   despeja: [{ dur: 0.32, vol: 0.16, filtro: 'bandpass', corte: 1800, hasta: 300, q: 1.2 }],
   mascara: [{ dur: 0.05, vol: 0.3, filtro: 'lowpass', corte: 900 }],
   grieta: [{ dur: 0.07, vol: 0.32, filtro: 'highpass', corte: 2600, hasta: 1200 }],
+  revela: [{ dur: 0.05, vol: 0.34, filtro: 'bandpass', corte: 1300, q: 0.8 }, { dur: 0.18, vol: 0.2, filtro: 'lowpass', corte: 500, hasta: 100 }],
   segunda: [{ dur: 0.8, vol: 0.26, filtro: 'bandpass', corte: 400, hasta: 3000, q: 1.5 }],
 };
 

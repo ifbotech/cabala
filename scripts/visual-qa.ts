@@ -27,7 +27,7 @@ const pedidos = args.filter((a) => !a.startsWith('-'));
 const estados = ESTADOS.filter((e) => !pedidos.length || pedidos.includes(e));
 /** El móvil bajo (390 de ancho en Safari, con sus barras): solo los estados de mesa, que son los que ceden por alto. */
 const VENTANA_BAJA = { nombre: '390x664', w: 390, h: 664 } as const;
-const ESTADOS_BAJA: readonly string[] = ['mesa', 'mesa-seleccion', 'mesa-mentiroso', 'mesa-rey', 'mesa-segunda'];
+const ESTADOS_BAJA: readonly string[] = ['mesa', 'mesa-seleccion', 'mesa-mentiroso', 'mesa-rey', 'mesa-segunda', 'mesa-segunda-cambia'];
 const ventanas = [...VENTANAS, VENTANA_BAJA].filter((v) => !soloVentana || v.nombre === soloVentana);
 const carpeta = `artifacts/visual-qa${lang === 'en' ? '-en' : ''}`;
 
@@ -202,10 +202,11 @@ function auditar(o: { esMovil: boolean; idioma: string }): Fallo[] {
       if (asoma < 80) fallos.push({ regla: 'solape-enemigo', detalle: `el naipe del enemigo asoma solo ${asoma} px (mínimo 80)` });
     }
   }
-  // el grito del Personaje: al costado de su retrato, dentro de la pantalla, sin tapar controles ni la cuenta
+  // el grito del Personaje: cerca de su retrato, dentro de la pantalla, sin tapar controles, la mano, la cuenta, las
+  // cifras del HUD (Vida, Escudo, oro, Mazo) ni la cabecera
   for (const g of [...document.querySelectorAll('.hud-grito')].filter(visible)) {
     const r = g.getBoundingClientRect();
-    for (const el of [...document.querySelectorAll('#app button, #app .mano .carta, #app .cuenta:not(.reposo)')].filter(visible)) {
+    for (const el of [...document.querySelectorAll('#app button, #app .mano .carta, #app .cuenta:not(.reposo), #app [data-hud-vida], #app [data-hud-escudo], #app [data-hud-oro], #app .hud [data-n], #app .mesa-top .lado > *')].filter(visible)) {
       const c = el.getBoundingClientRect();
       if (Math.min(r.right, c.right) - Math.max(r.left, c.left) > 2 && Math.min(r.bottom, c.bottom) - Math.max(r.top, c.top) > 2) {
         fallos.push({ regla: 'grito-tapa', detalle: `«${(g.textContent ?? '').trim()}» tapa ${nombre(el)} «${(el.textContent ?? '').trim().slice(0, 20)}»` });

@@ -3088,3 +3088,264 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     grid-column: 2 / 3;
   }
 }
+
+/* ───────────── 0.18.0 · el golpe se descubre ───────────── */
+
+/* la vista previa: el veredicto en el lugar de la fórmula. Las cifras finales ya están en su sitio, invisibles (la
+   cuenta no cambia de ancho al abrirse el conteo); el conteo las descubre término a término */
+.c-revelado {
+  display: inline-grid;
+  align-items: center;
+  justify-items: center;
+}
+.c-revelado > * {
+  grid-area: 1 / 1;
+}
+.c-numeros {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.75);
+}
+.cuenta.previa .c-numeros {
+  visibility: hidden;
+}
+.cuenta:not(.previa) .c-veredicto {
+  visibility: hidden;
+}
+.c-veredicto {
+  font-family: var(--rot);
+  font-size: calc(var(--fr) * 1.45);
+  line-height: 1;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  padding: 4px 10px;
+  text-shadow: 3px 3px 0 #09070f;
+  animation: veredicto 0.24s steps(4);
+}
+.c-veredicto.v-abate {
+  color: #7dffa0;
+}
+.c-veredicto.v-no {
+  color: var(--hueso);
+}
+.c-veredicto.v-exacto,
+.c-veredicto.v-alpelo {
+  color: var(--oro);
+}
+.c-veredicto.v-exacto {
+  animation:
+    veredicto 0.24s steps(4),
+    tajo-late 0.5s steps(2) 0.24s infinite alternate;
+}
+@keyframes veredicto {
+  from {
+    scale: 1.25;
+    filter: brightness(1.6);
+  }
+}
+/* «LE QUEDAN n» y «SOBRAN n» los descubre el conteo: hasta entonces no ocupan lugar */
+.cuenta:not(.revelada) .c-revela {
+  display: none;
+}
+.cuenta.revelada .c-revela {
+  animation: revela-chip 0.3s steps(4);
+}
+@keyframes revela-chip {
+  from {
+    scale: 1.6;
+    filter: brightness(1.8);
+  }
+}
+/* el total que se asienta: cae grande y se acomoda a su tamaño */
+[data-total].asienta {
+  animation: total-asienta 0.42s steps(7);
+}
+@keyframes total-asienta {
+  0% {
+    scale: 2.1;
+    filter: brightness(2);
+  }
+  35% {
+    scale: 0.92;
+  }
+  55% {
+    scale: 1.08;
+    filter: brightness(1.3);
+  }
+  100% {
+    scale: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .c-veredicto,
+  .c-veredicto.v-exacto,
+  .cuenta.revelada .c-revela,
+  [data-total].asienta {
+    animation: none;
+  }
+}
+/* la tajada que le saca el golpe elegido, en su barra de Vida (sin cifra): tramada y latiendo; entera si lo abate */
+.e-vida .b-previa {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-conic-gradient(#fff2b8 0% 25%, #ff1453 0% 50%) 0 0 / 4px 4px;
+  opacity: 0.75;
+  image-rendering: pixelated;
+  pointer-events: none;
+  animation: tajada 0.5s steps(2) infinite alternate;
+}
+.e-vida .b-previa.entera {
+  background: repeating-conic-gradient(#ffd500 0% 25%, #09070f 0% 50%) 0 0 / 4px 4px;
+}
+@keyframes tajada {
+  to {
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .e-vida .b-previa {
+    animation: none;
+  }
+}
+
+/* ── el Tajo de revés, una sola fórmula: la cifra grande es lo que pega (42) y debajo, chica, la causa («21 ×2»),
+   antes de soltar y durante el golpe; nunca un ×2 pegado a la cifra ── */
+.mesa .e-ataque .e-tajo,
+.mesa .e-ataque.tajo .e-tajo {
+  display: none;
+}
+.mesa .e-ataque.tajo .e-tajo {
+  display: block;
+  padding: 0 4px;
+  background: #2a0812;
+  box-shadow: 0 0 0 2px #ff1453;
+  font-family: var(--rot);
+  font-size: var(--fs-s);
+  line-height: 1.25;
+  color: #ffd0d8;
+  white-space: nowrap;
+  animation: none;
+}
+/* en el teléfono la nota de la Furia nunca va en la placa (queda en su ayuda): la placa no crece ni trepa */
+@media (max-width: 700px) {
+  .mesa .e-furia-nota {
+    display: none;
+  }
+  .mesa .e-ataque.tajo .e-tajo {
+    padding: 0 2px;
+  }
+}
+.cuenta .chip.c-tajo .c-tajo-x {
+  margin-left: 0.3em;
+  font-weight: 400;
+  color: #ffd0d8;
+}
+
+/* ── la mano manda en el portátil y la Steam Deck (1280×800, 1366×768): los naipes de la mano van a 2× (200×280,
+   como el Rey) y el Rey se recorta a busto sobre su barra (asoma lo que deje el alto, como en el teléfono). La mano
+   se mete un poco detrás del HUD (las cartas descansan con el pie tapado; elegidas, suben enteras). Con mano de 7 u
+   8 (Chinchón, el Mentiroso) los naipes se montan en una fila: cada uno muestra su índice y media cara ── */
+@media (min-width: 1100px) and (max-width: 1699px) {
+  .mesa {
+    --k-naipe: 2;
+    /* (el Bufón a 1×: su bocadillo entra entre la cabecera y su gorro sin taparle la cara) */
+    --k-bufon: 1;
+  }
+  .mesa .mano {
+    height: calc(140px * var(--k-naipe) + 18px * var(--k-naipe));
+    margin-bottom: calc(-22px * var(--k-naipe));
+  }
+  .mesa .hud {
+    position: relative;
+    z-index: 40;
+  }
+  .mesa .escena {
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .mesa .enemigo {
+    align-self: stretch;
+    min-height: 0;
+    grid-template-rows: minmax(0, calc(140px * var(--k-enemigo))) auto;
+    align-content: center;
+  }
+  .mesa .e-barras,
+  .mesa .e-barras:has(.e-rasgo) {
+    margin-top: 0;
+  }
+  /* La Corte, a 1× (es la pila de lo que viene, no la mano) */
+  .mesa .corte {
+    --k: 1;
+    --k-naipe: 1;
+  }
+  .mesa .e-centro {
+    height: auto;
+    min-height: 0;
+    align-self: stretch;
+    clip-path: inset(-90px -60vw 0 -60vw);
+  }
+  .mesa .e-pano {
+    display: none;
+  }
+  /* con el Rey a busto, sus sellos bajan al pie (lejos de la cabecera) y el TE PEGA sube, sin su emblema: la placa no
+     baja hasta el rótulo de la segunda cara */
+  .mesa .e-sellos {
+    align-self: end;
+    margin-bottom: 4px;
+  }
+  .mesa .e-ataque {
+    align-self: start;
+  }
+  .mesa .e-ataque > .icono,
+  .mesa .e-ataque > .e-llamas {
+    display: none;
+  }
+  .mesa .mano {
+    margin-inline: calc(var(--u) * 3);
+  }
+  .mesa .botones,
+  .mesa .descarte-zona {
+    align-self: center;
+  }
+}
+
+/* ── cada cartel en su carril y en su momento: el número de tu golpe arriba del naipe; el rótulo del Rey al pie de
+   lo que se ve de él; lo que dice el Rey, al costado (nunca bajo su barra, sobre la cuenta) ── */
+@media (min-width: 701px) {
+  .mesa .e-dice {
+    left: auto;
+    right: calc(100% + 12px);
+    top: 10%;
+    bottom: auto;
+    translate: none;
+    max-width: min(13em, 30vw);
+    white-space: normal;
+  }
+  .mesa .rey-rotulo {
+    top: 72%;
+  }
+}
+.rey-rotulo .rr-antes {
+  font-family: var(--rot);
+  color: #ffd0d8;
+}
+/* el rasgo del Rey dentro de su barra (teléfono bajo), en la letra de cuerpo: «ESTOCADA DEL CAUDILLO» entra entera */
+@container mesa (max-height: 740px) {
+  .mesa .e-vida .e-alias {
+    font-family: var(--cuerpo);
+    font-size: var(--fs-s);
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+}
+@media (max-width: 700px) {
+  /* en el teléfono el veredicto va a la letra de rótulo de siempre: comparte renglón con lo que dan los palos */
+  .c-veredicto {
+    font-size: var(--fr);
+    padding: 2px 4px;
+  }
+}
+.c-formula > .c-revelado {
+  flex: none;
+  margin: 0 calc(var(--u) * 0.75);
+}

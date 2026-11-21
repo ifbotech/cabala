@@ -37,8 +37,10 @@ export const irPortada = (): void => ir(pantallaPortada(), 'portada');
 export const irMazo = (): void => ir(pantallaMazo(), 'portada');
 export const irAltar = (): void => ir(pantallaAltar(), 'altar', 'cabala');
 export const irColeccion = (): void => ir(pantallaColeccion(), 'portada');
-export const irCronica = (): void => ir(pantallaCronica(), 'portada');
-export const irAjustes = (): void => ir(pantallaAjustes(), 'portada');
+// la Crónica se lee sobre la mesa de tablas, a la luz de la vela (donde queda todo anotado); los Ajustes, en la
+// trastienda de La Pulpería: cada una con su escena, no el degradé de la portada
+export const irCronica = (): void => ir(pantallaCronica(), 'mesa');
+export const irAjustes = (): void => ir(pantallaAjustes(), 'pulperia');
 
 /** Guarda la partida en curso (o la borra si terminó). */
 export function guardar(): void {

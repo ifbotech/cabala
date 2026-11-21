@@ -19,7 +19,7 @@ import { enFoto } from './fx/motor';
 import type { Cuadro, Gesto, Herida, Mirada } from './pixel/personajes';
 import { cifra, pxAmuleto, pxAumento, pxBendicion, pxHud, pxPalo, urlRetrato } from './sprites';
 import { PALO_NOMBRE } from './textos';
-import { $, hayModal, tip } from './ui';
+import { $, esc, hayModal, tip } from './ui';
 
 /** Lo que el HUD enseña (la mesa lo anima paso a paso; fuera del combate sale de la partida). */
 export interface VistaHud {
@@ -54,22 +54,24 @@ function tiras(p: Partida): string {
       return `<span class="ficha" data-pieza="u:${id}" ${tip(tx(d.nombre), tx(d.desc), d.maldicion ? t('maldicion') : tx(NIVEL_NOMBRE[d.nivel]))}>${pxAumento(id)}</span>`;
     })
     .join('');
-  const cargas = PALOS.filter((s) => sirveA(p, s))
+  // las cargas, con su nombre a la vista («FILO 4» con su palo): las que están en 0 no ocupan lugar
+  const cargas = PALOS.filter((s) => sirveA(p, s) && carga(p, s) > 0)
     .map((s) => {
       const r = REY_DEF[s];
       const regla = ajustes.idioma === 'en' ? `+1 for each enemy you take down with ${PALO_NOMBRE[s].en} in the hit.` : `+1 por cada enemigo que abatís con ${PALO_NOMBRE[s].es} en el golpe.`;
-      return `<span class="ficha carga" data-carga="${s}" ${tip(cargaQue(p, s), tx(r.cargaDa), regla)}>${pxPalo(s)}${cifra(carga(p, s), 'oro')}</span>`;
+      return `<span class="ficha carga" data-carga="${s}" ${tip(cargaQue(p, s), tx(r.cargaDa), regla)}>${pxPalo(s)}<b class="f-rot">${esc(tx(r.carga))}</b>${cifra(carga(p, s), 'oro')}</span>`;
     })
     .join('');
   const bendiciones = (Object.keys(p.bendiciones) as BendicionId[])
     .map((id) => {
       const d = BENDICION[id];
       const n = p.bendiciones[id] ?? 1;
-      return `<span class="ficha" data-pieza="b:${id}" ${tip(tx(d.nombre), tx(d.desc(n)), `${tx(REY_DEF[d.rey].apodo)}${d.niveles > 1 ? ` · ${t('nivel', { n })}` : ''}`)}>${pxBendicion(id)}${d.niveles > 1 && n > 1 ? `<span class="cuenta">${cifra(n, 'hueso')}</span>` : ''}</span>`;
+      return `<span class="ficha" data-pieza="b:${id}" ${tip(tx(d.nombre), tx(d.desc(n)), `${tx(REY_DEF[d.rey].apodo)}${d.niveles > 1 ? ` · ${t('nivel', { n })}` : ''}`)}>${pxBendicion(id)}${d.niveles > 1 && n > 1 ? `<b class="f-nivel" aria-hidden="true">${'I'.repeat(Math.min(3, n))}</b>` : ''}</span>`;
     })
     .join('');
   if (!amuletos && !aumentos && !cargas && !bendiciones) return `<span class="sub hud-nada">${t('llevas')}: ${t('nada')}</span>`;
-  return `<div class="hud-tira" data-tira="amuletos">${amuletos}${aumentos}</div><div class="hud-tira" data-tira="reyes">${cargas}${bendiciones}</div><span class="hud-mas" data-mas hidden data-tip-t="" data-tip="${t('masPiezasTip')}"></span>`;
+  // (los Amuletos y las Cábalas del Bufón, separados por una raya: «AMULETOS 0/5» no cuenta las Cábalas)
+  return `<div class="hud-tira" data-tira="amuletos">${amuletos}${amuletos && aumentos ? '<i class="hud-sep" aria-hidden="true"></i>' : ''}${aumentos}</div><div class="hud-tira" data-tira="reyes">${cargas}${bendiciones}</div><span class="hud-mas" data-mas hidden data-tip-t="" data-tip="${t('masPiezasTip')}"></span>`;
 }
 
 /** El HTML del HUD. */
@@ -233,24 +235,24 @@ export function dispararFicha(pieza: string): { x: number; y: number } | null {
   void el.offsetWidth;
   el.classList.add('dispara');
   const rc = el.getBoundingClientRect();
-  if (innerWidth > 700) return { x: rc.left + rc.width / 2, y: rc.top };
-  // en el móvil la bandeja es angosta y va pegada a la esquina: los números de una misma cuenta salen escalonados
-  // (tres alturas) y lejos del borde, para que no se monten unos sobre otros ni sobre el retrato
+  // los números de una misma cuenta salen escalonados (tres alturas, y corridos de costado en el escritorio) y lejos
+  // del borde: no se montan unos sobre otros ni sobre el retrato
   const ahora = performance.now();
   escalon = ahora - ultimoDisparo > 1200 ? 0 : (escalon + 1) % 3;
   ultimoDisparo = ahora;
-  return { x: Math.max(56, Math.min(innerWidth - 56, rc.left + rc.width / 2)), y: rc.top - escalon * 22 };
+  const x = rc.left + rc.width / 2 + (innerWidth > 700 ? (escalon - 1) * 18 : 0);
+  return { x: Math.max(56, Math.min(innerWidth - 56, x)), y: rc.top - escalon * 26 };
 }
 let escalon = 0;
 let ultimoDisparo = 0;
 
 /**
- * El Personaje grita algo: un bocadillo corto AL COSTADO de su retrato (nunca encima de la mano, de los botones ni de
- * la cuenta), con su voz, que se va solo. Se mide antes de ubicarse: va del lado del retrato donde hay más sitio sin
- * controles (en el escritorio, sobre la Vida, el Escudo y el oro; en el teléfono, a la derecha del retrato y antes del
- * Mazo), partido en dos renglones si hace falta y siempre dentro de la pantalla. Nunca sale con un modal abierto (ni
- * queda encima de uno: va por debajo del velo y se borra al abrirse), y si la pantalla cambia se vuelve a ubicar junto
- * al retrato nuevo. `foto` lo deja quieto para la QA visual.
+ * El Personaje grita algo: un globo corto cerca de su retrato, con su voz, que se va solo en 1,2 s. Nunca tapa una
+ * cifra del HUD (Vida, Escudo, oro, Mazo), la cuenta, la mano, los botones ni lo del enemigo: se mide antes de
+ * ubicarse y va al hueco libre más cercano al retrato (en el escritorio, casi siempre arriba de él, entre la mano y
+ * los botones; en el teléfono, sobre la mesa). Nunca sale con un modal abierto (ni queda encima de uno: va por debajo
+ * del velo y se borra al abrirse), y si la pantalla cambia se vuelve a ubicar junto al retrato nuevo. `foto` lo deja
+ * quieto para la QA visual.
  */
 export function gritar(mazo: MazoId, texto: string, o: { foto?: boolean } = {}): void {
   const retrato = $('.hud-retrato');
@@ -269,7 +271,7 @@ export function gritar(mazo: MazoId, texto: string, o: { foto?: boolean } = {}):
   retrato.classList.remove('grita');
   void retrato.offsetWidth;
   retrato.classList.add('grita');
-  relojGrito = window.setTimeout(() => b.remove(), 1500);
+  relojGrito = window.setTimeout(() => b.remove(), 1200);
 }
 let relojGrito = 0;
 /** Borra el grito que esté a la vista. */
@@ -277,7 +279,17 @@ export function ocultarGrito(): void {
   clearTimeout(relojGrito);
   document.querySelector('.hud-grito')?.remove();
 }
-/** Ubica el grito al costado del retrato, del lado con más sitio libre de controles, dentro de la pantalla. */
+/** Si la mesa cambió debajo del grito (la cuenta creció, la mano se movió), se vuelve a ubicar. */
+export function reubicarGrito(): void {
+  const b = document.querySelector<HTMLElement>('.hud-grito');
+  if (b) ubicarGrito(b);
+}
+/** Lo que el grito no puede tapar nunca (también lo mide la QA visual, regla «grito-tapa»). */
+export const ZONAS_SIN_GRITO =
+  '#app button, #app [data-accion], #app .mano .carta, #app .cuenta:not(.reposo), #app [data-hud-vida], #app [data-hud-escudo], #app [data-hud-oro], #app .hud [data-n], #app .mesa-top .lado > *, #app .botin-panel, #app .panel';
+/** Lo que mejor no tapa (si no hay otro hueco, tapa lo menos posible): lo del enemigo, el Bufón y lo que dice. */
+const ZONAS_MEJOR_NO = '#app .e-centro, #app .e-vida, #app .e-ataque, #app .e-rasgo, #app .e-sellos > *, #app .corte-carta, #app .esc-bufon .bufon, #app .bocadillo:not([hidden])';
+/** Ubica el grito en el hueco libre más cercano a su retrato, dentro de la pantalla. */
 function ubicarGrito(b: HTMLElement): void {
   const retrato = $('.hud-retrato');
   if (!retrato) {
@@ -286,28 +298,49 @@ function ubicarGrito(b: HTMLElement): void {
   }
   const r = retrato.getBoundingClientRect();
   const m = 8;
-  // los controles que están a la altura del retrato (el Mazo, la bandeja): el grito no los tapa
-  const controles = [...document.querySelectorAll<HTMLElement>('#app button, #app [data-accion]')]
-    .map((el) => el.getBoundingClientRect())
-    .filter((c) => c.width > 0 && c.bottom > r.top + 4 && c.top < r.bottom - 4);
-  let desde = m;
-  let hasta = innerWidth - m;
-  for (const c of controles) {
-    if (c.right <= r.left + 1) desde = Math.max(desde, c.right + m);
-    if (c.left >= r.right - 1) hasta = Math.min(hasta, c.left - m);
-  }
-  const izq = r.left - m - desde;
-  const der = hasta - (r.right + m);
-  const lado = izq >= der ? 'izq' : 'der';
-  const ancho = Math.max(96, Math.floor(lado === 'izq' ? izq : der));
-  b.style.maxWidth = `${ancho}px`;
-  b.dataset.lado = lado;
+  b.style.maxWidth = `${Math.min(300, innerWidth - 2 * m)}px`;
+  b.style.left = '0px';
+  b.style.top = '0px';
   const w = b.offsetWidth;
   const h = b.offsetHeight;
-  const x = Math.max(m, Math.min(innerWidth - w - m, lado === 'izq' ? r.left - m - w : r.right + m));
-  const y = Math.max(m, Math.min(innerHeight - h - m, r.top + r.height / 2 - h / 2));
-  b.style.left = `${Math.round(x)}px`;
-  b.style.top = `${Math.round(y)}px`;
+  const cajas = (sel: string, peso: number) =>
+    [...document.querySelectorAll<HTMLElement>(sel)]
+      .filter((el) => el !== b && !(el.classList.contains('carta') && Number(el.style.zIndex || 0) >= 100))
+      .map((el) => ({ c: el.getBoundingClientRect(), peso }))
+      .filter((x) => x.c.width > 0 && x.c.height > 0);
+  const prohibidas = [...cajas(ZONAS_SIN_GRITO, 1000), ...cajas(ZONAS_MEJOR_NO, 1)];
+  // (corta apenas supera lo que tapa el mejor hueco hallado: la búsqueda entera cabe en un par de milisegundos)
+  const tapa = (x: number, y: number, tope: number): number => {
+    let a = 0;
+    for (const { c, peso } of prohibidas) {
+      const ix = Math.min(x + w, c.right) - Math.max(x, c.left);
+      if (ix <= 0) continue;
+      const iy = Math.min(y + h, c.bottom) - Math.max(y, c.top);
+      if (iy > 0 && (a += ix * iy * peso) > tope) return a;
+    }
+    return a;
+  };
+  // el ancla: el borde de arriba del retrato, al medio
+  const ax = r.left + r.width / 2;
+  const ay = r.top;
+  let mejor = { x: Math.max(m, Math.min(innerWidth - w - m, ax - w / 2)), y: Math.max(m, ay - h - m), tapa: Infinity, d: Infinity };
+  const paso = 8;
+  for (let y = m; y <= innerHeight - h - m; y += paso) {
+    for (let x = m; x <= innerWidth - w - m; x += paso) {
+      // lo más cerca del retrato (el centro del globo contra el ancla), un poco más barato hacia arriba que al costado
+      const dx = x + w / 2 - ax;
+      const dy = y + h / 2 - (ay - h / 2 - m);
+      const d = dx * dx + dy * dy * 1.4;
+      // con un hueco limpio ya hallado, lo que queda más lejos ni se mide
+      if (mejor.tapa === 0 && d >= mejor.d) continue;
+      const t = tapa(x, y, mejor.tapa);
+      if (t > mejor.tapa) continue;
+      if (t < mejor.tapa || d < mejor.d) mejor = { x, y, tapa: t, d };
+    }
+  }
+  b.dataset.lado = mejor.x + w / 2 < ax ? 'izq' : 'der';
+  b.style.left = `${Math.round(mejor.x)}px`;
+  b.style.top = `${Math.round(mejor.y)}px`;
 }
 // al abrirse un modal el grito se borra; al cambiar de pantalla, se vuelve a ubicar junto al retrato nuevo (o se va)
 if (typeof document !== 'undefined')

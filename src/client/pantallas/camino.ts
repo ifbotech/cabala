@@ -574,7 +574,7 @@ export function pantallaPulperia(p: Partida): Pantalla {
         ${anfitrion(voz, gesto, 'pul-bufon')}
         <div class="bandejas">
           <section class="bandeja marco">
-            <h2 class="rotulo">${t('amuletos')} · ${t('huecos', { a: p.amuletos.length, b: p.huecos })}</h2>
+            <h2 class="rotulo">${t('amuletos')} ${p.amuletos.length}/${p.huecos}</h2>
             <div class="ventas">${tienda.amuletos
               .map((a, i) => {
                 const f = fichaDe('amuleto', a.id, p);

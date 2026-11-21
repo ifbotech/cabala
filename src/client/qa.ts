@@ -17,7 +17,7 @@ import { $ } from './ui';
 export const ESTADOS = [
   'portada', 'elegir-mazo', 'elegi-una', 'mapa', 'mesa', 'mesa-seleccion', 'mesa-arrastrando', 'mesa-rey', 'mesa-segunda', 'mesa-mentiroso', 'botin', 'elegi-bendicion', 'elegi-amuleto',
   'pulperia', 'fogon', 'cabala', 'mazo', 'jugadas', 'piezas', 'mesa-mando', 'mapa-mando', 'altar', 'coleccion', 'coleccion-reyes', 'coleccion-amuletos', 'cronica', 'ajustes', 'fin-victoria', 'fin-derrota',
-  'mesa-grito', 'botin-grito',
+  'mesa-grito', 'botin-grito', 'mesa-segunda-cambia',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
 /** Estados que solo tienen sentido en vivo (`&vivo`, para las secuencias del Jurado): no entran en la QA visual. */
@@ -138,7 +138,8 @@ export function montarQa(estado: string): void {
       // el duelo del Rey recién abierto (turno 1, sin golpes): en vivo, la irrupción entera
       montar(partida(mazo, (p) => p.fase === 'combate' && p.combate!.tipo === 'rey' && enCombate(p, 0)));
       break;
-    case 'mesa-segunda': {
+    case 'mesa-segunda':
+    case 'mesa-segunda-cambia': {
       // el Rey ya en su segunda cara (bajo media Vida) y, si es el Caudillo, una selección que repite la jugada
       // anterior: la cuenta y el TE PEGA avisan el Tajo de revés antes de soltar
       const p = partida(mazo, (x) => x.fase === 'combate' && !!x.combate!.fila[0]?.jefe);
@@ -166,7 +167,10 @@ export function montarQa(estado: string): void {
       const sel = vivas().find((x) => cuenta(p, x).jugada !== 'sola') ?? vivas()[0];
       const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[]): void }; sincronizar(): void } }).__mesa;
       if (sel && mesa) {
-        p.combate!.ultimaJugada = cuenta(p, sel).jugada;
+        // (`-cambia`: la jugada de antes fue otra, el caso común de la segunda cara: no arma el Tajo y la placa del
+        // TE PEGA queda con su Furia)
+        const jugada = cuenta(p, sel).jugada;
+        p.combate!.ultimaJugada = estado === 'mesa-segunda-cambia' ? (jugada === 'par' ? 'pierna' : 'par') : jugada;
         mesa.mano.elegir(sel.map((k) => k.id));
       }
       break;

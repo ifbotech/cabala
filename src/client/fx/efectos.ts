@@ -260,6 +260,12 @@ export function monedas(x0: number, y0: number, x1: number, y1: number, n = 8, a
 }
 
 /** Un número que salta del golpe, sube, cae con gravedad y se apaga parpadeando. */
+const enVuelo = new Set<{ apagar: () => void }>();
+/** Apaga los números que están en el aire (entra un cartel o un rótulo en su lugar: un texto grande por vez). */
+export function limpiarNumeros(): void {
+  for (const n of enVuelo) n.apagar();
+  enVuelo.clear();
+}
 export function numero(texto: string | number, x: number, y: number, tono: TonoCifra = 'hueso', escala = 1): void {
   const glifos = [...String(texto).replace('×', 'x').replace('−', '-')].map((ch) => lienzo(`cf:${tono}:${ch}`, () => cifraMapa(ch, tono)));
   const ancho = glifos.reduce((s, g) => s + g.width - 1, 0) * escala;
@@ -270,9 +276,13 @@ export function numero(texto: string | number, x: number, y: number, tono: TonoC
   let vy = -70;
   let t = 0;
   const T = 0.95;
+  // (un cartel que entra los apaga: pasan directo a su parpadeo de salida)
+  const yo = { apagar: () => (t = Math.max(t, T - 0.22)) };
+  enVuelo.add(yo);
   efecto({
     paso(dt) {
       t += dt;
+      if (t >= T) enVuelo.delete(yo);
       vy += 190 * dt;
       px += vx * dt;
       py += vy * dt;

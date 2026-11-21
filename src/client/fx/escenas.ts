@@ -587,10 +587,12 @@ function mesa(W: number, H: number, palo: Palo | null, kit: Kit, apagada = false
   });
 
   // la vela (en apaisado, a la izquierda: de ahí viene la luz; en móvil el candil cuelga fuera de cuadro)
-  const vx = Math.round(W * 0.1);
-  const vy = Math.round(H * 0.4);
+  // (en la derrota también en el teléfono: la vela recién apagada, a la derecha del retrato partido)
+  const conVela = !vert || apagada;
+  const vx = Math.round(W * (vert ? 0.88 : 0.1));
+  const vy = Math.round(H * (vert ? 0.27 : 0.4));
   const altoVela = 17;
-  if (!vert) {
+  if (conVela) {
     // el platito de peltre con su sombra, y el cabo de vela: sebo que se enciende hacia la llama
     P.sombra(vx + 16, vy + 5, 24, 7, 0.6);
     P.elipse(vx, vy, 14, 4.6, PELTRE, (dx, dy) => (dy < -0.35 ? 1.5 : dx < -0.4 ? 1.25 : dx > 0.5 || dy > 0.5 ? 0.5 : 0.85));
@@ -1304,10 +1306,11 @@ function amanecer(W: number, H: number, kit: Kit): Escenario {
  * respiran), el pabilo que queda en brasa y la columna de humo que sube de él.
  */
 function velaQueSeApaga(P: Plano, candil: (ap: number, g: number) => Luz[], vert: boolean, px: number, py: number, W: number, H: number, kit: Kit): Escenario {
+  // (más luz que antes: la derrota se ve; la penumbra queda en los bordes y el pabilo todavía tibio echa su halo)
   const cuadros = [
-    [0.8, 0.4],
-    [0.84, 0.46],
-  ].map(([ap, g]) => () => P.cuadro(candil(ap, g), 0.08));
+    [0.96, 0.7],
+    [1, 0.78],
+  ].map(([ap, g]) => () => P.cuadro([...candil(ap, g), { x: px, y: py - 2, rx: W * 0.14, ry: H * 0.2, g: 0.42 * g }], 0.17));
   const humos = [copo(5, '#3a2a4a', 0.5, 1.3), copo(7, '#2e2238', 0.45, 2.9), copo(9, '#241a2e', 0.4, 4.1)];
   const hilos = Array.from({ length: 7 }, (_, i) => ({ y: py - 4 - i * 9, x: 0, s: i % 3 }));
   return {
@@ -1315,7 +1318,7 @@ function velaQueSeApaga(P: Plano, candil: (ap: number, g: number) => Luz[], vert
     base: 0,
     elegir: (_t, respiro) => respiro % 2,
     animar(x, dt, t, quieto) {
-      if (vert) return;
+      void vert;
       // la brasa del pabilo: titila entre dos tintas
       x.fillStyle = quieto || Math.floor(t * 3) % 2 ? '#ff7b00' : '#d86000';
       x.fillRect(px - 1, py - 4, 2, 2);
