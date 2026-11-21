@@ -3,6 +3,32 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.20.0 · Las dos caras del Rey (2026-11-21)
+
+Paquete dictado por el Jurado sobre la 0.19.0: Reyes que morían sin mostrar su segunda cara, un Multi de mano que
+aplanaba las jugadas, números que chocaban con los cantos y un metajuego que no era un lugar.
+
+**Reglas**
+- **Cada Rey muestra sus dos caras**: en su primera cara se planta en la mitad de su Vida; el golpe que la cruza lo deja
+  justo ahí y la cuenta lo avisa con el chip **SE PLANTA EN LA MITAD**.
+- Multi de mano chico (Escoba 3 y ×3 en el 15), Reyes con menos Vida y Cara de Piedra plana.
+
+**La mesa**
+- Un **director de escena** ordena todo lo que vuela sobre la mesa: lo liviano cede, nada se posa sobre el naipe ni sobre
+  la cuenta y el número del golpe queda dentro de la pantalla.
+- El **Crítico estalla en el MULTI** con su sello ×2 en un lugar propio; la cuenta tiene alto y ancho fijos.
+- Glifos A/B/Start en todos los botones y foco celeste en Botín, ofertas, Mapa y Pulpería.
+- Del Botín a «ELEGÍ UNA» sin velo negro; «4 MÁS» en la bandeja; «ESTÁS ACÁ» clavado a su nodo; escudos de Inmunidad
+  más grandes en la ayuda del nodo; la placa del enemigo dice el golpe neto también en reposo.
+
+**El metajuego como lugar**
+- El Altar es un rincón de adobe con su mesa de paño y cirios (una vela por nivel, un solo MEJORAR); la Colección, una
+  pared con farol y fichas clavadas; la portada, Elegí tu Mazo, los Ajustes y la Crónica, sobre la mesa de tablas con vela.
+
+**Medición** · Laboratorio (3000 partidas por celda, sin avisos) · Altar vacío / lleno: Escoba 29,7 / 47,9 · Truco
+32,7 / 48,8 · Chinchón 29,3 / 45,5 · Mentiroso 29,8 / 48,6 · Chancho 29,9 / 48,7 %. Jurado: Claridad 7,7 · Diversión 7,6 ·
+Estética 8,2 · Veredicto 7,7. Panel **simulado** (n = 60, ruido ±10): 76,7 % (IC95 65–86 %); Deck 78 % (n = 9),
+Móvil 87 % (n = 15).
 ## 0.19.0 · La mesa limpia (2026-11-21)
 
 Paquete dictado por el Jurado Fable sobre la 0.18.0: el crítico que contaba dos veces, el Botín de cinco piezas que

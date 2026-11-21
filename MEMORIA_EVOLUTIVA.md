@@ -486,3 +486,21 @@ piezas con icono de Vida máxima, grito junto al retrato; Vida máxima por Rey p
   estratos de n = 9–21, el panel no sirve para leer una versión suelta.
 
 **Medición.** Jurado 7,6 · 7,5 · 8,0 · 7,6. Panel 70,0 % (IC95 57–80 %); Deck 33 % (n = 9), Móvil 93 % (n = 15).
+
+## 0.20.0 · Las dos caras del Rey (publicada)
+
+**Qué se buscó.** Que cada Rey muestre su segunda cara, sacar el Multi plano de la Escoba, ordenar lo que vuela sobre la
+mesa y que el metajuego sea un lugar.
+
+**Qué entró.** El Rey se planta en la mitad; Multi de mano chico; director de escena; crítico en el MULTI; glifos de mando
+en todas partes; Altar, Colección, portada, Ajustes y Crónica como lugares.
+
+**Lecciones.**
+- Plantar al Rey en la mitad funciona en el motor, pero el número del golpe sigue mostrando el total: la mesa dice «280»
+  y la barra baja 1. Lo que se dibuja tiene que salir de lo que entra (`aVida`), no de la cuenta.
+- La QA visual dio 0 fallos y aun así las fichas de los Reyes se cortaban en la Colección: hay que mirar las capturas.
+- El director de escena protege el naipe y la cuenta, no los botones ni la bandeja: los «+N» caen sobre GOLPEAR.
+- Para que el laboratorio entre en su tope, cada celda se parte en trozos que juegan las mismas semillas (0.21).
+
+**Medición.** Jurado 7,7 · 7,6 · 8,2 · 7,7. Panel simulado 76,7 % (IC95 65–86 %, n = 60); Deck 78 % (n = 9), Móvil 87 %
+(n = 15). Caídas en el tramo 1: de 3,6 % (Truco) a 29,9 % (Mentiroso).
