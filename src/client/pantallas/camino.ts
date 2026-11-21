@@ -31,7 +31,7 @@ import { personajeMapa } from '../pixel/personajes';
 import { JUGADA_COMO, JUGADA_NOMBRE, NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, TRAMO_NOMBRE } from '../textos';
 import { VOZ } from '../voces';
 import { bufonDice } from '../bufon-vivo';
-import { $, abrirModal, anfitrion, bufonHtml, cerrarModal, esc, fichaDe, repintar, reyHtml, sinergiaHtml, tip, type Accion, type Pantalla } from '../ui';
+import { $, abrirModal, anfitrion, bufonHtml, cerrarModal, esc, fichaDe, irASalida, repintar, reyHtml, sinergiaHtml, tip, type Accion, type Pantalla } from '../ui';
 
 const fijo = (): number | undefined => (enFoto() ? 0 : undefined);
 const expresionDe = (p: Partida): Expresion => (p.afinidad <= -2 ? 'sombria' : p.afinidad >= 2 ? 'brillo' : 'reposo');
@@ -252,7 +252,7 @@ export const accionesComunes = (p: Partida): Record<string, Accion> => ({
   menu: () => modalMenu(p),
 });
 
-const botonMenu = (): string => `<button class="btn marco chico" data-accion="menu" data-foco="menu" aria-label="${t('menu')}">≡ ${t('menu')}</button>`;
+const botonMenu = (): string => `<button class="btn marco chico" data-accion="menu" data-foco="menu" aria-label="${t('menu')}"><span class="b-menu-signo" aria-hidden="true">≡</span> ${t('menu')}</button>`;
 
 // ───────────────────────── el Mapa ─────────────────────────
 
@@ -434,7 +434,8 @@ function modalOferta(p: Partida, indice: number, alTerminar: () => void): void {
         bufonDice(tx(alAzar(VOZ.salta)));
       },
     },
-    () => undefined,
+    // B: primero lleva el foco a SALTAR (con su glifo B); otro B lo pulsa
+    () => void irASalida($('#capa .velo')),
   );
   if (oferta.tipo === 'bendicion' && habla && !quieto()) teclear($('[data-teclea]', velo), fraseRey, habla);
   // la irrupción del Rey que habla: su aura se abre desde el retrato

@@ -208,6 +208,8 @@ export function modoFoto(si: boolean): void {
   if (si) efectos.length = 0;
 }
 export const enFoto = (): boolean => foto;
+/** ¿Corren los efectos? (no en modo foto ni con «Reducir movimiento»). */
+export const vivos = (): boolean => !foto && !ajustes.calma;
 /** Segundos de efectos corridos y cuadros pintados (para la QA de FPS). */
 export const pulso = (): { reloj: number; cuadros: number; efectos: number } => ({ reloj, cuadros, efectos: efectos.length });
 /** De píxeles de pantalla a celdas de efecto. */

@@ -27,7 +27,7 @@ const pedidos = args.filter((a) => !a.startsWith('-'));
 const estados = ESTADOS.filter((e) => !pedidos.length || pedidos.includes(e));
 /** El móvil bajo (390 de ancho en Safari, con sus barras): solo los estados de mesa, que son los que ceden por alto. */
 const VENTANA_BAJA = { nombre: '390x664', w: 390, h: 664 } as const;
-const ESTADOS_BAJA: readonly string[] = ['mesa', 'mesa-seleccion', 'mesa-mentiroso', 'mesa-rey', 'mesa-segunda', 'mesa-segunda-cambia', 'mesa-conteo'];
+const ESTADOS_BAJA: readonly string[] = ['mesa', 'mesa-seleccion', 'mesa-mentiroso', 'mesa-rey', 'mesa-segunda', 'mesa-segunda-cambia', 'mesa-conteo', 'mesa-escudo'];
 const ventanas = [...VENTANAS, VENTANA_BAJA].filter((v) => !soloVentana || v.nombre === soloVentana);
 const carpeta = `artifacts/visual-qa${lang === 'en' ? '-en' : ''}`;
 
@@ -37,8 +37,8 @@ interface Fallo {
 }
 
 /** La auditoría que corre dentro de la página. */
-function auditar(o: { esMovil: boolean; idioma: string }): Fallo[] {
-  const { esMovil, idioma } = o;
+function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[] {
+  const { esMovil, idioma, deck } = o;
   const fallos: Fallo[] = [];
   const W = innerWidth;
   const H = innerHeight;
@@ -254,6 +254,19 @@ function auditar(o: { esMovil: boolean; idioma: string }): Fallo[] {
       }
     }
   }
+  // en Steam Deck se juega con mando («glifo-mando»): todo botón de salida (CERRAR, SALTAR, SALIR, VOLVER, NO, SEGUIR)
+  // dice que es B, y MENÚ dice que es Start. Un botón de salida sin su glifo a la vista falla
+  if (deck) {
+    const salidas = ['cerrar', 'saltar', 'salir', 'volver', 'no', 'seguir', 'portada'];
+    for (const b of [...document.querySelectorAll<HTMLButtonElement>('#app button[data-accion], #capa button[data-accion]')].filter(visible)) {
+      if (b.disabled) continue;
+      const a = b.dataset.accion ?? '';
+      const pide = a === 'menu' ? 'g-start' : salidas.includes(a) ? 'g-b' : '';
+      if (!pide) continue;
+      const g = b.querySelector(`.glifo.g-mando.${pide}`);
+      if (!g || !visible(g)) fallos.push({ regla: 'glifo-mando', detalle: `${nombre(b)} «${(b.textContent ?? '').trim().slice(0, 24)}» sin su glifo ${pide.slice(2).toUpperCase()}` });
+    }
+  }
   // restos de español en la pantalla inglesa
   if (idioma === 'en') {
     const texto = (document.querySelector('#app') as HTMLElement).innerText + (document.querySelector('#capa') as HTMLElement).innerText;
@@ -448,12 +461,12 @@ await conServidor(5191, async (url) => {
         // (X, Y, LT…), no los del teclado (G, D, E…), como los vería quien juega con el mando de verdad
         if (estado.endsWith('-mando') || (v.nombre === '1280x800' && estado !== 'mesa-arrastrando')) await pagina.evaluate(() => (document.documentElement.dataset.entrada = 'mando'));
         await pagina.waitForTimeout(120);
-        const fallos = await pagina.evaluate(auditar, { esMovil: v.w < 700, idioma: lang });
+        const fallos = await pagina.evaluate(auditar, { esMovil: v.w < 700, idioma: lang, deck: v.nombre === '1280x800' && estado !== 'mesa-arrastrando' });
         for (const e of errores) fallos.push({ regla: 'error-js', detalle: e.slice(0, 200) });
         // la mesa no salta al elegir («mesa-quieta»): fuera del teléfono, el naipe del Rey, La Corte y el Bufón quedan
         // donde estaban en reposo (±4 px) cuando se elige la jugada
-        if ((estado === 'mesa' || estado === 'mesa-seleccion') && v.w > 700) {
-          const cajas = await pagina.evaluate(() =>
+        const cajasMesa = () =>
+          pagina.evaluate(() =>
             Object.fromEntries(
               ['.mesa .e-centro', '.mesa .corte', '.mesa .esc-bufon .bufon', '.mesa .e-vida'].map((s) => {
                 const r = document.querySelector(s)?.getBoundingClientRect();
@@ -461,9 +474,29 @@ await conServidor(5191, async (url) => {
               }),
             ),
           );
-          if (estado === 'mesa') reposo.set(v.nombre, cajas);
+        // (y con tu Escudo frenando casi todo y la causa larga en el chip, «TE PEGA 3 (23 − 20 ESCUDO)»: la misma mesa
+        // se mide en reposo y con la jugada elegida, en la misma página)
+        if (estado === 'mesa-escudo' && v.w > 700) {
+          type M = { __mesa: { mano: { elegir(ids: string[]): void } }; __qaSel: string[] };
+          await pagina.evaluate(() => (window as unknown as M).__mesa.mano.elegir([]));
+          await pagina.waitForTimeout(150);
+          const antes = await cajasMesa();
+          await pagina.evaluate(() => (window as unknown as M).__mesa.mano.elegir((window as unknown as M).__qaSel));
+          await pagina.waitForTimeout(150);
+          const despues = await cajasMesa();
+          for (const [s, r] of Object.entries(despues)) {
+            const a = antes[s];
+            if (!a || !r) continue;
+            const corre = Math.max(...r.map((n, i) => Math.abs(n - a[i])));
+            if (corre > 4) fallos.push({ regla: 'mesa-quieta', detalle: `${s} se corre ${corre} px al elegir con tu Escudo (${a.join(',')} → ${r.join(',')})` });
+          }
+        }
+        const QUIETA: Record<string, string> = { 'mesa-seleccion': 'mesa' };
+        if ((QUIETA[estado] || Object.values(QUIETA).includes(estado)) && v.w > 700) {
+          const cajas = await cajasMesa();
+          if (!QUIETA[estado]) reposo.set(`${v.nombre}|${estado}`, cajas);
           else {
-            const antes = reposo.get(v.nombre);
+            const antes = reposo.get(`${v.nombre}|${QUIETA[estado]}`);
             for (const [s, r] of Object.entries(cajas)) {
               const a = antes?.[s];
               if (!a || !r) continue;

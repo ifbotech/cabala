@@ -2748,6 +2748,23 @@ button.visor-carta:disabled {
     --kp: 2;
     width: calc(var(--fr) * 6.8);
   }
+  /* (con el glifo A del mando delante, «CHOOSE» se arrima a su glifo y no se sale de su pieza) */
+  .botin:not(.directo) .botin-lista:has(> :nth-child(4)) > .botin-fila.bp > .btn {
+    padding-left: 4px;
+    padding-right: 4px;
+    gap: 4px;
+    letter-spacing: 0.04em;
+    max-width: 100%;
+    position: relative;
+  }
+  /* (y el glifo va clavado en la esquina del botón, como una insignia: «CHOOSE» conserva todo su ancho) */
+  .botin:not(.directo) .botin-lista:has(> :nth-child(4)) > .botin-fila.bp > .btn > .glifo {
+    position: absolute;
+    left: 0;
+    top: 0;
+    translate: -55% -50%;
+    z-index: 1;
+  }
 }
 @media (min-width: 1700px) and (min-height: 950px) {
   .botin:not(.directo) .botin-lista:has(> :nth-child(4)) {

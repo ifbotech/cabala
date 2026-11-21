@@ -88,14 +88,33 @@ export function cerrarModal(): void {
 }
 export const hayModal = (): boolean => modal !== null;
 
-/** «Atrás»: cierra el modal o hace lo que diga la pantalla. */
+/**
+ * «Atrás» (Escape o B): cierra el modal o hace lo que diga la pantalla. Si la pantalla no dice nada, B busca su botón
+ * de salida (el que lleva el glifo B: SALIR, SEGUIR): la primera vez le lleva el foco, la segunda lo pulsa (así un B
+ * de más no te saca de La Pulpería ni te hace saltar un premio sin verlo).
+ */
 export function atras(): void {
   if (modal) {
     if (modal.atras) modal.atras();
     else cerrarModal();
     return;
   }
-  actual?.atras?.();
+  if (actual?.atras) {
+    actual.atras();
+    return;
+  }
+  irASalida($('#app'));
+}
+/** El botón de salida de `raiz` (con el glifo B): primero el foco, después el clic. Devuelve si había uno. */
+export function irASalida(raiz: ParentNode | null): boolean {
+  const b = raiz ? $$<HTMLButtonElement>('button[data-salida]:not(:disabled)', raiz).find((x) => x.getBoundingClientRect().width > 0) : undefined;
+  if (!b) return false;
+  if (document.activeElement === b) b.click();
+  else {
+    b.scrollIntoView({ block: 'nearest' });
+    b.focus();
+  }
+  return true;
 }
 
 /** Engancha los clics y la inspección una sola vez. */

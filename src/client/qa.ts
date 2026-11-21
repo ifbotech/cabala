@@ -17,7 +17,7 @@ import { $ } from './ui';
 export const ESTADOS = [
   'portada', 'elegir-mazo', 'elegi-una', 'mapa', 'mesa', 'mesa-seleccion', 'mesa-arrastrando', 'mesa-rey', 'mesa-segunda', 'mesa-mentiroso', 'botin', 'elegi-bendicion', 'elegi-amuleto',
   'pulperia', 'fogon', 'cabala', 'mazo', 'jugadas', 'piezas', 'mesa-mando', 'mapa-mando', 'altar', 'coleccion', 'coleccion-reyes', 'coleccion-amuletos', 'cronica', 'ajustes', 'fin-victoria', 'fin-derrota',
-  'mesa-grito', 'botin-grito', 'mesa-segunda-cambia', 'botin-rey', 'mesa-conteo',
+  'mesa-grito', 'botin-grito', 'mesa-segunda-cambia', 'botin-rey', 'mesa-conteo', 'mesa-escudo',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
 /** Estados que solo tienen sentido en vivo (`&vivo`, para las secuencias del Jurado): no entran en la QA visual. */
@@ -191,6 +191,29 @@ export function montarQa(estado: string): void {
     case 'mesa-mentiroso':
       montar(partida('mentiroso', (p) => enCombate(p)));
       break;
+    case 'mesa-escudo': {
+      // la misma mesa del Mentiroso con tu Escudo frenando casi todo el golpe que viene y una jugada elegida que no lo
+      // abate: el chip dice «TE PEGA 3 (23 − 20 ESCUDO)». La QA compara la escena con la de `mesa-mentiroso` (la mesa
+      // no se corre al elegir, regla «mesa-quieta»)
+      const p = partida('mentiroso', (x) => enCombate(x));
+      const c = p.combate!;
+      const e = c.fila[0];
+      const mano = c.mano;
+      const posibles = [...mano.map((k) => [k]), ...mano.flatMap((k, i) => mano.slice(i + 1).map((j) => [k, j]))];
+      const vivas = posibles.filter((x) => {
+        const q = cuenta(p, x);
+        return q.ok && !q.abate && !q.ejecuta;
+      });
+      // el Escudo propio frena todo menos 3 (si el enemigo pega poco, lo que haya)
+      c.escudo = Math.max(1, e.ataque + c.furia - 3);
+      montar(p);
+      const sel = vivas.find((x) => (cuenta(p, x).contra ?? 0) > 0) ?? vivas[0];
+      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[]): void } } }).__mesa;
+      // (la QA vuelve a elegir esta jugada después de medir la mesa en reposo, en la misma página)
+      (window as unknown as { __qaSel?: string[] }).__qaSel = sel?.map((k) => k.id) ?? [];
+      if (sel && mesa) mesa.mano.elegir(sel.map((k) => k.id));
+      break;
+    }
     case 'botin':
       montar(partida(mazo, (p) => p.fase === 'botin' && p.botin!.de === 'guardia' && p.acto >= 1));
       break;

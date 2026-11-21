@@ -385,6 +385,26 @@
 }
 .c-total {
   display: inline-flex;
+  justify-content: center;
+}
+/* las cifras de la fórmula guardan el ancho de su cifra final (lo fija `fijarAnchos`): cuentan sin correr nada */
+.c-parte > [data-v] {
+  display: inline-flex;
+  justify-content: flex-end;
+}
+/* lo que dan los palos (ESCUDO, CURA, ORO): en el escritorio, en el renglón de la fórmula; en el teléfono, en el suyo */
+.c-efectos {
+  display: contents;
+}
+/* (en el teléfono bajo, de menos de 741 px de alto, no hay renglón de sobra: van junto al total, que ya no baila
+   porque las cifras guardan su ancho final) */
+@media (max-width: 700px) and (min-height: 741px) {
+  .mesa .cuenta .c-efectos {
+    display: flex;
+    flex-basis: 100%;
+    justify-content: center;
+    gap: 6px;
+  }
 }
 .c-chips {
   display: inline-flex;
@@ -3153,6 +3173,11 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 .c-veredicto.v-no {
   color: var(--hueso);
 }
+/* el Rey que se planta en la mitad: celeste de piedra (no es un abatido ni un fallo; es la vuelta de su cara) */
+.c-veredicto.v-planta {
+  color: #9fe3ff;
+  font-size: var(--fr);
+}
 .c-veredicto.v-exacto,
 .c-veredicto.v-alpelo {
   color: var(--oro);
@@ -3422,6 +3447,50 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     scale: 1;
   }
 }
+/* 0.20: el sello «×2» del Crítico cae a la derecha de la cifra del MULTI, arriba, a escala 1,5 (no corre nada: va
+   suelto sobre la fórmula, por encima del «=») y queda hasta que la cuenta se va */
+.c-parte[data-cm] {
+  position: relative;
+}
+.c-crit-sello {
+  position: absolute;
+  left: calc(100% - 0.3em);
+  bottom: 62%;
+  z-index: 3;
+  pointer-events: none;
+  scale: 1.5;
+  transform-origin: 0 100%;
+  padding: 0 calc(2px * var(--k));
+  background: #3a2600;
+  box-shadow:
+    0 0 0 calc(2px * var(--k)) #c99a00,
+    calc(2px * var(--k)) calc(2px * var(--k)) 0 calc(2px * var(--k)) #09070f;
+  rotate: -8deg;
+  animation: crit-sello 0.42s steps(6) both;
+}
+@keyframes crit-sello {
+  0% {
+    scale: 3;
+    opacity: 0;
+    filter: brightness(2.4);
+  }
+  40% {
+    scale: 1.32;
+    opacity: 1;
+  }
+  70% {
+    scale: 1.6;
+    filter: brightness(1.3);
+  }
+  100% {
+    scale: 1.5;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .c-crit-sello {
+    animation: none;
+  }
+}
 /* el total se asienta sin pisar a sus vecinos (el MULTI y la CURA): cae desde arriba y apenas crece */
 @keyframes total-asienta {
   0% {
@@ -3599,12 +3668,15 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     gap: 0;
   }
 }@media (max-width: 700px) {
-  .mesa .cuenta.apretada-tel .c-desglose .d-t,
   .mesa .cuenta.apretada-tel .c-desglose .d-cartas {
     gap: 0;
   }
+  /* (apretado, el icono se arrima a su cifra pero nunca se le monta encima: «★ +4», no «★+4» pisado) */
+  .mesa .cuenta.apretada-tel .c-desglose .d-t {
+    gap: 2px;
+  }
   .mesa .cuenta.apretada-tel .c-desglose .d-i {
-    margin: -6px -4px -6px -3px;
+    margin: -6px 0 -6px -3px;
   }
 }@media (max-width: 700px) {
   .mesa .cuenta.apretada-tel .c-desglose .d-t.d-nombre {
@@ -3613,5 +3685,134 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 }@media (max-width: 700px) {
   .mesa .cuenta.apretada-tel-2 .c-canto {
     display: none;
+  }
+}
+/* ───────────── el mando en toda la interfaz, el foco de la mesa en todas partes ───────────── */
+
+/* el glifo de Start (el menú): una pastilla como la de Select */
+.glifo.g-start {
+  width: calc(var(--gp) * 7);
+  padding: 0;
+  background: #9a90a8;
+}
+/* (en la cabecera de la mesa de la Deck y el portátil, con mando, el glifo de Start ES el botón del menú —el ≡ del
+   mando—: la palabra MENÚ se guarda en su etiqueta y el botón no crece hasta arrimarse al TE PEGA del Rey) */
+@media (max-width: 1699px) {
+  html[data-entrada='mando'] .mesa-top [data-accion='menu'] .solo-ancho {
+    display: none;
+  }
+}
+/* el «≡» de MENÚ le deja el sitio al glifo de Start, como el «?» de JUGADAS */
+html:is([data-entrada='mando'], [data-entrada='teclado']) .b-menu-signo {
+  display: none;
+}
+
+/* teléfono: DAÑO y MULTI del desglose comparten renglón cuando caben (lo decide `apretarCuenta`), y con La Corte arriba a
+   la derecha el TE PEGA baja al pie de la escena (no trepa a la pila cuando la cuenta abierta achica al Rey) */
+@media (max-width: 700px) {
+  .mesa .cuenta.desglose-junto .c-desglose {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    column-gap: 1em;
+  }
+  .mesa:has(.corte .corte-carta) .e-ataque {
+    align-self: end;
+  }
+  /* (apretado, el ¡CRÍTICO! del desglose va sin el icono del hacha: ya lo dicen su oro y su palabra, y el renglón del
+     MULTI no se parte en dos) */
+  .mesa .cuenta.apretada-tel .c-desglose .d-t.d-critico > .d-i {
+    display: none;
+  }
+  /* (y el rótulo largo cede al corto, «DAMAGE» → «DMG», como en el teléfono bajo) */
+  .mesa .cuenta.apretada-tel .c-desglose .d-rot {
+    width: auto;
+  }
+  .mesa .cuenta.apretada-tel .c-desglose .d-rot:has(.d-rot-c) .d-rot-l {
+    display: none;
+  }
+  .mesa .cuenta.apretada-tel .c-desglose .d-rot .d-rot-c {
+    display: inline;
+  }
+  /* (en el teléfono alto, «TE PEGA» encima y el emblema al lado de su cifra: la placa pierde la mitad de su alto y no
+     llega a la pila de La Corte) */
+  @container mesa (min-height: 741px) {
+    .mesa:has(.corte .corte-carta) .e-ataque {
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      column-gap: 2px;
+    }
+    .mesa:has(.corte .corte-carta) .e-ataque > .e-pega {
+      flex: 0 0 100%;
+      text-align: center;
+    }
+  }
+}
+
+/* el A de las opciones grandes (ELEGÍ UNA, las ventas de La Pulpería, los Mazos, los Amuletos a soltar): en su esquina
+   de abajo, y solo en la que tiene el foco (es la que A elige) */
+.opcion {
+  position: relative;
+}
+.op-glifo {
+  position: absolute;
+  right: calc(4px * var(--k));
+  bottom: calc(4px * var(--k));
+  display: none;
+  pointer-events: none;
+}
+html[data-entrada='mando'] :is(.opcion, button):focus-visible > .op-glifo {
+  display: flex;
+}
+
+/* el foco celeste de la mesa, con su flecha ▼ clavada arriba, también en el Botín, «ELEGÍ UNA», La Pulpería y el
+   Mapa: el mismo canal en toda la interfaz (marco celeste que late, separado por un filo de tinta) */
+:root {
+  --foco: #7df3ff;
+  --foco-2: #e8fdff;
+  --flecha-foco: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 7' shape-rendering='crispEdges'%3E%3Cpath fill='%2309070f' d='M0 0h11v2h-1v1H9v1H8v1H7v1H6v1H5V6H4V5H3V4H2V3H1V2H0z'/%3E%3Cpath fill='%237df3ff' d='M1 1h9v1H9v1H8v1H7v1H6v1H5V5H4V4H3V3H2V2H1z'/%3E%3Cpath fill='%23e8fdff' d='M2 1h3v1H2z'/%3E%3Cpath fill='%232fa8c8' d='M7 2h2v1H7zM6 4h1v1H6z'/%3E%3C/svg%3E");
+}
+:is(#capa .velo, .p-botin, .p-elegi-una, .p-pulperia, .p-mapa, .p-fogon) :is(.opcion, .btn, .nodo.abierto, .visor-carta):focus-visible {
+  outline: calc(2px * var(--k)) solid var(--foco);
+  outline-offset: calc(2px * var(--k));
+  box-shadow:
+    0 0 0 calc(2px * var(--k)) #09070f,
+    0 0 0 calc(5px * var(--k)) #09070f;
+  animation: foco-ui-late 0.8s steps(1) infinite;
+}
+@keyframes foco-ui-late {
+  50% {
+    outline-color: var(--foco-2);
+  }
+}
+:is(#capa .velo, .p-botin, .p-elegi-una, .p-pulperia, .p-mapa, .p-fogon) :is(.opcion, .btn, .nodo.abierto, .visor-carta):focus-visible::before {
+  content: '';
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  top: calc(-12px * var(--k));
+  width: calc(11px * var(--k) * 2);
+  height: calc(7px * var(--k) * 2);
+  translate: -50% 0;
+  background: var(--flecha-foco) 0 0 / 100% 100%;
+  image-rendering: pixelated;
+  pointer-events: none;
+  animation: foco-ui-flecha 0.8s steps(1) infinite;
+}
+@keyframes foco-ui-flecha {
+  50% {
+    translate: -50% calc(2px * var(--k));
+  }
+}
+:is(#capa .velo, .p-botin, .p-elegi-una, .p-pulperia, .p-mapa, .p-fogon) .btn {
+  position: relative;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(#capa .velo, .p-botin, .p-elegi-una, .p-pulperia, .p-mapa, .p-fogon) :is(.opcion, .btn, .nodo.abierto, .visor-carta):focus-visible,
+  :is(#capa .velo, .p-botin, .p-elegi-una, .p-pulperia, .p-mapa, .p-fogon) :is(.opcion, .btn, .nodo.abierto, .visor-carta):focus-visible::before {
+    animation: none;
   }
 }

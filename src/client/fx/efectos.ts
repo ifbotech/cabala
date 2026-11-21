@@ -5,7 +5,8 @@
 import type { Palo } from '../../rules/cartas';
 import { cifraMapa, type TonoCifra } from '../pixel/cifras';
 import { lienzo } from '../sprites';
-import { S, aCelda, azar, disco, efecto, entre, type Ctx, type Efecto } from './motor';
+import { S, aCelda, azar, disco, efecto, entre, vivos, type Ctx, type Efecto } from './motor';
+import { pedir, soltar, type Caja } from './director';
 
 /** Rampas de cada palo, del cuadro blanco del impacto a la brasa que se apaga. */
 export const RAMPA_PALO: Record<Palo | 'X', string[]> = {
@@ -272,38 +273,110 @@ export function medidaNumero(texto: string | number, escala = 1): { w: number; h
   const g = glifosDe(texto, 'hueso');
   return { w: g.reduce((s, x) => s + x.width - 1, 0) * escala * S, h: (g[0]?.height ?? 9) * escala * S };
 }
-export function numero(texto: string | number, x: number, y: number, tono: TonoCifra = 'hueso', escala = 1, o: { alinear?: 'centro' | 'derecha'; vx?: number } = {}): void {
+/**
+ * Un número que salta: sube, cae (los grandes casi no caen: flotan y se apagan) y parpadea al irse. Pide su lugar al
+ * director de escena: si su carril choca con otro número o con una zona prohibida (los sellos del enemigo, el total,
+ * tu Vida o tu Escudo), prueba los `carriles` que se le den y, si no, sube un renglón o se corre de costado. Su caja
+ * se mantiene dentro de la pantalla en cada cuadro (el rebote y la deriva no lo sacan por el borde).
+ */
+export type Alinear = 'centro' | 'derecha' | 'izquierda';
+export interface Carril {
+  x: number;
+  y: number;
+  alinear?: Alinear;
+}
+export function numero(texto: string | number, x: number, y: number, tono: TonoCifra = 'hueso', escala = 1, o: { alinear?: Alinear; vx?: number; carriles?: Carril[] } = {}): void {
+  if (!vivos()) return;
   const glifos = glifosDe(texto, tono);
-  const ancho = glifos.reduce((s, g) => s + g.width - 1, 0) * escala;
-  // dentro de la pantalla: un número sobre una ficha de la esquina no se sale por el borde
-  let px = Math.max(1, Math.min(aCelda(innerWidth) - ancho - 1, aCelda(x) - (o.alinear === 'derecha' ? ancho : ancho / 2)));
-  let py = aCelda(y);
-  let vx = o.vx ?? entre(-14, 14);
-  let vy = -70;
-  let t = 0;
+  const base = glifos.reduce((s, g) => s + g.width - 1, 0);
+  const ancho = base * escala;
+  const altoG = glifos[0]?.height ?? 9;
+  const alto = altoG * escala;
+  const grande = escala >= 2;
+  const g = grande ? 100 : 190;
+  const vy0 = grande ? -46 : -70;
+  const vx0 = o.vx ?? entre(-14, 14);
   const T = 0.95;
+  // lo que barre en todo su vuelo (en celdas, desde donde nace), con el rebote del primer instante
+  let ex0 = 0;
+  let ex1 = 0;
+  let ey0 = 0;
+  let ey1 = 0;
+  {
+    let sx = 0;
+    let sy = 0;
+    let vx = vx0;
+    let vy = vy0;
+    for (let s = 0; s < T; s += 1 / 60) {
+      vy += g / 60;
+      sx += vx / 60;
+      sy += vy / 60;
+      vx *= 1 - 1.2 / 60;
+      ex0 = Math.min(ex0, sx);
+      ex1 = Math.max(ex1, sx);
+      ey0 = Math.min(ey0, sy);
+      ey1 = Math.max(ey1, sy);
+    }
+  }
+  const Wc = aCelda(innerWidth);
+  const Hc = aCelda(innerHeight);
+  const rebote = base * 0.25;
+  const nace = (cx: number, cy: number, al: Alinear | undefined): { px: number; py: number } => ({
+    px: Math.max(1, Math.min(Wc - ancho - 1, aCelda(cx) - (al === 'derecha' ? ancho : al === 'izquierda' ? 0 : ancho / 2))),
+    py: Math.max(1 - ey0, Math.min(Hc - alto - ey1 - 1, aCelda(cy))),
+  });
+  const sobre = (n: { px: number; py: number }): Caja => ({ x: (n.px + ex0 - rebote) * S, y: (n.py + ey0) * S, w: (ancho + ex1 - ex0 + 2 * rebote + base) * S, h: (alto + altoG + ey1 - ey0) * S });
+  // los carriles: el pedido (o los que se den) y, si chocan, un renglón más arriba o un número más al costado
+  const bases: Carril[] = o.carriles?.length ? o.carriles : [{ x, y, alinear: o.alinear }];
+  const nacimientos: { px: number; py: number }[] = [];
+  for (const b of bases) nacimientos.push(nace(b.x, b.y, b.alinear));
+  for (const b of bases)
+    for (const [dx, dy] of [[0, -1], [0, -2], [-1, 0], [1, 0], [0, -3], [-1, -1], [1, -1]])
+      nacimientos.push(nace(b.x + dx * (ancho + 6) * S, b.y + dy * (alto + 4) * S, b.alinear));
+  let t = 0;
+  let px = 0;
+  let py = 0;
+  let k = escala;
+  const viva = (): Caja | null => (t >= T - 0.25 ? null : { x: Math.round(px - (k - escala) * ancho * 0.25) * S, y: Math.round(py) * S, w: base * k * S, h: altoG * k * S });
+  const pd = pedir('numero', nacimientos.map(sobre), T * 1000, { viva });
+  ({ px, py } = nacimientos[pd.i]);
+  let vx = vx0;
+  let vy = vy0;
   // (un cartel que entra los apaga: pasan directo a su parpadeo de salida)
-  const yo = { apagar: () => (t = Math.max(t, T - 0.22)) };
+  const yo = {
+    apagar: () => {
+      t = Math.max(t, T - 0.22);
+      soltar(pd.id);
+    },
+  };
   enVuelo.add(yo);
   efecto({
     paso(dt) {
       t += dt;
-      if (t >= T) enVuelo.delete(yo);
-      vy += 190 * dt;
+      if (t >= T) {
+        enVuelo.delete(yo);
+        soltar(pd.id);
+      }
+      vy += g * dt;
       px += vx * dt;
       py += vy * dt;
       vx *= 1 - 1.2 * dt;
+      // (la deriva no lo saca de la pantalla)
+      px = Math.max(1, Math.min(Wc - ancho - 1, px));
+      py = Math.max(1, Math.min(Hc - alto - 1, py));
       return t < T;
     },
     pinta(c) {
       if (t > T - 0.25 && Math.floor(t * 30) % 2) return;
-      // entra con un rebote de escala entera: grande un instante y a su tamaño
-      const k = t < 0.07 ? escala + 1 : escala;
-      let gx = Math.round(px - (k - escala) * ancho * 0.25);
-      const gy = Math.round(py);
-      for (const g of glifos) {
-        c.drawImage(g, gx, gy, g.width * k, g.height * k);
-        gx += (g.width - 1) * k;
+      // entra con un rebote de escala entera: grande un instante y a su tamaño (el tope contra el borde se recalcula
+      // en cada cuadro, con el tamaño de ese cuadro)
+      k = t < 0.07 ? escala + 1 : escala;
+      const wk = base * k;
+      let gx = Math.max(1, Math.min(aCelda(innerWidth) - wk - 1, Math.round(px - (k - escala) * ancho * 0.25)));
+      const gy = Math.max(1, Math.min(aCelda(innerHeight) - altoG * k - 1, Math.round(py)));
+      for (const gl of glifos) {
+        c.drawImage(gl, gx, gy, gl.width * k, gl.height * k);
+        gx += (gl.width - 1) * k;
       }
     },
   });

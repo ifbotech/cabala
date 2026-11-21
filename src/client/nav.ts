@@ -66,13 +66,37 @@ export const entradaActual = (): Entrada => entrada;
 /** Si se viene jugando con teclado o mando (sin ratón ni dedo): entonces el foco va solo a lo principal de cada pantalla. */
 export const porTeclado = (): boolean => entrada !== 'puntero';
 
-export type GlifoMando = 'A' | 'B' | 'X' | 'Y' | 'LB' | 'RB' | 'LT' | 'RT' | 'SEL';
+export type GlifoMando = 'A' | 'B' | 'X' | 'Y' | 'LB' | 'RB' | 'LT' | 'RT' | 'SEL' | 'START';
 /**
  * El glifo de un botón, dos veces: el del mando y el de la tecla. Van escondidos; el CSS enseña el que toca según
  * con qué se viene jugando (`html[data-entrada]`), así que nada se repinta al pasar del ratón al mando.
  */
 export const glifo = (mando: GlifoMando, tecla: string): string =>
-  `<kbd class="glifo g-mando g-${mando.toLowerCase()}" aria-hidden="true">${mando}</kbd><kbd class="glifo g-tecla" aria-hidden="true">${tecla}</kbd>`;
+  `<kbd class="glifo g-mando g-${mando.toLowerCase()}" aria-hidden="true">${mando === 'START' ? '≡' : mando}</kbd><kbd class="glifo g-tecla" aria-hidden="true">${tecla}</kbd>`;
+
+/** Los botones de salida: B (o Escape) los pulsa. CERRAR, SALTAR, SALIR, VOLVER, NO y el SEGUIR que deja una pantalla. */
+export const SALIDAS: readonly string[] = ['cerrar', 'saltar', 'salir', 'volver', 'no', 'seguir', 'portada'];
+/** Los botones de elegir: A (o Enter) los pulsa. ELEGIR, COMPRAR y lo que se toma o se confirma. */
+const ELIGEN: readonly string[] = ['elegir', 'comprar', 'abrir', 'si', 'jugar', 'nueva', 'mejorar', 'soltar', 'mazo', 'purgar', 'curar', 'templar', 'arrimar', 'descansar', 'opcion', 'otra', 'altar', 'carta'];
+/**
+ * Pone el glifo del mando (y de la tecla) en todo botón de la pantalla y de su modal que todavía no lo tenga: A en los
+ * de elegir, B en los de salida (que además quedan marcados con `data-salida`: B y Escape los buscan) y Start en MENÚ.
+ * En las opciones grandes (naipes de oferta, ventas), el A va en su esquina y solo se ve en la que tiene el foco.
+ */
+export function ponerGlifos(raiz: ParentNode = document): void {
+  for (const b of raiz.querySelectorAll<HTMLElement>('button[data-accion]')) {
+    if (b.querySelector(':scope > .glifo, :scope > .op-glifo')) continue;
+    const a = b.dataset.accion!;
+    if (a === 'menu') b.insertAdjacentHTML('afterbegin', glifo('START', 'M'));
+    else if (SALIDAS.includes(a)) {
+      b.dataset.salida = '';
+      b.insertAdjacentHTML('afterbegin', glifo('B', 'ESC'));
+    } else if (ELIGEN.includes(a)) {
+      if (b.classList.contains('btn')) b.insertAdjacentHTML('afterbegin', glifo('A', 'ENTER'));
+      else b.insertAdjacentHTML('beforeend', `<span class="op-glifo" aria-hidden="true">${glifo('A', 'ENTER')}</span>`);
+    }
+  }
+}
 
 /** LB y RB: el foco salta de los botones de la mesa a la mano (la carta elegida, o la primera) y de la mano a los botones. */
 function saltar(aBotones: boolean): void {
@@ -129,12 +153,21 @@ export function iniciarNav(): void {
       atras();
     } else if (k === 'g' || k === 'd' || k === 'e' || k === 'j') {
       if (atajo(k)) ev.preventDefault();
+    } else if (k === 'm' && !hayModal()) {
+      // M abre el menú, como Start
+      const b = $<HTMLButtonElement>('[data-accion="menu"]');
+      if (b && !b.disabled) {
+        ev.preventDefault();
+        b.click();
+      }
     }
   });
   // al cambiar de pantalla, el foco va a lo principal (si se viene jugando sin ratón)
   document.addEventListener('keydown', () => ponerEntrada('teclado'), true);
   document.addEventListener('pointerdown', () => ponerEntrada('puntero'), true);
   document.addEventListener('cabala:pantalla', () => {
+    // cada botón de la pantalla (y del modal) con su glifo: A, B o Start
+    ponerGlifos(document);
     if (porTeclado()) requestAnimationFrame(() => principal()?.focus());
   });
 

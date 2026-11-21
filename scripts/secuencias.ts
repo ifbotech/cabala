@@ -20,13 +20,14 @@ interface Q {
   ok: boolean;
   abate: boolean;
   ejecuta: boolean;
+  critico: boolean;
   aVida: number;
   contra: number | null;
   jugada: string;
 }
 type G = {
   __cabala: {
-    sesion: { partida: { racha: number; vida: number; vidaMax: number; combate: { ultimaJugada?: string; mano: { id: string; palo: string }[]; fila: { vida: number; vidaMax: number; escudo: number; palo: string; jefe?: boolean; segunda?: boolean }[] } } };
+    sesion: { partida: { racha: number; vida: number; vidaMax: number; bendiciones: Record<string, number>; combate: { golpes: number; ultimaJugada?: string; mano: { id: string; palo: string }[]; fila: { vida: number; vidaMax: number; escudo: number; palo: string; jefe?: boolean; segunda?: boolean }[] } } };
     mejorGolpe: (p: unknown) => { ids: string[] } | null;
   };
   __mesa: { sincronizar: () => void; golpear: (ids: string[]) => void; cuenta: (ids: string[]) => Q; ocupado: () => boolean; mano: { elegir(ids: string[]): void } };
@@ -48,29 +49,75 @@ const MANDO_VIRTUAL = `(() => {
 })();`;
 const BOTON = { A: 0, B: 1, X: 2, Y: 3, ARRIBA: 12, ABAJO: 13, IZQUIERDA: 14, DERECHA: 15 } as const;
 
+/** Lo que la medición de solapes en movimiento encontró (falla la corrida). */
+const fallos: string[] = [];
+
 await conServidor(5198, async (url) => {
   const navegador = await chromium.launch();
   try {
     for (const [w, h] of [[1280, 800], [390, 844]] as const) {
       const ctx = await navegador.newContext({ viewport: { width: w, height: h }, hasTouch: w < 500, locale: 'es-AR' });
       await ctx.addInitScript('globalThis.__name = (f) => f');
+      // en Steam Deck todo se graba con el mando (los glifos y el foco que vería quien juega con él)
+      if (w === 1280) await ctx.addInitScript(MANDO_VIRTUAL);
       const p = await ctx.newPage();
-      const rafaga = async (nombre: string, cuadros: number, cada: number, pg: Page = p): Promise<void> => {
+      /** El primer toque del mando: despierta los glifos del mando y pone el foco en lo principal. */
+      const despertar = async (pg: Page = p): Promise<void> => {
+        if (w !== 1280) return;
+        await pg.evaluate((i) => (window as unknown as G).__pad?.pulsar(i), BOTON.ABAJO);
+        await pg.waitForTimeout(120);
+      };
+      /**
+       * La medición de solapes en movimiento: mientras dura la ráfaga, en cada cuadro de la página se le pregunta al
+       * director de escena si algo de lo que vuela (número, canto, cartel, rótulo, bocadillo, grito) se pisa con otra
+       * capa o con una zona prohibida (los sellos, el total, la Vida y el Escudo propios).
+       */
+      const vigilar = (pg: Page = p): Promise<void> =>
+        pg.evaluate(() => {
+          const g = window as unknown as { __vigila?: boolean; __solapes?: string[]; __director?: { solapes(): string[] } };
+          g.__solapes = [];
+          g.__vigila = true;
+          const vistos = new Set<string>();
+          const paso = (): void => {
+            if (!g.__vigila) return;
+            for (const s of g.__director?.solapes() ?? []) {
+              const clave = s.replace(/[\d.,×-]+/g, '#');
+              if (vistos.has(clave)) continue;
+              vistos.add(clave);
+              g.__solapes!.push(s);
+            }
+            requestAnimationFrame(paso);
+          };
+          requestAnimationFrame(paso);
+        });
+      const cosechar = async (nombre: string, pg: Page = p): Promise<void> => {
+        const xs = await pg.evaluate(() => {
+          const g = window as unknown as { __vigila?: boolean; __solapes?: string[] };
+          g.__vigila = false;
+          return g.__solapes ?? [];
+        });
+        for (const x of xs) fallos.push(`${w} · ${nombre}: ${x}`);
+      };
+      const rafaga = async (nombre: string, cuadros: number, cada: number, pg: Page = p, mide = true): Promise<void> => {
+        if (mide) await vigilar(pg);
         for (let i = 0; i < cuadros; i++) {
           await pg.screenshot({ path: `${SALIDA}/${w}-${nombre}-${String(i + 1).padStart(2, '0')}.png` });
           await pg.waitForTimeout(cada);
         }
+        if (mide) await cosechar(nombre, pg);
       };
       const mesa = async (estado: string, pg: Page = p): Promise<void> => {
         await pg.goto(`${url}/?qa=${estado}&vivo&lang=${LANG}`);
         await pg.waitForSelector('[data-mano] .carta');
         await pg.waitForFunction(() => !document.querySelector('.cortina'), undefined, { timeout: 8000 });
+        await despertar(pg);
       };
       const libre = (pg: Page = p): Promise<unknown> => pg.waitForFunction(() => !(window as unknown as G).__mesa?.ocupado?.(), undefined, { timeout: 12000 });
 
       // 1 · el Rey irrumpe: el duelo recién abierto, desde el primer cuadro
       await p.goto(`${url}/?qa=rey-abre&vivo&lang=${LANG}`);
       await p.waitForSelector('.mesa');
+      await despertar();
       await rafaga('rey-irrumpe', 8, 230);
 
       // 2 · la segunda cara: un golpe que lo deja a media Vida (sin matarlo); el naipe se da vuelta y cae el cartel
@@ -106,7 +153,10 @@ await conServidor(5198, async (url) => {
         const g = window as unknown as G;
         const x = g.__cabala.sesion.partida;
         const e = x.combate?.fila[0];
-        if (!e?.jefe || e.palo !== 'S' || !e.segunda) return 'no hay Caudillo en segunda cara';
+        if (!e?.jefe) return 'no hay Rey en la mesa';
+        // (es una secuencia de QA: el Rey de la mesa hace de Caudillo en segunda cara si no lo era)
+        e.palo = 'S';
+        e.segunda = true;
         e.escudo = 0;
         e.vida = Math.max(e.vida, Math.floor(e.vidaMax * 0.45));
         x.vida = x.vidaMax;
@@ -134,15 +184,21 @@ await conServidor(5198, async (url) => {
           g.__mesa.sincronizar();
           ids = sirve([mano[0].id, mano[1].id]) ? [mano[0].id, mano[1].id] : undefined;
         }
-        if (ids && !aguanta(ids)) ids = undefined;
         if (!ids) return `sin Par que arme el Tajo (mano ${mano.length}: ${JSON.stringify(g.__mesa.cuenta([mano[0]?.id, mano[1]?.id].filter(Boolean)))})`;
+        // y el Crítico de Punta y hacha cae en este golpe: el estallido del MULTI se ve en movimiento
+        x.bendiciones.puntahacha = 3;
+        const golpes = x.combate.golpes;
+        for (let n = 0; n < 8 && !g.__mesa.cuenta(ids).critico; n++) x.combate.golpes = golpes + n;
+        if (!g.__mesa.cuenta(ids).critico) return 'el Crítico de Punta y hacha no cae en este golpe';
+        if (!aguanta(ids)) return 'el Par abate al Rey aun con la Vida corregida';
         x.combate.ultimaJugada = g.__mesa.cuenta(ids).jugada;
         g.__mesa.sincronizar();
         g.__mesa.mano.elegir(ids);
         (window as unknown as { __tajo: string[] }).__tajo = ids;
         return true;
       });
-      if (hayTajo !== true) console.log(`secuencias · ${w} · rey-tajo: ${hayTajo}`);
+      // (la ráfaga del Tajo con Crítico es obligatoria: si no se arma, la corrida falla)
+      if (hayTajo !== true) fallos.push(`${w} · rey-tajo: no se armó (${hayTajo})`);
       if (hayTajo === true) {
         await p.waitForTimeout(400);
         await p.screenshot({ path: `${SALIDA}/${w}-rey-tajo-00.png` });
@@ -202,14 +258,18 @@ await conServidor(5198, async (url) => {
       await p.goto(`${url}/?qa=mapa&vivo&lang=${LANG}`);
       await p.waitForSelector('.nodo.abierto');
       await p.waitForTimeout(900);
+      await despertar();
       await p.screenshot({ path: `${SALIDA}/${w}-mapa-paso-00.png` });
-      await p.locator('.nodo.abierto').first().click();
-      await rafaga('mapa-paso', 6, 220);
+      // (en Steam Deck, con el mando: el foco ya está en el primer nodo abierto y A lo pisa)
+      if (w === 1280) await p.evaluate((i) => (window as unknown as G).__pad?.pulsar(i), BOTON.A);
+      else await p.locator('.nodo.abierto').first().click();
+      await rafaga('mapa-paso', 6, 220, p, false);
 
       // 8 · la portada entrando en frío
       await p.goto(`${url}/?perfil=nuevo&lang=${LANG}`);
       await p.waitForSelector('.portada');
-      await rafaga('portada', 5, 220);
+      await despertar();
+      await rafaga('portada', 5, 220, p, false);
       await ctx.close();
 
       // 9 · con mando (solo en Steam Deck): la cruceta busca una carta que pegue, A la elige, X golpea; la mesa se
@@ -262,4 +322,10 @@ await conServidor(5198, async (url) => {
   }
 });
 console.log(`secuencias · cuadros en ${SALIDA}`);
+if (fallos.length) {
+  console.log(`\nsolapes en movimiento (${fallos.length}):`);
+  for (const f of fallos.slice(0, 40)) console.log(`  ✗ ${f}`);
+  process.exit(1);
+}
+console.log('solapes en movimiento: ninguno');
 process.exit(0);

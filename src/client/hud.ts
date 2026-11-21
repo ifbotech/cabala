@@ -16,6 +16,7 @@ import { BENDICION, REY_DEF } from '../rules/reyes';
 import type { BendicionId } from '../rules/reyes';
 import { ajustes, t, tx } from './almacen';
 import { enFoto } from './fx/motor';
+import { cajaDe, reservar, soltar, tomadas } from './fx/director';
 import type { Cuadro, Gesto, Herida, Mirada } from './pixel/personajes';
 import { cifra, pxAmuleto, pxAumento, pxBendicion, pxHud, pxPalo, urlRetrato } from './sprites';
 import { PALO_NOMBRE } from './textos';
@@ -235,16 +236,12 @@ export function dispararFicha(pieza: string): { x: number; y: number } | null {
   void el.offsetWidth;
   el.classList.add('dispara');
   const rc = el.getBoundingClientRect();
-  // los números de una misma cuenta salen escalonados (tres alturas, y corridos de costado en el escritorio) y lejos
-  // del borde: no se montan unos sobre otros ni sobre el retrato
-  const ahora = performance.now();
-  escalon = ahora - ultimoDisparo > 1200 ? 0 : (escalon + 1) % 3;
-  ultimoDisparo = ahora;
-  const x = rc.left + rc.width / 2 + (innerWidth > 700 ? (escalon - 1) * 18 : 0);
-  return { x: Math.max(56, Math.min(innerWidth - 56, x)), y: rc.top - escalon * 26 };
+  // los números de una misma cuenta nacen por encima de la fila de fichas (del borde de arriba de la bandeja, nunca de
+  // la ficha ni del «N MÁS»), sobre su ficha y lejos del borde; el director de escena los escalona si se pisan
+  const techo = Math.min(rc.top, $('.hud [data-tiras]')?.getBoundingClientRect().top ?? rc.top);
+  const x = rc.left + rc.width / 2;
+  return { x: Math.max(56, Math.min(innerWidth - 56, x)), y: techo - 4 };
 }
-let escalon = 0;
-let ultimoDisparo = 0;
 
 /**
  * El Personaje grita algo: un globo corto cerca de su retrato, con su voz, que se va solo en 1,2 s. Nunca tapa una
@@ -266,6 +263,9 @@ export function gritar(mazo: MazoId, texto: string, o: { foto?: boolean } = {}):
   // (la letra llega después: medido con la de reserva, el bocadillo cambiaría de ancho)
   void document.fonts?.ready.then(() => b.isConnected && ubicarGrito(b));
   if (o.foto) return;
+  // el grito es una capa más del director de escena: lo que vuele después no se le monta encima
+  const rg = b.getBoundingClientRect();
+  turnoGrito = reservar('grito', { x: rg.left, y: rg.top, w: rg.width, h: rg.height }, 1200, cajaDe(b));
   vocear(mazo, texto);
   // el retrato da un salto al gritar
   retrato.classList.remove('grita');
@@ -274,9 +274,11 @@ export function gritar(mazo: MazoId, texto: string, o: { foto?: boolean } = {}):
   relojGrito = window.setTimeout(() => b.remove(), 1200);
 }
 let relojGrito = 0;
+let turnoGrito = 0;
 /** Borra el grito que esté a la vista. */
 export function ocultarGrito(): void {
   clearTimeout(relojGrito);
+  soltar(turnoGrito);
   document.querySelector('.hud-grito')?.remove();
 }
 /** Si la mesa cambió debajo del grito (la cuenta creció, la mano se movió), se vuelve a ubicar. */
@@ -323,7 +325,9 @@ function ubicarGrito(b: HTMLElement): void {
       .map((el) => ({ c: el.getBoundingClientRect(), peso }))
       .filter((x) => x.c.width > 0 && x.c.height > 0);
   // (lo que no se puede tapar pesa un millón por píxel: un solo píxel de eso pierde contra tapar entero lo blando)
-  const prohibidas = [...cajas(ZONAS_SIN_GRITO, 1e6), ...cajas(ZONAS_MEJOR_NO, 1)];
+  // (y lo que el director de escena tiene en el aire, el número, el canto, el cartel, pesa casi como un control)
+  const enAire = tomadas(turnoGrito).map((c) => ({ c: { left: c.x, top: c.y, right: c.x + c.w, bottom: c.y + c.h } as DOMRect, peso: 1e4 }));
+  const prohibidas = [...cajas(ZONAS_SIN_GRITO, 1e6), ...enAire, ...cajas(ZONAS_MEJOR_NO, 1)];
   // (corta apenas supera lo que tapa el mejor hueco hallado: la búsqueda entera cabe en un par de milisegundos)
   const tapa = (x: number, y: number, tope: number): number => {
     let a = 0;
