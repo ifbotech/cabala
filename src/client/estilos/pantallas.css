@@ -3211,3 +3211,87 @@ button.visor-carta:disabled {
 .botin.eligiendo .botin-panel .btn {
   visibility: hidden;
 }
+
+/* ───────────── 0.21 · el Altar es un lugar: una mesa de altar alta (tapa de madera y patas), un exvoto por ofrenda
+   sobre el paño y velas que se prenden de verdad (la llama tiembla; la recién prendida arranca con una chispa) ───────── */
+.al-altar {
+  position: relative;
+  padding-bottom: calc(56px * var(--k));
+}
+/* la tapa, bajo el paño y su guarda */
+.al-altar::before {
+  content: '';
+  position: absolute;
+  left: calc(-10px * var(--k));
+  right: calc(-10px * var(--k));
+  bottom: calc(44px * var(--k));
+  height: calc(12px * var(--k));
+  background: linear-gradient(#8a4a22 0 34%, #5a2c14 34% 70%, #3a1a0c 70%);
+  box-shadow: 0 0 0 calc(2px * var(--k)) #09070f;
+  z-index: 0;
+}
+/* las patas torneadas, hasta el piso */
+.al-altar::after {
+  content: '';
+  position: absolute;
+  left: calc(4px * var(--k));
+  right: calc(4px * var(--k));
+  bottom: 0;
+  height: calc(44px * var(--k));
+  background:
+    linear-gradient(90deg, #5a2c14 0 calc(10px * var(--k)), transparent calc(10px * var(--k))) left / calc(14px * var(--k)) 100% no-repeat,
+    linear-gradient(90deg, transparent calc(4px * var(--k)), #5a2c14 calc(4px * var(--k))) right / calc(14px * var(--k)) 100% no-repeat,
+    linear-gradient(#3a1a0c, #3a1a0c) 50% 30% / calc(100% - 28px * var(--k)) calc(6px * var(--k)) no-repeat;
+  z-index: 0;
+}
+.al-pano,
+.al-detalle {
+  position: relative;
+  z-index: 1;
+}
+.al-exvoto {
+  line-height: 0;
+  margin-bottom: 2px;
+  filter: drop-shadow(0 2px 0 #09070f);
+}
+.al-ofrenda:not(.alcanza):not(.llena) .al-exvoto {
+  filter: grayscale(0.6) brightness(0.7) drop-shadow(0 2px 0 #09070f);
+}
+.al-vela.prendida .px {
+  animation: al-llama 1.2s steps(2) infinite;
+  animation-delay: calc(var(--i, 0) * -0.37s);
+}
+@keyframes al-llama {
+  50% {
+    filter: brightness(1.25);
+    transform: translateY(-1px);
+  }
+}
+.al-vela.recien .px {
+  animation: al-prende 0.6s steps(6);
+}
+@keyframes al-prende {
+  0% {
+    filter: brightness(3) drop-shadow(0 -6px 6px #ffd500);
+    transform: scale(1.4);
+  }
+  100% {
+    filter: none;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .al-vela.prendida .px,
+  .al-vela.recien .px {
+    animation: none;
+  }
+}
+@media (max-width: 700px) {
+  .al-altar {
+    padding-bottom: 0;
+  }
+  .al-altar::before,
+  .al-altar::after {
+    display: none;
+  }
+}

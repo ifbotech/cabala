@@ -185,15 +185,28 @@ export function pantallaMazo(): Pantalla {
  * enciende la vela siguiente.
  */
 let mejoraElegida: MejoraId = 'vida';
+/** La vela que se acaba de prender (su llama arranca con una chispa). */
+let velaRecien: { id: MejoraId; i: number } | null = null;
+/** El exvoto de cada ofrenda: la cosita que se deja sobre el paño por lo que se le pide al Altar. */
+const EXVOTO: Record<MejoraId, () => string> = {
+  vida: () => pxHud('vida'),
+  oro: () => pxHud('oro'),
+  descuento: () => pxAmuleto('moneda'),
+  suerte: () => pxAumento('cartamarcada'),
+  reyes: () => pxBendicion('deguello'),
+  hueco: () => pxAmuleto('taba'),
+  purga: () => pxHud('descarte'),
+};
 export function pantallaAltar(): Pantalla {
   const ofrenda = (id: MejoraId): string => {
     const m = MEJORAS.find((x) => x.id === id)!;
     const nivel = perfil.altar[id];
     const coste = costeMejora(id, nivel);
     const puede = coste !== null && perfil.porotos >= coste;
-    const velas = Array.from({ length: m.max }, (_, i) => `<span class="al-vela ${i < nivel ? 'prendida' : ''}">${pxHud(i < nivel ? 'vela' : 'velaApagada')}</span>`).join('');
+    const velas = Array.from({ length: m.max }, (_, i) => `<span class="al-vela ${i < nivel ? 'prendida' : ''} ${velaRecien?.id === id && velaRecien.i === i ? 'recien' : ''}" style="--i:${i}">${pxHud(i < nivel ? 'vela' : 'velaApagada')}</span>`).join('');
     const elegida = id === mejoraElegida;
     return `<button class="al-ofrenda ${elegida ? 'elegida' : ''} ${puede ? 'alcanza' : ''} ${coste === null ? 'llena' : ''}" role="radio" aria-checked="${elegida}" data-accion="ofrenda" data-id="${id}" data-foco="of-${id}" ${elegida ? 'data-inicio' : ''} aria-label="${esc(tx(m.nombre))} ${nivel}/${m.max}">
+      <span class="al-exvoto" aria-hidden="true">${EXVOTO[id]()}</span>
       <span class="al-velas" aria-hidden="true">${velas}</span>
       <b class="al-nombre">${esc(tx(m.nombre))}</b>
     </button>`;
@@ -233,7 +246,11 @@ export function pantallaAltar(): Pantalla {
         repintar();
       },
       mejorar: (el) => {
-        if (mejorar(perfil, el.dataset.id as MejoraId)) {
+        const id = el.dataset.id as MejoraId;
+        const antes = perfil.altar[id];
+        if (mejorar(perfil, id)) {
+          velaRecien = { id, i: antes };
+          window.setTimeout(() => (velaRecien = null), 900);
           sonar('oro');
           guardarPerfil();
           repintar();

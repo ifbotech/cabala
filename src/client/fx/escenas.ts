@@ -654,7 +654,8 @@ function coleccion(W: number, H: number, kit: Kit): Escenario {
   const TABLA = 1;
   const LATA = 2;
   const P = new Plano(W, H, [{ tonos: ADOBE_TONOS }, { tonos: MADERA }, { tonos: ['#09070f', '#2a1f3d', '#6b5a86', '#b9aacb', '#f4efe2'] }]);
-  const yZocalo = Math.round(H * (vert ? 0.92 : 0.88));
+  // (0.21: el zócalo, más alto: la pared se apoya en un friso de tablas y no en una raya)
+  const yZocalo = Math.round(H * (vert ? 0.9 : 0.8));
   P.cada(0, 0, W, yZocalo, (x, y, i) => {
     const hilada = y % 9 === 0 || (x + (Math.floor(y / 9) & 1) * 11) % 22 === 0;
     P.mat[i] = ADOBE;
@@ -680,7 +681,8 @@ function coleccion(W: number, H: number, kit: Kit): Escenario {
     P.alb[i] = (x % 61 === 0 ? 0.4 : 0.66 + 0.14 * (veta(x / 19, y >> 2) - 0.5)) * (1 - 0.4 * ((y - yZocalo) / (H - yZocalo)));
   });
   // el farol: gancho, sombrerete de lata, el vidrio que brilla (tinta: emite) con sus varillas, y la base
-  const fx = Math.round(W * (vert ? 0.08 : 0.025));
+  // (0.21: el farol entero, con su gancho, nunca cortado por el borde)
+  const fx = Math.max(Math.round(W * (vert ? 0.08 : 0.025)), 18);
   const fy = Math.round(H * (vert ? 0.14 : 0.2));
   const fw = vert ? 10 : 14;
   const fh = vert ? 14 : 20;
