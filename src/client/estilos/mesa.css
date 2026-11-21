@@ -3576,6 +3576,14 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     font-size: var(--fs-s);
     letter-spacing: 0;
     text-transform: uppercase;
+    /* («CUERO DEL CACIQUE» junto a «1175/1175» y su Escudo no entra en un renglón: parte en dos y la barra crece) */
+    white-space: normal;
+    line-height: 1;
+    padding-block: 2px;
+  }
+  .mesa .e-vida:has(.e-alias) {
+    height: auto;
+    min-height: calc(24px * var(--k));
   }
 }
 @media (max-width: 700px) {
