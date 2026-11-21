@@ -14,7 +14,7 @@ import { ajustes, t, tx } from './almacen';
 import { bufonCapas, type Expresion } from './pixel/bufon';
 import { REY_PX, reyFondo, reyMapa, type Animo } from './pixel/reyes';
 import { avivar, esfumar } from './bufon-vivo';
-import { px, pxEstrella } from './sprites';
+import { px, pxEstrella, pxInmune } from './sprites';
 
 export type Accion = (el: HTMLElement, ev: Event) => void;
 
@@ -161,7 +161,7 @@ function mostrarTip(el: HTMLElement): void {
   tipEl = document.createElement('div');
   tipEl.className = 'tip';
   tipEl.setAttribute('role', 'tooltip');
-  tipEl.innerHTML = `${titulo ? `<b>${esc(titulo)}</b>` : ''}${cuerpo ? `<span>${esc(cuerpo)}</span>` : ''}${pie ? `<span class="apagado">${esc(pie)}</span>` : ''}`;
+  tipEl.innerHTML = `${titulo ? `<b>${esc(titulo)}</b>` : ''}${cuerpo ? `<span>${esc(cuerpo)}</span>` : ''}${pie ? `<span class="apagado">${esc(pie)}</span>` : ''}${el.dataset.tipPalos ? `<span class="tip-palos">${[...el.dataset.tipPalos].map((s) => pxInmune(s as Palo)).join('')}</span>` : ''}`;
   document.body.append(tipEl);
   tipAncla = el;
   ubicarTip(el);

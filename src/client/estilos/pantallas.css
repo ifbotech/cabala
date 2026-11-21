@@ -2837,14 +2837,13 @@ button.visor-carta:disabled {
   border-top-color: var(--oro);
   border-bottom: 0;
 }
-/* los escudos de Inmunidad de los nodos que podés elegir, al doble en la Deck y el portátil: es lo que decide el camino */
-@media (min-width: 1100px) and (max-width: 1699px) {
-  .nodo.abierto .nodo-palos {
-    --k: 1.25;
-    top: calc(100% - 8px);
-    bottom: auto;
-    z-index: 2;
-  }
+/* los escudos de Inmunidad, al doble y a escala entera en la ayuda del nodo (al lado de «Inmune a…»): bajo el nodo
+   quedan a 1× para no tapar a sus vecinos ni al «ESTÁS ACÁ» */
+.tip .tip-palos {
+  --k: 2;
+  display: flex;
+  gap: 4px;
+  margin-top: 2px;
 }
 /* «ELEGÍ UNA» desde el Botín: sin velo negro. El Botín queda atenuado detrás (sin su título ni su SEGUIR, que no
    compiten con los de la oferta) y la pieza elegida se despliega en las tres cartas */

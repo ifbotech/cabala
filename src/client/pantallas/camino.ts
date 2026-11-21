@@ -277,7 +277,7 @@ export function pantallaMapa(p: Partida): Pantalla {
     const inmune = n.palos?.length ? t('inmuneA', { palo: n.palos.map((s) => tx(PALO_NOMBRE[s])).join(', ') }) : '';
     const nombre = n.tipo === 'rey' ? `${tx(rey.nombre)} · ${tx(rey.apodo)}` : tx(NODO_NOMBRE[n.tipo]);
     const desc = n.tipo === 'rey' ? `${tx(rey.rasgo)}: ${tx(rey.rasgoDesc)}` : tx(NODO_DESC[n.tipo]);
-    return `<button class="nodo n-${n.tipo} ${estado}" style="left:${(nx * 100).toFixed(2)}%;top:${(ny * 100).toFixed(2)}%" data-accion="nodo" data-id="${n.id}" data-foco="nodo-${n.id}" ${estado === 'abierto' ? '' : 'aria-disabled="true"'} ${abiertos[0] === n.id ? 'data-inicio' : ''} aria-label="${esc(nombre)}" ${tip(nombre, desc, inmune)}>
+    return `<button class="nodo n-${n.tipo} ${estado}" style="left:${(nx * 100).toFixed(2)}%;top:${(ny * 100).toFixed(2)}%" data-accion="nodo" data-id="${n.id}" data-foco="nodo-${n.id}" ${estado === 'abierto' ? '' : 'aria-disabled="true"'} ${abiertos[0] === n.id ? 'data-inicio' : ''} aria-label="${esc(nombre)}" ${tip(nombre, desc, inmune)}${n.palos?.length ? ` data-tip-palos="${n.palos.join('')}"` : ''}>
       ${pxNodo(n.tipo)}
       ${n.palos?.length ? `<span class="nodo-palos">${n.palos.map((s) => pxInmune(s)).join('')}</span>` : ''}
       ${estado === 'actual' ? `<span class="nodo-aca chip">${t('vosAca')}</span>` : ''}
