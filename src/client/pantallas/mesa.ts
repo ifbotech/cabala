@@ -193,7 +193,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     return `<div class="e-sellos">${inmune}${estados}</div>
       <div class="e-centro" data-soltar="enemigo">
         <i class="e-pano"></i>
-        <div class="e-carta ${e.jefe ? 'jefe' : ''} ${e.segunda ? 'segunda' : ''}" data-carta style="--aura:${e.segunda ? AURA_SEGUNDA[e.palo] : AURA[e.palo]}">${e.jefe && e.segunda ? pxNaipeSegunda(e.palo) : pxNaipe({ palo: e.palo, n: e.rango })}</div>
+        <div class="e-carta ${e.jefe ? 'jefe' : ''} ${e.segunda ? 'segunda' : ''}" data-carta style="--aura:${e.segunda ? AURA_SEGUNDA[e.palo] : AURA[e.palo]}">${e.jefe && e.segunda ? pxNaipeSegunda(e.palo) : pxNaipe({ palo: e.palo, n: e.rango })}<i class="e-indice" aria-hidden="true"></i></div>
         <i class="e-halo" aria-hidden="true"></i>
         <span class="e-suelta chip canto">${t('soltaAca')}</span>
       </div>

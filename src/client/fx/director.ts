@@ -21,7 +21,11 @@ export type CapaEscena = 'numero' | 'canto' | 'cartel' | 'rotulo' | 'sello' | 'b
 const PESO: Record<CapaEscena, number> = { numero: 3, canto: 2, cartel: 2, rotulo: 2, sello: 2, bocadillo: 1, grito: 1 };
 
 /** Lo que nada de lo que vuela puede tapar. */
-export const ZONAS_PROHIBIDAS = '#app .mesa .e-sellos > *, #app [data-cuenta] .cuenta:not(.reposo) [data-total], #app [data-hud-vida] .valor, #app [data-hud-escudo] .valor';
+export const ZONAS_PROHIBIDAS =
+  '#app .mesa .e-sellos > *, #app [data-cuenta] .cuenta:not(.reposo) [data-total], #app [data-hud-vida] .valor, #app [data-hud-escudo] .valor, ' +
+  // (0.21: tampoco los botones de la mesa con su glifo, la bandeja de Amuletos y de Chiches, el índice del naipe del
+  // enemigo y la columna del TE PEGA)
+  '#app .mesa .botones .btn, #app .mesa .hud-tiras, #app .mesa .chiches, #app .mesa .e-carta .e-indice, #app .mesa .e-ataque';
 
 interface Turno {
   id: number;

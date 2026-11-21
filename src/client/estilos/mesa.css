@@ -3736,7 +3736,8 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
   content: '';
   position: absolute;
   z-index: 3;
-  left: 50%;
+  /* (centrada en lo que se ve del naipe: con la mano montada, en su franja; la pone mano.ts) */
+  left: var(--fm, 50%);
   top: calc(-8px * var(--k-naipe));
   width: calc(11px * var(--k-naipe) * 2);
   height: calc(7px * var(--k-naipe) * 2);
@@ -4313,4 +4314,13 @@ button.chiche:focus-visible {
   .ficha-fisica {
     display: none;
   }
+}
+/* la esquina del índice del naipe del enemigo (su cifra de identidad): el director de escena no deja volar nada encima */
+.e-carta > .e-indice {
+  position: absolute;
+  left: 2%;
+  top: 1%;
+  width: 26%;
+  height: 17%;
+  pointer-events: none;
 }

@@ -20,7 +20,7 @@ export const ESTADOS = [
   'portada', 'elegir-mazo', 'elegi-una', 'mapa', 'mesa', 'mesa-seleccion', 'mesa-arrastrando', 'mesa-rey', 'mesa-segunda', 'mesa-mentiroso', 'botin', 'elegi-bendicion', 'elegi-amuleto',
   'pulperia', 'fogon', 'cabala', 'mazo', 'jugadas', 'piezas', 'mesa-mando', 'mapa-mando', 'altar', 'coleccion', 'coleccion-reyes', 'coleccion-amuletos', 'cronica', 'ajustes', 'fin-victoria', 'fin-derrota',
   'mesa-grito', 'botin-grito', 'mesa-segunda-cambia', 'botin-rey', 'mesa-conteo', 'mesa-escudo',
-  'mesa-chispa', 'mesa-escalon', 'mesa-postas-arrastre', 'mesa-chiches', 'mesa-chiche-usa', 'mesa-prenda', 'pulperia-chiches', 'rey-mascara',
+  'mesa-chispa', 'mesa-escalon', 'mesa-postas-arrastre', 'mesa-chiches', 'mesa-chiche-usa', 'mesa-prenda', 'pulperia-chiches', 'rey-mascara', 'mesa-escudo-mando',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
 /** Estados que solo tienen sentido en vivo (`&vivo`, para las secuencias del Jurado): no entran en la QA visual. */
@@ -202,6 +202,7 @@ export function montarQa(estado: string): void {
       $<HTMLElement>('[data-accion="ver-piezas"]')?.click();
       break;
     case 'mesa-mentiroso':
+    case 'mesa-escudo-mando': // la mano de 8 montada: la QA le pone el foco a la 2.ª, la 5.ª y la 8.ª carta
       montar(partida('mentiroso', (p) => enCombate(p)));
       break;
     case 'mesa-escudo': {

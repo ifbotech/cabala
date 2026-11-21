@@ -445,9 +445,28 @@ await conServidor(5191, async (url) => {
         await pagina.goto(`${url}/?qa=${estado}&lang=${lang}`, { waitUntil: 'domcontentloaded' });
         await pagina.waitForSelector('html[data-qa="listo"]', { timeout: 15000 });
         await pagina.evaluate(() => document.fonts.ready);
+        const flechas: string[] = [];
         if (estado.endsWith('-mando')) {
           // el foco del mando: se mueve con las flechas, como con la cruceta (en la mesa, además, se elige una carta)
-          if (estado === 'mesa-mando') {
+          if (estado === 'mesa-escudo-mando') {
+            // la mano de 8 montada (el Mentiroso): con el foco en la 2.ª, la 5.ª y la 8.ª carta, bajo la punta de la ▼
+            // tiene que estar la carta enfocada («flecha-foco»), no su vecina
+            for (const i of [1, 4, 7]) {
+              await pagina.locator('.mano .carta').nth(i).focus();
+              await pagina.evaluate(() => (document.documentElement.dataset.entrada = 'mando'));
+              await pagina.waitForTimeout(80);
+              const mal = await pagina.evaluate(() => {
+                const el = document.activeElement as HTMLElement | null;
+                if (!el?.matches('[data-mano] .carta')) return 'el foco no quedó en la mano';
+                const r = el.getBoundingClientRect();
+                const k = Number(getComputedStyle(el).getPropertyValue('--k-naipe')) || 1;
+                const fm = parseFloat(el.style.getPropertyValue('--fm')) || r.width / 2;
+                const bajo = document.elementFromPoint(r.left + fm, r.top + 8 * k);
+                return bajo?.closest('.carta') === el ? '' : `bajo la ▼ de ${el.dataset.id} está ${bajo?.closest('.carta')?.getAttribute('data-id') ?? bajo?.tagName}`;
+              });
+              if (mal) flechas.push(mal);
+            }
+          } else if (estado === 'mesa-mando') {
             // se llega a la mano, se elige una carta y el foco pasa a la siguiente
             await pagina.locator('.mano .carta').first().focus();
             await pagina.keyboard.press('ArrowRight');
@@ -464,6 +483,7 @@ await conServidor(5191, async (url) => {
         await pagina.waitForTimeout(120);
         const fallos = await pagina.evaluate(auditar, { esMovil: v.w < 700, idioma: lang, deck: v.nombre === '1280x800' && estado !== 'mesa-arrastrando' });
         for (const e of errores) fallos.push({ regla: 'error-js', detalle: e.slice(0, 200) });
+        for (const x of flechas) fallos.push({ regla: 'flecha-foco', detalle: x });
         // la mesa no salta al elegir («mesa-quieta»): fuera del teléfono, el naipe del Rey, La Corte y el Bufón quedan
         // donde estaban en reposo (±4 px) cuando se elige la jugada
         const cajasMesa = () =>

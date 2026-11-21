@@ -1477,3 +1477,9 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .b-signo {
   top: calc(-12px * var(--k));
   transform: scaleY(-1);
 }
+/* 0.21: la A (y su ENTER) va solo en el botón con el foco y sigue al foco: dos «A» a la vista no dicen cuál dispara.
+   El hueco queda (el rótulo no se corre al mover el foco) */
+.btn:not(:focus) > .glifo.g-a,
+.btn:not(:focus) > .glifo.g-a + .glifo.g-tecla {
+  visibility: hidden;
+}
