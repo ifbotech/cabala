@@ -1,5 +1,5 @@
 # CÁBALA — Reglas
-> Versión 0.19.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
+> Versión 0.20.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
 
 *Todo es cuestión de cábala.* Roguelike de baraja española para un jugador. Elegís un Mazo, el Bufón te lleva por tres tramos de caminos y al fondo de cada uno te espera un Rey. Tu mano contra la Corte: cada golpe es **DAÑO × MULTI**.
 
@@ -74,7 +74,7 @@ Un enemigo **Aturdido** se salta su próximo Contraataque. La **Furia** es Ataqu
 | 2 | El Reñidero | ×3.4 | +12 |
 | 3 | La Corte de Medianoche | ×10.5 | +28 |
 
-La **Guardia Brava** (élite) tiene ×1.4 de Vida y +2 de Ataque. El **Rey** de cada tramo llega detrás de su Sota y su Caballo, con ×1.6 de Vida. Por cada Bendición suya que llevés, arranca con 5 % menos de Vida (tope 20 %).
+La **Guardia Brava** (élite) tiene ×1.4 de Vida y +2 de Ataque. El **Rey** de cada tramo llega detrás de su Sota y su Caballo, con ×1.4 de Vida. Por cada Bendición suya que llevés, arranca con 5 % menos de Vida (tope 20 %).
 
 ## Los 4 Reyes
 
@@ -175,15 +175,15 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 
 | Mazo | Personaje | Vida · mano | Regla estrella | Se abre con |
 |---|---|---|---|---|
-| **Escoba** · Escoba del 15 | La Barrendera | 44 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×2 y más Daño para siempre. | abierto desde el principio |
-| **Truco** · Envido y Bravas | El Paisano Bravo | 55 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
-| **Chinchón** · Pierna y Escalera | La Timbera del Club | 28 · 7 | Piernas y Escaleras de palo crecen siempre y te cubren. | Vencé a un Rey. |
-| **El Mentiroso** · Cara de Piedra | El Chamuyero | 14 · 8 | Comodines, Escudo de entrada y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
-| **Chancho Va** · Mano al Centro | El Manotazo | 63 · 4 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
+| **Escoba** · Escoba del 15 | La Barrendera | 76 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×3 y más Daño para siempre. | abierto desde el principio |
+| **Truco** · Envido y Bravas | El Paisano Bravo | 63 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
+| **Chinchón** · Pierna y Escalera | La Timbera del Club | 26 · 7 | Piernas y Escaleras de palo crecen siempre y te cubren. | Vencé a un Rey. |
+| **El Mentiroso** · Cara de Piedra | El Chamuyero | 15 · 8 | Comodines, Escudo de entrada y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
+| **Chancho Va** · Mano al Centro | El Manotazo | 73 · 4 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
 
 **Escoba** (¡ESCOBA!)
-- Mano de 3 cartas, como en la mesa: tus golpes llevan +8 de Multi.
-- Si las cartas del golpe suman 15: ¡ESCOBA!, ×2 de Multi.
+- Mano de 3 cartas, como en la mesa: tus golpes llevan +3 de Multi.
+- Si las cartas del golpe suman 15: ¡ESCOBA!, ×3 de Multi.
 - Cada Escoba deja +2 de Daño en todos tus golpes, para siempre.
 - Cualquier grupo de cartas que sume 15 vale como jugada.
 
@@ -201,12 +201,12 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 **El Mentiroso** (¡MENTIRA!)
 - Mano de 8 cartas.
 - Tu Mazo lleva 3 Comodines.
-- Cara de Piedra: empezás cada combate con 10 de Escudo (×2 en el tramo 2, ×3 en el 3).
+- Cara de Piedra: empezás cada combate con 22 de Escudo.
 - Engaño, una vez por combate: todas las cartas del golpe fingen ser tu carta más alta y nada les es Inmune.
 - Si el Engaño no abate al enemigo, su Furia sube 3.
 
 **Chancho Va** (¡CHANCHO!)
-- Mano de 4 cartas, como en la mesa: tus golpes llevan +4 de Multi.
+- Mano de 4 cartas, como en la mesa: tus golpes llevan +3 de Multi.
 - Cada turno, descartar 1 sola carta es gratis: robás otra en el acto.
 - Póker (4 iguales): ¡CHANCHO!, ×2 de Multi y el enemigo queda Aturdido 2 turnos.
 - De un saque: si abatís a un enemigo de un solo golpe, el siguiente entra Aturdido.
