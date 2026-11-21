@@ -681,7 +681,7 @@ describe('0.22.0: Evoluciones, Forja Brava, Cábala Negra y Tesoros', () => {
       expect(despierta(q, 'amuleto', de)).toBe(de);
     }
   });
-  it('el Sol de la Timba saca el tope del Cofre y el Brindis de Sangre duplica el Multi con la Vida alta', () => {
+  it('el Sol de la Timba sube el tope del Cofre y el Brindis de Sangre suma otro tanto con la Vida alta', () => {
     const mano = [c('S', 7), c('C', 7)];
     const p = mesa('chinchon', mano, {}, (x) => {
       x.amuletos = ['cofre', 'caliz'];
@@ -690,9 +690,9 @@ describe('0.22.0: Evoluciones, Forja Brava, Cábala Negra y Tesoros', () => {
     const antes = cuenta(p, mano);
     p.bendiciones = { [donDe('D')]: 1, [donDe('H')]: 1 };
     const despues = cuenta(p, mano);
-    expect(despues.pasos.some((x) => x.de === 'ev:cofre' && x.v === Math.floor(300 / B.amuletos.cofre.cada))).toBe(true);
-    expect(despues.pasos.some((x) => x.de === 'ev:caliz' && x.tipo === 'x')).toBe(true);
-    expect(despues.multi).toBeGreaterThan(antes.multi * 2 - 1);
+    expect(despues.pasos.some((x) => x.de === 'ev:cofre' && x.v === B.evoluciones.sol.tope)).toBe(true);
+    expect(despues.pasos.filter((x) => x.de === 'ev:caliz').reduce((s, x) => s + x.v, 0)).toBe(B.amuletos.caliz.multi + B.evoluciones.brindis);
+    expect(despues.multi).toBe(antes.multi + B.evoluciones.sol.tope - B.amuletos.cofre.tope + B.evoluciones.brindis);
   });
   it('la tercera pasada por el Fogón es la Forja Brava: número doble y una mutación', () => {
     let forjas = 0;
