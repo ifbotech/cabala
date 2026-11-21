@@ -48,6 +48,38 @@ async function tanda(celdas: Celda[]): Promise<Resultado[]> {
   await Promise.all(Array.from({ length: Math.max(2, Math.min(cpus().length - 1, celdas.length)) }, obrero));
   return out;
 }
+/** Parte cada celda en trozos que juegan las mismas semillas (el resultado sumado es idéntico) para repartir el trabajo
+ *  entre los núcleos: si no, la celda más lenta (El Mentiroso, lleno de Comodines) marca el tiempo de todo. */
+async function enTrozos(celdas: Celda[], partes: number): Promise<Resultado[]> {
+  const trozos = celdas.flatMap((c) => {
+    const t = Math.ceil(c.n / partes);
+    return Array.from({ length: partes }, (_, i) => ({ ...c, desde: i * t, n: Math.max(0, Math.min(t, c.n - i * t)) })).filter((x) => x.n > 0);
+  });
+  // los trozos más caros primero (los del Mentiroso), para que no queden solos al final
+  const orden = trozos.map((_, i) => i).sort((a, b) => Number(trozos[b].mazo === 'mentiroso') - Number(trozos[a].mazo === 'mentiroso'));
+  const sueltos = await tanda(orden.map((i) => trozos[i]));
+  const porTrozo: Resultado[] = new Array(trozos.length);
+  orden.forEach((i, j) => (porTrozo[i] = sueltos[j]));
+  return celdas.map((c) => {
+    const mios = porTrozo.filter((r) => r.celda.mazo === c.mazo && r.celda.altar === c.altar && r.celda.reinado === c.reinado && r.celda.semilla === c.semilla);
+    const r = mios[0];
+    const suma: Resultado = { ...r, celda: c, caidas: [0, 0, 0], golpesTramo: [0, 0, 0], danoTramo: [0, 0, 0], golpesTipo: {}, combatesTipo: {}, piezas: {} };
+    for (const k of ['victorias', 'turnos', 'combates', 'reyes', 'golpes', 'exactos', 'cantos', 'porotos', 'vidaFinal'] as const) suma[k] = mios.reduce((s, x) => s + x[k], 0);
+    suma.mejorGolpe = Math.max(...mios.map((x) => x.mejorGolpe));
+    for (const x of mios) {
+      for (const k of ['caidas', 'golpesTramo', 'danoTramo'] as const) x[k].forEach((v, i) => (suma[k][i] += v));
+      for (const k of ['golpesTipo', 'combatesTipo'] as const) for (const [t, v] of Object.entries(x[k])) suma[k][t] = (suma[k][t] ?? 0) + v;
+      for (const [k, p] of Object.entries(x.piezas)) {
+        const z = (suma.piezas[k] ??= { ofrecida: 0, elegida: 0, ganaCon: 0, ganaSin: 0 });
+        z.ofrecida += p.ofrecida;
+        z.elegida += p.elegida;
+        z.ganaCon += p.ganaCon;
+        z.ganaSin += p.ganaSin;
+      }
+    }
+    return suma;
+  });
+}
 const pct = (a: number, b: number) => (b ? Math.round((1000 * a) / b) / 10 : 0);
 const t0 = Date.now();
 
@@ -88,7 +120,7 @@ if (args.includes('--solo-notas')) process.exit(0);
 const celdas: Celda[] = [];
 for (const mazo of MAZOS) for (const altar of ['vacio', 'lleno'] as const) celdas.push({ mazo, altar, reinado: 1, n: N, semilla: 'META' });
 for (const mazo of MAZOS) celdas.push({ mazo, altar: 'lleno', reinado: 8, n: Math.ceil(N / 3), semilla: 'META8-' });
-const rs = await tanda(celdas);
+const rs = await enTrozos(celdas, 4);
 
 const avisos: string[] = [];
 const dentro = (v: number, [a, b]: readonly [number, number]) => v >= a && v <= b;

@@ -18,6 +18,8 @@ export interface Celda {
   /** Elegir al azar en cada «ELEGÍ UNA» (para las notas del laboratorio). */
   ofertasAlAzar?: boolean;
   semilla?: string;
+  /** Primera partida de la celda (para partirla en trozos que juegan las mismas semillas). */
+  desde?: number;
 }
 
 export interface Pieza {
@@ -55,7 +57,7 @@ export interface Resultado {
 export function correr(celda: Celda): Resultado {
   const r: Resultado = { celda, victorias: 0, caidas: [0, 0, 0], turnos: 0, combates: 0, reyes: 0, golpes: 0, exactos: 0, cantos: 0, mejorGolpe: 0, porotos: 0, vidaFinal: 0, piezas: {}, golpesTramo: [0, 0, 0], danoTramo: [0, 0, 0], golpesTipo: {}, combatesTipo: {} };
   const altar = celda.altar === 'lleno' ? altarLleno() : altarVacio();
-  for (let i = 0; i < celda.n; i++) {
+  for (let i = celda.desde ?? 0; i < (celda.desde ?? 0) + celda.n; i++) {
     const semilla = `${celda.semilla ?? 'LAB'}${i}`;
     const p = nuevaPartida({ mazo: celda.mazo, reinado: celda.reinado, semilla, altar });
     const vistas: { clave: string; elegida: boolean }[] = [];

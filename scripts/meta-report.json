@@ -1,6 +1,6 @@
 {
   "fecha": "2026-11-21",
-  "huella": "0af16d5f7a3221e5",
+  "huella": "81a963e67cac8e96",
   "rapido": false,
   "partidasPorCelda": 3000,
   "objetivos": {
@@ -45,50 +45,50 @@
   "mazos": [
     {
       "mazo": "escoba",
-      "vacio": 30.5,
-      "lleno": 47,
+      "vacio": 30.8,
+      "lleno": 47.2,
       "reinado8": 21.9,
       "caidas": [
-        648,
-        648,
-        790
+        641,
+        642,
+        794
       ],
-      "caidaTramo1": 21.6,
+      "caidaTramo1": 21.4,
       "golpesGuardia": 2.9,
       "golpesRey": 5,
       "golpeMedio": [
         187,
         557,
-        1752
+        1747
       ],
       "exactos": 0.5,
-      "cantos": 9.2,
+      "cantos": 9.3,
       "mejorGolpe": 37908,
       "porotos": 73,
       "minutos": 15.6
     },
     {
       "mazo": "truco",
-      "vacio": 28.9,
-      "lleno": 48,
-      "reinado8": 21.1,
+      "vacio": 29.2,
+      "lleno": 48.7,
+      "reinado8": 21.7,
       "caidas": [
-        111,
-        427,
-        1594
+        106,
+        421,
+        1596
       ],
-      "caidaTramo1": 3.7,
+      "caidaTramo1": 3.5,
       "golpesGuardia": 2.7,
       "golpesRey": 4.5,
       "golpeMedio": [
         281,
         566,
-        1278
+        1279
       ],
       "exactos": 0.4,
-      "cantos": 25.4,
+      "cantos": 25.5,
       "mejorGolpe": 22572,
-      "porotos": 86,
+      "porotos": 87,
       "minutos": 15.2
     },
     {

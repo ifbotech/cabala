@@ -826,7 +826,9 @@ export function usarChiche(p: Partida, i: number): Ev[] {
       c.fosforo = true;
       break;
     case 'tiza': {
-      const baja = [...c.mano].filter((k) => !esComodin(k)).sort((a, b) => a.n - b.n)[0];
+      // nunca deja la mano sin un naipe de verdad (un golpe de puros Comodines no es jugada)
+      const reales = [...c.mano].filter((k) => !esComodin(k)).sort((a, b) => a.n - b.n);
+      const baja = reales.length >= 2 ? reales[0] : undefined;
       if (!baja) return [];
       baja.palo = 'X';
       baja.n = 0;
