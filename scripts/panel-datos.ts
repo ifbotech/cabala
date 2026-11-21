@@ -114,6 +114,8 @@ const FUNCIONES = {
   conteoConSuspenso: true,
   /** 0.19.0: el crítico dentro del MULTI, un solo TE PEGA, rasgo del Rey con su regla, foco distinto de la selección, botín de cinco piezas. */
   mesaLimpia: true,
+  /** 0.20.0: el Rey en su primera cara se planta en la mitad y el sobrante se pierde: cada Rey muestra sus dos caras. */
+  reyesDosCaras: true,
 };
 
 const c = (palo: PaloCarta, n: number): Carta => ({ id: `${palo}${n}`, palo, n });
