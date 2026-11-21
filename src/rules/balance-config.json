@@ -86,7 +86,7 @@
       "11": 14,
       "12": 17
     },
-    "escudoCaballo": 14,
+    "escudoCaballo": 17,
     "actos": [
       {
         "vida": 1.5,
@@ -94,12 +94,12 @@
         "escudo": 1
       },
       {
-        "vida": 4.3,
+        "vida": 4.6,
         "ataque": 12,
         "escudo": 2
       },
       {
-        "vida": 13.3,
+        "vida": 14.3,
         "ataque": 28,
         "escudo": 4
       }
@@ -169,32 +169,32 @@
       "multiMano": 4
     },
     "chinchon": {
-      "vida": 26,
+      "vida": 29,
       "mano": 7,
       "hasta": 9,
       "comodines": 2,
       "cargaDano": 2,
       "mitiga": 0.3,
-      "multiMano": 3
+      "multiMano": 2
     },
     "mentiroso": {
-      "vida": 19,
+      "vida": 16,
       "mano": 8,
-      "hasta": 7,
+      "hasta": 6,
       "comodines": 3,
       "enganos": 1,
       "furiaFallo": 3,
-      "caraDePiedra": 22,
+      "caraDePiedra": 17,
       "multiMano": 0
     },
     "chancho": {
-      "vida": 47,
+      "vida": 53,
       "mano": 4,
       "hasta": 9,
       "comodines": 2,
       "multi": 2,
       "aturde": 2,
-      "multiMano": 6
+      "multiMano": 5
     }
   },
   "botin": {
@@ -252,14 +252,15 @@
   },
   "evoluciones": {
     "facon": {
-      "sobra": 3,
+      "sobra": 2,
       "multi": 1
     },
-    "garrote": 0.5,
+    "garrote": 1,
     "sol": {
-      "oro": 3
+      "oro": 2,
+      "tope": 3
     },
-    "brindis": 2
+    "brindis": 1
   },
   "tesoros": {
     "precio": 30,
@@ -270,7 +271,7 @@
   },
   "postas": {
     "medio": 2,
-    "escalon": 2,
+    "escalon": 1,
     "chispa": 2
   },
   "chiches": {
@@ -483,8 +484,8 @@
       160
     ],
     "vida": 0.03,
-    "oro": 2,
-    "descuento": 0.03,
+    "oro": 1,
+    "descuento": 0.02,
     "suerte": 0.05,
     "reyes": 1,
     "purga": 2

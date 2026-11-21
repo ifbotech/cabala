@@ -281,7 +281,7 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
   const vivasMut = (mu: string) => ef.filter((k) => !k.copia && k.de.mutacion === mu).length;
   const oro = cuantas('D') * B.palos.oroPorOro + vivasMut('oro') * B.fogon.chispaOro;
   const perfora = cuantas('S') > 0 || tieneAmuleto(p, 'lanza');
-  // el Garrote del Cacique: la mitad de tu Escudo se suma al Daño
+  // el Garrote del Cacique: tu Escudo se suma al Daño
   if (evoluciono(p, 'poncho')) d('ev:poncho', Math.floor(c.escudo * B.evoluciones.garrote));
 
   // ── Multi: primero lo que suma…
@@ -302,9 +302,11 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
   if (tieneAmuleto(p, 'poncho') && c.escudo >= am.poncho.escudo) m(evoluciono(p, 'poncho') ? 'ev:poncho' : 'a:poncho', am.poncho.multi);
   if (tieneAmuleto(p, 'taba') && c.dado >= am.taba.desde) m('a:taba', am.taba.multi);
   const sol = evoluciono(p, 'cofre');
-  if (tieneAmuleto(p, 'cofre')) m(sol ? 'ev:cofre' : 'a:cofre', sol ? Math.floor(p.oro / am.cofre.cada) : Math.min(am.cofre.tope, Math.floor(p.oro / am.cofre.cada)));
+  if (tieneAmuleto(p, 'cofre')) m(sol ? 'ev:cofre' : 'a:cofre', Math.min(sol ? B.evoluciones.sol.tope : am.cofre.tope, Math.floor(p.oro / am.cofre.cada)));
   const brindis = evoluciono(p, 'caliz');
   if (tieneAmuleto(p, 'caliz') && (brindis || p.vida >= p.vidaMax * am.caliz.vida)) m(brindis ? 'ev:caliz' : 'a:caliz', am.caliz.multi);
+  // el Brindis de Sangre: con la Vida alta, otro tanto de Multi
+  if (brindis && p.vida >= p.vidaMax * am.caliz.vida) m('ev:caliz', B.evoluciones.brindis);
   // el Cascabel cobra su precio: un golpe sin canto va con Multi de menos
   if (tieneAmuleto(p, 'cascabel') && !canto) m('a:cascabel-sin', -B.amuletos.cascabelSinCanto);
   lv = nivelBend(p, 'pesofuerte');
@@ -325,8 +327,6 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
 
   if (tieneAumento(p, 'faltaenvido') && p.vida <= p.vidaMax * au.faltaenvido.vida) x('u:faltaenvido', au.faltaenvido.multi);
   if (tieneAumento(p, 'contraflor')) x('u:contraflor', au.contraflor.multi);
-  // el Brindis de Sangre: con la Vida alta, el Multi se duplica
-  if (brindis && p.vida >= p.vidaMax * am.caliz.vida) x('ev:caliz', B.evoluciones.brindis);
 
   const multiFinal = Math.max(1, multi) * por;
   // Falta Envido tiene su precio: las Copas te curan la mitad

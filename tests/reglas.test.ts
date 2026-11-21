@@ -16,7 +16,9 @@ import { MAZOS } from '../src/rules/mazos';
 import type { MazoId } from '../src/rules/mazos';
 import * as juego from '../src/rules/partida';
 import { altarLleno } from '../src/rules/perfil';
-import { BENDICION } from '../src/rules/reyes';
+import { BENDICION, BENDICIONES } from '../src/rules/reyes';
+import { EVOLUCION, EVOLUCIONES, despierta, evoluciono } from '../src/rules/evoluciones';
+import { CABALA } from '../src/rules/bufon';
 import type { BendicionId } from '../src/rules/reyes';
 
 /** Lo que suman las Postas del paño (0.21.0) a una cuenta: para medir las fórmulas de siempre sin el paño. */
@@ -655,5 +657,125 @@ describe('0.16.0: las segundas caras obligan a cambiar de plan', () => {
     expect(k.perfora).toBe(true);
     // la ventana del «al pelo» es un 5 % de la Vida máxima: 100 sobre 2000
     expect(k.alPelo).toBe(k.aVida - 1 <= 100);
+  });
+});
+
+describe('0.22.0: Evoluciones, Forja Brava, Cábala Negra y Tesoros', () => {
+  const donDe = (palo: string) => BENDICIONES.find((id) => BENDICION[id].rey === palo && !BENDICION[id].dual)!;
+  it('cada Épico de palo evoluciona con un don del Rey de su palo, y el sello lo anuncia antes', () => {
+    expect(EVOLUCIONES).toHaveLength(4);
+    for (const de of EVOLUCIONES) {
+      const ev = EVOLUCION[de];
+      expect(AMULETO[de].rareza).toBe('epico');
+      expect(AMULETO[de].palo).toBe(ev.palo);
+      expect(ev.desc.es.length).toBeLessThanOrEqual(110);
+      expect(ev.desc.en.length).toBeLessThanOrEqual(110);
+      const p = juego.nuevaPartida({ mazo: 'escoba', semilla: 'EVO' });
+      p.amuletos = [de];
+      expect(evoluciono(p, de)).toBe(false);
+      expect(despierta(p, 'bendicion', donDe(ev.palo))).toBe(de);
+      p.bendiciones = { [donDe(ev.palo)]: 1 };
+      expect(evoluciono(p, de)).toBe(true);
+      const q = juego.nuevaPartida({ mazo: 'escoba', semilla: 'EVO' });
+      q.bendiciones = { [donDe(ev.palo)]: 1 };
+      expect(despierta(q, 'amuleto', de)).toBe(de);
+    }
+  });
+  it('el Sol de la Timba saca el tope del Cofre y el Brindis de Sangre duplica el Multi con la Vida alta', () => {
+    const mano = [c('S', 7), c('C', 7)];
+    const p = mesa('chinchon', mano, {}, (x) => {
+      x.amuletos = ['cofre', 'caliz'];
+      x.oro = 300;
+    });
+    const antes = cuenta(p, mano);
+    p.bendiciones = { [donDe('D')]: 1, [donDe('H')]: 1 };
+    const despues = cuenta(p, mano);
+    expect(despues.pasos.some((x) => x.de === 'ev:cofre' && x.v === Math.floor(300 / B.amuletos.cofre.cada))).toBe(true);
+    expect(despues.pasos.some((x) => x.de === 'ev:caliz' && x.tipo === 'x')).toBe(true);
+    expect(despues.multi).toBeGreaterThan(antes.multi * 2 - 1);
+  });
+  it('la tercera pasada por el Fogón es la Forja Brava: número doble y una mutación', () => {
+    let forjas = 0;
+    for (let i = 0; i < 40 && forjas < 3; i++) {
+      const p = juego.nuevaPartida({ mazo: 'chancho', semilla: `FORJA${i}` });
+      p.fase = 'fogon';
+      p.fogonHecho = false;
+      p.fogonPasadas = 0;
+      const k = p.mazo.find((x) => x.palo !== 'X')!;
+      if (juego.templar(p, k.id) !== 'templada' || juego.templar(p, k.id) !== 'templada' || juego.templar(p, k.id) !== 'templada') continue;
+      forjas++;
+      expect(k.brava).toBe(true);
+      expect(['doblefilo', 'roba', 'oro']).toContain(k.mutacion);
+    }
+    expect(forjas).toBeGreaterThan(0);
+  });
+  it('las mutaciones se cobran en el golpe: Chispa de Oro paga, Doble Filo corta y Roba Carta trae de más', () => {
+    const oro = c('S', 7);
+    oro.mutacion = 'oro';
+    const p = mesa('chinchon', [oro, c('C', 2)]);
+    expect(cuenta(p, [oro]).oro).toBe(B.fogon.chispaOro);
+    const filo = c('S', 7);
+    filo.mutacion = 'doblefilo';
+    const q = mesa('chinchon', [filo, c('C', 2)]);
+    const vida = q.vida;
+    expect(cuenta(q, [filo]).pasos.some((x) => x.de === 'mut:doblefilo')).toBe(true);
+    golpear(q, [filo.id]);
+    expect(q.vida).toBeLessThanOrEqual(vida - Math.min(B.fogon.dobleFilo.vida, vida - 1) + 0); // pudo pegarle también el enemigo
+    const roba = c('S', 7);
+    roba.mutacion = 'roba';
+    const r = mesa('chinchon', [roba, c('C', 2), c('D', 2)]);
+    r.combate!.mazo = Array.from({ length: 10 }, (_, i) => c('H', 1 + (i % 9)));
+    golpear(r, [roba.id]);
+    expect(r.combate!.mano.length).toBe(r.manoMax + B.fogon.robaCarta);
+  });
+  it('la Cábala Negra cose dos iguales en uno y trasplanta el palo de un sacrificio', () => {
+    const negra = CABALA.negra;
+    expect(negra.opciones.map((o) => o.id)).toEqual(['coser', 'trasplantar', 'no']);
+    const p = juego.nuevaPartida({ mazo: 'chancho', semilla: 'NEGRA' });
+    p.fase = 'cabala';
+    p.cabala = { id: 'negra' };
+    const [a, b] = p.mazo.filter((x) => x.n === 7);
+    const n = p.mazo.length;
+    expect(juego.responderCabala(p, 'coser', [a.id, p.mazo.find((x) => x.n === 6)!.id])).toBe(false);
+    expect(juego.responderCabala(p, 'coser', [a.id, b.id])).toBe(true);
+    expect(p.mazo.length).toBe(n - 1);
+    expect(a.temple).toBe(7);
+    const q = juego.nuevaPartida({ mazo: 'chancho', semilla: 'NEGRA2' });
+    q.fase = 'cabala';
+    q.cabala = { id: 'negra' };
+    const de = q.mazo.find((x) => x.palo === 'H')!;
+    const a2 = q.mazo.find((x) => x.palo === 'S')!;
+    expect(juego.responderCabala(q, 'trasplantar', [de.id, a2.id])).toBe(true);
+    expect(a2.palo).toBe('H');
+    expect(q.mazo.includes(de)).toBe(false);
+  });
+  it('cada tramo trae un Tesoro a la vista; el de candado se paga en el Botín y saltarlo no paga', () => {
+    for (let s = 0; s < 30; s++) {
+      const p = juego.nuevaPartida({ mazo: 'truco', semilla: `TESORO${s}` });
+      for (const tr of p.tramos) {
+        const t = tr.nodos.filter((x) => x.tesoro);
+        expect(t).toHaveLength(1);
+        expect(t[0].piso).toBeGreaterThanOrEqual(B.tesoros.pisos[0]);
+        expect(t[0].piso).toBeLessThanOrEqual(B.tesoros.pisos[1]);
+        expect(t[0].tesoro).toBe(t[0].tipo === 'elite' ? 'elite' : 'oro');
+      }
+    }
+    const p = juego.nuevaPartida({ mazo: 'truco', semilla: 'CANDADO' });
+    p.fase = 'botin';
+    p.oro = 10;
+    p.botin = { de: 'guardia', items: [{ t: 'oferta', oferta: { tipo: 'amuleto', opciones: ['cetro', 'lanza'], precio: 30, tesoro: true } }] };
+    expect(juego.elegirOferta(p, 0, 'cetro')).toBe(false);
+    p.oro = 40;
+    expect(juego.elegirOferta(p, 0, 'cetro')).toBe(true);
+    expect(p.oro).toBe(10);
+    p.botin.items.push({ t: 'oferta', oferta: { tipo: 'amuleto', opciones: ['lanza'], precio: 30, tesoro: true } });
+    expect(juego.elegirOferta(p, 1, null)).toBe(true);
+    expect(p.oro).toBe(10);
+  });
+  it('los Legendarios y los Prismáticos tienen su contra a la vista', () => {
+    for (const id of ['cascabel', 'doscaras', 'cetro'] as const) expect(AMULETO[id].desc.es).toMatch(/pero|−|Cada combate/);
+    const p = mesa('chinchon', [c('S', 7), c('C', 2)], { ataque: 20 }, (x) => (x.amuletos = ['doscaras']));
+    const sin = mesa('chinchon', [c('S', 7), c('C', 2)], { ataque: 20 });
+    expect(cuenta(p, [p.combate!.mano[0]]).contra!).toBeGreaterThan(cuenta(sin, [sin.combate!.mano[0]]).contra!);
   });
 });

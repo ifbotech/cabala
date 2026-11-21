@@ -35,19 +35,19 @@ export const EVOLUCION: Record<EvolucionDe, EvolucionDef> = {
     de: 'poncho',
     palo: 'C',
     nombre: L('GARROTE DEL CACIQUE', "CHIEFTAIN'S CLUB"),
-    desc: fillL(L('Con {e} o más de Escudo: +{m} de Multi. La mitad de tu Escudo se suma al Daño.', 'With {e} or more Shield: +{m} Mult. Half your Shield adds to Damage.'), { e: am.poncho.escudo, m: am.poncho.multi }),
+    desc: fillL(L('Con {e} o más de Escudo: +{m} de Multi. Tu Escudo entero se suma al Daño.', 'With {e} or more Shield: +{m} Mult. Your whole Shield adds to Damage.'), { e: am.poncho.escudo, m: am.poncho.multi }),
   },
   cofre: {
     de: 'cofre',
     palo: 'D',
     nombre: L('SOL DE LA TIMBA', 'SUN OF THE GAMBLING DEN'),
-    desc: fillL(L('+1 de Multi por cada {k} de oro, sin tope. Cada abatido te paga {o} de oro.', '+1 Mult for every {k} gold, no cap. Each takedown pays you {o} gold.'), { k: am.cofre.cada, o: ev.sol.oro }),
+    desc: fillL(L('+1 de Multi por cada {k} de oro (tope +{t}). Cada abatido te paga {o} de oro.', '+1 Mult for every {k} gold (max +{t}). Each takedown pays you {o} gold.'), { k: am.cofre.cada, t: ev.sol.tope, o: ev.sol.oro }),
   },
   caliz: {
     de: 'caliz',
     palo: 'H',
     nombre: L('BRINDIS DE SANGRE', 'BLOOD TOAST'),
-    desc: fillL(L('Con {p} % de Vida o más: ×2 de Multi. Con menos, +{m} de Multi igual.', 'At {p}% Health or more: ×2 Mult. Below that, still +{m} Mult.'), { p: pct(am.caliz.vida), m: am.caliz.multi }),
+    desc: fillL(L('+{m} de Multi siempre, y con {p} % de Vida o más, +{n} más.', '+{m} Mult always, and at {p}% Health or more, +{n} more.'), { p: pct(am.caliz.vida), m: am.caliz.multi, n: ev.brindis }),
   },
 };
 

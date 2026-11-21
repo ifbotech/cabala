@@ -460,13 +460,15 @@ export function templar(p: Partida, cartaId: string): 'templada' | 'quemada' | n
 
 // ───────────────────────── Cábala del Bufón ─────────────────────────
 
-export function responderCabala(p: Partida, opcionId: string): boolean {
+/** Responde la Cábala. Las opciones que piden naipes (la Cábala Negra) los reciben en ids, en orden. */
+export function responderCabala(p: Partida, opcionId: string, ids?: readonly string[]): boolean {
   const estado = p.cabala;
   if (p.fase !== 'cabala' || !estado || estado.resultado) return false;
   const def = CABALA[estado.id];
   const op = def?.opciones.find((o) => o.id === opcionId);
   if (!def || !op || (op.puede && !op.puede(p))) return false;
-  const r = resolverCabala(p, def, op);
+  if (op.cartas && (!ids || !op.validas?.(p, ids))) return false;
+  const r = resolverCabala(p, def, op, ids);
   estado.resultado = { ...r.texto, bueno: r.bueno };
   if (r.oferta === 'bendicion') p.botin = { de: 'cabala', items: [{ t: 'oferta', oferta: ofertaBendicion(p) }] };
   if (r.oferta === 'aumento') p.botin = { de: 'cabala', items: [{ t: 'oferta', oferta: ofertaAumento(p, p.acto === 0 ? 'plata' : 'oro') }] };

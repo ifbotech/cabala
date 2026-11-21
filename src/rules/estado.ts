@@ -186,6 +186,8 @@ export interface Partida {
   tienda?: Tienda;
   cabala?: CabalaEstado;
   cabalasVistas: string[];
+  /** Ya salió la Cábala Negra en esta partida (0.22.0). */
+  negra?: boolean;
   /** Fogón: ya usaste su servicio. */
   fogonHecho?: boolean;
   /** El naipe que está en el fuego en este Fogón y las pasadas que lleva (null: no hay, o se quemó). */
