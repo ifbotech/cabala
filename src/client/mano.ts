@@ -700,7 +700,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
         const { h } = medidas();
         const x0 = desde ? desde.x - caja.left : raiz.clientWidth / 2;
         const y0 = desde ? desde.y - caja.top : raiz.clientHeight - h;
-        nuevas.push({ carta, el, x: x0, y: y0, vx: 0, vy: 0, rot: desde ? -12 : 0, esc: 1, elegida: false, espera: desde ? recien++ * 55 : 0, vuela: null });
+        nuevas.push({ carta, el, x: x0, y: y0, vx: 0, vy: 0, rot: desde ? -12 : 0, esc: 1, elegida: enPosta.includes(carta.id), espera: desde ? recien++ * 55 : 0, vuela: null });
       }
       for (const c of viejas.values()) c.el.remove();
       naipes = nuevas;

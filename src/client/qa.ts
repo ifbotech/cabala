@@ -19,7 +19,7 @@ export const ESTADOS = [
   'portada', 'elegir-mazo', 'elegi-una', 'mapa', 'mesa', 'mesa-seleccion', 'mesa-arrastrando', 'mesa-rey', 'mesa-segunda', 'mesa-mentiroso', 'botin', 'elegi-bendicion', 'elegi-amuleto',
   'pulperia', 'fogon', 'cabala', 'mazo', 'jugadas', 'piezas', 'mesa-mando', 'mapa-mando', 'altar', 'coleccion', 'coleccion-reyes', 'coleccion-amuletos', 'cronica', 'ajustes', 'fin-victoria', 'fin-derrota',
   'mesa-grito', 'botin-grito', 'mesa-segunda-cambia', 'botin-rey', 'mesa-conteo', 'mesa-escudo',
-  'mesa-chispa', 'mesa-escalon', 'mesa-postas-arrastre',
+  'mesa-chispa', 'mesa-escalon', 'mesa-postas-arrastre', 'mesa-chiches', 'mesa-chiche-usa', 'mesa-prenda', 'pulperia-chiches',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
 /** Estados que solo tienen sentido en vivo (`&vivo`, para las secuencias del Jurado): no entran en la QA visual. */
@@ -291,6 +291,33 @@ export function montarQa(estado: string): void {
     case 'pulperia':
       montar(partida(mazo, (p) => p.fase === 'pulperia', 'QA', undefined, 'pulperia'));
       break;
+    case 'pulperia-chiches': {
+      // el mostrador con un Chiche ya vendido y la bandeja con dos de tres: el que queda se puede llevar
+      const p = partida(mazo, (x) => x.fase === 'pulperia', 'QA', undefined, 'pulperia');
+      p.chiches = ['ginebra', 'dado', null];
+      const venta = p.tienda?.chiches;
+      if (venta?.length) venta[0].vendido = true;
+      montar(p);
+      break;
+    }
+    case 'mesa-chiches':
+    case 'mesa-chiche-usa':
+    case 'mesa-prenda': {
+      // la bandeja de Chiches llena sobre la madera; usando el Fósforo (vuela al enemigo y le quema el Inmune) con la
+      // mejor jugada elegida; y la Prenda: un Dado Cargado que vuela del caído a su hueco
+      const p = partida(mazo, (x) => enCombate(x));
+      p.chiches = estado === 'mesa-prenda' ? ['ginebra', 'dado', null] : ['ginebra', 'dado', 'fosforo'];
+      montar(p);
+      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void }; usarChiche(i: number): Promise<void>; prenda(id: string): Promise<void> } }).__mesa;
+      if (!mesa) break;
+      if (estado === 'mesa-chiche-usa')
+        void mesa.usarChiche(2).then(() => {
+          const m = mejorGolpe(p);
+          if (m) mesa.mano.elegir(m.ids, m.postas);
+        });
+      if (estado === 'mesa-prenda') void mesa.prenda('dado');
+      break;
+    }
     case 'fogon':
       montar(partida(mazo, (p) => p.fase === 'fogon', 'QA', undefined, 'fogon'));
       break;

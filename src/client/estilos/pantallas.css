@@ -3087,3 +3087,76 @@ button.visor-carta:disabled {
   vertical-align: middle;
   margin-right: 4px;
 }
+/* ───────────── 0.21 · La Pulpería con Chiches: los Servicios y los Chiches comparten renglón (cada bandeja con sus
+   dos artículos de a uno por renglón); en el teléfono siguen uno bajo otro, en el rollo ───────────── */
+.bandejas-pie {
+  display: contents;
+}
+@media (min-width: 701px) {
+  .pulperia .bandejas-pie {
+    display: flex;
+    gap: var(--u);
+    align-items: stretch;
+    min-width: 0;
+  }
+  .pulperia .bandejas-pie > .bandeja {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .pulperia .bandejas-pie:has(.b-chiches) .ventas {
+    flex-direction: column;
+  }
+  .pulperia .bandejas-pie:has(.b-chiches) .venta.hierro {
+    flex: 0 0 auto;
+  }
+}
+@media (min-width: 701px) {
+  /* (cada artículo en dos renglones con su icono al costado de los dos: nombre y precio arriba, lo que hace abajo) */
+  .pulperia .bandejas-pie:has(.b-chiches) .venta.hierro {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'icono nombre precio'
+      'icono desc desc';
+    align-items: center;
+    column-gap: calc(var(--u) * 0.75);
+    row-gap: 0;
+  }
+  .pulperia .bandejas-pie:has(.b-chiches) .venta.hierro > .op-icono {
+    grid-area: icono;
+  }
+  .pulperia .bandejas-pie:has(.b-chiches) .venta.hierro > .op-nombre {
+    grid-area: nombre;
+    justify-self: start;
+  }
+  .pulperia .bandejas-pie:has(.b-chiches) .venta.hierro > :is(.precio, .chip) {
+    grid-area: precio;
+    margin-top: 0;
+  }
+  .pulperia .bandejas-pie:has(.b-chiches) .venta.hierro > .op-desc {
+    grid-area: desc;
+    justify-self: start;
+  }
+}
+@media (min-width: 701px) {
+  .pulperia .bandejas-pie:has(.b-chiches) .ventas {
+    gap: 8px;
+  }
+  .pulperia .bandejas-pie:has(.b-chiches) .venta.hierro {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .pulperia .bandejas-pie:has(.b-chiches) .venta.hierro > .op-desc {
+    line-height: 1.1;
+  }
+  .pulperia .bandejas-pie:has(.b-chiches) .bandeja {
+    padding-bottom: 2px;
+    gap: 2px;
+  }
+  .pulperia .bandejas-pie:has(.b-chiches) .venta.hierro > .op-icono .px {
+    --k: 1;
+  }
+  .pulperia .bandejas:has(.b-chiches) {
+    gap: 4px;
+  }
+}

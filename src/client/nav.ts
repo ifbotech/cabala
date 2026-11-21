@@ -66,7 +66,7 @@ export const entradaActual = (): Entrada => entrada;
 /** Si se viene jugando con teclado o mando (sin ratón ni dedo): entonces el foco va solo a lo principal de cada pantalla. */
 export const porTeclado = (): boolean => entrada !== 'puntero';
 
-export type GlifoMando = 'A' | 'B' | 'X' | 'Y' | 'LB' | 'RB' | 'LT' | 'RT' | 'SEL' | 'START';
+export type GlifoMando = 'A' | 'B' | 'X' | 'Y' | 'LB' | 'RB' | 'LT' | 'RT' | 'L3' | 'SEL' | 'START';
 /**
  * El glifo de un botón, dos veces: el del mando y el de la tecla. Van escondidos; el CSS enseña el que toca según
  * con qué se viene jugando (`html[data-entrada]`), así que nada se repinta al pasar del ratón al mando.
@@ -77,7 +77,7 @@ export const glifo = (mando: GlifoMando, tecla: string): string =>
 /** Los botones de salida: B (o Escape) los pulsa. CERRAR, SALTAR, SALIR, VOLVER, NO y el SEGUIR que deja una pantalla. */
 export const SALIDAS: readonly string[] = ['cerrar', 'saltar', 'salir', 'volver', 'no', 'seguir', 'portada'];
 /** Los botones de elegir: A (o Enter) los pulsa. ELEGIR, COMPRAR y lo que se toma o se confirma. */
-const ELIGEN: readonly string[] = ['elegir', 'comprar', 'abrir', 'si', 'jugar', 'nueva', 'mejorar', 'soltar', 'mazo', 'purgar', 'curar', 'templar', 'arrimar', 'descansar', 'opcion', 'otra', 'altar', 'carta'];
+const ELIGEN: readonly string[] = ['elegir', 'comprar', 'llevar', 'abrir', 'si', 'jugar', 'nueva', 'mejorar', 'soltar', 'mazo', 'purgar', 'curar', 'templar', 'arrimar', 'descansar', 'opcion', 'otra', 'altar', 'carta'];
 /**
  * Pone el glifo del mando (y de la tecla) en todo botón de la pantalla y de su modal que todavía no lo tenga: A en los
  * de elegir, B en los de salida (que además quedan marcados con `data-salida`: B y Escape los buscan) y Start en MENÚ.
@@ -117,7 +117,7 @@ function correrPosta(dir: -1 | 1): boolean {
 /** El foco a la bandeja de Chiches de la mesa (el primero que haya; si no hay ninguno, no se mueve). */
 export function irAChiches(): boolean {
   if (hayModal()) return false;
-  const b = $<HTMLButtonElement>('.chiches .chiche:not(:disabled)');
+  const b = $<HTMLButtonElement>('.chiches button.chiche');
   b?.focus();
   return !!b;
 }

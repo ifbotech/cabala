@@ -25,7 +25,8 @@ import { enFoto } from '../fx/motor';
 import { avivarRetrato, cargaQue, hudHtml, reubicarGrito } from '../hud';
 import { avanzar, guardar, irPortada, sesion, soltarPartida } from '../juego';
 import type { Expresion } from '../pixel/bufon';
-import { lienzoNaipe, cifra, pxAmuleto, pxAumento, pxBendicion, pxHud, pxInmune, pxMitades, pxNaipe, pxNaipeSegunda, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
+import { CHICHE, huecosChiche } from '../../rules/chiches';
+import { lienzoNaipe, cifra, pxChiche, pxAmuleto, pxAumento, pxBendicion, pxHud, pxInmune, pxMitades, pxNaipe, pxNaipeSegunda, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
 import { naipeMapa } from '../pixel/naipes';
 import { personajeMapa } from '../pixel/personajes';
 import { JUGADA_COMO, JUGADA_NOMBRE, NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, TRAMO_NOMBRE } from '../textos';
@@ -591,6 +592,29 @@ export function pantallaPulperia(p: Partida): Pantalla {
     gesto = e;
   };
   const precio = (n: number, alcanza: boolean) => `<span class="precio">${pxHud('oro')}${cifra(n, alcanza ? 'oro' : 'roja', 'grande')}</span>`;
+  /** Los Chiches del mostrador (0.21): se apoyan en la madera de la mesa, a la derecha; entran tres. */
+  const chichesHtml = (): string => {
+    const venta = p.tienda?.chiches ?? [];
+    if (!venta.length) return '';
+    const h = huecosChiche(p.chiches);
+    const llevas = h.filter(Boolean).length;
+    const lleno = llevas >= h.length;
+    return `<section class="bandeja marco b-chiches">
+            <h2 class="rotulo">${t('chiches')} ${llevas}/${h.length}</h2>
+            <div class="ventas">${venta
+              .map((k, i) => {
+                const d = CHICHE[k.id];
+                const no = !!k.vendido || lleno;
+                return `<button class="venta opcion marco hierro ${k.vendido ? 'vendida' : ''}" data-accion="llevar" data-i="${i}" data-foco="chiche-${i}" ${no ? 'disabled' : ''}>
+                  <span class="op-icono">${pxChiche(k.id)}</span>
+                  <b class="op-nombre">${esc(tx(d.nombre))}</b>
+                  <span class="op-desc">${esc(lleno && !k.vendido ? t('chicheLleno') : tx(d.desc))}</span>
+                  ${k.vendido ? `<span class="chip">${t('vendido')}</span>` : precio(k.precio, p.oro >= k.precio)}
+                </button>`;
+              })
+              .join('')}</div>
+          </section>`;
+  };
   return {
     nombre: 'pulperia',
     html: () => {
@@ -617,6 +641,7 @@ export function pantallaPulperia(p: Partida): Pantalla {
               })
               .join('')}</div>
           </section>
+          <div class="bandejas-pie">
           <section class="bandeja marco">
             <h2 class="rotulo">${t('servicios')}</h2>
             <div class="ventas">
@@ -628,6 +653,8 @@ export function pantallaPulperia(p: Partida): Pantalla {
               </button>
             </div>
           </section>
+          ${chichesHtml()}
+          </div>
         </div>
       </div>
       ${hudHtml(p)}
@@ -656,6 +683,23 @@ export function pantallaPulperia(p: Partida): Pantalla {
         };
         if (p.amuletos.length >= p.huecos) modalReemplazo(p, a.id, hacer, () => cerrarModal());
         else hacer();
+      },
+      llevar: (el) => {
+        const i = Number(el.dataset.i);
+        const k = p.tienda?.chiches?.[i];
+        if (!k) return;
+        if (p.oro < k.precio) {
+          decir(VOZ.sinOro, 'burla');
+          sonar('error');
+          repintar();
+          return;
+        }
+        if (juego.comprarChiche(p, i)) {
+          decir(VOZ.compra, 'risa');
+          sonar('chiche');
+          guardar();
+        }
+        repintar();
       },
       purgar: () => {
         if (p.oro < p.tienda!.purgar) {

@@ -14,6 +14,7 @@ import * as juego from '../../rules/partida';
 import { donesDe, escudoTope } from '../../rules/estado';
 import { ver } from '../../rules/perfil';
 import { REY_DEF } from '../../rules/reyes';
+import { CHICHE, huecosChiche, type ChicheId } from '../../rules/chiches';
 import { ajustes, alAzar, guardarPerfil, idioma, perfil, t, tx } from '../almacen';
 import { agacharMusica, nota, sonar, vozBufon } from '../audio';
 import { estadoMusica, ponerFuego, ponerMusica } from '../musica';
@@ -564,6 +565,8 @@ export function pantallaMesa(p: Partida): Pantalla {
   function pintarEnemigo(): void {
     const el = $('[data-enemigo]');
     if (el) el.innerHTML = enemigoHtml();
+    // (el Fósforo encendido quema el Inmune de este golpe: el sello queda tachado hasta que se golpea)
+    el?.classList.toggle('sin-inmune', !!p.combate?.fosforo);
     // mientras se juega el golpe, la placa sigue diciendo lo que te va a pegar (19; con el Tajo, 48 y «24 ×2»)
     if (placa && enemigo) ponerGolpeRey(placa.n, placa.tajo);
     const corte = $('[data-corte]');
@@ -887,6 +890,9 @@ export function pantallaMesa(p: Partida): Pantalla {
         case 'dado':
           pintarArriba();
           break;
+        case 'prenda':
+          await prenda(ev.id);
+          break;
         case 'victoria':
           await cobrar();
           break;
@@ -1059,6 +1065,173 @@ export function pantallaMesa(p: Partida): Pantalla {
     const abajo: Carril = { x: r.left + r.width / 2, y: r.top + r.height * 0.7 };
     if (innerWidth <= 700) return [abajo, { x: r.left + r.width / 2, y: r.top + r.height * 0.55 }];
     return [{ x: r.right + 6, y: r.top + r.height * 0.42, alinear: 'izquierda' }, { x: r.left - 6, y: r.top + r.height * 0.42, alinear: 'derecha' }, abajo];
+  }
+  // ───────────── los Chiches: tres huecos sobre la madera, a la derecha de la mesa (nunca en la mano) ─────────────
+  /** Pinta la bandeja de Chiches y la apoya donde va: sobre los botones o, en el teléfono, al borde de la escena. */
+  function pintarChiches(): void {
+    const el = $<HTMLElement>('[data-chiches]');
+    if (!el) return;
+    const h = huecosChiche(p.chiches);
+    el.innerHTML =
+      `<b class="rotulo ch-rot">${glifo('L3', 'C')}${esc(t('chiches'))}</b><span class="ch-huecos">` +
+      h
+        .map((id, i) =>
+          id
+            ? `<button class="chiche" data-accion="chiche" data-i="${i}" data-chiche="${id}" data-foco="chiche-${i}" aria-label="${esc(tx(CHICHE[id].nombre))}" ${tip(tx(CHICHE[id].nombre), tx(CHICHE[id].desc), t('chicheUsa'))}>${pxChiche(id)}</button>`
+            : `<span class="chiche vacio" data-i="${i}" ${tip(t('chiches'), t('chicheVacio'))}></span>`,
+        )
+        .join('') +
+      '</span>';
+    el.classList.toggle('sin-nada', !h.some(Boolean));
+    // (en el teléfono la columna de los botones es la barra del pulgar: la bandeja se apoya en la madera de la escena)
+    const destino = innerWidth <= 700 ? $('[data-escena]') : $('.mano-zona .botones');
+    if (destino && el.parentElement !== destino) destino.prepend(el);
+  }
+  /** Un Chiche que vuela de un punto a otro de la mesa (lo que se usa, va a lo suyo; la Prenda, del caído a su hueco). */
+  function volarChiche(id: ChicheId, de: { x: number; y: number }, a: { x: number; y: number }, ms = 320): Promise<void> {
+    if (quieto() && !enFoto()) return Promise.resolve();
+    const v = document.createElement('span');
+    v.className = 'chiche-vuela';
+    v.setAttribute('aria-hidden', 'true');
+    v.innerHTML = pxChiche(id);
+    v.style.left = `${Math.round(de.x)}px`;
+    v.style.top = `${Math.round(de.y)}px`;
+    $('#capa')?.append(v);
+    const dx = Math.round(a.x - de.x);
+    const dy = Math.round(a.y - de.y);
+    // (la foto de la QA lo deja quieto a mitad de camino, en lo alto de su arco)
+    if (enFoto()) {
+      v.style.transform = `translate(calc(-50% + ${Math.round(dx * 0.8)}px), calc(-50% + ${Math.round(dy * 0.8) - 30}px)) scale(1.4)`;
+      return Promise.resolve();
+    }
+    const anim = v.animate(
+      [
+        { transform: 'translate(-50%, -50%) scale(1)' },
+        { transform: `translate(calc(-50% + ${Math.round(dx / 2)}px), calc(-50% + ${Math.round(dy / 2) - 60}px)) scale(1.5) rotate(180deg)`, offset: 0.5 },
+        { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(1) rotate(360deg)` },
+      ],
+      { duration: ms, easing: 'steps(10)', fill: 'forwards' },
+    );
+    return anim.finished.then(
+      () => v.remove(),
+      () => v.remove(),
+    );
+  }
+  /** Usa el Chiche del hueco `i`: no gasta el turno. Lo que no se puede usar ahora (la Ginebra con la Vida llena) se niega. */
+  async function usarChiche(i: number): Promise<void> {
+    if (ocupado || !p.combate) return;
+    const boton = $<HTMLElement>(`[data-chiches] button.chiche[data-i="${i}"]`);
+    const id = huecosChiche(p.chiches)[i];
+    if (!id) return;
+    const evs = juego.usarChiche(p, i);
+    if (!evs.length) {
+      sonar('error');
+      boton?.classList.remove('niega');
+      void boton?.offsetWidth;
+      boton?.classList.add('niega');
+      return;
+    }
+    ocupado = true;
+    mano?.bloquear(true);
+    sonar('chiche');
+    const de = centro(boton);
+    boton?.classList.add('usado');
+    // cada uno va a lo suyo: la Ginebra a tu Vida, el Dado y el Fósforo al enemigo, la Tiza y el Poroto a la mano
+    const a = id === 'ginebra' ? centro($('[data-hud-vida]')) : id === 'dado' || id === 'fosforo' ? centro($('[data-carta]')) : centro($('[data-mano]'));
+    await volarChiche(id, de, a);
+    if (id === 'dado') dadoArmado = true;
+    if (!quieto() && (id === 'fosforo' || id === 'dado')) {
+      destello(a.x, a.y, id === 'fosforo' ? RAMPA_GOLPE : RAMPA_PALO.D, 20);
+      chispas(a.x, a.y, id === 'fosforo' ? RAMPA_GOLPE : RAMPA_PALO.D, 12, 60);
+    }
+    await animar(evs.filter((x) => x.t !== 'chiche'), [], null);
+    ocupado = false;
+    mano?.bloquear(false);
+    sincronizar();
+    pintarChiches();
+    guardar();
+    // (con mando, el foco sigue en la bandeja si queda algo; si no, vuelve a la mano)
+    if (porTeclado()) ($<HTMLElement>('[data-chiches] button.chiche') ?? $<HTMLElement>('[data-mano] .carta'))?.focus();
+  }
+  /** Arrastrar un Chiche al enemigo también lo usa (como soltar naipes sobre él). */
+  function arrastreChiches(raiz: HTMLElement): void {
+    let toma: { i: number; id: ChicheId; x: number; y: number; fantasma: HTMLElement | null; pid: number } | null = null;
+    let tragar = false;
+    raiz.addEventListener('pointerdown', (ev) => {
+      const b = (ev.target as HTMLElement).closest<HTMLElement>('[data-chiches] button.chiche');
+      if (!b || ocupado) return;
+      toma = { i: Number(b.dataset.i), id: b.dataset.chiche as ChicheId, x: ev.clientX, y: ev.clientY, fantasma: null, pid: ev.pointerId };
+    });
+    addEventListener('pointermove', (ev) => {
+      if (!toma || ev.pointerId !== toma.pid) return;
+      if (!toma.fantasma && Math.hypot(ev.clientX - toma.x, ev.clientY - toma.y) < 10) return;
+      if (!toma.fantasma) {
+        const v = document.createElement('span');
+        v.className = 'chiche-vuela arrastra';
+        v.innerHTML = pxChiche(toma.id);
+        $('#capa')?.append(v);
+        toma.fantasma = v;
+        $(`[data-chiches] button.chiche[data-i="${toma.i}"]`)?.classList.add('tomado');
+      }
+      toma.fantasma.style.left = `${ev.clientX}px`;
+      toma.fantasma.style.top = `${ev.clientY - 24}px`;
+      const r = $('[data-escena]')?.getBoundingClientRect();
+      $('[data-soltar="enemigo"]')?.classList.toggle('apunta', !!r && ev.clientY >= r.top && ev.clientY <= r.bottom && ev.clientX >= r.left && ev.clientX <= r.right);
+    });
+    const fin = (ev: PointerEvent): void => {
+      if (!toma || ev.pointerId !== toma.pid) return;
+      const t0 = toma;
+      toma = null;
+      if (!t0.fantasma) return;
+      t0.fantasma.remove();
+      tragar = true;
+      $(`[data-chiches] button.chiche[data-i="${t0.i}"]`)?.classList.remove('tomado');
+      $('[data-soltar="enemigo"]')?.classList.remove('apunta');
+      const r = $('[data-escena]')?.getBoundingClientRect();
+      if (ev.type === 'pointerup' && r && ev.clientY >= r.top && ev.clientY <= r.bottom && ev.clientX >= r.left && ev.clientX <= r.right) void usarChiche(t0.i);
+    };
+    addEventListener('pointerup', fin);
+    addEventListener('pointercancel', fin);
+    // (el clic que sigue a un arrastre no vuelve a usarlo)
+    raiz.addEventListener(
+      'click',
+      (ev) => {
+        if (!tragar) return;
+        tragar = false;
+        if ((ev.target as HTMLElement).closest('[data-chiches]')) {
+          ev.stopPropagation();
+          ev.preventDefault();
+        }
+      },
+      true,
+    );
+  }
+  /** La Prenda: el Chiche que se le roba al caído vuela de su naipe a su hueco. */
+  async function prenda(id: ChicheId): Promise<void> {
+    sonar('prenda');
+    const de = centro($('[data-carta]') ?? $('[data-enemigo]'));
+    pintarChiches();
+    const hueco = [...document.querySelectorAll<HTMLElement>(`[data-chiches] button.chiche[data-chiche="${id}"]`)].pop();
+    hueco?.classList.add('llega');
+    const rotulo = document.createElement('b');
+    rotulo.className = 'rotulo prenda-sello';
+    rotulo.textContent = t('prenda');
+    rotulo.style.left = `${Math.round(de.x)}px`;
+    rotulo.style.top = `${Math.round(de.y)}px`;
+    $('#capa')?.append(rotulo);
+    ubicar(rotulo, 'rotulo', 900, [
+      () => {
+        rotulo.style.top = `${Math.round(de.y - 40)}px`;
+      },
+    ]);
+    window.setTimeout(() => rotulo.remove(), quieto() ? 1400 : 900);
+    await volarChiche(id, de, centro(hueco ?? $('[data-chiches]')), 420);
+    if (!enFoto()) hueco?.classList.remove('llega');
+    if (hueco) {
+      hueco.classList.remove('salta');
+      void hueco.offsetWidth;
+      hueco.classList.add('salta');
+    }
   }
   /** El sello «SE PLANTA EN LA MITAD» pegado bajo el número del golpe que se frenó, en su mismo carril. */
   function selloPlanta(caja: { x: number; y: number; w: number; h: number }, pierde: number): void {
@@ -1642,6 +1815,7 @@ export function pantallaMesa(p: Partida): Pantalla {
         <div class="descarte-zona" data-soltar="descarte">${pxHud('descarte')}<span class="rotulo">${t('alDescarte')}</span></div>
         <div class="mano" data-mano role="group" aria-label="${t('mazo')}"></div>
         <div class="botones">
+          <div class="chiches" data-chiches role="group" aria-label="${t('chiches')}"></div>
           <button class="btn marco oro grande" data-accion="golpear" data-foco="golpear" data-tecla="g" disabled>${glifo('X', 'G')}${t('golpear')}</button>
           <button class="btn marco hierro" data-accion="descartar" data-foco="descartar" data-tecla="d" disabled>${glifo('Y', 'D')}${t('descartar')}</button>
           ${p.mazoId === 'mentiroso' ? `<button class="btn marco prisma chico" data-accion="engano" data-foco="engano" data-tecla="e" aria-pressed="false" ${tip(t('engano'), textoGlosario('engano'))}>${glifo('LT', 'E')}${pxHud('engano')} ${t('engano')}</button>` : ''}
@@ -1671,6 +1845,8 @@ export function pantallaMesa(p: Partida): Pantalla {
         zonas: () => ({ enemigo: $('[data-escena]', raiz)?.getBoundingClientRect(), descarte: $('[data-soltar="descarte"]', raiz)?.getBoundingClientRect() }),
       }, postasDe(p));
       pintarArriba();
+      pintarChiches();
+      arrastreChiches(raiz);
       const nuevo = c().turno === 1 && c().golpes === 0 && c().descartes >= B.jugador.descartes - (p.reinado >= 5 ? 1 : 0);
       const repartir = () => {
         mano?.poner(c().mano, nuevo ? centro($('[data-accion="ver-mazo"]', raiz)) : undefined);
@@ -1702,6 +1878,9 @@ export function pantallaMesa(p: Partida): Pantalla {
         cuenta: (ids: string[]) => cuentaDe(c().mano.filter((k) => ids.includes(k.id))),
         ocupado: () => ocupado,
         conteoQa,
+        usarChiche,
+        prenda,
+        pintarChiches,
       };
     },
     alSalir: () => {
@@ -1718,6 +1897,7 @@ export function pantallaMesa(p: Partida): Pantalla {
         modalJugadas(p, q.ok ? q.jugada : null);
       },
       golpear: () => void golpear(mano?.seleccion() ?? []),
+      chiche: (el) => void usarChiche(Number(el.dataset.i)),
       descartar: () => void descartar(mano?.seleccion() ?? []),
       engano: () => {
         juego.armarEngano(p, !c().engano);

@@ -502,7 +502,7 @@
 .posta .p-ayuda {
   font-family: var(--cuerpo);
   font-size: 14px;
-  line-height: 15px;
+  line-height: 14px;
   font-weight: 400;
   color: #9fd9b8;
   text-transform: none;
@@ -4004,5 +4004,181 @@ html[data-entrada='mando'] :is(.opcion, button):focus-visible > .op-glifo {
   .mesa .mano-zona .botones .btn {
     position: relative;
     z-index: 110;
+  }
+}
+
+/* ───────────── los Chiches (0.21): tres huecos tallados en la madera, a la derecha de la mesa ───────────── */
+.chiches {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.chiches .ch-rot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--hueso-2);
+  white-space: nowrap;
+}
+.chiches .ch-rot .glifo {
+  display: none;
+}
+html[data-entrada='mando'] .chiches .ch-rot .g-mando,
+html[data-entrada='teclado'] .chiches .ch-rot .g-tecla {
+  display: inline-flex;
+}
+.chiches .ch-huecos {
+  display: flex;
+  gap: 8px;
+}
+.chiche {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: calc(28px * var(--k) + 18px);
+  height: calc(28px * var(--k) + 18px);
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: radial-gradient(circle at 50% 60%, #1a0f0a 0 55%, #2b1a10 56% 100%);
+  box-shadow:
+    inset 0 3px 0 rgba(0, 0, 0, 0.6),
+    inset 0 -2px 0 rgba(255, 190, 120, 0.12),
+    0 0 0 2px #120a06;
+  line-height: 0;
+  cursor: pointer;
+  touch-action: none;
+}
+.chiche.vacio {
+  cursor: help;
+  opacity: 0.6;
+  outline: 2px dashed #4a3222;
+  outline-offset: -6px;
+}
+button.chiche:hover .px,
+button.chiche:focus-visible .px {
+  transform: translateY(-3px) scale(1.1);
+}
+button.chiche:focus-visible {
+  outline: 3px solid var(--foco, var(--oro));
+  outline-offset: 2px;
+}
+.chiche.tomado .px,
+.chiche.usado .px,
+.chiche.llega .px {
+  visibility: hidden;
+}
+.chiche.niega {
+  animation: niega-chiche 260ms steps(6);
+}
+@keyframes niega-chiche {
+  0%,
+  100% {
+    translate: 0;
+  }
+  25% {
+    translate: -4px;
+  }
+  75% {
+    translate: 4px;
+  }
+}
+.chiche.salta .px {
+  animation: salta-chiche 300ms steps(5);
+}
+@keyframes salta-chiche {
+  40% {
+    transform: translateY(-8px) scale(1.25);
+  }
+}
+.chiche-vuela {
+  position: fixed;
+  z-index: 300;
+  pointer-events: none;
+  line-height: 0;
+  --k: 2;
+  filter: drop-shadow(0 4px 0 rgba(11, 7, 17, 0.6));
+}
+.chiche-vuela.arrastra {
+  transform: translate(-50%, -50%) scale(1.2);
+}
+.cifra-vuela {
+  position: fixed;
+  z-index: 300;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+.prenda-sello {
+  position: fixed;
+  z-index: 260;
+  transform: translate(-50%, -50%);
+  padding: 2px 8px;
+  background: #09070f;
+  box-shadow: 0 0 0 2px var(--oro);
+  color: var(--oro);
+  font-size: var(--fr);
+  pointer-events: none;
+}
+/* el Fósforo encendido: el sello Inmune queda tachado (se quema en este golpe) */
+.enemigo.sin-inmune .e-inmune {
+  opacity: 0.45;
+  filter: grayscale(1);
+  text-decoration: line-through;
+}
+/* el sello «SE PLANTA EN LA MITAD» bajo el número que se frenó */
+.sello-planta {
+  position: fixed;
+  z-index: 250;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px;
+  transform: translateX(-50%);
+  background: rgba(9, 7, 15, 0.9);
+  box-shadow: 0 0 0 2px var(--cian);
+  pointer-events: none;
+}
+.sello-planta .rotulo {
+  font-size: var(--fr);
+  color: var(--cian);
+}
+.sello-planta .sp-pierde {
+  font-size: 14px;
+  color: var(--hueso-2);
+}
+/* el teléfono: la bandeja va de pie, a la derecha de la escena, bajo La Corte (en la madera libre) */
+@media (max-width: 700px) {
+  .escena > .chiches {
+    position: absolute;
+    right: 2px;
+    top: 64px;
+    bottom: 42px;
+    z-index: 4;
+    justify-content: flex-end;
+  }
+  .escena > .chiches .ch-rot {
+    display: none;
+  }
+  .escena > .chiches .ch-huecos {
+    flex-direction: column;
+    flex-wrap: wrap-reverse;
+    max-height: 100%;
+    gap: 8px;
+  }
+  .escena > .chiches.sin-nada {
+    display: none;
+  }
+}
+@media (min-width: 1100px) {
+  .chiche .px {
+    --k: 2;
+  }
+  .chiche {
+    width: 74px;
+    height: 74px;
   }
 }
