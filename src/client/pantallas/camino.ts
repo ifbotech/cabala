@@ -1,7 +1,7 @@
 // Las pantallas del camino, todas atendidas por el Bufón: el Mapa ramificado, el Botín y su «ELEGÍ UNA», la
 // Pulpería, el Fogón, la Cábala del Bufón y el final de la partida. Abajo, siempre, el HUD del jugador.
 import { AMULETO, AMULETOS, RAREZA_NOMBRE } from '../../rules/amuletos';
-import { AUMENTO, AUMENTOS, NIVEL_NOMBRE } from '../../rules/aumentos';
+import { AUMENTO, AUMENTOS } from '../../rules/aumentos';
 import type { AmuletoId } from '../../rules/amuletos';
 import { B } from '../../rules/balance';
 import { CABALA, HUMOR_NOMBRE, detalleDe, humorDe, suerte } from '../../rules/bufon';
@@ -65,11 +65,11 @@ export function modalMazo(p: Partida, titulo: string, elegir?: (id: string) => v
 
 /** «LO QUE LLEVÁS»: cada Amuleto, Cábala, carga y Bendición con su texto entero (la tira del HUD es su resumen). */
 export function modalPiezas(p: Partida): void {
-  const fila = (icono: string, nombre: string, clase: string, desc: string): string =>
-    `<li class="pieza-fila" tabindex="0"><span class="pieza-icono">${icono}</span><div class="pieza-texto"><b>${esc(nombre)}</b><span class="sub">${esc(clase)}</span><p>${esc(desc)}</p></div></li>`;
+  const fila = (icono: string, nombre: string, clase: string, desc: string, marco = ''): string =>
+    `<li class="pieza-fila" tabindex="0"><span class="pieza-icono${marco ? ` marco ${marco}` : ''}">${icono}</span><div class="pieza-texto"><b>${esc(nombre)}</b><span class="sub">${esc(clase)}</span><p>${esc(desc)}</p></div></li>`;
   const vacio = `<li class="pieza-fila vacia"><p class="sub">${t('nada')}</p></li>`;
   const amuletos = p.amuletos.map((id) => fila(pxAmuleto(id), tx(AMULETO[id].nombre), tx(RAREZA_NOMBRE[AMULETO[id].rareza]), tx(AMULETO[id].desc)));
-  const aumentos = p.aumentos.map((id) => fila(pxAumento(id), tx(AUMENTO[id].nombre), AUMENTO[id].maldicion ? t('maldicion') : tx(NIVEL_NOMBRE[AUMENTO[id].nivel]), tx(AUMENTO[id].desc)));
+  const aumentos = p.aumentos.map((id) => fila(pxAumento(id), tx(AUMENTO[id].nombre), AUMENTO[id].maldicion ? t('maldicion') : t('unaCabala'), tx(AUMENTO[id].desc), fichaDe('aumento', id).marco));
   const cargas = PALOS.filter((s) => sirveA(p, s)).map((s) => fila(pxPalo(s), cargaQue(p, s), tx(REY_DEF[s].apodo), tx(REY_DEF[s].cargaDa)));
   const bendiciones = (Object.keys(p.bendiciones) as BendicionId[]).map((id) => {
     const d = BENDICION[id];

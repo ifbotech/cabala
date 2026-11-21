@@ -5,7 +5,7 @@
 import { vocear } from './habla';
 import type { MazoId } from '../rules/mazos';
 import { AMULETO, RAREZA_NOMBRE } from '../rules/amuletos';
-import { AUMENTO, NIVEL_NOMBRE } from '../rules/aumentos';
+import { AUMENTO } from '../rules/aumentos';
 import { PALOS } from '../rules/cartas';
 import type { Palo } from '../rules/cartas';
 import { carga, sirveA } from '../rules/estado';
@@ -52,7 +52,7 @@ function tiras(p: Partida): string {
   const aumentos = p.aumentos
     .map((id) => {
       const d = AUMENTO[id];
-      return `<span class="ficha" data-pieza="u:${id}" ${tip(tx(d.nombre), tx(d.desc), d.maldicion ? t('maldicion') : tx(NIVEL_NOMBRE[d.nivel]))}>${pxAumento(id)}</span>`;
+      return `<span class="ficha" data-pieza="u:${id}" ${tip(tx(d.nombre), tx(d.desc), d.maldicion ? t('maldicion') : t('unaCabala'))}>${pxAumento(id)}</span>`;
     })
     .join('');
   // las cargas, con su nombre a la vista («FILO 4» con su palo): las que están en 0 no ocupan lugar
@@ -418,14 +418,14 @@ export function ajustarBandeja(): void {
   for (let i = 0; i < 40 && (fuera = sobran()).length; i++) {
     fuera.forEach((f) => (f.hidden = true));
     n += fuera.length;
-    mas.textContent = `+${n}`;
+    mas.textContent = t('masCorto', { n });
     // si el «+N» quedó en la segunda fila, se le hace sitio quitando una más
     if (abajo(mas)) {
       const ultima = [...fichas].reverse().find((f) => !f.hidden);
       if (!ultima) break;
       ultima.hidden = true;
       n++;
-      mas.textContent = `+${n}`;
+      mas.textContent = t('masCorto', { n });
     }
   }
   if (abajo(mas)) {
@@ -433,7 +433,7 @@ export function ajustarBandeja(): void {
     if (ultima) {
       ultima.hidden = true;
       n++;
-      mas.textContent = `+${n}`;
+      mas.textContent = t('masCorto', { n });
     }
   }
   mas.dataset.tipT = t('masPiezas', { n });

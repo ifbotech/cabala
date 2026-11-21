@@ -1,7 +1,7 @@
 // Las pantallas de fuera de la partida: la portada, elegir Mazo, el Altar (siete mejoras directas en una sola
 // pantalla), la Colección, la Crónica y los Ajustes.
 import { AMULETO, AMULETOS, RAREZA_NOMBRE } from '../../rules/amuletos';
-import { AUMENTO, AUMENTOS, NIVEL_NOMBRE } from '../../rules/aumentos';
+import { AUMENTO, AUMENTOS } from '../../rules/aumentos';
 import { B } from '../../rules/balance';
 import { PALOS } from '../../rules/cartas';
 import { MAZO, MAZOS } from '../../rules/mazos';
@@ -248,7 +248,7 @@ export function pantallaColeccion(): Pantalla {
         </div>`;
       }).join('')}</div>`;
     if (pestana === 'amuletos') return `<div class="col-rejilla">${AMULETOS.map((id) => item(`a:${id}`, pxAmuleto(id), tx(AMULETO[id].nombre), tx(AMULETO[id].desc), tx(RAREZA_NOMBRE[AMULETO[id].rareza]))).join('')}</div>`;
-    if (pestana === 'cabalas') return `<div class="col-rejilla">${AUMENTOS.map((id) => item(`u:${id}`, pxAumento(id), tx(AUMENTO[id].nombre), tx(AUMENTO[id].desc), AUMENTO[id].maldicion ? t('maldicion') : tx(NIVEL_NOMBRE[AUMENTO[id].nivel]))).join('')}</div>`;
+    if (pestana === 'cabalas') return `<div class="col-rejilla">${AUMENTOS.map((id) => item(`u:${id}`, pxAumento(id), tx(AUMENTO[id].nombre), tx(AUMENTO[id].desc), AUMENTO[id].maldicion ? t('maldicion') : t('unaCabala'))).join('')}</div>`;
     return `<div class="col-rejilla">${BENDICIONES.map((id) => item(`b:${id}`, pxBendicion(id), tx(BENDICION[id].nombre), tx(BENDICION[id].desc(1)), tx(REY_DEF[BENDICION[id].rey].apodo))).join('')}</div>`;
   };
   const pestanas: Pestana[] = ['mazos', 'reyes', 'amuletos', 'cabalas', 'bendiciones'];

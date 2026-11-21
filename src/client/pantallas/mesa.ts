@@ -177,7 +177,7 @@ export function pantallaMesa(p: Partida): Pantalla {
       </div>
       <div class="e-ataque mirable ${e.aturdido > 0 ? 'dormido' : ''}" data-ataque tabindex="0" ${tip(`${t('tePegaRotulo')} ${e.ataque + furia}`, t('tePegaTip'), furia ? `${t('furia')} ${furia}: ${notaFuria}` : '')}>
         <b class="rotulo e-pega">${t('tePegaRotulo')}</b>
-        ${furia ? `<i class="e-llamas n${furia >= 8 ? 3 : furia >= 4 ? 2 : 1}" aria-hidden="true">${pxHud('furia')}${pxHud('furia')}${pxHud('furia')}</i>` : ''}${pxHud('ataque')}<span class="e-golpe"><span data-n="ataque">${cifra(e.ataque + furia, 'roja', 'grande')}</span></span>${tajoHtml}
+        ${furia ? `<i class="e-llamas n${furia >= 8 ? 3 : furia >= 4 ? 2 : 1}" aria-hidden="true">${pxHud('furia')}${pxHud('furia')}${pxHud('furia')}</i>` : ''}${pxHud('ataque')}<span class="e-golpe"><span data-n="ataque">${cifra(e.ataque + furia, 'roja', 'grande')}</span><b class="e-neto" hidden></b></span>${tajoHtml}
         ${furiaHtml}
       </div>
       <div class="e-barras">
@@ -227,15 +227,15 @@ export function pantallaMesa(p: Partida): Pantalla {
   }
   /** Si tu Escudo frena parte del golpe, la causa chica junto al TE PEGA neto («(21 − 2 ESCUDO)»), y también en la
    *  ayuda del chip: si la cuenta no cabe en un renglón, es lo primero que se va de la vista (`apretarCuenta`). */
-  function frenaEscudo(q: Cuenta): { html: string; ayuda: string } {
-    const nada = { html: '', ayuda: '' };
+  function frenaEscudo(q: Cuenta): { html: string; ayuda: string; causa: string } {
+    const nada = { html: '', ayuda: '', causa: '' };
     const e = c().fila[0];
     if (!e || q.contra === null || q.contra <= 0) return nada;
     const k = contraataque(p, e, { mitiga: q.canto && p.mazoId === 'chinchon', sinVida: q.aVida === 0, repite: repiteJugada(c().ultimaJugada, q.jugada) });
     const frena = k.n - q.contra;
     if (frena <= 0) return nada;
     const causa = `${k.n} − ${frena} ${t('escudo')}`;
-    return { html: `<b class="c-tajo-x c-frena">(${esc(causa)})</b>`, ayuda: tip(t('tePega', { n: q.contra }), causa) };
+    return { html: `<b class="c-tajo-x c-frena">(${esc(causa)})</b>`, ayuda: tip(t('tePega', { n: q.contra }), causa), causa };
   }
   /**
    * La cuenta va en un solo renglón de chips más su desglose: si en la Deck o el portátil (701–1699 px) no cabe, se
@@ -428,8 +428,24 @@ export function pantallaMesa(p: Partida): Pantalla {
     // un solo TE PEGA: con una jugada elegida, la placa del Rey dice lo mismo que el chip de la cuenta (lo que te llega
     // de verdad, ya descontado tu Escudo); sin elegir nada, su golpe entero. Con el Tajo de revés, el golpe de verdad
     // (42) y debajo, chica, su causa («21 ×2»); late en rojo
+    // (0.20: también en reposo va neto, con su causa chica debajo —«(23 − 20 ESCUDO)»—: la placa nunca promete un golpe
+    // que tu Escudo ya frena)
     const tajo = tajoAhora(q);
-    if (enemigo) ponerGolpeRey(golpeNeto(q, sel.length) ?? enemigo.ataque + furia, tajo);
+    if (enemigo) {
+      const neto = golpeNeto(q, sel.length);
+      let golpe = neto ?? enemigo.ataque + furia;
+      let causa = '';
+      if (neto !== null) causa = tajo ? '' : frenaEscudo(q).causa;
+      else if (!sel.length && enemigo.aturdido <= 0 && !c().caraDePoker) {
+        const k = contraataque(p, enemigo, { repite: false });
+        const frena = Math.min(Math.min(escudoTope(p), c().escudo), k.n - k.directo);
+        if (frena > 0) {
+          golpe = k.n - frena;
+          causa = `${k.n} − ${frena} ${t('escudo')}`;
+        }
+      }
+      ponerGolpeRey(golpe, tajo, causa);
+    }
     marcarInmunes();
     marcarCopias(q);
     pintarBotones();
@@ -437,10 +453,15 @@ export function pantallaMesa(p: Partida): Pantalla {
     gestoFijo(q.ok && q.exacto ? 'feroz' : null);
   }
   /** La placa TE PEGA del Rey: la cifra grande (lo que pega de verdad) y, con el Tajo, su causa chica debajo («24 ×2»). */
-  function ponerGolpeRey(golpe: number, tajo: boolean): void {
+  function ponerGolpeRey(golpe: number, tajo: boolean, causa = ''): void {
     const ataque = $('[data-ataque]');
     if (!ataque) return;
     ataque.classList.toggle('tajo', tajo);
+    const neto = ataque.querySelector<HTMLElement>('.e-neto');
+    if (neto) {
+      neto.innerHTML = causa ? causa.split(/ (?=[^ ]+$)/).map((x) => `<span>${esc(x)}</span>`).join('') : '';
+      neto.hidden = !causa;
+    }
     const nAtaque = ataque.querySelector<HTMLElement>('[data-n="ataque"]');
     if (nAtaque && nAtaque.dataset.v !== String(golpe)) {
       nAtaque.innerHTML = cifra(golpe, 'roja', 'grande');

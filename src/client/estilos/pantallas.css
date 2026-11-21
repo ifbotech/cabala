@@ -2814,3 +2814,35 @@ button.visor-carta:disabled {
     grid-area: fin;
   }
 }
+/* ───────────── 0.20.0 · el Mapa se lee de un vistazo ───────────── */
+/* «ESTÁS ACÁ» clavado en su nodo: el chip muerde el borde de arriba del naipe del nodo y una flecha ▼ de oro baja hasta
+   él; el nodo donde estás lleva además su filo de oro (nunca parece del nodo de arriba) */
+.nodo.actual {
+  box-shadow:
+    0 0 0 calc(2px * var(--k)) #09070f,
+    0 0 0 calc(4px * var(--k)) var(--oro);
+}
+.nodo-aca {
+  top: calc(var(--fs-s) * -1.1);
+  padding-bottom: 1px;
+  box-shadow: 0 0 0 2px #09070f;
+}
+.nodo-aca::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  translate: -50% 0;
+  border: 6px solid transparent;
+  border-top-color: var(--oro);
+  border-bottom: 0;
+}
+/* los escudos de Inmunidad de los nodos que podés elegir, al doble en la Deck y el portátil: es lo que decide el camino */
+@media (min-width: 1100px) and (max-width: 1699px) {
+  .nodo.abierto .nodo-palos {
+    --k: 1.25;
+    top: calc(100% - 8px);
+    bottom: auto;
+    z-index: 2;
+  }
+}

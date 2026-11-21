@@ -3,7 +3,7 @@
 import { quieto } from './ritmo';
 import { AMULETO, RAREZA_NOMBRE } from '../rules/amuletos';
 import type { AmuletoId } from '../rules/amuletos';
-import { AUMENTO, NIVEL_NOMBRE } from '../rules/aumentos';
+import { AUMENTO } from '../rules/aumentos';
 import type { AumentoId } from '../rules/aumentos';
 import type { Palo } from '../rules/cartas';
 import type { Partida, TipoOferta } from '../rules/estado';
@@ -227,11 +227,16 @@ function carrilDelMapa(el: HTMLElement, r: DOMRect): boolean {
   tipEl.style.maxWidth = `${Math.floor(Math.min(ancho, 380))}px`;
   const w = tipEl.offsetWidth;
   const h = tipEl.offsetHeight;
-  const x = derecha >= izquierda ? L.right + margen : L.left - margen - w;
   const y = Math.max(techo, Math.min(piso - h, r.top + r.height / 2 - h / 2));
+  // (0.20) al lado del nodo mismo, si ahí no tapa otro nodo ni sus escudos; si no, en el carril de al lado del mapa
+  const otros = [...lienzo.querySelectorAll<HTMLElement>('.nodo')].filter((n) => n !== el).map((n) => n.getBoundingClientRect());
+  const libre = (x: number): boolean =>
+    x >= 8 && x + w <= innerWidth - 8 && !otros.some((o) => o.right + 4 > x && o.left - 4 < x + w && o.bottom + 30 > y && o.top - 4 < y + h);
+  const pegado = [r.right + margen, r.left - margen - w].find(libre);
+  const x = pegado ?? (derecha >= izquierda ? L.right + margen : L.left - margen - w);
   tipEl.style.left = `${Math.round(x)}px`;
   tipEl.style.top = `${Math.round(y)}px`;
-  tipEl.dataset.lado = derecha >= izquierda ? 'der' : 'izq';
+  tipEl.dataset.lado = x >= r.right ? 'der' : 'izq';
   return true;
 }
 export function ocultarTip(): void {
@@ -291,7 +296,7 @@ export function fichaDe(tipo: TipoOferta, id: string, p?: Partida): FichaPieza {
   }
   if (tipo === 'aumento') {
     const d = AUMENTO[id as AumentoId];
-    return { nombre: tx(d.nombre), desc: tx(d.desc), clase: d.maldicion ? t('maldicion') : tx(NIVEL_NOMBRE[d.nivel]), marco: d.nivel === 'plata' ? 'plata' : d.nivel === 'oro' ? 'dorado' : 'prisma' };
+    return { nombre: tx(d.nombre), desc: tx(d.desc), clase: d.maldicion ? t('maldicion') : t('unaCabala'), marco: d.nivel === 'plata' ? 'plata' : d.nivel === 'oro' ? 'dorado' : 'prisma' };
   }
   const d = BENDICION[id as BendicionId];
   const tiene = p?.bendiciones[d.id] ?? 0;

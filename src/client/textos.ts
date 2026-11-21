@@ -181,6 +181,7 @@ export const ES = {
   mazos: 'Mazos',
   reyes: 'Reyes',
   cabalas: 'Cábalas',
+  unaCabala: 'Cábala',
   bendiciones: 'Bendiciones',
   cronicaVacia: 'Todavía no jugaste ninguna partida.',
   partidas: 'Partidas',
@@ -229,6 +230,7 @@ export const ES = {
   templeTip: 'Naipe templado en el Fogón',
   llevasTip: 'Amuletos, Cábalas, cargas de los Reyes (la cifra junto a la pinta) y Bendiciones. Tocá para leerlas enteras.',
   masPiezas: '{n} piezas más',
+  masCorto: '{n} MÁS',
   masPiezasTip: 'No entran en la bandeja: tocala para verlas.',
   // 0.17.0 · nada se tapa: la segunda cara con su regla, el Tajo fundido en TE PEGA, la causa de NO TE PEGA y las cargas
   aturdidoCausa: 'aturdido',
@@ -412,6 +414,7 @@ export const EN: Record<keyof typeof ES, string> = {
   mazos: 'Decks',
   reyes: 'Kings',
   cabalas: 'Cábalas',
+  unaCabala: 'Cábala',
   bendiciones: 'Blessings',
   cronicaVacia: 'You have not played a run yet.',
   partidas: 'Runs',
@@ -458,6 +461,7 @@ export const EN: Record<keyof typeof ES, string> = {
   templeTip: 'Card tempered at the Bonfire',
   llevasTip: "Amulets, Cábalas, Kings' charges (the number next to the suit) and Blessings. Tap to read them in full.",
   masPiezas: '{n} more pieces',
+  masCorto: '{n} MORE',
   masPiezasTip: 'They do not fit in the tray: tap it to see them.',
   aturdidoCausa: 'stunned',
   loAturdis: 'you stun it',
@@ -481,7 +485,7 @@ const P = (es: string, en: string): Par => ({ es, en });
  * entera va al inspeccionarla). Las cifras salen del balance.
  */
 export const SEGUNDA_CORTA: Record<Palo, Par> = {
-  S: P(`Si repetís jugada, TE PEGA ×${B.reyes.S.deguello}`, `Repeat a play and HE HITS ×${B.reyes.S.deguello}`),
+  S: P(`Si repetís (salvo Carta sola), TE PEGA ×${B.reyes.S.deguello}`, `Repeat a play (not Single): HE HITS ×${B.reyes.S.deguello}`),
   C: P(`Escudo que vuelve ×${B.reyes.C.empalizadaRegenera} · Espadas lo cruzan`, `Shield regrows ×${B.reyes.C.empalizadaRegenera} · Swords cut it`),
   D: P(`Cada golpe suyo: −${Math.round(B.reyes.D.remate * 100)} % de tu oro`, `Each hit he lands: −${Math.round(B.reyes.D.remate * 100)}% of your gold`),
   H: P(`Lo que te curás, él se cura ×${B.reyes.H.ultimaRonda}`, `Whatever you heal, he heals ×${B.reyes.H.ultimaRonda}`),
