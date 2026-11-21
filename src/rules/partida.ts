@@ -222,7 +222,8 @@ function botinDe(p: Partida, tipo: TipoCombate): void {
   if (nivelBend(p, 'rescoldo')) cura += Math.floor(c.escudo / bn.rescoldo);
   if (tipo === 'rey') {
     // vencer a un Rey te curte: la Vida máxima crece (se arranca frágil y se llega entero al final)
-    const sube = B.botin.vidaRey;
+    // la Vida máxima crece en proporción (0.19.0): un +12 plano era +133 % para el Mentiroso y +19 % para el Chancho
+    const sube = Math.max(B.botin.vidaReyMin, Math.round(B.mazos[p.mazoId].vida * B.botin.vidaRey)); // de la Vida del Mazo, no del Altar
     if (sube > 0) {
       p.vidaMax += sube;
       items.push({ t: 'vidamax', n: sube, hecho: true });

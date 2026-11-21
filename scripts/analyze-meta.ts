@@ -110,6 +110,8 @@ const filas = MAZOS.map((mazo) => {
   if (!dentro(gv, OBJETIVOS.base)) avisos.push(`${mazo}: gana ${gv} % con el Altar vacío (objetivo ${OBJETIVOS.base.join('–')})`);
   if (!dentro(gl, OBJETIVOS.lleno)) avisos.push(`${mazo}: gana ${gl} % con el Altar lleno (objetivo ${OBJETIVOS.lleno.join('–')})`);
   if (gl - g8 < OBJETIVOS.reinado8Baja) avisos.push(`${mazo}: el Reinado 8 solo baja ${Math.round((gl - g8) * 10) / 10} puntos`);
+  const t1 = pct(v.caidas[0] ?? 0, v.celda.n);
+  if (!dentro(t1, OBJETIVOS.caidaTramo1)) avisos.push(`${mazo}: cae el ${t1} % en el tramo 1 (objetivo ${OBJETIVOS.caidaTramo1.join('–')})`);
   if (!dentro(golpesGuardia, OBJETIVOS.golpesGuardia)) avisos.push(`${mazo}: ${golpesGuardia} golpes por Guardia (objetivo ${OBJETIVOS.golpesGuardia.join('–')})`);
   if (!dentro(golpesRey, OBJETIVOS.golpesRey)) avisos.push(`${mazo}: ${golpesRey} golpes por Rey (objetivo ${OBJETIVOS.golpesRey.join('–')})`);
   if (!dentro(minutos, OBJETIVOS.minutos)) avisos.push(`${mazo}: ${minutos} min por partida ganada (objetivo ${OBJETIVOS.minutos.join('–')})`);
@@ -119,6 +121,7 @@ const filas = MAZOS.map((mazo) => {
     lleno: gl,
     reinado8: g8,
     caidas: v.caidas,
+    caidaTramo1: t1,
     golpesGuardia,
     golpesRey,
     golpeMedio: v.danoTramo.map((d, i) => (v.golpesTramo[i] ? Math.round(d / v.golpesTramo[i]) : 0)),
@@ -133,8 +136,8 @@ const filas = MAZOS.map((mazo) => {
 const informe = { fecha: new Date().toISOString().slice(0, 10), huella: huella(), rapido: FAST, partidasPorCelda: N, objetivos: OBJETIVOS, mazos: filas, notas: tablaNotas, avisos };
 writeFileSync(FAST ? 'scripts/meta-fast.json' : 'scripts/meta-report.json', JSON.stringify(informe, null, 2) + '\n');
 
-console.log(`\nMazo        vacío   lleno   R8     Guardia  Rey   min   golpe medio por tramo`);
-for (const f of filas) console.log(`${f.mazo.padEnd(11)} ${String(f.vacio).padStart(5)}   ${String(f.lleno).padStart(5)}   ${String(f.reinado8).padStart(5)}  ${String(f.golpesGuardia).padStart(5)}   ${String(f.golpesRey).padStart(4)}  ${String(f.minutos).padStart(4)}   ${f.golpeMedio.join(' / ')}`);
+console.log(`\nMazo        vacío   lleno   R8     T1     Guardia  Rey   min   golpe medio por tramo`);
+for (const f of filas) console.log(`${f.mazo.padEnd(11)} ${String(f.vacio).padStart(5)}   ${String(f.lleno).padStart(5)}   ${String(f.reinado8).padStart(5)}  ${String(f.caidaTramo1).padStart(5)}  ${String(f.golpesGuardia).padStart(5)}   ${String(f.golpesRey).padStart(4)}  ${String(f.minutos).padStart(4)}   ${f.golpeMedio.join(' / ')}`);
 console.log(avisos.length ? `\n${avisos.length} avisos:\n  ${avisos.join('\n  ')}` : '\nSin avisos: los 5 Mazos están dentro de los objetivos.');
 console.log(`\nanalyze:meta · ${FAST ? 'rápido' : 'completo'} · ${N} partidas por celda · ${((Date.now() - t0) / 1000).toFixed(0)} s → ${FAST ? 'scripts/meta-fast.json' : 'scripts/meta-report.json'}`);
 process.exit(!FAST && avisos.length ? 1 : 0);

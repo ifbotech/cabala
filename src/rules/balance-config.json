@@ -145,16 +145,16 @@
   },
   "mazos": {
     "escoba": {
-      "vida": 58,
+      "vida": 44,
       "mano": 3,
       "hasta": 9,
       "comodines": 2,
-      "multi": 3,
+      "multi": 2,
       "cargaDano": 2,
-      "multiMano": 4
+      "multiMano": 8
     },
     "truco": {
-      "vida": 54,
+      "vida": 55,
       "mano": 3,
       "hasta": 7,
       "comodines": 2,
@@ -169,26 +169,26 @@
       "multiMano": 4
     },
     "chinchon": {
-      "vida": 25,
+      "vida": 28,
       "mano": 7,
       "hasta": 9,
       "comodines": 2,
       "cargaDano": 2,
       "mitiga": 0.3,
-      "multiMano": 1
+      "multiMano": 2
     },
     "mentiroso": {
-      "vida": 9,
+      "vida": 14,
       "mano": 8,
       "hasta": 7,
       "comodines": 3,
       "enganos": 1,
       "furiaFallo": 3,
-      "caraDePiedra": 12,
+      "caraDePiedra": 10,
       "multiMano": 0
     },
     "chancho": {
-      "vida": 64,
+      "vida": 63,
       "mano": 4,
       "hasta": 9,
       "comodines": 2,
@@ -216,7 +216,8 @@
       ]
     },
     "curaRey": 0.3,
-    "vidaRey": 12,
+    "vidaRey": 0.2,
+    "vidaReyMin": 6,
     "saltar": 4
   },
   "pulperia": {
