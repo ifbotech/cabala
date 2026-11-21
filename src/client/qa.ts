@@ -2,7 +2,8 @@
 // fija, perfil de muestra que no se guarda) y deja la escena en modo foto. `&lang=en` la pone en inglés, `&vivo`
 // deja correr las animaciones y `&perfil=nuevo` usa un perfil recién estrenado.
 import { mejorGolpe, paso } from '../rules/bot';
-import { cuenta } from '../rules/combate';
+import { cuenta, postasDe, postasPorDefecto } from '../rules/combate';
+import type { Carta } from '../rules/cartas';
 import type { Partida, TipoNodo } from '../rules/estado';
 import type { MazoId } from '../rules/mazos';
 import * as juego from '../rules/partida';
@@ -18,6 +19,7 @@ export const ESTADOS = [
   'portada', 'elegir-mazo', 'elegi-una', 'mapa', 'mesa', 'mesa-seleccion', 'mesa-arrastrando', 'mesa-rey', 'mesa-segunda', 'mesa-mentiroso', 'botin', 'elegi-bendicion', 'elegi-amuleto',
   'pulperia', 'fogon', 'cabala', 'mazo', 'jugadas', 'piezas', 'mesa-mando', 'mapa-mando', 'altar', 'coleccion', 'coleccion-reyes', 'coleccion-amuletos', 'cronica', 'ajustes', 'fin-victoria', 'fin-derrota',
   'mesa-grito', 'botin-grito', 'mesa-segunda-cambia', 'botin-rey', 'mesa-conteo', 'mesa-escudo',
+  'mesa-chispa', 'mesa-escalon', 'mesa-postas-arrastre',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
 /** Estados que solo tienen sentido en vivo (`&vivo`, para las secuencias del Jurado): no entran en la QA visual. */
@@ -212,6 +214,65 @@ export function montarQa(estado: string): void {
       // (la QA vuelve a elegir esta jugada después de medir la mesa en reposo, en la misma página)
       (window as unknown as { __qaSel?: string[] }).__qaSel = sel?.map((k) => k.id) ?? [];
       if (sel && mesa) mesa.mano.elegir(sel.map((k) => k.id));
+      break;
+    }
+    case 'mesa-chispa': {
+      // el paño del Mentiroso (5 Postas) con el Comodín en una Posta y un naipe a su derecha: la Chispa dorada en la
+      // costura y el naipe del Medio con su «x2 PEGA DOBLE»
+      const p = partida('mentiroso', (x) => enCombate(x));
+      const c = p.combate!;
+      const x = c.mano.find((k) => k.palo === 'X');
+      const otra = c.mano.find((k) => k.palo !== 'X' && k.palo !== c.fila[0].palo);
+      montar(p);
+      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
+      const medio = Math.floor(postasDe(p) / 2);
+      if (x && otra && mesa) mesa.mano.elegir([x.id, otra.id], [medio - 1, medio]);
+      break;
+    }
+    case 'mesa-escalon': {
+      // tres o más naipes que suben de izquierda a derecha en el paño: cada uno un poco más alto y el rótulo ESCALÓN
+      const p = partida('mentiroso', (x) => enCombate(x));
+      const c = p.combate!;
+      const n = postasDe(p);
+      const enOrden = (sel: Carta[]): { ids: string[]; postas: number[] } => {
+        const orden = [...sel].sort((a, b) => a.n - b.n);
+        return { ids: orden.map((k) => k.id), postas: [...postasPorDefecto(n, sel.length)].sort((a, b) => a - b) };
+      };
+      const sirve = (sel: Carta[]): boolean => {
+        const o = enOrden(sel);
+        const q = cuenta(p, o.ids.map((id) => sel.find((k) => k.id === id)!), o.postas);
+        return q.ok && !!q.escalon;
+      };
+      const lisas = c.mano.filter((k) => k.palo !== 'X' && k.palo !== c.fila[0].palo);
+      let elegidas: Carta[] | undefined;
+      for (let i = 0; i < lisas.length && !elegidas; i++)
+        for (let j = i + 1; j < lisas.length && !elegidas; j++)
+          for (let k = j + 1; k < lisas.length && !elegidas; k++) if (sirve([lisas[i], lisas[j], lisas[k]])) elegidas = [lisas[i], lisas[j], lisas[k]];
+      if (!elegidas && lisas.length >= 3) {
+        // (es una foto de QA: tres naipes se vuelven una escalera 4-5-6)
+        lisas.slice(0, 3).forEach((k, i) => (k.n = 4 + i));
+        elegidas = lisas.slice(0, 3);
+      }
+      montar(p);
+      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
+      if (elegidas && mesa) {
+        const o = enOrden(elegidas);
+        mesa.mano.elegir(o.ids, o.postas);
+      }
+      break;
+    }
+    case 'mesa-postas-arrastre': {
+      // una carta del paño a medio camino de su Posta a otra libre: la de destino se marca en oro
+      const p = partida(mazo, (x) => enCombate(x));
+      montar(p);
+      const m = mejorGolpe(p);
+      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void; arrastrarA(id: string, posta: number): void } } }).__mesa;
+      if (m && mesa) {
+        mesa.mano.elegir(m.ids, m.postas);
+        const usadas = new Set(m.postas ?? postasPorDefecto(postasDe(p), m.ids.length));
+        const libre = [...Array(postasDe(p)).keys()].find((i) => !usadas.has(i));
+        if (libre !== undefined) mesa.mano.arrastrarA(m.ids[0], libre);
+      }
       break;
     }
     case 'botin':

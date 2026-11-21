@@ -537,8 +537,12 @@
 .posta-marca.corta .p-marca-txt {
   display: none;
 }
+.pano-postas.estrecho .p-ayuda {
+  display: none;
+}
 @media (max-width: 700px) {
-  .posta .p-icono {
+  .pano-postas:not(.estrecho) .posta .p-icono,
+  .posta-escalon .p-esc-txt {
     display: none;
   }
 }
@@ -2043,11 +2047,11 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 
   /* la mano: alta solo cuando va en dos filas (la clase la pone mano.ts) */
   .mano {
-    --asoma: 40px;
-    height: calc(140px + var(--asoma) + 4px);
+    --asoma: 30px;
+    height: calc(140px + var(--asoma) + 2px);
   }
   .mano.dos-filas {
-    height: calc(140px + 46px + var(--asoma) + 4px);
+    height: calc(140px + 46px + var(--asoma));
   }
   .mano-zona:has([data-accion='engano']) .mano {
     margin-top: 0;
@@ -2102,9 +2106,9 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
    canto, como la de adelante). Del enemigo asoma poco naipe: sus sellos van chicos y sin rótulo junto al Bufón, y el
    Ataque es una placa sobre la esquina del naipe (a la derecha queda La Corte, sin nada que se le monte). La barra
    de Vida conserva su ancho: «CABALLO DE ESPADAS 340/340» no entra en menos */
-@container mesa (max-height: 740px) {
+@container mesa (max-height: 860px) {
   .mano {
-    --asoma: 36px;
+    --asoma: 28px;
   }
   .mano.dos-filas {
     height: calc(140px + 48px + var(--asoma));
@@ -3037,7 +3041,7 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
    (o del rasgo) va dentro de la barra de Vida, en lugar del apodo del Rey (se inspecciona tocándolo); el Ataque deja
    de montarse sobre el naipe: va a su derecha, al pie, en una placa compacta (debajo de La Corte, si la hay), y la nota
    de la Furia queda en la ayuda. Así el naipe del enemigo asoma entero hasta la barra ── */
-@container mesa (max-height: 740px) {
+@container mesa (max-height: 860px) {
   .mesa .e-barras > .e-rasgo {
     display: none;
   }
@@ -3197,7 +3201,7 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     animation: none;
   }
 }
-@container mesa (max-height: 740px) {
+@container mesa (max-height: 860px) {
   /* el TE PEGA, en una sola fila al pie («⚔ 22 🔥3»): puede montarse sobre la esquina de abajo del naipe, nunca
      trepar a la cabecera ni a La Corte */
   .mesa .e-ataque {
@@ -3238,7 +3242,7 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     top: calc(var(--fs-s) * 1.05 - 4px);
   }
 }
-@container mesa (max-height: 740px) {
+@container mesa (max-height: 860px) {
   .mesa .e-llamas {
     top: -6px;
   }
@@ -3254,7 +3258,7 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 .c-sep {
   font-style: normal;
 }
-@container mesa (max-height: 740px) {
+@container mesa (max-height: 860px) {
   /* NO TE PEGA con su causa, en dos renglones dentro del chip: entra en el renglón de «LE QUEDAN» */
   .mesa .cuenta .chip.c-nopega:has(.c-causa) {
     flex-direction: column;
@@ -3539,7 +3543,7 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
   color: #ffd0d8;
 }
 /* el rasgo del Rey dentro de su barra (teléfono bajo), en la letra de cuerpo: «ESTOCADA DEL CAUDILLO» entra entera */
-@container mesa (max-height: 740px) {
+@container mesa (max-height: 860px) {
   .mesa .e-vida .e-alias {
     font-family: var(--cuerpo);
     font-size: var(--fs-s);
@@ -3989,5 +3993,16 @@ html[data-entrada='mando'] :is(.opcion, button):focus-visible > .op-glifo {
   .mesa .mano {
     --asoma: 52px;
     margin-bottom: -56px;
+  }
+}
+/* ── 0.21, el teléfono: el pie de la fila de adelante (su índice cabeza abajo) se mete detrás de la barra del pulgar,
+   como en el portátil detrás del HUD: el paño de las Postas sale de ahí y la escena conserva su alto ── */
+@media (max-width: 700px) {
+  .mesa .mano {
+    margin-bottom: -14px;
+  }
+  .mesa .mano-zona .botones .btn {
+    position: relative;
+    z-index: 110;
   }
 }

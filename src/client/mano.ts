@@ -299,6 +299,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       el.classList.toggle('apunta', (!!arrastre && arrastre.posta === i) || haciaPosta?.posta === i);
     });
     pano.classList.toggle('activo', enPosta.some(Boolean) || !!arrastre);
+    // (con 5 Postas en el teléfono, lo que asoma de cada una no lleva su frase: queda su símbolo)
+    pano.classList.toggle('estrecho', visible < 96);
     // la marca del Medio va pegada a su naipe (si lo hay), a la derecha de su número
     const enMedio = enPosta[medio];
     const nm = enMedio ? naipes.find((c) => c.carta.id === enMedio) : null;
@@ -317,7 +319,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     chispas.forEach((el, i) => {
       const si = marcas.chispas.includes(i);
       el.hidden = !si;
-      if (si) ponerEn(el, lp.xs[i + 1] - el.offsetWidth / 2, lp.y + 8 * k, Z.marca + 1);
+      // (en la costura, montada sobre el borde de arriba del paño: no tapa el índice de ningún naipe)
+      if (si) ponerEn(el, lp.xs[i + 1] - Math.round(el.offsetWidth / 2), lp.y - Math.round(el.offsetHeight / 2) - 2 * k, Z.marca + 1);
     });
     rotEscalon.hidden = !marcas.escalon;
     if (marcas.escalon) {
@@ -393,7 +396,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
         // (la QA: a mitad de camino entre su Posta y la de destino, levantada)
         const d = dest.get(c.carta.id)!;
         tx = Math.round((d.x + lp.xs[haciaPosta.posta]) / 2);
-        ty = lp.y - 30 * k;
+        ty = lp.y;
         trot = 4;
         z = 100;
       } else {
@@ -724,7 +727,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     correr,
     marcar(m) {
       marcas = m;
-      rotEscalon.textContent = m.escalon ? `${t('escalon')} +${m.escalon}` : '';
+      rotEscalon.innerHTML = m.escalon ? `${pxHud('escalon', 'p-icono')}<b class="p-esc-txt">${esc(t('escalon'))}</b>${cifra(`+${m.escalon}`, 'azul')}` : '';
     },
     volar(ids, a) {
       const { k } = medidas();
