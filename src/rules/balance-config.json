@@ -244,6 +244,20 @@
     ],
     "multiTemplada": 1
   },
+  "postas": {
+    "medio": 2,
+    "escalon": 1,
+    "chispa": 2
+  },
+  "chiches": {
+    "huecos": 3,
+    "prenda": 0.35,
+    "ginebra": 10,
+    "dado": 3,
+    "poroto": 2,
+    "precio": 9,
+    "enTienda": 2
+  },
   "bufon": {
     "afinidadMin": -3,
     "afinidadMax": 3,

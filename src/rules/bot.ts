@@ -6,7 +6,8 @@ import { B } from './balance';
 import { CABALA, suerte } from './bufon';
 import { combinaciones, esComodin } from './cartas';
 import type { Carta } from './cartas';
-import { cuenta, puedeDescartar } from './combate';
+import { cuenta, medioDe, postasDe, postasPorDefecto, puedeDescartar } from './combate';
+import { huecosChiche } from './chiches';
 import type { Cuenta } from './combate';
 import type { Nodo, Oferta, Partida } from './estado';
 import * as juego from './partida';
@@ -54,23 +55,54 @@ export interface Decision {
   t: 'golpe' | 'descarte';
   ids: string[];
   engano?: boolean;
+  /** En qué Posta va cada carta del golpe. */
+  postas?: number[];
+}
+
+/** Las maneras de apoyar un golpe en el paño que el bot prueba: la de por defecto, en Escalón y con la más alta al Medio. */
+export function acomodos(p: Partida, sel: readonly Carta[]): number[][] {
+  const n = postasDe(p);
+  const k = sel.length;
+  const out = [postasPorDefecto(n, k)];
+  if (k >= 3) {
+    const orden = sel.map((_, i) => i).sort((a, b) => sel[a].n - sel[b].n);
+    const desde = Math.max(0, Math.min(n - k, medioDe(n) - Math.floor(k / 2)));
+    const pos: number[] = new Array(k);
+    orden.forEach((i, j) => (pos[i] = desde + j));
+    out.push(pos);
+  }
+  if (k >= 2) {
+    // la más alta al Medio y, si hay Comodín, a su izquierda (le da Chispa)
+    const alta = sel.reduce((b, x, i) => (!esComodin(x) && x.n > sel[b].n ? i : b), 0);
+    const com = sel.findIndex((x) => esComodin(x));
+    const libres = postasPorDefecto(n, n);
+    const pos: number[] = new Array(k).fill(-1);
+    pos[alta] = medioDe(n);
+    if (com >= 0 && com !== alta) pos[com] = medioDe(n) - 1;
+    const usadas = new Set(pos.filter((x) => x >= 0));
+    for (let i = 0; i < k; i++) if (pos[i] < 0) pos[i] = libres.find((x) => !usadas.has(x) && (usadas.add(x), true))!;
+    out.push(pos);
+  }
+  return out;
 }
 
 /** La mejor jugada de la mano según el bot (o null si no hay combate). */
-export function mejorGolpe(p: Partida): { ids: string[]; q: Cuenta; v: number; engano: boolean } | null {
+export function mejorGolpe(p: Partida): { ids: string[]; q: Cuenta; v: number; engano: boolean; postas?: number[] } | null {
   const c = p.combate;
   if (!c || !c.fila.length) return null;
-  let mejor: { ids: string[]; q: Cuenta; v: number; engano: boolean } | null = null;
+  let mejor: { ids: string[]; q: Cuenta; v: number; engano: boolean; postas?: number[] } | null = null;
   const probar = (engano: boolean) => {
     const antes = c.engano;
     c.engano = engano;
     for (const sel of combinaciones(c.mano)) {
-      const q = cuenta(p, sel);
-      if (!q.ok) continue;
-      let v = valor(p, q, sel);
-      // el Engaño se guarda para cuando abate
-      if (engano) v -= q.abate ? 5 : 400;
-      if (!mejor || v > mejor.v) mejor = { ids: sel.map((k) => k.id), q, v, engano };
+      for (const postas of acomodos(p, sel)) {
+        const q = cuenta(p, sel, postas);
+        if (!q.ok) break;
+        let v = valor(p, q, sel);
+        // el Engaño se guarda para cuando abate
+        if (engano) v -= q.abate ? 5 : 400;
+        if (!mejor || v > mejor.v) mejor = { ids: sel.map((k) => k.id), q, v, engano, postas };
+      }
     }
     c.engano = antes;
   };
@@ -90,7 +122,7 @@ export function decidir(p: Partida): Decision | null {
   // Chancho Va: el pase gratis siempre se usa con la peor carta que no entra en el golpe
   if (c.pasar && fuera.length && puedeDescartar(p, 1) === 'gratis' && c.mazo.length + c.descarte.length > 0) return { t: 'descarte', ids: [fuera[0].id] };
   if (flojo && c.descartes > 0 && fuera.length >= 2) return { t: 'descarte', ids: fuera.slice(0, 3).map((k) => k.id) };
-  return { t: 'golpe', ids: m.ids, engano: m.engano };
+  return { t: 'golpe', ids: m.ids, engano: m.engano, postas: m.postas };
 }
 
 // ───────────────────────── fuera del combate ─────────────────────────
@@ -177,6 +209,10 @@ function enPulperia(p: Partida, o: OpcionesBot): void {
     }
   }
   if (p.vida < p.vidaMax * 0.7 && p.oro >= t.curar) juego.curarEnPulperia(p);
+  // un Chiche si sobra plata y hay hueco
+  (t.chiches ?? []).forEach((k, i) => {
+    if (p.oro >= k.precio + 10) juego.comprarChiche(p, i);
+  });
   if (p.oro >= t.purgar + 6) {
     const baja = masBaja(p);
     if (baja) juego.purgar(p, baja.id);
@@ -214,6 +250,20 @@ function enCabala(p: Partida): void {
   juego.salir(p);
 }
 
+/** Los Chiches del bot: Ginebra con poca Vida; Poroto y Tiza enseguida; Dado y Fósforo contra Reyes y Élites, o cuando abaten. */
+function usarChiches(p: Partida): void {
+  const c = p.combate;
+  if (!c || !c.fila.length) return;
+  const h = huecosChiche(p.chiches);
+  h.forEach((id, i) => {
+    if (!id) return;
+    const fuerte = c.tipo !== 'guardia';
+    if (id === 'ginebra' && p.vida <= p.vidaMax * 0.45) juego.usarChiche(p, i);
+    else if (id === 'poroto' || id === 'tiza') juego.usarChiche(p, i);
+    else if ((id === 'dado' || id === 'fosforo') && fuerte) juego.usarChiche(p, i);
+  });
+}
+
 /** Un paso del bot: toma una decisión y la aplica. Devuelve false cuando la partida terminó. */
 export function paso(p: Partida, o: OpcionesBot): boolean {
   switch (p.fase) {
@@ -235,6 +285,7 @@ export function paso(p: Partida, o: OpcionesBot): boolean {
       enCabala(p);
       return true;
     case 'combate': {
+      usarChiches(p);
       const d = decidir(p);
       if (!d) return false;
       if (d.t === 'descarte') {
@@ -243,7 +294,7 @@ export function paso(p: Partida, o: OpcionesBot): boolean {
         if (d.engano) juego.armarEngano(p, true);
         const acto = p.acto;
         const tipo = p.combate!.tipo;
-        const g = juego.golpear(p, d.ids).find((e) => e.t === 'golpe');
+        const g = juego.golpear(p, d.ids, d.postas).find((e) => e.t === 'golpe');
         if (g && g.t === 'golpe') o.alGolpear?.(acto, tipo, g.total);
       }
       return true;

@@ -1,5 +1,6 @@
 // El estado de una partida (serializable a JSON) y sus ayudas mínimas. Lo mutan las funciones de combate.ts y
 // partida.ts; la interfaz y el bot solo lo leen y llaman a esas funciones.
+import type { ChicheId } from './chiches';
 import type { AmuletoId } from './amuletos';
 import type { AumentoId, Nivel } from './aumentos';
 import { B } from './balance';
@@ -69,6 +70,8 @@ export interface Combate {
   perdida: number;
   /** La jugada del golpe anterior (el Caudillo, en su segunda cara, castiga repetirla). */
   ultimaJugada?: string;
+  /** Fósforo de Fogón encendido: el próximo golpe no choca con el Inmune. */
+  fosforo?: boolean;
 }
 
 export type TipoNodo = 'guardia' | 'elite' | 'pulperia' | 'cabala' | 'fogon' | 'rey';
@@ -102,6 +105,8 @@ export interface Botin {
 
 export interface Tienda {
   amuletos: { id: AmuletoId; precio: number; vendido?: true }[];
+  /** Chiches a la venta (0.21.0). */
+  chiches?: { id: ChicheId; precio: number; vendido?: true }[];
   purgar: number;
   curar: number;
 }
@@ -145,6 +150,8 @@ export interface Partida {
   amuletos: AmuletoId[];
   huecos: number;
   aumentos: AumentoId[];
+  /** Los tres huecos de Chiches sobre la mesa (null: vacío). Opcional: las partidas guardadas antes de la 0.21 no los traen. */
+  chiches?: (ChicheId | null)[];
   /** Nivel de cada Bendición que llevás. */
   bendiciones: Partial<Record<BendicionId, number>>;
   /** Las cargas de los 4 Reyes: Filo (S), Coraza (C), Fortuna (D), Brindis (H). */
