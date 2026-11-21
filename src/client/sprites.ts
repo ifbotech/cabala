@@ -11,8 +11,9 @@ import { cifraMapa, type TonoCifra } from './pixel/cifras';
 import { amuletoMapa, aumentoMapa, bendicionMapa, hudMapa, inmuneMapa, nodoMapa, paloMapa, estrellaMapa, type HudPx, type NodoPx } from './pixel/iconos';
 import { logoMapa } from './pixel/logo';
 import { BARRAS, barraMapa, marcoMapa, panoMapa, type Estilo } from './pixel/marcos';
-import { comodinMapa, dorsoNaipe, naipeMapa } from './pixel/naipes';
+import { comodinMapa, dorsoNaipe, naipeMapa, naipeSegundaMapa } from './pixel/naipes';
 import { tintas } from './pixel/paleta';
+import { mitad } from './pixel/partido';
 import { personajeMapa, type Cuadro } from './pixel/personajes';
 import { pixeles } from './pixel/raster';
 import { medida, type Mapa } from './pixel/rejilla';
@@ -58,6 +59,9 @@ export function px(clave: string, hacer: () => Mapa, cls = '', extra = ''): stri
 export const pxNaipe = (c: Pick<Carta, 'palo' | 'n'>, cls = '') => (c.palo === 'X' ? px('naipe:X', comodinMapa, `naipe ${cls}`) : px(`naipe:${c.palo}${c.n}`, () => naipeMapa(c.palo as Palo, c.n), `naipe ${cls}`));
 export const urlNaipe = (c: Pick<Carta, 'palo' | 'n'>) => (c.palo === 'X' ? url('naipe:X', comodinMapa) : url(`naipe:${c.palo}${c.n}`, () => naipeMapa(c.palo as Palo, c.n)));
 export const lienzoNaipe = (palo: Palo, n: number) => lienzo(`naipe:${palo}${n}`, () => naipeMapa(palo, n));
+/** El naipe del Rey en su segunda cara (otro dibujo: herido, enojado y con el rasgo de su segunda cara). */
+export const pxNaipeSegunda = (palo: Palo, cls = '') => px(`naipe:${palo}seg`, () => naipeSegundaMapa(palo), `naipe ${cls}`);
+export const lienzoNaipeSegunda = (palo: Palo) => lienzo(`naipe:${palo}seg`, () => naipeSegundaMapa(palo));
 export const pxDorso = (mazo: MazoId, cls = '') => px(`dorso:${mazo}`, () => dorsoNaipe(mazo), `naipe ${cls}`);
 export const pxAmuleto = (id: AmuletoId, cls = '') => px(`a:${id}`, () => amuletoMapa(id)!, `icono ${cls}`);
 export const pxAumento = (id: AumentoId, cls = '') => px(`u:${id}`, () => aumentoMapa(id)!, `icono ${cls}`);
@@ -70,6 +74,12 @@ export const pxInmune = (s: Palo, cls = '') => px(`inmune:${s}`, () => inmuneMap
 export const pxEstrella = (cls = '') => px('estrella', estrellaMapa, `estrella ${cls}`);
 export const pxLogo = (cls = '') => px('logo', logoMapa, `logo ${cls}`);
 export const pxPano = (cls = '') => px('pano', panoMapa, `pano ${cls}`);
+/**
+ * Un dibujo partido en dos por una grieta (los Reyes vencidos en los finales, tu retrato en la derrota): las dos mitades,
+ * cada una del tamaño del dibujo entero, para correrlas cada una para su lado a celda entera.
+ */
+export const pxMitades = (clave: string, hacer: () => Mapa, semilla: number, cls = ''): string =>
+  px(`${clave}|izq`, () => mitad(hacer(), 'izq', semilla), `mitad m-izq ${cls}`) + px(`${clave}|der`, () => mitad(hacer(), 'der', semilla), `mitad m-der ${cls}`);
 export const claveRetrato = (mazo: MazoId, c: Cuadro) => `pj:${mazo}|${c.mirada}|${c.gesto}|${c.herida}`;
 export const urlRetrato = (mazo: MazoId, c: Cuadro) => url(claveRetrato(mazo, c), () => personajeMapa(mazo, c));
 

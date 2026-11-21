@@ -12,7 +12,7 @@ import { cifraMapa, GLIFOS, type TonoCifra } from './pixel/cifras';
 import { HUD_PX, NODOS_PX, hudMapa, inmuneMapa, nodoMapa, estrellaMapa } from './pixel/iconos';
 import { cuadros, personajeMapa } from './pixel/personajes';
 import { REY_PX, reyFondo, reyMapa } from './pixel/reyes';
-import { claveRetrato, forjarLuego, lienzoNaipe, pxAmuleto, pxAumento, pxBendicion, pxDorso, pxNaipe, url } from './sprites';
+import { claveRetrato, forjarLuego, lienzoNaipe, lienzoNaipeSegunda, pxAmuleto, pxAumento, pxBendicion, pxDorso, pxNaipe, pxNaipeSegunda, url } from './sprites';
 
 /** Los cuadros del retrato de un Personaje (lo primero que hace falta al entrar a una partida). */
 export function precargarPersonaje(mazo: MazoId): void {
@@ -24,6 +24,8 @@ export function precargarTodo(): void {
   const tareas: (() => unknown)[] = [];
   for (const s of PALOS) for (let n = 1; n <= 12; n++) tareas.push(() => (n >= 10 ? lienzoNaipe(s, n) && pxNaipe({ palo: s, n }) : pxNaipe({ palo: s, n })));
   tareas.push(() => pxNaipe({ palo: 'X', n: 0 }));
+  // la segunda cara de cada Rey: el volteo la revela sin forjarla en el momento
+  for (const s of PALOS) tareas.push(() => lienzoNaipeSegunda(s) && pxNaipeSegunda(s));
   for (const e of EXPRESIONES) tareas.push(() => url(`bf:${e}`, () => bufonCapas(e).cuerpo));
   for (const s of PALOS) {
     const id = REY_PX[s];

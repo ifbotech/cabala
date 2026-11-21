@@ -112,7 +112,7 @@ export function pintarFase(desdeMesa = false): void {
       break;
     case 'fin':
       anotarFin(p);
-      ir(pantallaFin(p), p.fin?.victoria ? 'portada' : 'altar', p.fin?.victoria ? 'pulperia' : 'derrota');
+      ir(pantallaFin(p), p.fin?.victoria ? 'amanecer' : 'ocaso', p.fin?.victoria ? 'pulperia' : 'derrota');
       break;
   }
 }

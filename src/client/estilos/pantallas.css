@@ -2219,3 +2219,482 @@ button.visor-carta:disabled {
   z-index: 1;
   white-space: nowrap;
 }
+
+/* ───────────── 0.17.0 · los finales como cuadro ───────────── */
+/* «La Corte cayó» y «Te llevó la Corte» llenan la pantalla: el título arriba; el cuadro en el medio (el Bufón a un
+   costado, tu Personaje al centro, contra el sol que amanece o contra la vela que se apaga, y los naipes de la Corte
+   del otro lado: los vencidos partidos en dos y tirados, el que te ganó de pie); abajo, la tabla de la partida y los
+   botones. Todo a escala entera; las mitades de un naipe se corren cada una para su lado a celda entera. */
+.fin > .fin-escena {
+  justify-content: space-between;
+  gap: var(--u);
+}
+.fin-titulo {
+  font-size: calc(var(--fs-xl) * 1.5);
+  line-height: 1.1;
+}
+.fin.gano .fin-titulo {
+  color: #fff799;
+  text-shadow:
+    calc(1px * var(--kd)) calc(1px * var(--kd)) 0 #d86000,
+    calc(2px * var(--kd)) calc(2px * var(--kd)) 0 #7a0026,
+    calc(3px * var(--kd)) calc(3px * var(--kd)) 0 var(--abismo);
+}
+.fin.perdio .fin-titulo {
+  text-shadow:
+    calc(1px * var(--kd)) calc(1px * var(--kd)) 0 #7a0026,
+    calc(2px * var(--kd)) calc(2px * var(--kd)) 0 var(--abismo);
+}
+.fin-cuadro {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-rows: 1fr auto;
+  grid-template-areas:
+    'bufon heroe corte'
+    'panel panel panel';
+  align-items: center;
+  justify-items: center;
+  gap: var(--u) calc(var(--u) * 3);
+}
+.fin-cuadro > .fin-bufon {
+  grid-area: bufon;
+  justify-self: end;
+  --k-bufon: 2;
+}
+.fin-cuadro > .fin-bufon .bocadillo {
+  margin: 0;
+}
+.fin-heroe {
+  grid-area: heroe;
+  position: relative;
+  --k: var(--k3);
+  line-height: 0;
+}
+.fin-heroe .fin-cara {
+  display: block;
+  width: calc(64px * var(--k));
+  height: calc(64px * var(--k));
+  box-shadow:
+    0 0 0 calc(1px * var(--k)) var(--abismo),
+    0 0 0 calc(2px * var(--k)) #ffd500,
+    0 0 0 calc(3px * var(--k)) #d86000,
+    0 0 0 calc(4px * var(--k)) var(--abismo);
+}
+/* la derrota: tu retrato partido en dos, cada mitad corrida para su lado */
+.fin-cara-partida {
+  position: relative;
+  display: block;
+  width: calc(64px * var(--k));
+  height: calc(64px * var(--k));
+}
+.fin-cara-partida .mitad {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.fin-cara-partida .m-izq {
+  translate: calc(-5px * var(--k)) calc(4px * var(--k));
+}
+.fin-cara-partida .m-der {
+  translate: calc(5px * var(--k)) calc(-2px * var(--k));
+}
+.fin-corte {
+  grid-area: corte;
+  justify-self: start;
+  display: flex;
+  align-items: flex-end;
+  gap: calc(var(--u) * 2.5);
+  --k: var(--k-naipe);
+}
+.fin-rey {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 0.75);
+  line-height: 0;
+}
+.fin-rey-nombre {
+  font-size: var(--fs-s);
+  line-height: 1.2;
+  padding: 2px calc(var(--u) * 0.5);
+  background: var(--abismo);
+  color: var(--hueso);
+  white-space: nowrap;
+}
+.fin-partido {
+  position: relative;
+  display: block;
+  width: calc(100px * var(--k));
+  height: calc(140px * var(--k));
+}
+.fin-partido .mitad {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+/* tirado en dos: la mitad izquierda se va para abajo y la derecha para arriba, con su sombra en la tierra */
+.fin-partido .m-izq {
+  translate: calc(-7px * var(--k)) calc(6px * var(--k));
+  filter: drop-shadow(calc(2px * var(--k)) calc(2px * var(--k)) 0 rgba(9, 7, 15, 0.7));
+}
+.fin-partido .m-der {
+  translate: calc(7px * var(--k)) calc(-2px * var(--k));
+  filter: drop-shadow(calc(2px * var(--k)) calc(2px * var(--k)) 0 rgba(9, 7, 15, 0.7));
+}
+.fin-rey.caido .fin-rey-nombre {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  color: #b9aacb;
+}
+/* el que te ganó, de pie y en su segunda cara, con el doble anillo de su aura */
+.fin-rey.verdugo .naipe {
+  box-shadow:
+    0 0 0 calc(1px * var(--k)) var(--abismo),
+    0 0 0 calc(2px * var(--k)) #ff1453,
+    0 0 0 calc(3px * var(--k)) var(--abismo),
+    0 0 0 calc(4px * var(--k)) #ff1453;
+}
+.fin-rey.verdugo .fin-rey-nombre {
+  color: #ff6e8e;
+}
+.fin-rey.espera .naipe {
+  filter: brightness(0.6) saturate(0.7);
+}
+.fin-cuadro > .fin-panel {
+  grid-area: panel;
+  max-width: 100%;
+}
+.fin-botones {
+  flex: none;
+}
+@media (min-width: 701px) {
+  .fin-cuadro > .fin-panel {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--u) calc(var(--u) * 3);
+  }
+  .fin-cuadro > .fin-panel .fin-datos {
+    grid-template-columns: repeat(3, auto);
+  }
+  .fin-porotos {
+    display: flex;
+    align-items: center;
+    gap: calc(4px * var(--k));
+  }
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  .fin-cuadro > .fin-bufon {
+    --k-bufon: 3;
+  }
+}
+/* el teléfono: el cuadro en columna (tu Personaje con el Bufón chico al lado, la Corte debajo, la tabla y los
+   botones); lo que dice el Bufón no entra y se calla */
+@media (max-width: 700px) {
+  .fin-titulo {
+    font-size: calc(var(--fs-xl) * 1.25);
+  }
+  .fin-cuadro {
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      'bufon heroe .'
+      'corte corte corte'
+      'panel panel panel';
+    gap: calc(var(--u) * 1.5) var(--u);
+  }
+  .fin-cuadro > .fin-bufon {
+    --k-bufon: 1;
+  }
+  .fin-cuadro > .fin-bufon .bocadillo {
+    display: none;
+  }
+  .fin-heroe {
+    --k: 2;
+  }
+  .fin-corte {
+    justify-self: center;
+    gap: calc(var(--u) * 1.5);
+  }
+  .fin-partido .m-izq {
+    translate: calc(-4px * var(--k)) calc(5px * var(--k));
+  }
+  .fin-partido .m-der {
+    translate: calc(4px * var(--k)) calc(-1px * var(--k));
+  }
+  .fin-rey-nombre {
+    font-size: 14px;
+  }
+}
+
+/* ───────────── 0.17.0 · el botín, piezas grandes sobre la mesa ───────────── */
+/* Nada de lista en una caja: lo que ganaste queda tirado sobre las tablas, cada cosa como una pieza a escala de
+   naipe (la moneda, el corazón, la corona del Rey…) con su sombra dura en la madera; el letrero de BOTÍN es una tabla
+   clavada arriba y SEGUIR queda debajo. El Bufón grande, a la izquierda, como en la mesa. */
+.botin:not(.directo) .botin-panel {
+  --kp: 3;
+  border: 0;
+  border-image: none;
+  padding: 0;
+  max-height: none;
+  align-items: center;
+  gap: calc(var(--u) * 1.5);
+}
+.botin:not(.directo) .botin-panel > .titulo {
+  --kf: var(--k);
+  padding: calc(var(--u) * 0.25) calc(var(--u) * 2);
+  font-size: calc(var(--fs-xl) * 1.1);
+  border: calc(8px * var(--kf)) solid transparent;
+  border-image: var(--m-madera) 8 fill / calc(8px * var(--kf)) / 0 repeat;
+  image-rendering: pixelated;
+  box-shadow: calc(4px * var(--k)) calc(4px * var(--k)) 0 rgba(9, 7, 15, 0.55);
+}
+.botin:not(.directo) .botin-lista {
+  flex-direction: row;
+  justify-content: center;
+  align-items: stretch;
+  gap: calc(var(--u) * 2);
+}
+.botin-fila.bp {
+  --kf: var(--k);
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: calc(var(--u) * 0.75);
+  width: calc(var(--fr) * 9.5);
+  min-height: 0;
+  padding: var(--u) calc(var(--u) * 0.5);
+  background: none;
+  border: calc(8px * var(--kf)) solid transparent;
+  border-image: var(--m-hierro) 8 fill / calc(8px * var(--kf)) / 0 repeat;
+  image-rendering: pixelated;
+  box-shadow: calc(5px * var(--k)) calc(5px * var(--k)) 0 rgba(9, 7, 15, 0.6);
+  text-align: center;
+}
+.botin-fila.bp.pendiente {
+  border-image-source: var(--m-oro);
+  color: #1c1024;
+}
+.botin-fila.bp.pendiente .bp-nombre {
+  color: #1c1024;
+}
+.bp-arte {
+  --k: var(--kp);
+  line-height: 0;
+  padding: calc(2px * var(--kp)) 0;
+}
+.botin-fila.bp .bp-nombre {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  line-height: 1.25;
+}
+.botin-fila.bp.hecho .bp-nombre {
+  color: var(--hueso);
+}
+.bp-cobrado {
+  font-family: var(--rot);
+  font-size: var(--fr);
+  line-height: 1;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.botin-fila.bp .btn {
+  min-width: 80%;
+}
+.botin:not(.directo) .botin-panel > [data-accion='seguir'] {
+  min-width: calc(var(--fr) * 12);
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  .botin:not(.directo) .botin-panel {
+    --kp: 5;
+  }
+}
+/* el teléfono: las piezas en renglones (el dibujo a la izquierda), a la altura del pulgar */
+@media (max-width: 700px) {
+  .botin:not(.directo) .botin-panel {
+    --kp: 2;
+    width: 100%;
+    gap: var(--u);
+  }
+  .botin:not(.directo) .botin-panel > .titulo {
+    font-size: var(--fs-xl);
+  }
+  .botin:not(.directo) .botin-lista {
+    flex-direction: column;
+    align-self: stretch;
+    gap: var(--u);
+  }
+  .botin-fila.bp {
+    flex-direction: row;
+    width: auto;
+    padding: calc(var(--u) * 0.25) calc(var(--u) * 0.5);
+    text-align: left;
+  }
+  .botin-fila.bp .bp-nombre {
+    justify-content: flex-start;
+  }
+  .botin-fila.bp .btn {
+    min-width: 0;
+  }
+  .botin:not(.directo) .botin-panel > [data-accion='seguir'] {
+    align-self: stretch;
+    min-width: 0;
+  }
+}
+
+/* ───────────── 0.17.0 · Ajustes y Crónica con escena ───────────── */
+/* Las dos pantallas dejan de ser una caja sobre la penumbra: a la izquierda, un cuadro con arte del juego (en Ajustes,
+   el abanico de los cinco Dorsos con el Bufón grande delante; en la Crónica, el retrato de tu última partida colgado
+   con su chapa y el Bufón al pie), y a la derecha el panel, al alto de lo que dice. */
+.aj-escena,
+.cr-escena {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 4);
+}
+.aj-cuadro,
+.cr-cuadro {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--u);
+}
+.aj-cuadro .anfitrion,
+.cr-cuadro .anfitrion {
+  --k-bufon: 2;
+}
+.aj-escena > .aj-lista {
+  width: min(100%, calc(var(--fr) * 32));
+  margin: 0;
+}
+/* el abanico de los Dorsos: en arco (cada uno más alto hacia el medio), montados de costado, sin girar */
+.aj-abanico {
+  --k: var(--k-naipe);
+  display: flex;
+  align-items: flex-start;
+  line-height: 0;
+  padding-top: calc(10px * var(--k));
+}
+.aj-dorso {
+  --d: calc(var(--i) - 2);
+  margin-left: calc(-58px * var(--k));
+  translate: 0 calc((var(--d) * var(--d)) * 4px * var(--k) - 10px * var(--k));
+  filter: drop-shadow(calc(3px * var(--k)) calc(2px * var(--k)) 0 rgba(9, 7, 15, 0.7));
+}
+.aj-dorso:first-child {
+  margin-left: 0;
+}
+.aj-cuadro .anfitrion {
+  margin-top: calc(-40px * var(--k-naipe));
+}
+.cr-columna {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  width: min(100%, calc(var(--fr) * 36));
+  display: flex;
+  flex-direction: column;
+  gap: var(--u);
+}
+.cr-columna > .cr-datos,
+.cr-columna > .cr-lista {
+  width: 100%;
+}
+.cr-columna > .cr-lista {
+  flex: 0 1 auto;
+}
+/* la última partida, colgada: el retrato grande con su marco (oro si ganaste, hierro si caíste) y su chapa */
+.cr-ultima {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 1.25);
+  --k: var(--k3);
+}
+.cr-ultima-cara {
+  display: block;
+  width: calc(64px * var(--k));
+  height: calc(64px * var(--k));
+  background-size: 100% 100%;
+  image-rendering: pixelated;
+  box-shadow:
+    0 0 0 calc(1px * var(--k)) var(--abismo),
+    0 0 0 calc(2px * var(--k)) #5c5470,
+    0 0 0 calc(3px * var(--k)) #9a90a8,
+    0 0 0 calc(4px * var(--k)) var(--abismo);
+}
+.cr-ultima.gano .cr-ultima-cara {
+  box-shadow:
+    0 0 0 calc(1px * var(--k)) var(--abismo),
+    0 0 0 calc(2px * var(--k)) #ffd500,
+    0 0 0 calc(3px * var(--k)) #d86000,
+    0 0 0 calc(4px * var(--k)) var(--abismo);
+}
+.cr-chapa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: calc(var(--u) * 0.25) var(--u);
+  border: calc(8px * var(--k-naipe)) solid transparent;
+  border-image: var(--m-madera) 8 fill / calc(8px * var(--k-naipe)) / 0 repeat;
+  image-rendering: pixelated;
+  font-size: var(--fs-s);
+  text-align: center;
+}
+.cr-chapa .rotulo {
+  font-size: var(--fr);
+  color: var(--oro);
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  .aj-cuadro .anfitrion,
+  .cr-cuadro .anfitrion {
+    --k-bufon: 3;
+  }
+}
+/* portátil y Steam Deck: la Crónica no tiene alto para el retrato a triple y el Bufón: el retrato baja a doble */
+@media (max-height: 820px) and (min-width: 701px) {
+  .cr-ultima {
+    --k: var(--k2);
+  }
+  .cr-cuadro .anfitrion {
+    --k-bufon: 1;
+  }
+}
+/* el teléfono: en columna; el cuadro se achica (en Ajustes queda el abanico chico; en la Crónica, el retrato con su
+   chapa) y el Bufón grande se va */
+@media (max-width: 700px) {
+  .aj-escena,
+  .cr-escena {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: var(--u);
+  }
+  .aj-cuadro .anfitrion,
+  .cr-cuadro .anfitrion {
+    display: none;
+  }
+  .aj-dorso {
+    margin-left: calc(-70px * var(--k));
+    translate: 0 calc((var(--d) * var(--d)) * 3px * var(--k));
+  }
+  .aj-abanico {
+    padding-top: 0;
+  }
+  .cr-ultima {
+    --k: 1;
+    flex-direction: row;
+  }
+  .cr-columna {
+    flex: 1 1 auto;
+  }
+}

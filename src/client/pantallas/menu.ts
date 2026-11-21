@@ -277,6 +277,23 @@ export function pantallaColeccion(): Pantalla {
 
 // ───────────────────────── la Crónica ─────────────────────────
 
+/**
+ * El cuadro de la Crónica: el retrato de tu última partida colgado como un cuadro (marco de oro si ganaste, de hierro
+ * si caíste), con su chapa, y el Bufón al pie que lo comenta. Sin partidas, solo el Bufón.
+ */
+function cuadroCronica(): string {
+  const r = perfil.cronica[0];
+  const voz = anfitrion(tx(alAzar(VOZ.cronica, enFoto() ? 0 : undefined)), 'reposo', 'cr-bufon');
+  if (!r) return `<div class="cr-cuadro">${voz}</div>`;
+  const cara = urlRetrato(r.mazo, { mirada: 0, gesto: r.victoria ? 'feroz' : 'caido', herida: r.victoria ? 0 : 2 });
+  return `<div class="cr-cuadro">
+    <figure class="cr-ultima ${r.victoria ? 'gano' : 'cayo'}"><i class="cr-ultima-cara" style="background-image:url(${cara})"></i>
+      <figcaption class="cr-chapa"><b class="rotulo">${esc(tx(MAZO[r.mazo].nombre))}</b><span class="${r.victoria ? 'dorado' : 'rojo'}">${r.victoria ? t('gano') : t('cayo', { n: Math.min(3, r.acto + 1) })}</span></figcaption>
+    </figure>
+    ${voz}
+  </div>`;
+}
+
 export function pantallaCronica(): Pantalla {
   const s = perfil.stats;
   const dato = (rotulo: string, valor: number) => `<div class="cr-dato"><span class="rotulo">${rotulo}</span>${cifra(valor, 'oro', 'grande')}</div>`;
@@ -287,8 +304,11 @@ export function pantallaCronica(): Pantalla {
       <header class="cabecera">
         <button class="btn marco chico" data-accion="volver" data-foco="volver" data-inicio>‹ ${t('volver')}</button>
         ${solapas('cronica')}
-        ${miniAnfitrion(tx(alAzar(VOZ.cronica, enFoto() ? 0 : undefined)))}
+        <span class="lado"></span>
       </header>
+      <div class="cuerpo cr-escena">
+      ${cuadroCronica()}
+      <div class="cr-columna">
       <div class="cr-datos marco">${dato(t('partidas'), s.partidas)}${dato(t('victorias'), s.victorias)}${dato(t('reyesVencidos'), s.reyes)}${dato(t('mejorGolpe'), s.mejorGolpe)}</div>
       <section class="cr-lista marco">
         ${
@@ -307,6 +327,8 @@ export function pantallaCronica(): Pantalla {
             : `<p class="sub cr-vacia">${t('cronicaVacia')}</p>`
         }
       </section>
+      </div>
+      </div>
     </main>`,
     acciones: {
       ...irSolapa, volver: irPortada },
@@ -325,8 +347,13 @@ export function pantallaAjustes(): Pantalla {
       <header class="cabecera">
         <button class="btn marco chico" data-accion="volver" data-foco="volver" data-inicio>‹ ${t('volver')}</button>
         ${solapas('ajustes')}
-        ${miniAnfitrion(tx(alAzar(VOZ.ajustes, enFoto() ? 0 : undefined)))}
+        <span class="lado"></span>
       </header>
+      <div class="cuerpo aj-escena">
+      <div class="aj-cuadro">
+        <div class="aj-abanico" aria-hidden="true">${MAZOS.map((m, i) => `<span class="aj-dorso" style="--i:${i}">${pxDorso(m)}</span>`).join('')}</div>
+        ${anfitrion(tx(alAzar(VOZ.ajustes, enFoto() ? 0 : undefined)), 'reposo', 'aj-bufon')}
+      </div>
       <section class="aj-lista marco">
         <div class="aj-fila"><b>${t('idioma')}</b><div class="fila"><button class="btn marco chico ${idioma() === 'es' ? 'oro' : ''}" data-accion="es" data-foco="aj-es" aria-pressed="${idioma() === 'es'}">Español</button><button class="btn marco chico ${idioma() === 'en' ? 'oro' : ''}" data-accion="en" data-foco="aj-en" aria-pressed="${idioma() === 'en'}">English</button></div></div>
         <div class="aj-fila"><b>${t('calma')}</b>${conmuta('calma', ajustes.calma, 'aj-calma')}</div>
@@ -335,6 +362,7 @@ export function pantallaAjustes(): Pantalla {
         <div class="aj-fila"><b>${t('borrar')}</b><button class="btn marco chico" data-accion="borrar" data-foco="aj-borrar">${t('borrar')}</button></div>
         <p class="sub aj-creditos">${t('creditos')} · v${VERSION}</p>
       </section>
+      </div>
     </main>`,
     acciones: {
       ...irSolapa,

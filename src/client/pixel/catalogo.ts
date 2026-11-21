@@ -7,7 +7,7 @@ import { GLIFOS, TONO_CIFRA, cifraMapa, type TonoCifra } from './cifras';
 import { AMULETOS_PX, AUMENTOS_PX, BENDICIONES_PX, HUD_PX, NODOS_PX, amuletoMapa, aumentoMapa, bendicionMapa, hudMapa, inmuneMapa, nodoMapa, estrellaMapa } from './iconos';
 import { logoMapa } from './logo';
 import { BARRAS, barraMapa, marcoMapa, panoMapa, type Estilo } from './marcos';
-import { comodinMapa, dorsoNaipe, naipeMapa } from './naipes';
+import { comodinMapa, dorsoNaipe, naipeMapa, naipeSegundaMapa } from './naipes';
 import { cuadros, personajeMapa } from './personajes';
 import { REYES_PX, reyRetrato } from './reyes';
 import type { Mapa } from './rejilla';
@@ -23,6 +23,7 @@ export interface Pieza {
 export function catalogo(): Pieza[] {
   const out: Pieza[] = [];
   for (const s of PALOS) for (let n = 1; n <= 12; n++) out.push({ grupo: 'naipes', id: `${s}${n}`, m: naipeMapa(s, n), k: 2 });
+  for (const s of PALOS) out.push({ grupo: 'naipes', id: `${s}12-segunda`, m: naipeSegundaMapa(s), k: 2 });
   out.push({ grupo: 'naipes', id: 'comodin', m: comodinMapa(), k: 2 });
   for (const d of DORSOS) out.push({ grupo: 'dorsos', id: d, m: dorsoNaipe(d), k: 3 });
   for (const e of EXPRESIONES) out.push({ grupo: 'bufon', id: e, m: bufonMapa(e), k: 3 });

@@ -25,7 +25,9 @@ import { enFoto } from '../fx/motor';
 import { avivarRetrato, cargaQue, hudHtml } from '../hud';
 import { avanzar, guardar, irPortada, sesion, soltarPartida } from '../juego';
 import type { Expresion } from '../pixel/bufon';
-import { lienzoNaipe, cifra, pxAmuleto, pxAumento, pxBendicion, pxHud, pxInmune, pxNaipe, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
+import { lienzoNaipe, cifra, pxAmuleto, pxAumento, pxBendicion, pxHud, pxInmune, pxMitades, pxNaipe, pxNaipeSegunda, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
+import { naipeMapa } from '../pixel/naipes';
+import { personajeMapa } from '../pixel/personajes';
 import { JUGADA_COMO, JUGADA_NOMBRE, NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, TRAMO_NOMBRE } from '../textos';
 import { VOZ } from '../voces';
 import { bufonDice } from '../bufon-vivo';
@@ -484,13 +486,20 @@ export function pantallaBotin(p: Partida, desdeMesa = false): Pantalla {
     else if (directo || !quieto() || RAPIDO) modalOferta(p, pendiente(), trasElegir);
     else repintar();
   };
+  // cada cosa del botín es una pieza grande sobre la mesa (la moneda, el corazón, la corona del Rey, el candado del
+  // Amuleto, la estrella de la Cábala), a escala de naipe, con su nombre y, debajo, cobrado o ELEGIR
   const fila = (it: ItemBotin, i: number): string => {
-    if (it.t === 'oro') return `<div class="botin-fila hecho">${pxHud('oro')}<b>${t('oroMas', { n: it.n })}</b><span class="verde">✓</span></div>`;
-    if (it.t === 'cura') return `<div class="botin-fila hecho">${pxHud('vida')}<b>${t('vidaMas', { n: it.n })}</b><span class="verde">✓</span></div>`;
+    const pieza = (arte: string, nombre: string, pie: string, cls = '') => `<div class="botin-fila bp ${cls}" style="--orden:${i}"><span class="bp-arte">${arte}</span><b class="bp-nombre">${nombre}</b>${pie}</div>`;
+    const cobrado = `<span class="bp-cobrado verde" aria-hidden="true">✓</span>`;
+    if (it.t === 'oro') return pieza(pxHud('oro'), t('oroMas', { n: it.n }), cobrado, 'hecho oro');
+    if (it.t === 'cura') return pieza(pxHud('vida'), t('vidaMas', { n: it.n }), cobrado, 'hecho cura');
     const icono = it.oferta.tipo === 'bendicion' ? pxNodo('rey') : it.oferta.tipo === 'amuleto' ? pxHud('candado') : pxNodo('cabala');
-    return `<div class="botin-fila ${it.hecho ? 'hecho' : ''}">${icono}<b>${t(NOMBRE_OFERTA[it.oferta.tipo])}</b>${
-      it.hecho ? `<span class="verde">✓</span>` : `<button class="btn marco oro" data-accion="abrir" data-i="${i}" data-foco="botin-${i}" data-inicio>${t('elegir')}</button>`
-    }</div>`;
+    return pieza(
+      icono,
+      t(NOMBRE_OFERTA[it.oferta.tipo]),
+      it.hecho ? cobrado : `<button class="btn marco" data-accion="abrir" data-i="${i}" data-foco="botin-${i}" data-inicio>${t('elegir')}</button>`,
+      `${it.hecho ? 'hecho' : 'pendiente'} ${it.oferta.tipo}`,
+    );
   };
   return {
     nombre: directo ? 'elegi-una' : 'botin',
@@ -827,30 +836,48 @@ export function pantallaCabala(p: Partida): Pantalla {
 
 // ───────────────────────── el final ─────────────────────────
 
+/**
+ * El final, como cuadro. «La Corte cayó»: amanece sobre el arrabal, tu Personaje al centro con el sol detrás, el
+ * Bufón que festeja a su lado y, a tus pies, los naipes de los Reyes partidos en dos con su nombre. «Te llevó la
+ * Corte»: la vela de la mesa que se apaga, tu retrato partido en dos y, enfrente, entero, el Rey que te ganó (en su
+ * segunda cara), con los que habías vencido tirados a sus pies. Los números van en una tabla al costado del cuadro.
+ */
 export function pantallaFin(p: Partida): Pantalla {
   const gano = !!p.fin?.victoria;
   const s = p.stats;
   const dato = (rotulo: string, valor: number) => `<div class="fin-dato"><span class="rotulo">${rotulo}</span>${cifra(valor, 'hueso', 'grande')}</div>`;
   const reyes = p.tramos.map((tr, i) => ({ palo: tr.rey as Palo, vencido: i < s.reyes }));
   void PALOS;
+  const cuadro = { mirada: 0, gesto: gano ? 'feroz' : 'caido', herida: gano ? 0 : 2 } as const;
+  // cada Rey de la partida: los vencidos, partidos en dos y tirados; el que te ganó, de pie y en su segunda cara
+  const verdugo = gano ? -1 : reyes.findIndex((r) => !r.vencido);
+  const naipeRey = (palo: Palo, i: number): string => {
+    const nombre = `<b class="fin-rey-nombre rotulo">${esc(tx(REY_DEF[palo].apodo))}</b>`;
+    if (reyes[i].vencido) return `<div class="fin-rey caido" style="--i:${i}"><span class="fin-partido">${pxMitades(`naipe:${palo}12`, () => naipeMapa(palo, 12), i + 1, 'naipe')}</span>${nombre}</div>`;
+    if (i === verdugo) return `<div class="fin-rey verdugo" style="--i:${i}">${pxNaipeSegunda(palo)}${nombre}</div>`;
+    return `<div class="fin-rey espera" style="--i:${i}">${pxNaipe({ palo, n: 12 })}${nombre}</div>`;
+  };
+  const heroe = gano
+    ? `<div class="fin-heroe"><i class="fin-cara" style="background-image:url(${urlRetrato(p.mazoId, cuadro)})"></i></div>`
+    : `<div class="fin-heroe partido"><span class="fin-cara-partida">${pxMitades(`pj:${p.mazoId}|caido`, () => personajeMapa(p.mazoId, cuadro), 2, 'fin-mitad')}</span></div>`;
   return {
     nombre: gano ? 'fin-victoria' : 'fin-derrota',
     atras: soltarPartida,
     html: () => `<main class="pantalla fin ${gano ? 'gano' : 'perdio'}">
-      <div class="cuerpo">
+      <div class="cuerpo fin-escena">
         <h1 class="titulo fin-titulo">${t(gano ? 'victoria' : 'derrota')}</h1>
-        <div class="fin-arriba">
-          <i class="fin-cara" style="background-image:url(${urlRetrato(p.mazoId, { mirada: 0, gesto: gano ? 'feroz' : 'caido', herida: gano ? 0 : 2 })})"></i>
-          <div class="fin-reyes">${reyes.map((r) => reyHtml(r.palo, r.vencido ? 'vencido' : 'calma')).join('')}</div>
+        <div class="fin-cuadro">
+          ${anfitrion(tx(alAzar(gano ? VOZ.gano : VOZ.perdio, fijo())), gano ? 'risa' : 'sombria', 'fin-bufon')}
+          ${heroe}
+          <section class="panel fin-panel">
+            <div class="fin-datos">${dato(t('reyesVencidos'), s.reyes)}${dato(t('abatidos'), s.abatidos)}${dato(t('mejorGolpe'), s.mejorGolpe)}${dato(t('exactos'), s.exactos)}${dato(t('cantos'), s.cantos)}${dato(t('turnos'), s.turnos + s.combates)}</div>
+            <p class="fin-porotos dorado">${pxHud('poroto')} ${t('ganaste', { n: p.fin?.porotos ?? 0 })}</p>
+            ${sesion.abiertos.map((m) => `<p class="chip sinergia">${t('seAbrio', { m: tx(MAZO[m].nombre) })}</p>`).join('')}
+            ${sesion.reinadoAbierto ? `<p class="chip sinergia">${t('reinadoAbierto', { n: sesion.reinadoAbierto })}</p>` : ''}
+          </section>
+          <div class="fin-corte">${reyes.map((r, i) => naipeRey(r.palo, i)).join('')}</div>
         </div>
-        ${anfitrion(tx(alAzar(gano ? VOZ.gano : VOZ.perdio, fijo())), gano ? 'risa' : 'sombria', 'fin-bufon')}
-        <section class="panel fin-panel">
-          <div class="fin-datos">${dato(t('reyesVencidos'), s.reyes)}${dato(t('abatidos'), s.abatidos)}${dato(t('mejorGolpe'), s.mejorGolpe)}${dato(t('exactos'), s.exactos)}${dato(t('cantos'), s.cantos)}${dato(t('turnos'), s.turnos + s.combates)}</div>
-          <p class="fin-porotos dorado">${pxHud('poroto')} ${t('ganaste', { n: p.fin?.porotos ?? 0 })}</p>
-          ${sesion.abiertos.map((m) => `<p class="chip sinergia">${t('seAbrio', { m: tx(MAZO[m].nombre) })}</p>`).join('')}
-          ${sesion.reinadoAbierto ? `<p class="chip sinergia">${t('reinadoAbierto', { n: sesion.reinadoAbierto })}</p>` : ''}
-        </section>
-        <div class="fila">
+        <div class="fila fin-botones">
           <button class="btn marco oro grande" data-accion="otra" data-foco="otra" data-inicio>${t('otraVez')}</button>
           <button class="btn marco" data-accion="altar" data-foco="altar">${t('altar')}</button>
           <button class="btn marco" data-accion="portada" data-foco="portada">${t('portada')}</button>

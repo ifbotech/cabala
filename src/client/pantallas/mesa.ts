@@ -24,7 +24,7 @@ import { actualizarTiras, avivarRetrato, dispararFicha, gestoFijo, gestoRetrato,
 import { guardar, pintarFase } from '../juego';
 import { crearMano, type Mano, type Zona } from '../mano';
 import type { Expresion } from '../pixel/bufon';
-import { cifra, lienzoNaipe, pxAmuleto, pxAumento, pxBendicion, pxEstrella, pxHud, pxInmune, pxNaipe, pxNodo, pxPalo } from '../sprites';
+import { cifra, lienzoNaipe, lienzoNaipeSegunda, pxNaipeSegunda, pxAmuleto, pxAumento, pxBendicion, pxEstrella, pxHud, pxInmune, pxNaipe, pxNodo, pxPalo } from '../sprites';
 import type { AmuletoId } from '../../rules/amuletos';
 import type { AumentoId } from '../../rules/aumentos';
 import type { BendicionId } from '../../rules/reyes';
@@ -150,7 +150,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     return `<div class="e-sellos">${inmune}${estados}</div>
       <div class="e-centro" data-soltar="enemigo">
         <i class="e-pano"></i>
-        <div class="e-carta ${e.jefe ? 'jefe' : ''} ${e.segunda ? 'segunda' : ''}" data-carta style="--aura:${e.segunda ? AURA_SEGUNDA[e.palo] : AURA[e.palo]}">${pxNaipe({ palo: e.palo, n: e.rango })}</div>
+        <div class="e-carta ${e.jefe ? 'jefe' : ''} ${e.segunda ? 'segunda' : ''}" data-carta style="--aura:${e.segunda ? AURA_SEGUNDA[e.palo] : AURA[e.palo]}">${e.jefe && e.segunda ? pxNaipeSegunda(e.palo) : pxNaipe({ palo: e.palo, n: e.rango })}</div>
         <i class="e-halo" aria-hidden="true"></i>
         <span class="e-suelta chip canto">${t('soltaAca')}</span>
       </div>
@@ -533,7 +533,7 @@ export function pantallaMesa(p: Partida): Pantalla {
             sacudir($('[data-escena]'), 3);
           }
           if (r && enemigo) {
-            partirNaipe(lienzoNaipe(enemigo.palo, enemigo.rango), r, RAMPA_PALO[enemigo.palo]);
+            partirNaipe(enemigo.jefe && enemigo.segunda ? lienzoNaipeSegunda(enemigo.palo) : lienzoNaipe(enemigo.palo, enemigo.rango), r, RAMPA_PALO[enemigo.palo]);
             el!.classList.add('partida');
             monedas(r.left + r.width / 2, r.top + r.height / 2, centro($('[data-hud-oro]')).x, centro($('[data-hud-oro]')).y, 5);
           }

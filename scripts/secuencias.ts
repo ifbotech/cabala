@@ -96,28 +96,54 @@ await conServidor(5198, async (url) => {
       await rafaga('rey-segunda', 12, 170);
 
       // 3 · el Tajo de revés: repetir la jugada contra el Caudillo en segunda cara. Primero el aviso antes de soltar
-      // (el chip rojo junto a TE PEGA y el ×2 del Rey), después el golpe que vuelve doble y atraviesa el Escudo
+      // (el chip rojo junto a TE PEGA y el ×2 del Rey), después el golpe que vuelve doble y atraviesa el Escudo. La
+      // Carta sola no arma el Tajo (repiteJugada): se repite un Par (dos Pares seguidos); si la mano no tiene uno,
+      // se arma con dos cartas fuera de Espadas (el Caudillo es Inmune a Espadas)
       await libre();
+      await p.waitForFunction(() => document.querySelectorAll('[data-mano] .carta').length >= 2, undefined, { timeout: 6000 }).catch(() => undefined);
+      await p.waitForTimeout(600);
       const hayTajo = await p.evaluate(() => {
         const g = window as unknown as G;
         const x = g.__cabala.sesion.partida;
         const e = x.combate?.fila[0];
-        if (!e?.jefe || e.palo !== 'S' || !e.segunda) return false;
+        if (!e?.jefe || e.palo !== 'S' || !e.segunda) return 'no hay Caudillo en segunda cara';
         e.escudo = 0;
         e.vida = Math.max(e.vida, Math.floor(e.vidaMax * 0.45));
         x.vida = x.vidaMax;
-        const ids = x.combate.mano.map((k) => [k.id]).find((c) => {
+        const mano = x.combate.mano as { id: string; palo: string; n: number }[];
+        const sirve = (c: string[]): boolean => {
           const q = g.__mesa.cuenta(c);
-          return q.ok && !q.abate && !q.ejecuta && !!q.contra && q.contra > 0;
-        });
-        if (!ids) return false;
+          return q.ok && q.jugada === 'par' && !q.ejecuta;
+        };
+        // el Par no lo tiene que matar: el Rey queda con la Vida justa para aguantarlo (y pegar de vuelta)
+        const aguanta = (c: string[]): boolean => {
+          const q = g.__mesa.cuenta(c) as Q & { total: number };
+          if (q.abate) {
+            e.vida = Math.min(e.vidaMax, q.total + Math.ceil(e.vidaMax * 0.1));
+            g.__mesa.sincronizar();
+          }
+          const r = g.__mesa.cuenta(c);
+          return r.ok && !r.abate && !r.ejecuta && !!r.contra && r.contra > 0;
+        };
+        const pares: string[][] = [];
+        for (let i = 0; i < mano.length; i++) for (let j = i + 1; j < mano.length; j++) pares.push([mano[i].id, mano[j].id]);
+        let ids = pares.find(sirve);
+        if (!ids && mano.length >= 2) {
+          // cartas nuevas (ids nuevos), para que la mano las dibuje de verdad
+          mano.splice(0, 2, { id: 'qa-par-oros', palo: 'D', n: 3 }, { id: 'qa-par-copas', palo: 'H', n: 3 });
+          g.__mesa.sincronizar();
+          ids = sirve([mano[0].id, mano[1].id]) ? [mano[0].id, mano[1].id] : undefined;
+        }
+        if (ids && !aguanta(ids)) ids = undefined;
+        if (!ids) return `sin Par que arme el Tajo (mano ${mano.length}: ${JSON.stringify(g.__mesa.cuenta([mano[0]?.id, mano[1]?.id].filter(Boolean)))})`;
         x.combate.ultimaJugada = g.__mesa.cuenta(ids).jugada;
         g.__mesa.sincronizar();
         g.__mesa.mano.elegir(ids);
         (window as unknown as { __tajo: string[] }).__tajo = ids;
         return true;
       });
-      if (hayTajo) {
+      if (hayTajo !== true) console.log(`secuencias · ${w} · rey-tajo: ${hayTajo}`);
+      if (hayTajo === true) {
         await p.waitForTimeout(400);
         await p.screenshot({ path: `${SALIDA}/${w}-rey-tajo-00.png` });
         await p.evaluate(() => void (window as unknown as G).__mesa.golpear((window as unknown as { __tajo: string[] }).__tajo));

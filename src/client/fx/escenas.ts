@@ -13,7 +13,7 @@ import { BAYER4 } from '../pixel/dither';
 
 type Ctx = CanvasRenderingContext2D;
 
-export type Escena = 'mesa' | 'mapa' | 'pulperia' | 'fogon' | 'portada' | 'altar';
+export type Escena = 'mesa' | 'mapa' | 'pulperia' | 'fogon' | 'portada' | 'altar' | 'amanecer' | 'ocaso';
 
 /** El azar con semilla del motor (las escenas no lo importan para no cerrar un círculo de módulos). */
 export interface Kit {
@@ -522,7 +522,7 @@ function penumbra(def: typeof PORTADA, W: number, H: number, kit: Kit): Escenari
 
 const MADERA = ['#09070f', '#150a1c', '#24102a', '#3a182e', '#52222c', '#6b3226', '#874a28'];
 
-function mesa(W: number, H: number, palo: Palo | null, kit: Kit): Escenario {
+function mesa(W: number, H: number, palo: Palo | null, kit: Kit, apagada = false): Escenario {
   const vert = H > W;
   const yLejos = Math.round(H * (vert ? 0.075 : 0.125));
   const yCanto = Math.round(H * (vert ? 0.705 : 0.745));
@@ -624,6 +624,7 @@ function mesa(W: number, H: number, palo: Palo | null, kit: Kit): Escenario {
     [1.2, 1.4],
     [1.3, 1.65],
   ].map(([ap, g]) => () => P.cuadro(candil(ap, g), 0.14));
+  if (apagada) return velaQueSeApaga(P, candil, vert, vx, vy - altoVela, W, H, kit);
 
   const llama = llamas(9, 14, 5);
   const humos = [copo(22, '#2a1838', 0.34, 1), copo(30, '#24142f', 0.3, 2.2), copo(17, '#2e1c3c', 0.36, 3.7)];
@@ -1219,6 +1220,124 @@ function fogon(W: number, H: number, kit: Kit): Escenario {
   };
 }
 
+// ───────────── los finales: el amanecer y la vela que se apaga ─────────────
+
+/**
+ * «La Corte cayó»: amanece sobre el arrabal. El cielo pasa del índigo de la noche al carmesí y al oro contra el
+ * horizonte, con los rayos del sol que asoma detrás de los ranchos (el sol cae justo detrás del Personaje), las últimas
+ * estrellas arriba y el campo que agarra la luz de frente. Lo que se mueve: polvo de oro que sube.
+ */
+function amanecer(W: number, H: number, kit: Kit): Escenario {
+  const vert = H > W;
+  const yH = Math.round(H * (vert ? 0.44 : 0.6));
+  // el sol queda detrás del Personaje (al centro, a la altura de su retrato), ya despegado del horizonte
+  const sx = W * 0.5;
+  const sy = Math.round(H * (vert ? 0.17 : 0.39));
+  const sr = Math.max(10, Math.round(Math.min(W, H) * (vert ? 0.16 : 0.19)));
+  const CIELO = 0;
+  const SIL = 1;
+  const CAMPO = 2;
+  const P = new Plano(W, H, [
+    { tonos: ['#09070f', '#120a24', '#2e0f52', '#5a1e96', '#7a0026', '#d0104a', '#d86000', '#ff7b00', '#ffd500', '#fff799'], libre: true },
+    { tonos: ['#09070f', '#120a24', '#2e0f52', '#47062c'], libre: true },
+    { tonos: ['#09070f', '#150a1c', '#2e0f52', '#47062c', '#7a0026', '#d86000', '#ff7b00'] },
+  ]);
+  // el cielo: claridad que sube hacia el horizonte y hacia el sol, y los rayos en abanico (cuñas más claras)
+  P.cada(0, 0, W, yH, (x, y, i) => {
+    const f = (y + 1) / yH;
+    const dx = x + 0.5 - sx;
+    const dy = sy - y;
+    const ang = Math.atan2(dy, dx);
+    const rayo = Math.cos(ang * 22) > 0.55 ? 0.09 : 0;
+    const cerca = Math.max(0, 1 - Math.hypot(dx / (W * 0.55), (yH - y) / (yH * 1.1)));
+    P.mat[i] = CIELO;
+    const halo = Math.max(0, 1 - Math.hypot(dx, dy) / (sr * 3.2));
+    P.alb[i] = Math.min(1, 0.04 + 0.5 * f ** 1.6 + 0.36 * cerca ** 1.5 + 0.45 * halo ** 1.4 + rayo * Math.max(cerca, halo));
+  });
+  for (let k = 0; k < Math.round(W / 10); k++) {
+    const x = Math.floor(r1(k * 1.7 + 3) * W);
+    const y = Math.floor(r1(k * 3.1 + 7) ** 1.8 * yH * 0.4);
+    P.tinta(x, y, k % 4 === 0 ? '#c88bff' : '#5a1e96');
+  }
+  // el sol: disco de oro claro con su corona tramada (el horizonte lo corta si baja hasta ahí)
+  P.cada(sx - sr - 3, sy - sr - 3, sr * 2 + 7, Math.min(sr * 2 + 7, yH - (sy - sr - 3)), (x, y) => {
+    const d = Math.hypot(x + 0.5 - sx, y + 0.5 - sy);
+    if (d < sr - 2) P.tinta(x, y, d < sr * 0.6 ? '#fffbe0' : '#fff799');
+    else if (d < sr) P.tinta(x, y, '#ffd500');
+    else if (d < sr + 2 && ((x + y) & 1) === 0) P.tinta(x, y, '#ffd500');
+  });
+  // el campo: agarra la luz del sol de frente y se apaga hacia abajo
+  P.cada(0, yH, W, H - yH, (x, y, i) => {
+    const f = (y - yH) / (H - yH);
+    P.mat[i] = CAMPO;
+    P.alb[i] = 0.5 + 0.45 * Math.exp(-f * 5) + 0.12 * (veta(x / (10 + f * 40), Math.floor(f ** 0.5 * 50) * 3.1) - 0.5) + 0.05 * (r2(x, y) - 0.5);
+  });
+  // el camino de luz del sol sobre el campo, angostándose hacia el frente
+  P.cada(0, yH, W, H - yH, (x, y, i) => {
+    const f = (y - yH) / (H - yH);
+    const ancho = sr * (1.1 - f * 0.5);
+    if (Math.abs(x + 0.5 - sx) < ancho && r2(x >> 1, y) > 0.35 + f * 0.4) P.alb[i] *= 1.25;
+  });
+  arrabal(P, yH + 1, SIL, 23, vert ? 1.3 : 1.8);
+  const cuadros = [0.96, 1, 1.05].map((a) => () => P.cuadro([{ x: sx, y: sy, rx: W * 0.9 * a, ry: H * 0.8 * a, g: 0.55 }], 0.32));
+  // polvo de oro que sube despacio desde el campo
+  const polvo = brasero(
+    Math.round((W * H) / 12000),
+    (arranque) => {
+      const max = kit.entre(4, 9);
+      return { x: kit.entre(0, W), y: arranque ? kit.entre(yH * 0.5, H) : H + 2, vx: kit.entre(-2, 2), vy: kit.entre(-8, -3), vida: arranque ? kit.entre(0, max) : 0, max, tipo: 1, fase: kit.entre(0, 6) };
+    },
+    (_m, f) => (f < 0.3 ? '#fff799' : f < 0.7 ? '#ffd500' : '#d86000'),
+  );
+  return {
+    ...perezosos(cuadros),
+    base: 1,
+    elegir: (_t, respiro) => Math.min(2, Math.max(0, respiro - 1)),
+    animar(x, dt, _t, quieto) {
+      if (!quieto) polvo(x, dt);
+    },
+  };
+}
+
+/**
+ * «Te llevó la Corte»: la misma mesa de tablas, con la vela que se apaga: la luz casi cerrada (dos cuadros que apenas
+ * respiran), el pabilo que queda en brasa y la columna de humo que sube de él.
+ */
+function velaQueSeApaga(P: Plano, candil: (ap: number, g: number) => Luz[], vert: boolean, px: number, py: number, W: number, H: number, kit: Kit): Escenario {
+  const cuadros = [
+    [0.8, 0.4],
+    [0.84, 0.46],
+  ].map(([ap, g]) => () => P.cuadro(candil(ap, g), 0.08));
+  const humos = [copo(5, '#3a2a4a', 0.5, 1.3), copo(7, '#2e2238', 0.45, 2.9), copo(9, '#241a2e', 0.4, 4.1)];
+  const hilos = Array.from({ length: 7 }, (_, i) => ({ y: py - 4 - i * 9, x: 0, s: i % 3 }));
+  return {
+    ...perezosos(cuadros),
+    base: 0,
+    elegir: (_t, respiro) => respiro % 2,
+    animar(x, dt, t, quieto) {
+      if (vert) return;
+      // la brasa del pabilo: titila entre dos tintas
+      x.fillStyle = quieto || Math.floor(t * 3) % 2 ? '#ff7b00' : '#d86000';
+      x.fillRect(px - 1, py - 4, 2, 2);
+      x.fillStyle = '#7a0026';
+      x.fillRect(px - 1, py - 2, 2, 1);
+      // el humo: sube del pabilo, se abre y se hamaca
+      for (const h of hilos) {
+        if (!quieto) {
+          h.y -= 6 * dt;
+          if (h.y < py - H * 0.45) h.y = py - 4;
+        }
+        const sube = (py - 4 - h.y) / (H * 0.45);
+        const c = humos[Math.min(2, Math.floor(sube * 3))];
+        const dx = Math.round(Math.sin(t * 0.8 + h.y * 0.07) * (2 + sube * 10));
+        x.drawImage(c, Math.round(px - c.width / 2 + dx), Math.round(h.y - c.height / 2));
+      }
+      void W;
+      void kit;
+    },
+  };
+}
+
 /** Arma la escena de una parada a ese tamaño (en celdas). `palo` es el clima del Rey, solo para la mesa. */
 export function armarEscenario(escena: Escena, palo: Palo | null, W: number, H: number, kit: Kit): Escenario {
   switch (escena) {
@@ -1232,6 +1351,10 @@ export function armarEscenario(escena: Escena, palo: Palo | null, W: number, H: 
       return fogon(W, H, kit);
     case 'altar':
       return penumbra(ALTAR, W, H, kit);
+    case 'amanecer':
+      return amanecer(W, H, kit);
+    case 'ocaso':
+      return mesa(W, H, null, kit, true);
     default:
       return penumbra(PORTADA, W, H, kit);
   }

@@ -11,7 +11,7 @@ import { bufonMapa } from './bufon';
 import { CIFRA_H, CIFRA_W, glifo } from './cifras';
 import { umbral } from './dither';
 import { dorsoMapa } from './dorsos';
-import { figuraLienzo } from './figuras';
+import { figuraLienzo, figuraSegunda } from './figuras';
 import { LETRA_PALO } from './paleta';
 import { Lienzo, girar } from './pincel';
 import { pintaNaipe, type Talla } from './pintas';
@@ -168,6 +168,23 @@ export function naipeMapa(s: Palo, rango: number): string[] {
   else if (rango === 1) l.pegar(asMapa(s), OX, 0);
   else for (const p of pintasColocadas(s, rango)) l.pegar(p.m, OX + p.x, p.y);
   indice(l, s, rango);
+  const m = l.mapa();
+  cache.set(clave, m);
+  return m;
+}
+
+/**
+ * El naipe del Rey en su segunda cara: el mismo papel, recuadro y número, con otro dibujo (herido, enojado, la capa
+ * violeta, la corona torcida, la grieta en el manto y el rasgo de su segunda cara). Lo revela el volteo en la mesa.
+ */
+export function naipeSegundaMapa(s: Palo): string[] {
+  const clave = `${s}seg`;
+  const hecho = cache.get(clave);
+  if (hecho) return hecho;
+  const l = papel();
+  recuadro(l, s, 12);
+  l.pegar(figuraSegunda(s), OX, 0);
+  indice(l, s, 12);
   const m = l.mapa();
   cache.set(clave, m);
   return m;

@@ -2010,16 +2010,7 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 }
 
 /* ───────────── 0.15.0 · la segunda cara a la vista y el «al pelo» quieto ───────────── */
-/* la segunda cara del Rey reemplaza a su rasgo: carmesí y con un latido lento, para que se note que la pelea cambió */
-.mesa .e-rasgo.e-segunda {
-  background: #8a0f2e;
-  color: #fff3e0;
-  box-shadow: 0 0 0 2px #ff4d6d, 0 0 14px rgba(255, 77, 109, 0.55);
-  animation: segunda-late 1.6s ease-in-out infinite;
-}
-@keyframes segunda-late {
-  50% { box-shadow: 0 0 0 2px #ff4d6d, 0 0 22px rgba(255, 77, 109, 0.85); }
-}
+/* la segunda cara del Rey reemplaza a su rasgo (su latido, a celda entera, va en el bloque de la 0.17) */
 /* «¡AL PELO!» no salta como el Golpe exacto: es un aviso, no un premio */
 .mesa .chip.c-alpelo {
   animation: none;
@@ -2401,13 +2392,35 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     filter: none;
   }
 }
-/* con la segunda cara, el Rey lleva doble anillo de su aura nueva */
+/* con la segunda cara, el Rey lleva doble anillo de su aura nueva; el de afuera late a celda entera (dos tintas que
+   alternan con steps, sin halo borroso) */
 .e-carta.jefe.segunda {
   box-shadow:
     0 0 0 calc(1px * var(--k-enemigo)) var(--abismo),
     0 0 0 calc(2px * var(--k-enemigo)) var(--aura),
     0 0 0 calc(3px * var(--k-enemigo)) var(--abismo),
     0 0 0 calc(4px * var(--k-enemigo)) var(--aura);
+}
+/* (el latido no pisa los gestos del naipe: el golpe, la embestida, la entrada, el habla y el volteo) */
+.e-carta.jefe.segunda:not(.herido, .embiste, .entra, .habla, .voltea) {
+  animation:
+    e-flota 2.6s steps(4) infinite alternate,
+    e-aura-seg 1.2s steps(1) infinite;
+}
+.e-carta.jefe.segunda.volteada:not(.herido, .embiste, .entra, .habla, .voltea) {
+  animation:
+    voltea-abre 0.34s steps(6) both,
+    e-flota 2.6s steps(4) 0.34s infinite alternate,
+    e-aura-seg 1.2s steps(1) 0.34s infinite;
+}
+@keyframes e-aura-seg {
+  50% {
+    box-shadow:
+      0 0 0 calc(1px * var(--k-enemigo)) var(--abismo),
+      0 0 0 calc(2px * var(--k-enemigo)) var(--aura),
+      0 0 0 calc(3px * var(--k-enemigo)) var(--abismo),
+      0 0 0 calc(4px * var(--k-enemigo)) #ffd0d8;
+  }
 }
 
 /* el cartel «SEGUNDA CARA»: una banda del color nuevo que cae de golpe, tiembla y se pliega (la irrupción, en
