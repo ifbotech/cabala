@@ -1,5 +1,5 @@
 # CÁBALA — Reglas
-> Versión 0.16.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
+> Versión 0.17.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
 
 *Todo es cuestión de cábala.* Roguelike de baraja española para un jugador. Elegís un Mazo, el Bufón te lleva por tres tramos de caminos y al fondo de cada uno te espera un Rey. Tu mano contra la Corte: cada golpe es **DAÑO × MULTI**.
 
@@ -89,7 +89,7 @@ Cada Rey te corteja con Bendiciones y, si es el jefe de un tramo, te enfrenta co
 
 **La segunda cara.** Cuando un Rey baja a media Vida, la pelea cambia:
 
-- **El Caudillo · Tajo de revés.** A media Vida: si repetís la jugada de tu golpe anterior, ese turno TE PEGA ×2 y atraviesa todo tu Escudo. Cambiá de jugada cada golpe.
+- **El Caudillo · Tajo de revés.** A media Vida: si repetís la jugada de tu golpe anterior (salvo Carta sola), ese turno TE PEGA ×2 y atraviesa todo tu Escudo. Cambiá de jugada cada golpe.
 
 - **El Cacique · Fortín.** A media Vida: levanta un Escudo de un 25 % de su Vida máxima y desde ahí lo recupera ×2 por turno. Las Espadas lo atraviesan.
 
@@ -128,16 +128,16 @@ Exactamente **15**: tres por palo (uno Común, uno Raro, uno Épico) y tres del 
 
 | Amuleto | De | Rareza | Efecto | Precio |
 |---|---|---|---|---|
-| **Cuchillo criollo** | Espadas | Común | +3 de Daño por carta de Espadas del golpe, y +1 por punto de carga de su Rey (tope +6). | 10 |
+| **Cuchillo criollo** | Espadas | Común | +2 de Daño por cada Espada del golpe (×2 en el tramo 2, ×3 en el 3). Enemigo a media Vida o menos: ×2. | 10 |
 | **Facón de plata** | Espadas | Raro | Abatir a un enemigo con Espadas en el golpe: +1 de Multi en tu próximo golpe. | 16 |
 | **Lanza del Caudillo** | Espadas | Épico | Todos tus golpes Perforan, y lo que sobra pasa ×2 al siguiente. | 24 |
-| **Rebenque** | Bastos | Común | +3 de Daño por carta de Bastos del golpe, y +1 por punto de carga de su Rey (tope +6). | 10 |
+| **Rebenque** | Bastos | Común | +2 de Daño por cada Basto del golpe (×2 en el tramo 2, ×3 en el 3). Y cada Basto te da +1 de Escudo más. | 10 |
 | **Boleadoras** | Bastos | Raro | Golpe con 2 o más Bastos: el enemigo queda Aturdido (una vez por enemigo). | 16 |
 | **Poncho del Cacique** | Bastos | Épico | Con 6 o más de Escudo: +2 de Multi. | 24 |
-| **Moneda falsa** | Oros | Común | +3 de Daño por carta de Oros del golpe, y +1 por punto de carga de su Rey (tope +6). | 10 |
+| **Moneda falsa** | Oros | Común | +2 de Daño por cada Oro del golpe (×2 en el tramo 2, ×3 en el 3). Con 3 o más Oros en el golpe, +1 de Multi. | 10 |
 | **Taba** | Oros | Raro | Cada turno se tira la taba: con 4 o más, +1 de Multi. | 16 |
 | **Cofre del Caudal** | Oros | Épico | +1 de Multi por cada 30 de oro que tengas (tope +2). | 24 |
-| **Mate curado** | Copas | Común | +3 de Daño por carta de Copas del golpe, y +1 por punto de carga de su Rey (tope +6). | 10 |
+| **Mate curado** | Copas | Común | +2 de Daño por cada Copa del golpe (×2 en el tramo 2, ×3 en el 3). Y cada Copa te cura +1 más. | 10 |
 | **Bota de vino** | Copas | Raro | Al empezar cada combate curás 8 de Vida. | 16 |
 | **Cáliz del Bacanal** | Copas | Épico | Con 80 % de Vida o más: +2 de Multi. | 24 |
 | **Cascabel del Bufón** | El Bufón | Legendario | Los cantos de tu Mazo valen doble, y cada canto te deja +1 de Multi para el resto del combate. | 40 |
@@ -175,11 +175,11 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 
 | Mazo | Personaje | Vida · mano | Regla estrella | Se abre con |
 |---|---|---|---|---|
-| **Escoba** · Escoba del 15 | La Barrendera | 80 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×3 y más Daño para siempre. | abierto desde el principio |
-| **Truco** · Envido y Bravas | El Paisano Bravo | 96 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
-| **Chinchón** · Pierna y Escalera | La Timbera del Club | 63 · 7 | Piernas y Escaleras de palo crecen siempre y te cubren. | Vencé a un Rey. |
-| **El Mentiroso** · Cara de Piedra | El Chamuyero | 43 · 8 | Cuatro Comodines y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
-| **Chancho Va** · Mano al Centro | El Manotazo | 90 · 4 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
+| **Escoba** · Escoba del 15 | La Barrendera | 73 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×3 y más Daño para siempre. | abierto desde el principio |
+| **Truco** · Envido y Bravas | El Paisano Bravo | 88 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
+| **Chinchón** · Pierna y Escalera | La Timbera del Club | 43 · 7 | Piernas y Escaleras de palo crecen siempre y te cubren. | Vencé a un Rey. |
+| **El Mentiroso** · Cara de Piedra | El Chamuyero | 40 · 8 | Cuatro Comodines y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
+| **Chancho Va** · Mano al Centro | El Manotazo | 80 · 4 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
 
 **Escoba** (¡ESCOBA!)
 - Mano de 3 cartas, como en la mesa: tus golpes llevan +4 de Multi.
@@ -200,7 +200,7 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 
 **El Mentiroso** (¡MENTIRA!)
 - Mano de 8 cartas.
-- Tu Mazo lleva 4 Comodines.
+- Tu Mazo lleva 3 Comodines.
 - Engaño, una vez por combate: todas las cartas del golpe fingen ser tu carta más alta y nada les es Inmune.
 - Si el Engaño no abate al enemigo, su Furia sube 3.
 

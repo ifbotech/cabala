@@ -106,6 +106,10 @@ const FUNCIONES = {
   deckDeVerdad: true,
   /** 0.16.0: las segundas caras cambian el plan (Tajo de revés, Fortín, Remate, Última ronda). */
   segundasFuertes: true,
+  /** 0.17.0: los cuatro Amuletos comunes dejan de ser clones y la Pulpería no ofrece dos Comunes juntos. */
+  comunesDistintos: true,
+  /** 0.17.0: la cifra grande del Rey muestra el golpe real con el ×2 del Tajo de revés y la regla queda a la vista. */
+  tajoALaVista: true,
 };
 
 const c = (palo: PaloCarta, n: number): Carta => ({ id: `${palo}${n}`, palo, n });
