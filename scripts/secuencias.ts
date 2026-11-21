@@ -1,6 +1,7 @@
 // Secuencias de cuadros para el Jurado Fable: lo que una foto quieta no cuenta. Cada secuencia son varios cuadros
 // seguidos del mismo momento (la irrupción del Rey, su segunda cara, el Tajo de revés, la caída del Rey encadenada con
-// el botín, el golpe con su conteo, el botín que brota sobre la mesa, el paso en el mapa), en Steam Deck y en móvil,
+// el botín, el golpe con su conteo, el Chiche que se usa y el golpe en el paño de Postas, el botín que brota sobre la
+// mesa, el paso en el mapa), en Steam Deck y en móvil,
 // en español. En Steam Deck, además, un recorrido entero con un mando virtual (la API Gamepad del navegador, leída
 // por nav.ts como la de un mando de verdad): elegir, golpear, cobrar y elegir el premio sin tocar el ratón.
 // Quedan en artifacts/jurado/secuencias/<ventana>-<momento>-NN.png.
@@ -28,9 +29,16 @@ interface Q {
 type G = {
   __cabala: {
     sesion: { partida: { racha: number; vida: number; vidaMax: number; bendiciones: Record<string, number>; combate: { golpes: number; ultimaJugada?: string; mano: { id: string; palo: string }[]; fila: { vida: number; vidaMax: number; escudo: number; palo: string; jefe?: boolean; segunda?: boolean }[] } } };
-    mejorGolpe: (p: unknown) => { ids: string[] } | null;
+    mejorGolpe: (p: unknown) => { ids: string[]; postas?: number[] } | null;
   };
-  __mesa: { sincronizar: () => void; golpear: (ids: string[]) => void; cuenta: (ids: string[]) => Q; ocupado: () => boolean; mano: { elegir(ids: string[]): void } };
+  __mesa: {
+    sincronizar: () => void;
+    golpear: (ids: string[], postas?: number[]) => void;
+    cuenta: (ids: string[]) => Q;
+    ocupado: () => boolean;
+    usarChiche: (i: number) => Promise<void>;
+    mano: { elegir(ids: string[], postas?: number[]): void };
+  };
   __pad?: { pulsar(i: number, ms?: number): void };
 };
 
@@ -240,6 +248,38 @@ await conServidor(5198, async (url) => {
         if (m) g.__mesa.golpear(m.ids);
       });
       await rafaga('golpe', 9, 150);
+
+      // 5b · el Chiche y el paño: el Dado Cargado vuela de la bandeja a la mano (y arma el próximo paso), después la mejor
+      // jugada se apoya en sus Postas (el naipe del Medio pega doble; la Chispa y el Escalón si los hay) y se golpea
+      await mesa('mesa-chiches');
+      await p.waitForTimeout(600);
+      await vigilar();
+      await p.evaluate(() => void (window as unknown as G).__mesa.usarChiche(1));
+      for (let i = 0; i < 6; i++) {
+        await p.screenshot({ path: `${SALIDA}/${w}-chiche-usa-${String(i + 1).padStart(2, '0')}.png` });
+        await p.waitForTimeout(110);
+      }
+      await cosechar('chiche-usa');
+      await libre();
+      const armo = await p.evaluate(() => {
+        const g = window as unknown as G;
+        const m = g.__cabala.mejorGolpe(g.__cabala.sesion.partida);
+        if (!m) return false;
+        g.__mesa.mano.elegir(m.ids, m.postas);
+        (window as unknown as { __postas: { ids: string[]; postas?: number[] } }).__postas = m;
+        return true;
+      });
+      if (!armo) fallos.push(`${w} · postas-golpe: no hay jugada para el paño`);
+      else {
+        await p.waitForTimeout(350);
+        await p.screenshot({ path: `${SALIDA}/${w}-postas-golpe-00.png` });
+        await p.evaluate(() => {
+          const g = window as unknown as G;
+          const m = (window as unknown as { __postas: { ids: string[]; postas?: number[] } }).__postas;
+          g.__mesa.golpear(m.ids, m.postas);
+        });
+        await rafaga('postas-golpe', 10, 150);
+      }
 
       // 6 · el último enemigo de un combate común cae: lo mismo que el Rey, más corto
       await mesa('mesa');

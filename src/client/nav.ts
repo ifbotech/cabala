@@ -1,7 +1,9 @@
 // Teclado y mando, sin huecos: las flechas (o la cruceta y la palanca del mando) mueven el foco hacia donde apuntan;
 // Enter, Espacio o A activan; Escape o B vuelven; G / X golpea, D / Y descarta, E / LT arma el Engaño, J / Select abre
-// JUGADAS, RT abre «Lo que llevás», LB y RB saltan entre la mano y los botones, la palanca derecha desplaza lo que se
-// desplaza y Start abre el menú. Lo que se inspecciona sin pulsarse (el enemigo, La Corte) lleva `tabindex="0"`.
+// JUGADAS, RT abre «Lo que llevás», LB y RB saltan entre la mano y los botones (con una carta del paño enfocada, la
+// corren una Posta a la izquierda o a la derecha), C / L3 lleva el foco a la bandeja de Chiches, la palanca derecha
+// desplaza lo que se desplaza y Start abre el menú. Lo que se inspecciona sin pulsarse (el enemigo, La Corte) lleva
+// `tabindex="0"`.
 import { $, $$, atras, hayModal } from './ui';
 
 const FOCO = 'button:not(:disabled):not([aria-disabled="true"]), [tabindex="0"]';

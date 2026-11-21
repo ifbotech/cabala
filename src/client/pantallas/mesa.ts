@@ -1007,7 +1007,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     };
     const arriba = (tr: string) => poner({ top: '6px', bottom: 'auto', left: '50%', right: 'auto', translate: tr });
     const abajo = (tr: string) => poner({ top: 'auto', bottom: '6px', left: '50%', right: 'auto', translate: tr });
-    ubicar(b, 'bocadillo', ms, [poner({}), arriba('-50% 0'), abajo('-50% 0'), arriba('-42% 0'), abajo('-42% 0'), arriba('-58% 0'), abajo('-58% 0'), arriba('-34% 0'), abajo('-34% 0')]);
+    ubicar(b, 'bocadillo', ms, [poner({}), arriba('-50% 0'), abajo('-50% 0'), arriba('-42% 0'), abajo('-42% 0'), arriba('-58% 0'), abajo('-58% 0'), arriba('-34% 0'), abajo('-34% 0'), arriba('-68% 0'), abajo('-68% 0')]);
   }
   /** El Rey dice algo corto en plena pelea (no frena nada): un bocadillo tecleado con su voz, bajo su naipe. */
   let reyHablo = 0;
@@ -1192,8 +1192,9 @@ export function pantallaMesa(p: Partida): Pantalla {
     sincronizar();
     pintarChiches();
     guardar();
-    // (con mando, el foco sigue en la bandeja si queda algo; si no, vuelve a la mano)
-    if (porTeclado()) ($<HTMLElement>('[data-chiches] button.chiche') ?? $<HTMLElement>('[data-mano] .carta'))?.focus();
+    // (con mando, el foco vuelve a la mano: la ficha del Chiche con foco taparía el desglose de la jugada que sigue, y
+    // L3/C trae la bandeja de nuevo)
+    if (porTeclado()) $<HTMLElement>('[data-mano] .carta')?.focus();
   }
   /** Arrastrar un Chiche al enemigo también lo usa (como soltar naipes sobre él). */
   function arrastreChiches(raiz: HTMLElement): void {
@@ -1276,6 +1277,8 @@ export function pantallaMesa(p: Partida): Pantalla {
     }
   }
   /** El sello «SE PLANTA EN LA MITAD» pegado bajo el número del golpe que se frenó, en su mismo carril. */
+  /** El sello «SE PLANTA EN LA MITAD» en el aire (el cartel de la segunda cara, que llega después, lo despide). */
+  let plantaViva: { el: HTMLElement; id: number } | null = null;
   function selloPlanta(caja: { x: number; y: number; w: number; h: number }, pierde: number): void {
     if (enFoto()) return;
     const s = document.createElement('div');
@@ -1289,7 +1292,8 @@ export function pantallaMesa(p: Partida): Pantalla {
       s.style.left = `${Math.round(Math.max(w / 2 + 6, Math.min(innerWidth - w / 2 - 6, cx)))}px`;
       s.style.top = `${Math.round(caja.y + caja.h + dy)}px`;
     };
-    ubicar(s, 'sello', 1100, [pon(6), pon(26), pon(-caja.h - s.offsetHeight - 10)]);
+    const pd = ubicar(s, 'sello', 1100, [pon(6), pon(26), pon(-caja.h - s.offsetHeight - 10)]);
+    plantaViva = { el: s, id: pd.id };
     window.setTimeout(() => s.remove(), quieto() ? 1500 : 1100);
   }
   /** Si el golpe trae canto, el canto grande espera al número: sale después, arriba del naipe y en otro renglón. */
@@ -1402,6 +1406,12 @@ export function pantallaMesa(p: Partida): Pantalla {
     chispas(en.x, en.y, RAMPA_PALO[palo], 16, 110);
     // el cartel pide su lugar al director: si el número del golpe que lo dejó a media Vida sigue en el aire, se corre o
     // espera su turno (nada de «TAJO 240 REVÉS» ni de un número borrado)
+    // (el sello de «se planta en la mitad» ya se leyó: la segunda cara lo despide para tener su lugar)
+    if (plantaViva) {
+      soltarTurno(plantaViva.id);
+      plantaViva.el.remove();
+      plantaViva = null;
+    }
     const g = document.createElement('div');
     g.className = 'cartel-segunda';
     g.style.setProperty('--tinte', AURA_SEGUNDA[palo]);

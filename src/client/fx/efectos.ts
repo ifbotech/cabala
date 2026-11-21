@@ -390,8 +390,10 @@ export function numero(texto: string | number, x: number, y: number, tono: TonoC
       }
     },
   });
-  // la caja donde nace (en píxeles de pantalla): para pegarle un sello en su mismo carril
-  return { x: px * S, y: py * S, w: base * escala * S, h: altoG * escala * S };
+  // la caja de todo su vuelo (en píxeles de pantalla, con el rebote del primer instante): para pegarle un sello en su
+  // mismo carril sin que el número, al subir o al caer, se le meta encima
+  const vuelo = sobre(nacimientos[pd.i]);
+  return { x: vuelo.x, y: vuelo.y - altoG * S, w: vuelo.w, h: vuelo.h + 2 * altoG * S };
 }
 
 /**
