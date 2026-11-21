@@ -91,17 +91,20 @@
       {
         "vida": 1.5,
         "ataque": 1,
-        "escudo": 1
+        "escudo": 1,
+        "jefe": 0.85
       },
       {
         "vida": 4.6,
         "ataque": 12,
-        "escudo": 2
+        "escudo": 2,
+        "jefe": 1
       },
       {
         "vida": 14.3,
         "ataque": 28,
-        "escudo": 4
+        "escudo": 4,
+        "jefe": 1
       }
     ],
     "elite": {
@@ -145,7 +148,7 @@
   },
   "mazos": {
     "escoba": {
-      "vida": 74,
+      "vida": 72,
       "mano": 3,
       "hasta": 9,
       "comodines": 2,
@@ -154,7 +157,7 @@
       "multiMano": 3
     },
     "truco": {
-      "vida": 62,
+      "vida": 61,
       "mano": 3,
       "hasta": 7,
       "comodines": 2,
@@ -178,7 +181,7 @@
       "multiMano": 2
     },
     "mentiroso": {
-      "vida": 16,
+      "vida": 15,
       "mano": 8,
       "hasta": 6,
       "comodines": 3,
@@ -188,7 +191,7 @@
       "multiMano": 0
     },
     "chancho": {
-      "vida": 53,
+      "vida": 51,
       "mano": 4,
       "hasta": 9,
       "comodines": 2,

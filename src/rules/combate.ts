@@ -376,7 +376,7 @@ export function crearEnemigo(p: Partida, palo: Palo, rango: Rango, o: { elite?: 
   let vida = (en.vida as Record<string, number>)[rango] * acto.vida;
   if (o.elite) vida *= en.elite.vida;
   if (o.jefe) {
-    vida *= en.jefe.vida;
+    vida *= en.jefe.vida * acto.jefe;
     vida *= 1 - Math.min(en.jefe.sangreTope, donesDe(p, palo) * en.jefe.sangreConocida);
     if (p.reinado >= 4) vida *= 1 + R.vidaReyes;
   } else if (p.reinado >= 2) vida *= 1 + R.vidaGuardias;
