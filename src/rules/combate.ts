@@ -11,8 +11,10 @@ import type { Carta, Efectiva, Jugada, Palo, Rango } from './cartas';
 import { activo, carga, curar, donesDe, nivelBend, sirveA, tieneAmuleto, tieneAumento, escudoTope, tramoJugador } from './estado';
 import type { Combate, Enemigo, Partida, TipoCombate } from './estado';
 import type { MazoId } from './mazos';
+import { CHICHES, huecosChiche } from './chiches';
+import type { ChicheId } from './chiches';
 import { nivelDe } from './reyes';
-import { barajar, dado } from './rng';
+import { azar, barajar, dado } from './rng';
 
 // ───────────────────────── sucesos ─────────────────────────
 
@@ -41,6 +43,8 @@ export type Ev =
   | { t: 'baraja' }
   | { t: 'sena'; id: string }
   | { t: 'dado'; n: number }
+  | { t: 'chiche'; id: ChicheId }
+  | { t: 'prenda'; id: ChicheId }
   | { t: 'salva' }
   | { t: 'victoria' }
   | { t: 'derrota' };
@@ -87,6 +91,9 @@ export interface Cuenta {
   contra: number | null;
   /** Un Rey en su primera cara se planta en la mitad: este golpe la cruza y el sobrante se pierde (0.20.0). */
   frenaEnMitad?: boolean;
+  /** En qué Posta del paño quedó cada carta elegida (mismo orden que la selección) y si armó Escalón (0.21.0). */
+  postas?: number[];
+  escalon?: boolean;
 }
 
 const NULA: Cuenta = {
@@ -134,17 +141,41 @@ const deguelloArmado = (e: Enemigo): boolean => !!(e.jefe && e.palo === 'S' && e
 /** Repetir jugada para el Tajo de revés: la Carta sola no cuenta (con mano de 3 a veces es la única que hay). */
 export const repiteJugada = (antes: string | undefined, ahora: Jugada): boolean => antes === ahora && ahora !== 'sola';
 
+// ───────────────────────── las Postas del paño (0.21.0) ─────────────────────────
+
+/** Cuántas Postas tiene el paño: tantas como cartas entran en un golpe (3 con mano de 3, hasta 5). */
+export const postasDe = (p: Partida): number => Math.min(MAX_GOLPE, Math.max(3, p.manoMax));
+/** La Posta del Medio: la del centro del paño. */
+export const medioDe = (n: number): number => Math.floor(n / 2);
+/** Dónde cae cada carta elegida si no la movés: la primera al Medio y las demás a los costados (izquierda, derecha…). */
+export function postasPorDefecto(n: number, k: number): number[] {
+  const m = medioDe(n);
+  const orden = [m];
+  for (let d = 1; orden.length < n; d++) {
+    if (m - d >= 0) orden.push(m - d);
+    if (m + d < n) orden.push(m + d);
+  }
+  return orden.slice(0, k);
+}
+/** Postas válidas para k cartas: distintas y dentro del paño; si no, las de por defecto. */
+export function postasValidas(p: Partida, k: number, postas?: readonly number[]): number[] {
+  const n = postasDe(p);
+  if (!postas || postas.length !== k || new Set(postas).size !== k || postas.some((x) => !Number.isInteger(x) || x < 0 || x >= n)) return postasPorDefecto(n, k);
+  return [...postas];
+}
+
 /**
- * La cuenta de un golpe con esas cartas de la mano contra el enemigo activo. No cambia nada.
+ * La cuenta de un golpe con esas cartas de la mano contra el enemigo activo. No cambia nada. `postas` dice en qué
+ * Posta del paño va cada carta (mismo orden que `sel`); sin `postas`, la primera elegida va al Medio.
  */
-export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
+export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly number[]): Cuenta {
   const c = p.combate;
   const e = c?.fila[0];
   if (!c || !e) return { ...NULA, motivo: 'vacio' };
   if (!sel.length) return { ...NULA, motivo: 'vacio' };
   if (sel.length > MAX_GOLPE) return { ...NULA, motivo: 'muchas' };
   const engano = c.engano && c.enganos > 0;
-  const sinInmune = engano || tieneAmuleto(p, 'doscaras');
+  const sinInmune = engano || tieneAmuleto(p, 'doscaras') || !!c.fosforo;
   const ef = resolver(sel, sinInmune ? undefined : e.palo, engano);
   if (!ef) return { ...NULA, motivo: 'comodines' };
   const jugada = clasificar(ef, p.mazoId);
@@ -181,6 +212,20 @@ export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
   d(`j:${jugada}`, base.d);
   m(`j:${jugada}`, base.m);
   for (const k of ef) d(`c:${k.de.id}`, inmune(k.palo) ? 0 : k.n);
+  // las Postas del paño: el Medio pesa doble, el naipe a la derecha de un Comodín recibe su Chispa, y en orden
+  // creciente de izquierda a derecha arman Escalón
+  const enPosta = postasValidas(p, sel.length, postas);
+  const posta = new Map(sel.map((k, i) => [k.id, enPosta[i]]));
+  const porPosta = [...ef].sort((a, b) => (posta.get(a.de.id) ?? 0) - (posta.get(b.de.id) ?? 0));
+  const PO = B.postas;
+  const medio = ef.find((k) => posta.get(k.de.id) === medioDe(postasDe(p)));
+  if (medio && !inmune(medio.palo)) d('posta:medio', medio.n * (PO.medio - 1));
+  for (const k of porPosta) {
+    if (!esComodin(k.de)) continue;
+    const der = porPosta.find((o) => posta.get(o.de.id) === (posta.get(k.de.id) ?? -9) + 1);
+    if (der && !esComodin(der.de) && !inmune(der.palo)) d('posta:chispa', der.n * (PO.chispa - 1));
+  }
+  const escalon = porPosta.length >= 3 && porPosta.every((k, i) => i === 0 || k.n > porPosta[i - 1].n);
   // Naipe de dos caras: nada es Inmune y, además, las cartas del palo del enemigo pegan doble
   if (tieneAmuleto(p, 'doscaras')) d('a:doscaras', ef.reduce((t, k) => t + (k.palo === e.palo ? k.n * (B.amuletos.doscarasDoble - 1) : 0), 0));
   // Forja Brava: el número del naipe vale doble
@@ -228,6 +273,7 @@ export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
   const perfora = cuantas('S') > 0 || tieneAmuleto(p, 'lanza');
 
   // ── Multi: primero lo que suma…
+  if (escalon) m('posta:escalon', porPosta.length * B.postas.escalon);
   m('combate', c.multiCombate);
   m('prox', c.proxMulti);
   m('a:cascabel', c.cascabel ?? 0);
@@ -294,7 +340,7 @@ export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
     }
   }
 
-  return { ok: true, jugada, ef, dano, multi: multiFinal, total, pasos, canto, critico, perfora, escudo, cura, oro, aEscudo, aVida, abate, exacto, alPelo, ejecuta, sobra, aturde, contra, frenaEnMitad };
+  return { ok: true, jugada, ef, dano, multi: multiFinal, total, pasos, canto, critico, perfora, escudo, cura, oro, aEscudo, aVida, abate, exacto, alPelo, ejecuta, sobra, aturde, contra, frenaEnMitad, postas: enPosta, escalon };
 }
 
 // ───────────────────────── enemigos ─────────────────────────
@@ -417,9 +463,14 @@ const enMano = (c: Combate, ids: readonly string[]): Carta[] | null => {
 };
 
 /** Un enemigo cae: premios, cargas de los Reyes, y entra el siguiente (con lo que sobró si el golpe Perfora). */
-function abatir(p: Partida, evs: Ev[], o: { exacto: boolean; alPelo?: boolean; ejecutado: boolean; palos: Palo[]; sobra: number; deUnSaque: boolean }): void {
+function abatir(p: Partida, evs: Ev[], o: { exacto: boolean; alPelo?: boolean; ejecutado: boolean; palos: Palo[]; sobra: number; deUnSaque: boolean; canto?: boolean }): void {
   const c = p.combate!;
   const e = c.fila.shift()!;
+  // la Prenda de la Corte: abatir con Golpe exacto, al pelo o cantando a veces le roba un Chiche al caído
+  if ((o.exacto || o.alPelo || o.canto) && dado01(p) < B.chiches.prenda) {
+    const id = darChiche(p, CHICHES[Math.floor(dado01(p) * CHICHES.length)]);
+    if (id) evs.push({ t: 'prenda', id });
+  }
   p.stats.abatidos++;
   evs.push({ t: 'cae', palo: e.palo, rango: e.rango, exacto: o.exacto, ejecutado: o.ejecutado, jefe: !!e.jefe });
   if (o.exacto) {
@@ -588,14 +639,15 @@ function finTurno(p: Partida, evs: Ev[], jugadas: Carta[]): void {
 }
 
 /** Golpea al enemigo activo con esas cartas de la mano. Devuelve los sucesos (vacío si la jugada no vale). */
-export function golpear(p: Partida, ids: readonly string[]): Ev[] {
+export function golpear(p: Partida, ids: readonly string[], postas?: readonly number[]): Ev[] {
   const c = p.combate;
   if (!c || p.fase !== 'combate' || !c.fila.length) return [];
   const sel = enMano(c, ids);
   if (!sel) return [];
-  const q = cuenta(p, sel);
+  const q = cuenta(p, sel, postas);
   if (!q.ok) return [];
   const e = c.fila[0];
+  c.fosforo = false;
   const evs: Ev[] = [];
   const palos = [...new Set(q.ef.map((k) => k.palo))];
   const engano = c.engano && c.enganos > 0;
@@ -652,7 +704,7 @@ export function golpear(p: Partida, ids: readonly string[]): Ev[] {
   const cae = q.abate || q.ejecuta;
   if (cae) {
     if (q.ejecuta) e.vida = 0;
-    abatir(p, evs, { exacto: q.exacto, alPelo: q.alPelo, ejecutado: q.ejecuta, palos, sobra: q.sobra, deUnSaque: deUnSaque && q.abate });
+    abatir(p, evs, { exacto: q.exacto, alPelo: q.alPelo, ejecutado: q.ejecuta, palos, sobra: q.sobra, deUnSaque: deUnSaque && q.abate, canto: q.canto });
   } else {
     // a media Vida, el Rey muestra su segunda cara
     if (e.jefe && !e.segunda && e.vida * 2 <= e.vidaMax) {
@@ -735,3 +787,59 @@ export function armarEngano(p: Partida, armado: boolean): boolean {
 
 /** El enemigo activo (atajo para la interfaz y las pruebas). */
 export { activo };
+
+// ───────────────────────── los Chiches (0.21.0) ─────────────────────────
+
+const dado01 = (p: Partida): number => azar(p);
+
+/** Apoya un Chiche en el primer hueco libre de la mesa; devuelve cuál entró (null si no había lugar). */
+export function darChiche(p: Partida, id: ChicheId): ChicheId | null {
+  const h = huecosChiche(p.chiches);
+  const i = h.indexOf(null);
+  if (i < 0) return null;
+  h[i] = id;
+  p.chiches = h;
+  return id;
+}
+
+/** Usar el Chiche del hueco `i`: no gasta el turno. */
+export function usarChiche(p: Partida, i: number): Ev[] {
+  const c = p.combate;
+  const h = huecosChiche(p.chiches);
+  const id = h[i];
+  if (!c || p.fase !== 'combate' || !c.fila.length || !id) return [];
+  const evs: Ev[] = [{ t: 'chiche', id }];
+  const ch = B.chiches;
+  switch (id) {
+    case 'ginebra': {
+      const antes = p.vida;
+      curar(p, ch.ginebra * tramoJugador(p));
+      if (p.vida === antes) return [];
+      evs.push({ t: 'cura', n: p.vida - antes });
+      break;
+    }
+    case 'dado':
+      c.proxMulti += ch.dado;
+      break;
+    case 'fosforo':
+      if (c.fosforo) return [];
+      c.fosforo = true;
+      break;
+    case 'tiza': {
+      // nunca deja la mano sin un naipe de verdad (un golpe de puros Comodines no es jugada)
+      const reales = [...c.mano].filter((k) => !esComodin(k)).sort((a, b) => a.n - b.n);
+      const baja = reales.length >= 2 ? reales[0] : undefined;
+      if (!baja) return [];
+      baja.palo = 'X';
+      baja.n = 0;
+      break;
+    }
+    case 'poroto':
+      if (!c.mazo.length && !c.descarte.length) return [];
+      robar(p, ch.poroto, evs);
+      break;
+  }
+  h[i] = null;
+  p.chiches = h;
+  return evs;
+}

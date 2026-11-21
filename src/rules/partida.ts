@@ -15,6 +15,7 @@ import { carga, curar, donesDe, nivelBend, pagarVidaMax, tieneAumento, vidaMaxTr
 import type { Enemigo, ItemBotin, Nodo, Oferta, Partida, TipoCombate } from './estado';
 import { TRAMOS, alcanzables, generarTramo, sortearReyes } from './mapa';
 import type { MazoId } from './mazos';
+import { CHICHES } from './chiches';
 import { altarVacio, porotosDe } from './perfil';
 import { BENDICION, BENDICIONES, nivelDe } from './reyes';
 import type { BendicionId } from './reyes';
@@ -111,6 +112,7 @@ export function nuevaPartida(o: OpcionesPartida): Partida {
     amuletos: [],
     huecos: B.jugador.huecos + altar.hueco,
     aumentos: [],
+    chiches: [null, null, null],
     bendiciones: {},
     cargas: { S: 0, C: 0, D: 0, H: 0 },
     cantos: 0,
@@ -175,7 +177,12 @@ export function elegirNodo(p: Partida, id: string): Ev[] {
     case 'rey':
       return combate.iniciarCombate(p, nodo.tipo, filaDe(p, nodo));
     case 'pulperia':
-      p.tienda = { amuletos: sortearAmuletos(p, 'tienda', 3).map((a) => ({ id: a, precio: precioAmuleto(p, a) })), purgar: precioPurgar(p), curar: precioCurar(p) };
+      p.tienda = {
+        amuletos: sortearAmuletos(p, 'tienda', 3).map((a) => ({ id: a, precio: precioAmuleto(p, a) })),
+        chiches: muestra(p, CHICHES, B.chiches.enTienda).map((id) => ({ id, precio: B.chiches.precio })),
+        purgar: precioPurgar(p),
+        curar: precioCurar(p),
+      };
       p.fase = 'pulperia';
       return [];
     case 'fogon':
@@ -264,7 +271,9 @@ function cerrar(p: Partida, evs: Ev[]): Ev[] {
 }
 
 /** Golpea con esas cartas. Si el combate termina, deja la partida en el botín o en el final. */
-export const golpear = (p: Partida, ids: readonly string[]): Ev[] => cerrar(p, combate.golpear(p, ids));
+export const golpear = (p: Partida, ids: readonly string[], postas?: readonly number[]): Ev[] => cerrar(p, combate.golpear(p, ids, postas));
+/** Usar un Chiche de la mesa (no gasta el turno). */
+export const usarChiche = (p: Partida, i: number): Ev[] => combate.usarChiche(p, i);
 export const descartar = (p: Partida, ids: readonly string[]): Ev[] => combate.descartar(p, ids);
 export const armarEngano = combate.armarEngano;
 
@@ -353,6 +362,16 @@ export function comprar(p: Partida, i: number, reemplaza?: AmuletoId): boolean {
   if (!tomar(p, { tipo: 'amuleto', opciones: [a.id] }, a.id, reemplaza)) return false;
   p.oro -= a.precio;
   a.vendido = true;
+  return true;
+}
+
+/** Comprar un Chiche de La Pulpería: va al primer hueco libre de la mesa. */
+export function comprarChiche(p: Partida, i: number): boolean {
+  const k = p.tienda?.chiches?.[i];
+  if (p.fase !== 'pulperia' || !k || k.vendido || p.oro < k.precio) return false;
+  if (!combate.darChiche(p, k.id)) return false;
+  p.oro -= k.precio;
+  k.vendido = true;
   return true;
 }
 

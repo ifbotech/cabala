@@ -6,7 +6,9 @@ import { B } from '../src/rules/balance';
 import { jugarEntera, mejorGolpe, paso } from '../src/rules/bot';
 import { clasificar, resolver } from '../src/rules/cartas';
 import type { Carta, PaloCarta } from '../src/rules/cartas';
-import { crearEnemigo, cuenta, descartar, golpear, iniciarCombate, repiteJugada } from '../src/rules/combate';
+import { CHICHES } from '../src/rules/chiches';
+import type { ChicheId } from '../src/rules/chiches';
+import { crearEnemigo, cuenta, descartar, golpear, iniciarCombate, postasDe, postasPorDefecto, repiteJugada } from '../src/rules/combate';
 import { vidaMaxTrasCosto } from '../src/rules/estado';
 import type { Enemigo, Partida } from '../src/rules/estado';
 import { COLUMNAS, PISOS, REGLAS_MAPA, TRAMOS, cumple, generarTramo } from '../src/rules/mapa';
@@ -17,6 +19,8 @@ import { altarLleno } from '../src/rules/perfil';
 import { BENDICION } from '../src/rules/reyes';
 import type { BendicionId } from '../src/rules/reyes';
 
+/** Lo que suman las Postas del paño (0.21.0) a una cuenta: para medir las fórmulas de siempre sin el paño. */
+const pano = (q: { pasos: { de: string; tipo: string; v: number }[] }, tipo: 'd' | 'm' = 'd'): number => q.pasos.filter((x) => x.de.startsWith('posta:') && x.tipo === tipo).reduce((s, x) => s + x.v, 0);
 const c = (palo: PaloCarta, n: number, id = `${palo}${n}${Math.random().toString(36).slice(2, 6)}`): Carta => ({ id, palo, n });
 const jugada = (cartas: Carta[], mazo?: MazoId) => {
   const ef = resolver(cartas);
@@ -74,7 +78,8 @@ describe('la cuenta', () => {
     const q = cuenta(p, mano);
     expect(q.ok).toBe(true);
     expect(q.jugada).toBe('par');
-    expect(q.dano).toBe(B.jugadas.par.d + 14);
+    expect(q.dano - pano(q)).toBe(B.jugadas.par.d + 14);
+    expect(pano(q)).toBe(7); // la primera elegida va a la Posta del Medio y pesa doble
     expect(q.multi).toBe(B.jugadas.par.m + B.mazos.chinchon.multiMano);
     expect(q.total).toBe(q.dano * q.multi);
     expect(Number.isInteger(q.total)).toBe(true);
@@ -104,7 +109,8 @@ describe('la cuenta', () => {
   });
   it('el Golpe exacto abate justo y premia', () => {
     const mano = [c('S', 7), c('C', 7), c('D', 2)];
-    const p = mesa('chinchon', mano, { vida: (B.jugadas.par.d + 14) * (B.jugadas.par.m + B.mazos.chinchon.multiMano) });
+    const p = mesa('chinchon', mano);
+    p.combate!.fila[0].vida = p.combate!.fila[0].vidaMax = cuenta(p, mano.slice(0, 2)).total;
     const oro = p.oro;
     const q = cuenta(p, mano.slice(0, 2));
     expect(q.exacto).toBe(true);
@@ -118,7 +124,8 @@ describe('la cuenta', () => {
   it('la racha: cada Golpe exacto seguido sube el premio hasta el tope, y se corta al abatir sin exactitud', () => {
     const exacta = (racha: number) => {
       const mano = [c('S', 7), c('C', 7), c('D', 2)];
-      const p = mesa('chinchon', mano, { vida: (B.jugadas.par.d + 14) * (B.jugadas.par.m + B.mazos.chinchon.multiMano) });
+      const p = mesa('chinchon', mano);
+      p.combate!.fila[0].vida = p.combate!.fila[0].vidaMax = cuenta(p, mano.slice(0, 2)).total;
       p.racha = racha;
       golpear(p, [mano[0].id, mano[1].id]);
       return p;
@@ -183,7 +190,8 @@ describe('los cantos de los Mazos', () => {
   it('un naipe templado en el Fogón pega de más', () => {
     const mano = [{ ...c('S', 7), temple: 8 }];
     const p = mesa('chinchon', mano);
-    expect(cuenta(p, mano).dano).toBe(7 + 8);
+    const q = cuenta(p, mano);
+    expect(q.dano - pano(q)).toBe(7 + 8);
   });
   it('el Fogón de tres pasadas: +Daño seguro, después Templada (+Multi) y al final la Forja Brava; lo que no sale, se quema', () => {
     let quemadas = 0;
@@ -244,7 +252,7 @@ describe('los cantos de los Mazos', () => {
     const p = mesa('truco', mano);
     const q = cuenta(p, mano.slice(0, 2));
     expect(q.canto).toBe(true);
-    expect(q.dano).toBe(1 + 7 + B.mazos.truco.bravas.S1 + B.mazos.truco.bravas.S7 + B.mazos.truco.envido);
+    expect(q.dano - pano(q)).toBe(1 + 7 + B.mazos.truco.bravas.S1 + B.mazos.truco.bravas.S7 + B.mazos.truco.envido);
   });
   it('Chinchón: Pierna o Escalera de palo cantan y frenan medio Contraataque', () => {
     const mano = [c('S', 4), c('H', 4), c('D', 4), c('S', 9)];
@@ -261,7 +269,7 @@ describe('los cantos de los Mazos', () => {
     juego.armarEngano(p, true);
     const q = cuenta(p, mano);
     expect(q.jugada).toBe('poker');
-    expect(q.dano).toBe(B.jugadas.poker.d + 36);
+    expect(q.dano - pano(q)).toBe(B.jugadas.poker.d + 36);
   });
   it('Chancho Va: pasar una carta por turno es gratis, y el Póker aturde', () => {
     const mano = [c('S', 4), c('C', 4), c('D', 4), c('H', 4), c('S', 9)];
@@ -472,6 +480,103 @@ describe('0.18.1: un costo de Vida máxima siempre cuesta', () => {
     const r6 = juego.nuevaPartida({ mazo: 'mentiroso', semilla: 'HERIDA', reinado: 6 });
     expect(r6.vidaMax).toBeLessThan(r1.vidaMax);
     expect(r6.vidaMax).toBeGreaterThanOrEqual(Math.ceil(r1.vidaMax / 2));
+  });
+});
+
+describe('0.21.0: las Postas del paño', () => {
+  it('el paño tiene 3 Postas con mano de 3 y hasta 5 con manos largas; la primera elegida va al Medio', () => {
+    expect(postasDe(juego.nuevaPartida({ mazo: 'escoba', semilla: 'P' }))).toBe(3);
+    expect(postasDe(juego.nuevaPartida({ mazo: 'mentiroso', semilla: 'P' }))).toBe(5);
+    expect(postasPorDefecto(3, 3)).toEqual([1, 0, 2]);
+    expect(postasPorDefecto(5, 5)).toEqual([2, 1, 3, 0, 4]);
+  });
+  it('la carta del Medio pesa doble; fuera del Medio, no', () => {
+    const mano = [c('S', 7), c('C', 7)];
+    const p = mesa('escoba', mano);
+    const enMedio = cuenta(p, mano, [1, 0]);
+    const afuera = cuenta(p, mano, [0, 2]);
+    expect(enMedio.dano - afuera.dano).toBe(7 * (B.postas.medio - 1));
+    expect(enMedio.pasos.some((x) => x.de === 'posta:medio')).toBe(true);
+  });
+  it('en orden creciente de izquierda a derecha arman Escalón (+Multi por carta); al revés, no', () => {
+    const mano = [c('S', 2), c('C', 3), c('D', 4)];
+    const p = mesa('chinchon', mano);
+    const sube = cuenta(p, mano, [0, 1, 2]);
+    const baja = cuenta(p, mano, [2, 1, 0]);
+    expect(sube.escalon).toBe(true);
+    expect(baja.escalon).toBe(false);
+    expect(sube.multi - baja.multi).toBe(3 * B.postas.escalon);
+  });
+  it('el naipe a la derecha de un Comodín recibe su Chispa', () => {
+    const mano = [{ id: 'X1', palo: 'X' as const, n: 0 }, c('S', 6)];
+    const p = mesa('mentiroso', mano);
+    const chispa = cuenta(p, mano, [0, 1]);
+    const sin = cuenta(p, mano, [1, 0]);
+    expect(chispa.pasos.some((x) => x.de === 'posta:chispa')).toBe(true);
+    expect(sin.pasos.some((x) => x.de === 'posta:chispa')).toBe(false);
+  });
+  it('unas postas inválidas caen a las de por defecto', () => {
+    const mano = [c('S', 7), c('C', 7)];
+    const p = mesa('escoba', mano);
+    expect(cuenta(p, mano, [1, 1]).postas).toEqual([1, 0]);
+    expect(cuenta(p, mano, [0, 9]).postas).toEqual([1, 0]);
+  });
+});
+
+describe('0.21.0: los Chiches de Pulpería y la Prenda de la Corte', () => {
+  const conChiche = (id: ChicheId, mano: Carta[] = [c('S', 7), c('C', 3), c('D', 2)]) => {
+    const p = mesa('escoba', mano);
+    p.chiches = [id, null, null];
+    return p;
+  };
+  it('hay cinco Chiches, tres huecos, y usarlos no gasta el turno', () => {
+    expect(CHICHES).toHaveLength(5);
+    const p = conChiche('dado');
+    const turno = p.combate!.turno;
+    expect(juego.usarChiche(p, 0).some((e) => e.t === 'chiche')).toBe(true);
+    expect(p.combate!.turno).toBe(turno);
+    expect(p.chiches).toEqual([null, null, null]);
+    expect(juego.usarChiche(p, 0)).toEqual([]);
+  });
+  it('el Dado Cargado suma Multi al golpe y el Fósforo quema el Inmune', () => {
+    const mano = [c('H', 7), c('S', 7)];
+    const p = conChiche('dado', mano);
+    p.chiches = ['dado', 'fosforo', null];
+    const antes = cuenta(p, mano);
+    juego.usarChiche(p, 0);
+    expect(cuenta(p, mano).multi).toBe(antes.multi + B.chiches.dado);
+    juego.usarChiche(p, 1);
+    expect(cuenta(p, mano).dano).toBeGreaterThan(antes.dano); // el enemigo de Copas ya no es Inmune a Copas
+  });
+  it('la Ginebra cura, la Tiza vuelve Comodín la carta más baja y el Poroto roba dos', () => {
+    const p = conChiche('ginebra');
+    p.vida = 1;
+    juego.usarChiche(p, 0);
+    expect(p.vida).toBeGreaterThan(1);
+    const t = conChiche('tiza');
+    juego.usarChiche(t, 0);
+    expect(t.combate!.mano.some((k) => k.palo === 'X')).toBe(true);
+    const r = conChiche('poroto');
+    r.combate!.mazo = [c('S', 1), c('S', 2), c('S', 3)];
+    const n = r.combate!.mano.length;
+    juego.usarChiche(r, 0);
+    expect(r.combate!.mano.length).toBe(n + B.chiches.poroto);
+  });
+  it('La Pulpería vende Chiches y abatir con Golpe exacto a veces roba una Prenda', () => {
+    let prendas = 0;
+    for (let i = 0; i < 60; i++) {
+      const mano = [c('S', 7), c('C', 7), c('D', 2)];
+      const p = juego.nuevaPartida({ mazo: 'chinchon', semilla: `PRENDA${i}` });
+      juego.elegirOferta(p, 0, null);
+      juego.seguir(p);
+      const e = { ...crearEnemigo(p, 'H', 10), vida: 500, vidaMax: 500 } as Enemigo;
+      iniciarCombate(p, 'guardia', [e, crearEnemigo(p, 'D', 10)]);
+      p.combate!.mano = mano;
+      p.combate!.fila[0].vida = p.combate!.fila[0].vidaMax = cuenta(p, mano.slice(0, 2)).total;
+      if (golpear(p, [mano[0].id, mano[1].id]).some((x) => x.t === 'prenda')) prendas++;
+    }
+    expect(prendas).toBeGreaterThan(8);
+    expect(prendas).toBeLessThan(40);
   });
 });
 
