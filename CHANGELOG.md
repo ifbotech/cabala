@@ -3,6 +3,35 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.19.0 · La mesa limpia (2026-11-21)
+
+Paquete dictado por el Jurado Fable sobre la 0.18.0: el crítico que contaba dos veces, el Botín de cinco piezas que
+tapaba al Bufón, dos «TE PEGA» distintos, la mesa que saltaba en la Steam Deck y la curva de caídas despareja.
+
+**El golpe**
+- **«¡CRÍTICO! ×2» vive dentro del MULTI**: en el conteo estalla en su término, con sonido, chispas y un frenazo; ya no
+  se estampa sobre un total que ya lo incluía. El número del daño sale al costado del naipe, sin tapar cara ni índice.
+- **Un solo TE PEGA**: la placa del Rey y la cuenta dicen lo mismo, con la causa («21 − 2 ESCUDO») cuando entra.
+- **El rasgo de cada Rey se lee con su regla** también en la primera cara («Medio golpe suyo cruza tu Escudo»). Los rasgos
+  del Cacique y del Bacanal se llaman ahora **Cuero del Cacique** y **Sed del Bacanal** (no chocan con Coraza y Brindis).
+- Cada palo suena distinto al golpear, y un toque o una tecla apura el conteo.
+
+**Mesa, mando y teléfono**
+- **La mesa no salta al elegir** en la Steam Deck: la cuenta reserva su alto y se aprieta en vez de crecer (la QA lo vigila
+  con la regla «mesa-quieta»). El foco del mando es un marco celeste con flecha, distinto de la selección en oro.
+- El cartel de la segunda cara se pliega antes de que el Rey pegue; el grito del Personaje sale junto a su retrato, con cola.
+- El Botín de un Rey con cinco piezas no tapa al Bufón y la **Vida máxima tiene icono propio**. Estados de QA nuevos:
+  `botin-rey` y `mesa-conteo`.
+
+**Reglas y balance**
+- **La Vida máxima que da un Rey sale de la Vida del Mazo** (20 %, mínimo 6): un +12 plano era +133 % para el Mentiroso.
+- Vidas y Multi de mano reafinados; el laboratorio vigila ahora las **caídas en el tramo 1** (Escoba 17,7 · Truco 2,9 ·
+  Chinchón 13,3 · Mentiroso 22,7 · Chancho 3,2 %; en la 0.18 iban de 3 a 34 %).
+- Laboratorio (3000 partidas por celda, sin avisos) · Altar vacío / lleno: Escoba 31,4 / 47,1 · Truco 30,2 / 47,8 ·
+  Chinchón 30,7 / 49,0 · Mentiroso 30,7 / 47,9 · Chancho 31,0 / 47,0.
+
+**Medición** · Jurado Fable: Claridad 7,6 · Diversión 7,5 · Estética 8,0 · Veredicto 7,6. Panel **simulado** (n = 60,
+ruido ±10): 70,0 % (IC95 57–80 %), contra 81,7 % de la 0.18; los intervalos se pisan.
 ## 0.18.0 · El golpe se descubre (2026-11-21)
 
 Paquete dictado por el Jurado Fable sobre la 0.17.0: más suspenso en el conteo, un solo número para el Tajo, el grito

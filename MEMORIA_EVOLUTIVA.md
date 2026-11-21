@@ -469,3 +469,20 @@ carriles en el naipe del Rey; grito que busca hueco; +12 de Vida máxima por Rey
   «solape-enemigo»): «NO LO ABATÍS» sobraba, porque «LE QUEDAN n» ya lo dice.
 
 **Medición.** Jurado 7,3 · 7,4 · 8,0 · 7,4 (sobre la build previa a los dos arreglos de cierre).
+## 0.19.0 · La mesa limpia (publicada)
+
+**Qué se buscó.** Los P1 del Jurado sobre la 0.18: crítico contado dos veces, Botín de cinco piezas sobre el Bufón, dos TE
+PEGA, la mesa que saltaba en la Deck, el foco igual a la selección, la curva de caídas del tramo 1 despareja.
+
+**Qué entró.** Crítico dentro del MULTI, un solo TE PEGA, rasgo con regla, foco celeste, mesa quieta, Botín de cinco
+piezas con icono de Vida máxima, grito junto al retrato; Vida máxima por Rey proporcional a la del Mazo; objetivo de caídas.
+
+**Lecciones.**
+- Bajar la dispersión de caídas a fuerza de Multi plano (`multiMano` 8 en Escoba) aplana las jugadas: el Jurado de diseño
+  lo marcó como P1 (la jugada pesa un 10 % del Multi y los Amuletos de Multi valen un quinto). El Multi de mano tiene que
+  ser chico; la seguridad del arranque se compra con Vida o con defensa que dependa de lo que jugás.
+- Una banda ancha (2–25 %) mide pero no cierra el problema: hace falta también un tope de dispersión entre Mazos.
+- El panel simulado bajó (81,7 → 70,0 %, n = 60) mientras el Jurado subió en las cuatro columnas: con ±10 de ruido y
+  estratos de n = 9–21, el panel no sirve para leer una versión suelta.
+
+**Medición.** Jurado 7,6 · 7,5 · 8,0 · 7,6. Panel 70,0 % (IC95 57–80 %); Deck 33 % (n = 9), Móvil 93 % (n = 15).
