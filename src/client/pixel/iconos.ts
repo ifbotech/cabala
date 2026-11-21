@@ -603,7 +603,7 @@ const NODO: Record<NodoPx, Dibujo> = {
 
 // ───────────────────────── HUD y emblemas ─────────────────────────
 
-export type HudPx = 'vida' | 'vidamax' | 'escudo' | 'oro' | 'mazo' | 'descarte' | 'poroto' | 'furia' | 'ataque' | 'aturdido' | 'candado' | 'engano' | 'pasar' | 'dado1' | 'dado2' | 'dado3' | 'dado4' | 'dado5' | 'dado6';
+export type HudPx = 'vida' | 'vidamax' | 'escudo' | 'oro' | 'mazo' | 'descarte' | 'poroto' | 'furia' | 'ataque' | 'aturdido' | 'candado' | 'engano' | 'pasar' | 'dado1' | 'dado2' | 'dado3' | 'dado4' | 'dado5' | 'dado6' | 'vela' | 'velaApagada';
 
 const HUD: Record<HudPx, Dibujo> = {
   vida: (l) => {
@@ -691,7 +691,27 @@ const HUD: Record<HudPx, Dibujo> = {
   dado4: (l) => dadoPx(l, 5, 5, 18, 4),
   dado5: (l) => dadoPx(l, 5, 5, 18, 5),
   dado6: (l) => dadoPx(l, 5, 5, 18, 6),
+  // el Altar (0.20): cada nivel de una mejora es una vela de sebo en su platito de peltre; prendida, su llama; apagada,
+  // el pabilo negro con su hilo de humo
+  vela: (l) => velaPx(l, true),
+  velaApagada: (l) => velaPx(l, false),
 };
+
+/** Una vela de sebo en su platito: el cuerpo hueso (claro arriba a la izquierda), el chorreo y, si está prendida, la llama. */
+function velaPx(l: Lienzo, prendida: boolean): void {
+  // el platito de peltre
+  l.elipse(14, 24.5, 10, 2.6, '¤');
+  vol(l, PLATA, { base: 0.55, borde: 1 });
+  // el cuerpo de la vela
+  l.rect(10, 12, 8, 13, '¤').elipse(14, 12, 4, 1.4, '¤');
+  vol(l, prendida ? HUESO : PLATA, { base: prendida ? 0.82 : 0.5, borde: 1, fuerzaBorde: 0.35 });
+  // el sebo que chorrea por la izquierda
+  l.rect(10, 12, 1, 6, 'w').rect(9, 16, 1, 3, 'm');
+  // el pabilo
+  l.rect(14, 9, 1, 3, '0');
+  if (prendida) llama(l, 14, 10, 9, 3);
+  else l.set(15, 7, 'i').set(14, 5, 'i').set(15, 3, 'i');
+}
 
 // ───────────────────────── salida ─────────────────────────
 

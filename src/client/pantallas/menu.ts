@@ -179,33 +179,59 @@ export function pantallaMazo(): Pantalla {
 
 // ───────────────────────── el Altar ─────────────────────────
 
+/**
+ * El Altar es un rincón: el Bufón al costado y, sobre el paño del altar de esquina, una ofrenda por mejora: tantas
+ * velas como niveles tiene, prendidas las que ya pagaste. Se elige una ofrenda y un solo MEJORAR (el de la elegida)
+ * enciende la vela siguiente.
+ */
+let mejoraElegida: MejoraId = 'vida';
 export function pantallaAltar(): Pantalla {
-  const fila = (id: MejoraId): string => {
+  const ofrenda = (id: MejoraId): string => {
     const m = MEJORAS.find((x) => x.id === id)!;
     const nivel = perfil.altar[id];
     const coste = costeMejora(id, nivel);
     const puede = coste !== null && perfil.porotos >= coste;
-    const pips = Array.from({ length: m.max }, (_, i) => `<i class="pip ${i < nivel ? 'lleno' : ''}"></i>`).join('');
-    return `<div class="mejora" data-mejora="${id}">
-      <div class="mj-texto"><b>${esc(tx(m.nombre))}</b><span class="sub">${esc(tx(m.desc))}</span></div>
-      <div class="mj-barra" role="img" aria-label="${nivel}/${m.max}">${pips}<span class="mj-nivel">${cifra(`${nivel}/${m.max}`, 'hueso')}</span></div>
-      <button class="btn marco ${puede ? 'oro' : ''} mj-boton" data-accion="mejorar" data-id="${id}" data-foco="mj-${id}" ${puede ? '' : 'disabled'}>${coste === null ? t('alMaximo') : `${t('mejorar')} ${pxHud('poroto')}${cifra(coste, puede ? 'purpura' : 'hueso')}`}</button>
-    </div>`;
+    const velas = Array.from({ length: m.max }, (_, i) => `<span class="al-vela ${i < nivel ? 'prendida' : ''}">${pxHud(i < nivel ? 'vela' : 'velaApagada')}</span>`).join('');
+    const elegida = id === mejoraElegida;
+    return `<button class="al-ofrenda ${elegida ? 'elegida' : ''} ${puede ? 'alcanza' : ''} ${coste === null ? 'llena' : ''}" role="radio" aria-checked="${elegida}" data-accion="ofrenda" data-id="${id}" data-foco="of-${id}" ${elegida ? 'data-inicio' : ''} aria-label="${esc(tx(m.nombre))} ${nivel}/${m.max}">
+      <span class="al-velas" aria-hidden="true">${velas}</span>
+      <b class="al-nombre">${esc(tx(m.nombre))}</b>
+    </button>`;
+  };
+  const detalle = (): string => {
+    const id = mejoraElegida;
+    const m = MEJORAS.find((x) => x.id === id)!;
+    const nivel = perfil.altar[id];
+    const coste = costeMejora(id, nivel);
+    const puede = coste !== null && perfil.porotos >= coste;
+    return `<div class="al-texto"><b class="al-titulo">${esc(tx(m.nombre))}</b><span class="sub">${esc(tx(m.desc))}</span><span class="al-nivel">${cifra(`${nivel}/${m.max}`, 'hueso')}</span></div>
+      <button class="btn marco ${puede ? 'oro' : ''} mj-boton" data-accion="mejorar" data-id="${id}" data-foco="mejorar" ${puede ? '' : 'disabled'}>${coste === null ? t('alMaximo') : `${t('mejorar')} ${pxHud('poroto')}${cifra(coste, puede ? 'purpura' : 'hueso')}`}</button>`;
   };
   return {
     nombre: 'altar',
     atras: irPortada,
     html: () => `<main class="pantalla altar">
       <header class="cabecera">
-        <button class="btn marco chico" data-accion="volver" data-foco="volver" data-inicio>‹ ${t('volver')}</button>
+        <button class="btn marco chico" data-accion="volver" data-foco="volver">‹ ${t('volver')}</button>
         ${solapas('altar')}
-        ${miniAnfitrion(tx(alAzar(VOZ.altar, enFoto() ? 0 : undefined)))}<span class="lado porotos" ${tip(t('porotos'), idioma() === 'en' ? 'Every run leaves some, win or lose.' : 'Cada partida deja algunos, ganes o pierdas.')}>${pxHud('poroto')}${cifra(perfil.porotos, 'oro', 'grande')}</span>
+        <span class="lado porotos" ${tip(t('porotos'), idioma() === 'en' ? 'Every run leaves some, win or lose.' : 'Cada partida deja algunos, ganes o pierdas.')}>${pxHud('poroto')}${cifra(perfil.porotos, 'oro', 'grande')}</span>
       </header>
-      <div class="mejoras marco">${MEJORAS.map((m) => fila(m.id)).join('')}</div>
+      <div class="cuerpo al-escena">
+        <div class="al-cuadro">${anfitrion(tx(alAzar(VOZ.altar, enFoto() ? 0 : undefined)), 'reposo', 'al-bufon')}</div>
+        <section class="al-altar">
+          <div class="al-pano" role="radiogroup" aria-label="${t('altar')}">${MEJORAS.map((m) => ofrenda(m.id)).join('')}</div>
+          <div class="al-detalle marco" data-detalle>${detalle()}</div>
+        </section>
+      </div>
     </main>`,
     acciones: {
       ...irSolapa,
       volver: irPortada,
+      ofrenda: (el) => {
+        mejoraElegida = el.dataset.id as MejoraId;
+        sonar('clic');
+        repintar();
+      },
       mejorar: (el) => {
         if (mejorar(perfil, el.dataset.id as MejoraId)) {
           sonar('oro');
@@ -259,10 +285,14 @@ export function pantallaColeccion(): Pantalla {
       <header class="cabecera">
         <button class="btn marco chico" data-accion="volver" data-foco="volver" data-inicio>‹ ${t('volver')}</button>
         ${solapas('coleccion')}
-        ${miniAnfitrion(tx(alAzar(VOZ.coleccion, enFoto() ? 0 : undefined)))}
+        <span class="lado"></span>
       </header>
-      <nav class="fila pestanas" role="tablist">${pestanas.map((p) => `<button class="btn marco chico ${p === pestana ? 'oro' : ''}" role="tab" aria-selected="${p === pestana}" data-accion="pestana" data-id="${p}" data-foco="tab-${p}">${t(p === 'amuletos' ? 'amuletos' : p)}</button>`).join('')}</nav>
-      <section class="col-cuerpo marco">${cuerpo()}</section>
+      <div class="cuerpo col-escena">
+        <div class="col-columna">
+          <nav class="fila pestanas" role="tablist">${pestanas.map((p) => `<button class="btn marco chico ${p === pestana ? 'oro' : ''}" role="tab" aria-selected="${p === pestana}" data-accion="pestana" data-id="${p}" data-foco="tab-${p}">${t(p === 'amuletos' ? 'amuletos' : p)}</button>`).join('')}</nav>
+          <section class="col-cuerpo col-pared">${cuerpo()}</section>
+        </div>
+      </div>
     </main>`,
     acciones: {
       ...irSolapa,

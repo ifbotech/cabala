@@ -2884,3 +2884,206 @@ button.visor-carta:disabled {
     animation: none;
   }
 }
+/* ───────────── 0.20.0 · el metajuego es un lugar ───────────── */
+/* El Altar es un rincón: el Bufón al costado (a la escala de toda la ventana: 2, 3 en la grande, fuera en el teléfono)
+   y, del otro lado, el altar de esquina con sus ofrendas de velas. La Colección es la pared: lo que juntaste, clavado
+   con chinches, a todo el ancho (el Bufón no entra sin apretar las fichas de los Reyes) */
+.col-escena {
+  justify-content: flex-start;
+}
+.al-escena {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 3);
+  min-height: 0;
+}
+.al-cuadro {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.al-altar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--u);
+}
+/* el paño del altar: bordó con su guarda de oro arriba y los flecos abajo */
+.al-pano {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  justify-content: center;
+  gap: var(--u) calc(var(--u) * 1.25);
+  padding: calc(var(--u) * 1.25) calc(var(--u) * 1.5) calc(var(--u) * 1.5);
+  background: #2a0c1c;
+  box-shadow:
+    inset 0 calc(4px * var(--k)) 0 #6b2e1a,
+    inset 0 calc(6px * var(--k)) 0 #d86000,
+    inset 0 calc(-2px * var(--k)) 0 #4a0e26,
+    0 0 0 calc(2px * var(--k)) #09070f;
+}
+.al-pano::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: calc(6px * var(--k));
+  background: repeating-linear-gradient(90deg, #4a0e26 0 calc(4px * var(--k)), transparent calc(4px * var(--k)) calc(8px * var(--k)));
+}
+.al-ofrenda {
+  --k: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 8px;
+  border: 0;
+  background: none;
+  color: var(--hueso-2);
+  font: inherit;
+  cursor: pointer;
+}
+.al-velas {
+  display: flex;
+  align-items: flex-end;
+  line-height: 0;
+}
+.al-vela + .al-vela {
+  margin-left: -14px;
+}
+.al-nombre {
+  font-size: var(--fs-s);
+  font-weight: 400;
+  line-height: 1.15;
+  text-align: center;
+  max-width: 9em;
+}
+.al-ofrenda.alcanza .al-nombre {
+  color: var(--hueso);
+}
+.al-ofrenda.llena .al-nombre {
+  color: var(--oro);
+}
+.al-ofrenda.elegida {
+  background: #09070f;
+  box-shadow:
+    0 0 0 2px #09070f,
+    0 0 0 4px var(--oro);
+}
+.al-ofrenda.elegida .al-nombre {
+  color: var(--oro);
+}
+.al-ofrenda:focus-visible {
+  outline: 2px solid #7df3ff;
+  outline-offset: 3px;
+}
+.al-detalle {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 1.5);
+  padding: calc(var(--u) * 0.75) var(--u);
+  margin-top: calc(var(--u) * 0.5);
+}
+.al-texto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.al-titulo {
+  font-family: var(--rot);
+  font-size: var(--fr);
+  font-weight: 400;
+  text-transform: uppercase;
+  color: var(--oro);
+}
+/* la pared de la Colección: adobe tramado; cada pieza, clavada con su chinche arriba */
+.col-columna {
+  flex: 0 1 auto;
+  align-self: stretch;
+  min-width: 0;
+  min-height: 0;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--u);
+}
+.col-pared {
+  background:
+    repeating-conic-gradient(#3a1a22 0% 25%, transparent 0% 50%) 0 0 / calc(4px * var(--k)) calc(4px * var(--k)),
+    #2c1420;
+  box-shadow:
+    inset 0 0 0 calc(2px * var(--k)) #09070f,
+    inset 0 calc(4px * var(--k)) 0 #4a2420;
+}
+.col-pared :is(.col-item, .col-mazo, .col-rey) {
+  position: relative;
+}
+.col-pared :is(.col-item, .col-mazo, .col-rey)::before {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: -3px;
+  translate: -50% 0;
+  width: 8px;
+  height: 8px;
+  background: #b9aacb;
+  box-shadow:
+    inset 2px 2px 0 #f4efe2,
+    inset -2px -2px 0 #6b5a86,
+    2px 2px 0 #09070f;
+  pointer-events: none;
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  .al-ofrenda {
+    --k: 2;
+  }
+  .al-vela + .al-vela {
+    margin-left: -28px;
+  }
+}
+@media (max-width: 700px) {
+  .al-escena {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: var(--u);
+  }
+  .al-cuadro {
+    display: none;
+  }
+  .al-pano {
+    grid-template-columns: repeat(3, auto);
+    gap: 8px;
+    padding: var(--u) 6px;
+  }
+  .al-detalle {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}/* las fichas de los Reyes en la pared: el rasgo parte en dos renglones si no entra (nunca se corta) y la Carga se lee
+   de corrido, con su pinta al principio */
+.col-rey .chip {
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+}
+.col-ficha.col-carga {
+  display: block;
+  text-align: center;
+}
+.col-ficha.col-carga .px {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 4px;
+}

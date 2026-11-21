@@ -13,7 +13,7 @@ import { BAYER4 } from '../pixel/dither';
 
 type Ctx = CanvasRenderingContext2D;
 
-export type Escena = 'mesa' | 'mapa' | 'pulperia' | 'fogon' | 'portada' | 'altar' | 'amanecer' | 'ocaso';
+export type Escena = 'mesa' | 'mapa' | 'pulperia' | 'fogon' | 'portada' | 'altar' | 'coleccion' | 'amanecer' | 'ocaso';
 
 /** El azar con semilla del motor (las escenas no lo importan para no cerrar un círculo de módulos). */
 export interface Kit {
@@ -492,28 +492,234 @@ function climaDe(palo: Palo, W: number, H: number, kit: Kit): Clima {
   };
 }
 
-// ───────────── la penumbra de siempre (portada y altar) ─────────────
+// ───────────── el Altar y la Colección: los lugares del metajuego ─────────────
 
-const PORTADA = { tonos: ['#09070f', '#160c1c', '#24112b', '#3a1436', '#55193c'], foco: [0.5, 0.38], radio: [0.66, 0.8] };
-const ALTAR = { tonos: ['#09070f', '#150a10', '#241018', '#3a1420', '#571c24'], foco: [0.5, 0.5], radio: [0.6, 0.7] };
+const ADOBE_TONOS = ['#0b0711', '#180a16', '#260e18', '#38161a', '#4c221a', '#643018'];
+/** El sebo de un cirio, de la sombra a la luz (las velas son tinta fija: emiten). */
+const CERA = ['#6b5a86', '#b9aacb', '#d9ceb4', '#f4efe2', '#fff799'];
 
-function penumbra(def: typeof PORTADA, W: number, H: number, kit: Kit): Escenario {
-  const P = new Plano(W, H, [{ tonos: def.tonos }]);
-  const cuadros = [0.94, 0.98, 1.02, 1.06].map((a) => () => P.cuadro([{ x: W * def.foco[0], y: H * def.foco[1], rx: W * def.radio[0] * a, ry: H * def.radio[1] * a, g: 1 }], 0));
-  const brasas = brasero(
-    Math.round((W * H) / 9000),
-    (arranque) => {
-      const max = kit.entre(4, 9);
-      return { x: kit.entre(0, W), y: arranque ? kit.entre(0, H) : H + 2, vx: kit.entre(-2, 2), vy: kit.entre(-9, -3), vida: arranque ? kit.entre(0, max) : 0, max, tipo: kit.azar() < 0.6 ? 1 : 0, fase: kit.entre(0, 6) };
-    },
-    tintaBrasa,
-  );
+/** Un cirio parado en `y` (su base), `w` de ancho y `h` de alto: claro del lado de la luz y hacia la llama; su pabilo. */
+function cirio(P: Plano, x: number, y: number, w: number, h: number): void {
+  for (let r = 0; r < h; r++) {
+    const t = r / Math.max(1, h - 1);
+    for (let c = 0; c < w; c++) {
+      const lado = c / Math.max(1, w - 1);
+      const k = (t > 0.8 ? 2 : t > 0.4 ? 1 : 0) + (lado < 0.34 ? 1 : lado > 0.66 ? -1 : 0) + 1;
+      P.tinta(x + c, y - 1 - r, CERA[Math.max(0, Math.min(4, k))]);
+    }
+  }
+  // el sebo que chorrea por el lado de la luz, y el pabilo
+  if (h > 12) P.tinta(x, y - h + 1, CERA[3], 1, Math.min(6, h >> 2));
+  P.tinta(x + (w >> 1), y - h - 2, '#2a1f3d', 1, 2);
+}
+
+/**
+ * El Altar: el rincón de la pulpería donde se ofrenda. Dos paredes de adobe que se juntan en la esquina (la de la
+ * izquierda de cara a la luz, la otra en sombra, las hiladas en fuga hacia el rincón), los milagritos de lata clavados
+ * en el revoque, y abajo la mesa del altar con su paño bordó de guarda dorada y flecos; en las dos puntas, los cirios
+ * prendidos (de ahí sale toda la luz) y su humo que sube.
+ */
+function altar(W: number, H: number, kit: Kit): Escenario {
+  const vert = H > W;
+  const ADOBE = 0;
+  const PANO = 1;
+  const ORO = 2;
+  const LATA = 3;
+  const P = new Plano(W, H, [
+    { tonos: ADOBE_TONOS },
+    { tonos: ['#09070f', '#1a0814', '#2a0c1c', '#4a0e26', '#6b1430', '#8a1e38'] },
+    { tonos: ['#09070f', '#3a1a0c', '#6b2e1a', '#d86000', '#ffd500'] },
+    { tonos: ['#09070f', '#2a1f3d', '#6b5a86', '#b9aacb', '#f4efe2'] },
+  ]);
+  const cx = Math.round(W * 0.5);
+  const yOjo = H * 0.38;
+  const yMesa = Math.round(H * (vert ? 0.88 : 0.86));
+  // las paredes: cuanto más cerca del rincón, más lejos están (las hiladas se aprietan hacia la altura del ojo)
+  P.cada(0, 0, W, yMesa, (x, y, i) => {
+    const d = Math.min(1, Math.abs(x + 0.5 - cx) / cx);
+    const s = 0.62 + 0.38 * d;
+    const j = Math.floor((y - yOjo) / s / 9);
+    const hilada = Math.floor((y + 1 - yOjo) / s / 9) !== j;
+    const izq = x < cx;
+    let a = (0.74 + 0.2 * (veta(x / 37, j * 5.1) - 0.5) + 0.08 * (r2(x, y) - 0.5)) * (hilada ? 0.8 : 1);
+    a *= izq ? 1 : 0.7;
+    // la esquina: el revoque se oscurece al meterse en el rincón, y la arista misma
+    a *= 0.55 + 0.45 * Math.min(1, d * 7);
+    if (x === cx) a = 0.28;
+    P.mat[i] = ADOBE;
+    P.alb[i] = a;
+  });
+  // los milagritos: corazones, piernas y ojitos de lata clavados en el revoque, lejos del centro (allá va el altar)
+  const milagros = vert ? 6 : 12;
+  for (let k = 0; k < milagros; k++) {
+    const lado = k & 1 ? 1 : -1;
+    const mx = Math.round(cx + lado * W * (0.3 + 0.17 * r1(k * 3.7 + 1)));
+    const my = Math.round(H * (0.1 + 0.55 * r1(k * 5.1 + 2)));
+    const luz = lado < 0 ? 1 : 0.75;
+    const tipo = k % 3;
+    if (tipo === 0) {
+      // corazón: dos lóbulos y la punta
+      P.elipse(mx - 3, my, 3.4, 3, LATA, (dx, dy) => (dx < -0.2 && dy < -0.1 ? 1.4 : 0.8) * luz);
+      P.elipse(mx + 3, my, 3.4, 3, LATA, (dx, dy) => (dy < -0.3 ? 1.1 : 0.6) * luz);
+      P.poligono([[mx - 6, my + 1], [mx + 6, my + 1], [mx, my + 9]], LATA, 0.62 * luz);
+    } else if (tipo === 1) {
+      // una pierna
+      P.rect(mx - 2, my - 6, 4, 12, LATA, 0.8 * luz);
+      P.rect(mx - 2, my - 6, 1, 12, LATA, 1.35 * luz);
+      P.rect(mx - 2, my + 6, 7, 3, LATA, 0.7 * luz);
+    } else {
+      // un ojo: la almendra y su niña
+      P.elipse(mx, my, 6, 3, LATA, (dx, dy) => (dy < -0.2 ? 1.3 : 0.72) * luz);
+      P.rect(mx - 1, my - 1, 2, 2, LATA, 0.2);
+    }
+    // el clavito de arriba y la sombra que deja la lata en el revoque
+    P.rect(mx, my - 8, 1, 2, LATA, 0.3);
+    P.velar(mx + 4, my + 3, 3, 7, 0.6);
+  }
+  // la mesa del altar: el paño arriba (filo de luz), la guarda dorada, el paño que cae plegado y los flecos
+  const caida = Math.round(H * (vert ? 0.06 : 0.08));
+  P.rect(0, yMesa - 2, W, 2, ADOBE, 0.25);
+  P.rect(0, yMesa, W, 3, PANO, 1.25);
+  P.cada(0, yMesa + 3, W, 3, (x, y, i) => {
+    P.mat[i] = ORO;
+    P.alb[i] = y === yMesa + 3 ? 1.05 : (x >> 1) % 3 === 0 ? 0.55 : 0.85;
+  });
+  P.cada(0, yMesa + 6, W, caida, (x, y, i) => {
+    const pliegue = 0.5 + 0.5 * Math.sin(x * 0.21 + r1(Math.floor(x / 30)) * 2);
+    P.mat[i] = PANO;
+    P.alb[i] = (0.5 + 0.42 * pliegue) * (1 - 0.25 * ((y - yMesa - 6) / caida));
+  });
+  const yFleco = yMesa + 6 + caida;
+  P.cada(0, yFleco, W, 5, (x, y, i) => {
+    if ((x & 3) > 1) return;
+    P.mat[i] = ORO;
+    P.alb[i] = y === yFleco ? 0.85 : 0.55;
+  });
+  P.cada(0, yFleco, W, H - yFleco, (x, y, i) => {
+    if (P.mat[i] === ORO && y < yFleco + 5) return;
+    P.mat[i] = ADOBE;
+    P.alb[i] = 0.14 + 0.05 * r2(x >> 2, y >> 1);
+  });
+  // los cirios: un ramillete en cada punta de la mesa, de alturas desparejas
+  const velas: { x: number; y: number; w: number; f: number }[] = [];
+  const ramo = (x0: number, x1: number, n: number, s: number): void => {
+    for (let k = 0; k < n; k++) {
+      const w = 4 + Math.floor(r1(s + k * 1.3) * 3);
+      const h = 8 + Math.floor(r1(s + k * 2.9) * (vert ? 8 : 12));
+      const x = Math.round(x0 + ((x1 - x0) * (k + 0.5)) / n - w / 2);
+      const y = yMesa + 2 + (k & 1);
+      P.sombra(x + w + 4, y, 8, 2.5, 0.5);
+      cirio(P, x, y, w, h);
+      velas.push({ x: x + (w >> 1), y: y - h - 2, w, f: k * 2 + s });
+    }
+  };
+  const n = vert ? 3 : 5;
+  ramo(W * 0.02, W * (vert ? 0.3 : 0.17), n, 1);
+  ramo(W * (vert ? 0.7 : 0.83), W * 0.98, n, 7);
+  const luces = (ap: number): Luz[] => [
+    { x: W * (vert ? 0.16 : 0.1), y: yMesa - 16, rx: W * (vert ? 0.9 : 0.42) * ap, ry: H * 0.78 * ap, g: 0.62 },
+    { x: W * (vert ? 0.84 : 0.9), y: yMesa - 16, rx: W * (vert ? 0.9 : 0.42) * ap, ry: H * 0.78 * ap, g: 0.5 },
+    { x: cx, y: H * 0.42, rx: W * 0.55 * ap, ry: H * 0.62 * ap, g: 0.3 },
+  ];
+  const cuadros = [0.95, 0.98, 1.02, 1.05].map((ap) => () => P.cuadro(luces(ap), 0.12));
+  const llama = llamas(7, 11, 5);
+  const humos = [copo(9, '#2a1838', 0.32, 1.4), copo(13, '#24142f', 0.28, 2.6)];
+  const nubes = velas.filter((_, k) => k % 2 === 0).map((v, k) => ({ x: v.x, x0: v.x, y: kit.entre(H * 0.1, v.y), y0: v.y, v: kit.entre(4, 8), s: k % 2 }));
   return {
     ...perezosos(cuadros),
     base: 1,
     elegir: (_t, respiro) => respiro,
-    animar(x, dt, _t, quieto) {
-      if (!quieto) brasas(x, dt);
+    animar(x, dt, t, quieto) {
+      for (const v of velas) x.drawImage(llama[quieto ? 0 : (Math.floor(t * 9) + v.f) % llama.length], v.x - 3, v.y - llama[0].height + 2);
+      if (quieto) return;
+      for (const m of nubes) {
+        m.y -= m.v * dt;
+        if (m.y < -20) m.y = m.y0;
+        const c = humos[m.s];
+        x.drawImage(c, Math.round(m.x0 + Math.sin(t * 0.5 + m.y * 0.04) * 6 - c.width / 2), Math.round(m.y - c.height));
+      }
+    },
+  };
+}
+
+/**
+ * La Colección: la pared donde se clava lo que juntaste. Adobe con su zócalo de tabla, los agujeros de chinche y las
+ * marcas más claras que dejaron las estampas que colgaron antes; un farol colgado de un gancho arriba a la izquierda
+ * (de ahí viene la luz, como en todo el juego) y su llamita adentro.
+ */
+function coleccion(W: number, H: number, kit: Kit): Escenario {
+  void kit;
+  const vert = H > W;
+  const ADOBE = 0;
+  const TABLA = 1;
+  const LATA = 2;
+  const P = new Plano(W, H, [{ tonos: ADOBE_TONOS }, { tonos: MADERA }, { tonos: ['#09070f', '#2a1f3d', '#6b5a86', '#b9aacb', '#f4efe2'] }]);
+  const yZocalo = Math.round(H * (vert ? 0.92 : 0.88));
+  P.cada(0, 0, W, yZocalo, (x, y, i) => {
+    const hilada = y % 9 === 0 || (x + (Math.floor(y / 9) & 1) * 11) % 22 === 0;
+    P.mat[i] = ADOBE;
+    P.alb[i] = (0.72 + 0.2 * (veta(x / 37, (y >> 3) * 5.1) - 0.5) + 0.08 * (r2(x, y) - 0.5)) * (hilada ? 0.86 : 1);
+  });
+  // las marcas de lo que colgó: rectángulos de revoque más claro (el humo no les llegó), cada uno con su agujerito
+  const paso = vert ? 40 : 52;
+  for (let gy = 0; gy * paso < yZocalo - 40; gy++)
+    for (let gx = 0; gx * paso < W; gx++) {
+      const s = gx * 13.7 + gy * 5.3;
+      if (r1(s) > 0.5) continue;
+      const mx = Math.round(gx * paso + 8 + r1(s + 1) * (paso - 30));
+      const my = Math.round(gy * paso + 14 + r1(s + 2) * (paso - 34));
+      if (r1(s + 3) < 0.6) P.velar(mx - 9, my + 2, 19, 26, 1.13);
+      P.rect(mx, my, 2, 2, ADOBE, 0.18);
+      P.rect(mx + 1, my + 2, 2, 1, ADOBE, 1.2);
+    }
+  // el zócalo: la tabla con su filo de luz arriba y la raya del piso
+  P.rect(0, yZocalo - 2, W, 2, ADOBE, 0.4);
+  P.rect(0, yZocalo, W, 2, TABLA, 1.35);
+  P.cada(0, yZocalo + 2, W, H - yZocalo - 2, (x, y, i) => {
+    P.mat[i] = TABLA;
+    P.alb[i] = (x % 61 === 0 ? 0.4 : 0.66 + 0.14 * (veta(x / 19, y >> 2) - 0.5)) * (1 - 0.4 * ((y - yZocalo) / (H - yZocalo)));
+  });
+  // el farol: gancho, sombrerete de lata, el vidrio que brilla (tinta: emite) con sus varillas, y la base
+  const fx = Math.round(W * (vert ? 0.08 : 0.025));
+  const fy = Math.round(H * (vert ? 0.14 : 0.2));
+  const fw = vert ? 10 : 14;
+  const fh = vert ? 14 : 20;
+  // (en el teléfono las pestañas lo taparían: queda su luz, que entra desde arriba a la izquierda)
+  if (!vert) {
+    P.rect(fx - 14, fy - 12, 16, 2, LATA, 0.7);
+    P.rect(fx - 14, fy - 12, 16, 1, LATA, 1.2);
+    P.rect(fx, fy - 10, 1, 6, LATA, 0.8);
+    P.poligono([[fx - fw / 2 - 2, fy], [fx + fw / 2 + 2, fy], [fx + fw / 2 - 1, fy - 4], [fx - fw / 2 + 1, fy - 4]], LATA, (_dx, _dy, x) => (x < fx ? 1.25 : 0.6));
+    P.cada(fx - fw / 2, fy, fw, fh, (x, y, i) => {
+      const k = x - (fx - fw / 2);
+      const borde = k === 0 || k === fw - 1;
+      P.fijo[i] = 0;
+      P.mat[i] = LATA;
+      P.alb[i] = borde ? (k === 0 ? 1.2 : 0.55) : 0.6;
+      if (!borde) {
+        const t = 1 - Math.abs(y - (fy + fh * 0.6)) / (fh * 0.6);
+        P.tinta(x, y, t > 0.6 ? '#fff799' : t > 0.3 ? '#ffd500' : '#ff7b00');
+      }
+    });
+    P.rect(fx - fw / 2 - 1, fy + fh, fw + 2, 3, LATA, 0.8);
+    P.rect(fx - fw / 2 - 1, fy + fh, fw + 2, 1, LATA, 1.2);
+    // su sombra en la pared, corrida a la derecha y abajo
+    P.velar(fx + fw / 2 + 2, fy + 4, 4, fh, 0.55);
+  }
+  const luces = (ap: number): Luz[] => [
+    { x: fx, y: fy + fh / 2, rx: W * (vert ? 1.4 : 0.95) * ap, ry: H * (vert ? 1 : 1.2) * ap, g: 0.95 },
+    { x: W * 0.55, y: H * 0.45, rx: W * 0.7 * ap, ry: H * 0.7 * ap, g: 0.3 },
+  ];
+  const cuadros = [0.95, 0.98, 1.02, 1.05].map((ap) => () => P.cuadro(luces(ap), 0.16));
+  const llama = llamas(vert ? 5 : 7, vert ? 8 : 11, 5);
+  return {
+    ...perezosos(cuadros),
+    base: 1,
+    elegir: (_t, respiro) => respiro,
+    animar(x, _dt, t, quieto) {
+      if (vert) return;
+      const c = llama[quieto ? 0 : Math.floor(t * 8) % llama.length];
+      x.drawImage(c, Math.round(fx - c.width / 2), Math.round(fy + fh - 2 - c.height));
     },
   };
 }
@@ -1353,12 +1559,15 @@ export function armarEscenario(escena: Escena, palo: Palo | null, W: number, H: 
     case 'fogon':
       return fogon(W, H, kit);
     case 'altar':
-      return penumbra(ALTAR, W, H, kit);
+      return altar(W, H, kit);
+    case 'coleccion':
+      return coleccion(W, H, kit);
     case 'amanecer':
       return amanecer(W, H, kit);
     case 'ocaso':
       return mesa(W, H, null, kit, true);
     default:
-      return penumbra(PORTADA, W, H, kit);
+      // la portada, Elegí tu Mazo y los Ajustes: la mesa de tablas con su vela, sin Rey
+      return mesa(W, H, null, kit);
   }
 }
