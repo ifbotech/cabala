@@ -2780,6 +2780,7 @@ button.visor-carta:disabled {
     padding-right: 4px;
     max-width: 100%;
     font-size: 20px;
+    letter-spacing: 0;
   }
 }
 /* el teléfono: cada pieza en su renglón, con el dibujo a la izquierda, el nombre y (si lo tiene) su porqué debajo, y

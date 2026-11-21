@@ -169,6 +169,8 @@ await conServidor(5198, async (url) => {
         const aguanta = (c: string[]): boolean => {
           const q = g.__mesa.cuenta(c) as Q & { total: number };
           if (q.abate) {
+            // (con el Crítico el Par puede pasar la Vida entera del Rey: entonces el Rey de la secuencia es más grande)
+            e.vidaMax = Math.max(e.vidaMax, Math.ceil(q.total * 1.25));
             e.vida = Math.min(e.vidaMax, q.total + Math.ceil(e.vidaMax * 0.1));
             g.__mesa.sincronizar();
           }

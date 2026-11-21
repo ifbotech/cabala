@@ -32,7 +32,12 @@ interface Turno {
   sobre: Caja;
   /** La caja de ahora mismo (la que mide la QA), o null si ya no se ve. */
   viva: () => Caja | null;
+  /** Qué hace si algo que pesa más le cae encima: se corre a otro lugar libre o se apaga. */
+  ceder?: () => void;
 }
+
+/** Una caja agrandada `m` píxeles por lado (las zonas prohibidas se miden con aire: lo que entra escalando crece). */
+const inflar = (c: Caja, m: number): Caja => ({ x: c.x - m, y: c.y - m, w: c.w + 2 * m, h: c.h + 2 * m });
 
 let ultimo = 0;
 const turnos: Turno[] = [];
@@ -90,7 +95,7 @@ export function pedir(capa: CapaEscena, candidatas: Caja[], ms: number, o: { esp
   const esperas = [0, 150, 250].filter((d) => d <= (o.esperaMax ?? 250));
   const choca = (c: Caja, demora: number, estricto: boolean): number => {
     let a = 0;
-    for (const z of prohib) a += pisan(c, z) * 1e6;
+    for (const z of prohib) a += pisan(c, inflar(z, 10)) * 1e6;
     for (const x of turnos) {
       if (x.hasta <= t + demora || x.desde >= t + demora + ms) continue;
       if (!estricto && PESO[x.capa] < peso) continue;
@@ -98,13 +103,33 @@ export function pedir(capa: CapaEscena, candidatas: Caja[], ms: number, o: { esp
     }
     return a;
   };
-  const elegir = (i: number, demora: number): Pedido => ({ caja: candidatas[i], demora, i, id: reservar(capa, candidatas[i], ms, o.viva, demora) });
-  for (const demora of esperas)
-    for (const estricto of [true, false]) {
-      // (el número no espera: si no hay lugar libre, va a su carril aunque pise un texto, que pesa menos)
-      if (demora > 0 && capa === 'numero') continue;
-      for (let i = 0; i < candidatas.length; i++) if (choca(candidatas[i], demora, estricto) === 0) return elegir(i, demora);
+  const elegir = (i: number, demora: number): Pedido => {
+    const id = reservar(capa, candidatas[i], ms, o.viva, demora);
+    // lo que pesa menos y queda debajo se corre (o se apaga): el número no se tapa con un bocadillo
+    for (const x of [...turnos]) {
+      if (x.id === id || !x.ceder || PESO[x.capa] >= peso) continue;
+      if (x.hasta <= t + demora || x.desde >= t + demora + ms) continue;
+      if (pisan(candidatas[i], x.sobre)) x.ceder();
     }
+    return { caja: candidatas[i], demora, i, id };
+  };
+  for (const demora of esperas) {
+    // (el número no espera: si no hay lugar libre, va a su carril aunque pise un texto, que pesa menos)
+    if (demora > 0 && capa === 'numero') continue;
+    for (let i = 0; i < candidatas.length; i++) if (choca(candidatas[i], demora, true) === 0) return elegir(i, demora);
+    // sin lugar del todo libre: de las que no pisan nada que pese lo mismo o más, la que menos pisa lo liviano
+    let mejor = -1;
+    let menos = Infinity;
+    for (let i = 0; i < candidatas.length; i++) {
+      if (choca(candidatas[i], demora, false) !== 0) continue;
+      const a = choca(candidatas[i], demora, true);
+      if (a < menos) {
+        menos = a;
+        mejor = i;
+      }
+    }
+    if (mejor >= 0) return elegir(mejor, demora);
+  }
   let mejor = 0;
   let menos = Infinity;
   for (let i = 0; i < candidatas.length; i++) {
@@ -128,6 +153,11 @@ export function reservar(capa: CapaEscena, sobre: Caja, ms: number, viva?: () =>
 export function darVida(id: number, viva: () => Caja | null): void {
   const x = turnos.find((u) => u.id === id);
   if (x) x.viva = viva;
+}
+/** Qué hace un turno si algo que pesa más le cae encima (por ejemplo, esconderse hasta que pase). */
+export function alCeder(id: number, fn: () => void): void {
+  const x = turnos.find((u) => u.id === id);
+  if (x) x.ceder = fn;
 }
 /** Suelta un turno antes de tiempo (lo que se apagó o se fue). */
 export function soltar(id: number | null | undefined): void {
@@ -156,26 +186,55 @@ export function cajaDe(el: Element): () => Caja | null {
  * `crece` agranda la caja medida (lo que la animación lo estira).
  */
 export function ubicar(el: HTMLElement, capa: CapaEscena, ms: number, alternativas: (() => void)[], crece = 1): Pedido {
-  const cajas: Caja[] = [];
   const vis = el.style.visibility;
+  const medir = (): Caja[] =>
+    alternativas.map((pon) => {
+      pon();
+      const r = el.getBoundingClientRect();
+      const w = r.width * crece;
+      const h = r.height * crece;
+      return { x: r.left + r.width / 2 - w / 2, y: r.top + r.height / 2 - h / 2, w, h };
+    });
   const anim = el.style.animation;
   // se mide quieto, a su tamaño (la animación de entrada lo agranda o lo corre)
   el.style.visibility = 'hidden';
   el.style.animation = 'none';
-  for (const pon of alternativas) {
-    pon();
-    const r = el.getBoundingClientRect();
-    const w = r.width * crece;
-    const h = r.height * crece;
-    cajas.push({ x: r.left + r.width / 2 - w / 2, y: r.top + r.height / 2 - h / 2, w, h });
-  }
+  const cajas = medir();
   const pd = pedir(capa, cajas, ms);
   alternativas[pd.i]();
   el.style.visibility = vis;
   el.style.animation = anim;
   if (pd.demora > 0) el.style.animationDelay = `${pd.demora}ms`;
   darVida(pd.id, cajaDe(el));
+  const fin = ahora() + pd.demora + ms;
+  // si después le cae encima algo que pesa más, se corre a otra de sus alternativas libre; si no hay, se apaga
+  const cedible = (id: number): void => {
+    const x = turnos.find((u) => u.id === id);
+    if (!x) return;
+    x.ceder = () => {
+      soltar(id);
+      const resta = fin - ahora();
+      if (resta <= 0 || !el.isConnected) return;
+      el.style.visibility = 'hidden';
+      const cs = medir();
+      const i = libreEn(cs, resta);
+      if (i < 0) return;
+      alternativas[i]();
+      el.style.visibility = vis;
+      const nuevo = reservar(capa, cs[i], resta, cajaDe(el));
+      cedible(nuevo);
+    };
+  };
+  cedible(pd.id);
   return pd;
+}
+
+/** La primera caja que no pisa nada de lo que está en el aire ni lo prohibido (o −1). */
+function libreEn(cajas: Caja[], ms: number): number {
+  purgar();
+  const t = ahora();
+  const prohib = prohibidas().map((z) => inflar(z, 10));
+  return cajas.findIndex((c) => !prohib.some((z) => pisan(c, z)) && !turnos.some((x) => x.hasta > t && x.desde < t + ms && pisan(c, x.sobre)));
 }
 
 /** Las zonas que tiene tomadas lo que está en el aire (o por salir), salvo el turno `menos`: para quien se ubica solo. */

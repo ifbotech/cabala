@@ -19,7 +19,7 @@ import { agacharMusica, nota, sonar, vozBufon } from '../audio';
 import { estadoMusica, ponerFuego, ponerMusica } from '../musica';
 import { teclear } from '../habla';
 import { RAMPA_CURA, RAMPA_ESCUDO, RAMPA_GOLPE, RAMPA_PALO, chispas, destello, haloRey, limpiarNumeros, lluviaDeMonedas, medidaNumero, monedas, motas, numero, partirNaipe, quiebre, tajo, tajoDeReves, type Carril } from '../fx/efectos';
-import { cajaDe, reservar, soltar as soltarTurno, ubicar } from '../fx/director';
+import { alCeder, cajaDe, reservar, soltar as soltarTurno, ubicar } from '../fx/director';
 import { S, congelar, enFoto, fogonazoCandil, ponerClima, sacudir } from '../fx/motor';
 import { actualizarTiras, avivarRetrato, dispararFicha, gestoFijo, gestoRetrato, gritar, hudHtml, mirarHacia, ponerHud, poseRetrato, reubicarGrito, vistaDe, type VistaHud } from '../hud';
 import { guardar, pintarFase } from '../juego';
@@ -102,6 +102,11 @@ export function pantallaMesa(p: Partida): Pantalla {
     if (!enFoto()) {
       const r = b.getBoundingClientRect();
       turnoVoz = reservar('bocadillo', { x: r.left, y: r.top, w: r.width, h: r.height }, ms > 0 ? ms : 6000, cajaDe(b));
+      // (si le cae encima el número de un golpe, el Bufón se calla ese segundo y vuelve: el número no se tapa)
+      alCeder(turnoVoz, () => {
+        b.style.visibility = 'hidden';
+        window.setTimeout(() => (b.style.visibility = ''), 1000);
+      });
     }
     if (!enFoto()) for (let i = 0; i < 3; i++) window.setTimeout(() => vozBufon(texto.charCodeAt(i * 3) || 65), i * 70);
     gestoBufon($('.esc-bufon')!, gesto);
@@ -363,7 +368,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           <span class="c-numeros">
             <span class="c-parte" data-cd><span class="rotulo">${t('dano')}</span><span data-v>${cifra(q.dano, 'roja', 'grande')}</span></span>
             ${cifra('x', 'hueso')}
-            <span class="c-parte" data-cm><span class="rotulo">${t('multi')}</span><span data-v>${cifra(q.multi, 'azul', 'grande')}</span></span>
+            <span class="c-parte${q.critico ? ' con-crit' : ''}" data-cm><span class="rotulo">${t('multi')}</span><span data-v>${cifra(q.multi, 'azul', 'grande')}</span></span>
             ${cifra('=', 'hueso')}
             <span class="c-total" data-total>${cifra(q.total, 'oro', 'grande')}</span>
           </span>
@@ -657,6 +662,9 @@ export function pantallaMesa(p: Partida): Pantalla {
             fogonazo('blanco');
             sacudir($('.mesa'), 3);
             await frenar(140);
+            // (las últimas palabras toman la escena: el número del golpe ya se leyó y se apaga, como en la segunda cara)
+            limpiarNumeros();
+            document.querySelector('.e-dice')?.remove();
             const b = document.createElement('p');
             b.className = 'bocadillo sin-cola e-dice';
             $('[data-enemigo] .e-centro')?.append(b);
@@ -890,7 +898,9 @@ export function pantallaMesa(p: Partida): Pantalla {
       b.style.right = st.right ?? '';
       b.style.translate = st.translate ?? '';
     };
-    ubicar(b, 'bocadillo', ms, [poner({}), poner({ top: '6px', bottom: 'auto', left: '50%', right: 'auto', translate: '-50% 0' }), poner({ top: 'auto', bottom: '6px', left: '50%', right: 'auto', translate: '-50% 0' })]);
+    const arriba = (tr: string) => poner({ top: '6px', bottom: 'auto', left: '50%', right: 'auto', translate: tr });
+    const abajo = (tr: string) => poner({ top: 'auto', bottom: '6px', left: '50%', right: 'auto', translate: tr });
+    ubicar(b, 'bocadillo', ms, [poner({}), arriba('-50% 0'), abajo('-50% 0'), arriba('-42% 0'), abajo('-42% 0'), arriba('-58% 0'), abajo('-58% 0'), arriba('-34% 0'), abajo('-34% 0')]);
   }
   /** El Rey dice algo corto en plena pelea (no frena nada): un bocadillo tecleado con su voz, bajo su naipe. */
   let reyHablo = 0;
@@ -949,7 +959,15 @@ export function pantallaMesa(p: Partida): Pantalla {
     zona.append(r);
     const ms = quieto() ? 1800 : 1500;
     // en su lugar de siempre (bajo la cara); si ahí vuela el número de tu golpe, más arriba o al pie
-    if (!quieto()) ubicar(r, 'rotulo', ms, ['', '30%', '88%'].map((top) => () => void (r.style.top = top)));
+    // (y si es más ancho que el naipe y pisa los sellos de la izquierda, corrido hacia la derecha)
+    const alts: (() => void)[] = [];
+    for (const tr of ['', '-38% -50%', '-28% -50%'])
+      for (const top of ['', '30%', '88%'])
+        alts.push(() => {
+          r.style.top = top;
+          r.style.translate = tr;
+        });
+    if (!quieto()) ubicar(r, 'rotulo', ms, alts);
     window.setTimeout(() => r.remove(), ms);
   }
 
@@ -1095,7 +1113,7 @@ export function pantallaMesa(p: Partida): Pantalla {
       g.style.left = `${Math.round(Math.max(gw / 2 + 6, Math.min(innerWidth - gw / 2 - 6, m.x + dx * gw)))}px`;
       g.style.top = `${Math.round(m.y)}px`;
     };
-    ubicar(g, 'cartel', 1500, [pon(0.5, 0), pon(0.3, 0), pon(0.7, 0), pon(0.5, 0.3), pon(0.5, -0.3), pon(0.2, 0.3), pon(0.85, 0)]);
+    ubicar(g, 'cartel', 1500, [pon(0.5, 0), pon(0.3, 0), pon(0.7, 0), pon(0.5, 0.3), pon(0.5, -0.3), pon(0.5, 0.42), pon(0.5, -0.42), pon(0.2, 0.3), pon(0.2, 0.42), pon(0.85, 0), pon(0.85, 0.42)]);
     window.setTimeout(() => g.remove(), 1500);
     await pausa(950);
     // (lo que sigue suele ser el Rey que te pega: el cartel ya se leyó y se va enseguida, sin quedar encima de él)
@@ -1239,7 +1257,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     const parte = $('[data-cuenta] [data-cm]');
     if (!parte) return;
     parte.querySelector('.c-crit-sello')?.remove();
-    parte.insertAdjacentHTML('beforeend', `<b class="c-crit-sello" aria-hidden="true">${cifra(`x${v}`, 'oro', 'grande')}</b>`);
+    parte.insertAdjacentHTML('beforeend', `<b class="c-crit-sello" aria-hidden="true">${cifra(`x${v}`, 'oro')}</b>`);
   }
   const termino = (x: Paso): Element | null | undefined => $('[data-cuenta] .c-desglose')?.querySelector(`[data-paso="${CSS.escape(`${x.tipo}|${x.de}`)}"]`);
   /**

@@ -3452,14 +3452,18 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 .c-parte[data-cm] {
   position: relative;
 }
+/* (con Crítico, el MULTI guarda a su derecha el lugar del sello: no se monta sobre el «=» ni sobre el total) */
+.c-parte[data-cm].con-crit {
+  padding-right: calc(var(--fr) * 2.1);
+}
 .c-crit-sello {
   position: absolute;
-  left: calc(100% - 0.3em);
-  bottom: 62%;
+  right: 0;
+  bottom: 58%;
   z-index: 3;
   pointer-events: none;
   scale: 1.5;
-  transform-origin: 0 100%;
+  transform-origin: 100% 100%;
   padding: 0 calc(2px * var(--k));
   background: #3a2600;
   box-shadow:
