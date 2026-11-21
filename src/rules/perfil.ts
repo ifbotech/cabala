@@ -108,6 +108,18 @@ export function mejorar(perfil: Perfil, id: MejoraId): boolean {
   return true;
 }
 
+/** Lo que devuelve el Altar al bajar un nivel: el precio entero que se pagó por él (0.23.0: probar no cuesta). */
+export const reembolso = (id: MejoraId, nivel: number): number | null => (nivel > 0 ? costeMejora(id, nivel - 1) : null);
+
+/** Devolver el último nivel de una mejora: vuelven todos sus Porotos. */
+export function devolver(perfil: Perfil, id: MejoraId): boolean {
+  const r = reembolso(id, perfil.altar[id]);
+  if (r === null) return false;
+  perfil.porotos += r;
+  perfil.altar[id]--;
+  return true;
+}
+
 /** Los Porotos que deja una partida terminada. */
 export function porotosDe(p: Partida, victoria: boolean): number {
   const k = B.porotos;
