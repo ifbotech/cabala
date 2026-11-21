@@ -85,6 +85,8 @@ export interface Cuenta {
   aturde: number;
   /** Lo que te va a costar el Contraataque (null si no lo hay: lo abatís, está Aturdido o no llega). */
   contra: number | null;
+  /** Un Rey en su primera cara se planta en la mitad: este golpe la cruza y el sobrante se pierde (0.20.0). */
+  frenaEnMitad?: boolean;
 }
 
 const NULA: Cuenta = {
@@ -266,13 +268,17 @@ export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
 
   // ── contra el enemigo activo
   const aEscudo = perfora ? 0 : Math.min(e.escudo, total);
-  const aVida = total - aEscudo;
+  // un Rey en su primera cara se planta en la mitad (0.20.0): el golpe que la cruza lo deja justo a media Vida y el
+  // sobrante se pierde, así cada Rey muestra sus dos caras
+  const mitad = e.jefe && !e.segunda && e.vida * 2 > e.vidaMax ? e.vida - Math.floor(e.vidaMax / 2) : Infinity;
+  const frenaEnMitad = total - aEscudo > mitad;
+  const aVida = Math.min(total - aEscudo, mitad);
   const abate = aVida >= e.vida;
   const exacto = aVida === e.vida;
   // «al pelo»: te pasaste por muy poco. No cobra oro, pero sostiene la racha y recarga el Cetro
   const alPelo = abate && !exacto && aVida - e.vida <= Math.max(1, Math.floor(e.vidaMax * B.exacto.alPelo));
   lv = nivelBend(p, 'deguello');
-  const ejecuta = !abate && lv > 0 && e.vida - aVida <= Math.floor(e.vidaMax * nivelDe(bn.deguello, lv));
+  const ejecuta = !abate && !frenaEnMitad && lv > 0 && e.vida - aVida <= Math.floor(e.vidaMax * nivelDe(bn.deguello, lv));
   const sobra = abate && perfora ? (aVida - e.vida) * (tieneAmuleto(p, 'lanza') ? am.lanza : 1) : 0;
   let aturde = 0;
   if (canto && p.mazoId === 'chancho') aturde = B.mazos.chancho.aturde * dob;
@@ -288,7 +294,7 @@ export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
     }
   }
 
-  return { ok: true, jugada, ef, dano, multi: multiFinal, total, pasos, canto, critico, perfora, escudo, cura, oro, aEscudo, aVida, abate, exacto, alPelo, ejecuta, sobra, aturde, contra };
+  return { ok: true, jugada, ef, dano, multi: multiFinal, total, pasos, canto, critico, perfora, escudo, cura, oro, aEscudo, aVida, abate, exacto, alPelo, ejecuta, sobra, aturde, contra, frenaEnMitad };
 }
 
 // ───────────────────────── enemigos ─────────────────────────
@@ -347,7 +353,7 @@ export function iniciarCombate(p: Partida, tipo: TipoCombate, fila: Enemigo[]): 
   let escudo = carga(p, 'C');
   if (tieneAumento(p, 'mesaservida')) escudo += B.aumentos.mesaservida;
   // Cara de Piedra: el Mentiroso arranca cada combate con Escudo, que crece con el tramo
-  if (p.mazoId === 'mentiroso') escudo += B.mazos.mentiroso.caraDePiedra * tramoJugador(p);
+  if (p.mazoId === 'mentiroso') escudo += B.mazos.mentiroso.caraDePiedra; // plano: protege el arranque, no escala
   let furia = p.reinado >= 3 ? R.furiaInicial : 0;
   if (tipo === 'rey') {
     furia += p.furiaRey + (p.reinado >= 8 ? R.furiaReyes : 0);

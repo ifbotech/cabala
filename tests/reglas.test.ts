@@ -475,6 +475,29 @@ describe('0.18.1: un costo de Vida máxima siempre cuesta', () => {
   });
 });
 
+describe('0.20.0: cada Rey muestra sus dos caras', () => {
+  it('el golpe que cruza la mitad de un Rey en su primera cara lo deja justo a media Vida y lo voltea', () => {
+    const mano = [c('C', 7), c('D', 7), c('C', 3), c('D', 3)];
+    const p = mesa('chinchon', mano, { palo: 'D', rango: 12, jefe: true, vidaMax: 20, vida: 20, escudo: 0, ataque: 1 });
+    const q = cuenta(p, [mano[0], mano[1]]);
+    expect(q.total).toBeGreaterThan(20);
+    expect(q.frenaEnMitad).toBe(true);
+    expect(q.abate).toBe(false);
+    expect(q.aVida).toBe(10);
+    golpear(p, [mano[0].id, mano[1].id]);
+    const e = p.combate!.fila[0];
+    expect(e.vida).toBe(10);
+    expect(e.segunda).toBe(true);
+  });
+  it('en la segunda cara el Rey ya se puede abatir de un golpe', () => {
+    const mano = [c('C', 7), c('D', 7), c('C', 3), c('D', 3)];
+    const p = mesa('chinchon', mano, { palo: 'D', rango: 12, jefe: true, vidaMax: 40, vida: 10, escudo: 0, ataque: 1, segunda: true });
+    const q = cuenta(p, [mano[0], mano[1]]);
+    expect(q.frenaEnMitad).toBe(false);
+    expect(q.abate).toBe(true);
+  });
+});
+
 describe('0.16.0: las segundas caras obligan a cambiar de plan', () => {
   it('Tajo de revés: repetir la jugada contra el Caudillo duplica su golpe y atraviesa todo el Escudo', () => {
     const mano = [c('C', 7), c('D', 7), c('C', 3), c('D', 3)];

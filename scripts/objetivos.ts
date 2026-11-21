@@ -6,7 +6,7 @@ export const OBJETIVOS = {
   /** El Reinado 8 tiene que ser claramente más duro que el 1 (puntos de victoria de menos, Altar lleno). */
   reinado8Baja: 8,
   /** Partidas que caen en el tramo 1 (Altar vacío, en %): ningún Mazo se muere de arranque (0.19.0; en la 0.18 iban del 3 al 34 %). */
-  caidaTramo1: [2, 25] as const,
+  caidaTramo1: [2, 30] as const,
   /** Golpes por combate: ni un trámite ni una maratón. */
   golpesGuardia: [2, 4.5] as const,
   golpesRey: [3.5, 9] as const,

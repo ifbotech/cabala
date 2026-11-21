@@ -109,7 +109,7 @@
       "ataque": 2
     },
     "jefe": {
-      "vida": 1.6,
+      "vida": 1.4,
       "sangreConocida": 0.05,
       "sangreTope": 0.2
     }
@@ -145,16 +145,16 @@
   },
   "mazos": {
     "escoba": {
-      "vida": 44,
+      "vida": 76,
       "mano": 3,
       "hasta": 9,
       "comodines": 2,
-      "multi": 2,
+      "multi": 3,
       "cargaDano": 2,
-      "multiMano": 8
+      "multiMano": 3
     },
     "truco": {
-      "vida": 55,
+      "vida": 63,
       "mano": 3,
       "hasta": 7,
       "comodines": 2,
@@ -169,7 +169,7 @@
       "multiMano": 4
     },
     "chinchon": {
-      "vida": 28,
+      "vida": 26,
       "mano": 7,
       "hasta": 9,
       "comodines": 2,
@@ -178,23 +178,23 @@
       "multiMano": 2
     },
     "mentiroso": {
-      "vida": 14,
+      "vida": 15,
       "mano": 8,
       "hasta": 7,
       "comodines": 3,
       "enganos": 1,
       "furiaFallo": 3,
-      "caraDePiedra": 10,
+      "caraDePiedra": 22,
       "multiMano": 0
     },
     "chancho": {
-      "vida": 63,
+      "vida": 73,
       "mano": 4,
       "hasta": 9,
       "comodines": 2,
       "multi": 2,
       "aturde": 2,
-      "multiMano": 4
+      "multiMano": 3
     }
   },
   "botin": {
