@@ -103,13 +103,68 @@ function avisarRollo(velo: HTMLElement): void {
   requestAnimationFrame(mirar);
 }
 
-/** La tabla de JUGADAS: lo que vale cada una, lo que hace cada palo y las dos reglas que más se preguntan. */
+/** Las palabras del juego, en una línea cada una (el glosario de JUGADAS y la ayuda de la mesa). Los números salen del motor. */
+export type EntradaGlosario = 'multi' | 'furia' | 'escudo' | 'exacto' | 'alpelo' | 'racha' | 'segunda' | 'engano';
+export function textoGlosario(e: EntradaGlosario): string {
+  switch (e) {
+    case 'multi':
+      return t('gMulti');
+    case 'furia':
+      return t('gFuria', { m: B.furia.mazoAgotado, r: B.furia.reyPorTurno });
+    case 'escudo':
+      return t('gEscudo');
+    case 'exacto':
+      return t('gExacto', { o: B.exacto.oro });
+    case 'alpelo':
+      return t('gAlPelo', { p: Math.round(B.exacto.alPelo * 100) });
+    case 'racha':
+      return t('gRacha', { lista: Array.from({ length: B.exacto.rachaTope }, (_, i) => `+${(i + 1) * B.exacto.multi}`).join(', ') });
+    case 'segunda':
+      return t('gSegunda');
+    case 'engano':
+      return t('gEngano', { n: B.mazos.mentiroso.enganos, f: B.mazos.mentiroso.furiaFallo });
+  }
+}
+const GLOSARIO: readonly { e: EntradaGlosario; nombre: () => string }[] = [
+  { e: 'multi', nombre: () => t('multi') },
+  { e: 'furia', nombre: () => t('furia') },
+  { e: 'escudo', nombre: () => t('escudo') },
+  { e: 'exacto', nombre: () => t('golpeExacto') },
+  { e: 'alpelo', nombre: () => t('alPelo') },
+  { e: 'racha', nombre: () => t('racha', { n: B.exacto.rachaTope }).replace(/\s*×\d+$/, '') },
+  { e: 'segunda', nombre: () => t('segundaCara') },
+  { e: 'engano', nombre: () => t('engano') },
+];
+
+/**
+ * Lo que el canto del Mazo le agrega a una jugada propia, tal como lo aplica el motor (combate.ts): la Escoba
+ * multiplica el Multi al sumar 15, el Chancho al hacer Póker, el Truco suma Daño con el Envido.
+ */
+function cantoDe(p: Partida, j: Jugada): { d?: number; x?: number } {
+  const mz = B.mazos;
+  if (p.mazoId === 'escoba' && j === 'quince') return { x: mz.escoba.multi };
+  if (p.mazoId === 'chancho' && j === 'poker') return { x: mz.chancho.multi };
+  if (p.mazoId === 'truco' && j === 'envido') return { d: mz.truco.envido };
+  return {};
+}
+
+/** La tabla de JUGADAS: lo que vale cada una, lo que hace cada palo, las reglas que más se preguntan y el glosario. */
 export function modalJugadas(p: Partida, actual?: Jugada | null): void {
   const propias: Jugada[] = p.mazoId === 'escoba' ? ['quince'] : p.mazoId === 'truco' ? ['envido'] : [];
   const PIDE: Record<Jugada, number> = { sola: 1, par: 2, doblepar: 4, flor: 3, pierna: 3, escalera: 3, full: 5, escalerapalo: 3, poker: 4, quince: 2, envido: 2 };
-  // primero las de tu Mazo (su canto arriba de todo) y las que entran en tu mano; las que piden más cartas, plegadas
-  const fila = (j: Jugada): string =>
-    `<tr class="${j === actual ? 'actual' : ''} ${propias.includes(j) ? 'propia' : ''}"><th scope="row">${esc(tx(JUGADA_NOMBRE[j]))}</th><td>${esc(tx(JUGADA_COMO[j]))}</td><td class="n">${cifra(`+${B.jugadas[j].d}`, 'roja')}</td><td class="n">${cifra(`x${B.jugadas[j].m}`, 'azul')}</td></tr>`;
+  const canto = tx(MAZO[p.mazoId].canto);
+  // primero las de tu Mazo (su canto arriba de todo) y las que entran en tu mano; las que piden más cartas, plegadas.
+  // Las cifras son las del motor (B.jugadas) y, si la jugada canta, lo que el canto le agrega
+  const fila = (j: Jugada): string => {
+    const c = cantoDe(p, j);
+    const extra = !c.x && c.d ? t('danoAlCantar', { d: c.d, c: canto }) : '';
+    // si el canto multiplica (Escoba, Chancho), las columnas de Daño y Multi dicen eso en vez de un «+0 ×1» que confunde
+    const cifras = c.x
+      ? `<td class="n j-canto-celda" colspan="2"><span class="j-canto">${esc(t('alCantar', { x: c.x, c: canto }))}</span></td>`
+      : `<td class="n">${cifra(`+${B.jugadas[j].d}`, 'roja')}</td><td class="n">${cifra(`x${B.jugadas[j].m}`, 'azul')}</td>`;
+    return `<tr class="${j === actual ? 'actual' : ''} ${propias.includes(j) ? 'propia' : ''}"><th scope="row">${esc(tx(JUGADA_NOMBRE[j]))}</th><td>${esc(tx(JUGADA_COMO[j]))}${extra ? `<span class="j-canto">${esc(extra)}</span>` : ''}</td>${cifras}</tr>`;
+  };
+  const glosario = GLOSARIO.map((g) => `<div class="glosa"><dt>${esc(g.nombre())}</dt><dd>${esc(textoGlosario(g.e))}</dd></div>`).join('');
   const todas = [...propias, ...JUGADAS];
   const cerca = todas.filter((j) => PIDE[j] <= p.manoMax);
   const lejos = todas.filter((j) => PIDE[j] > p.manoMax);
@@ -134,6 +189,8 @@ export function modalJugadas(p: Partida, actual?: Jugada | null): void {
           <ul class="palos-lista">${palos}</ul>
           <p class="regla">${esc(t('inmuneRegla'))}</p>
           <p class="regla">${esc(t('comodinRegla'))}</p>
+          <h3 class="rotulo">${t('glosario')}</h3>
+          <dl class="glosario">${glosario}</dl>
         </div>
       </div>
     </div>`,

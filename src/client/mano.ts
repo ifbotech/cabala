@@ -7,6 +7,7 @@ import type { Carta } from '../rules/cartas';
 import { t } from './almacen';
 import { quieto as todoQuieto } from './ritmo';
 import { pxNaipe } from './sprites';
+import { B } from '../rules/balance';
 
 export type Zona = 'enemigo' | 'descarte';
 
@@ -419,6 +420,12 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano): Mano {
         el.dataset.n = String(carta.n);
         el.setAttribute('aria-pressed', 'false');
         el.setAttribute('aria-label', carta.palo === 'X' ? '★' : `${carta.n} ${carta.palo}`);
+        // el sello del temple («+8★») dice qué es al enfocar la carta o pasarle el cursor
+        if (carta.temple) {
+          const cuerpo = carta.brava ? t('forjada') : carta.templada ? t('templadaMulti', { n: carta.temple, m: B.fogon.multiTemplada }) : t('templada', { n: carta.temple });
+          el.dataset.tipT = t('templeTip');
+          el.dataset.tip = cuerpo;
+        }
         // el Comodín lleva su nombre: sin número ni palo propios, es lo que lo distingue de una carta que no se lee
         el.innerHTML = pxNaipe(carta) + (carta.palo === 'X' ? `<span class="c-rotulo">${t('comodin')}</span>` : `<span class="c-indice" data-palo="${carta.palo}" aria-hidden="true">${carta.n}</span>`) + (carta.temple ? `<span class="c-temple">+${carta.temple}${carta.templada ? '★' : ''}${carta.brava ? ' ×2' : ''}</span>` : '');
         raiz.append(el);

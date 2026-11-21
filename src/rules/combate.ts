@@ -35,7 +35,7 @@ export type Ev =
   | { t: 'furia'; n: number; por: 'mazo' | 'rey' | 'engano' | 'diezmo' | 'brindis' | 'deguello' }
   | { t: 'segunda'; palo: Palo }
   | { t: 'alpelo' }
-  | { t: 'rey'; que: 'cura' | 'escudo' | 'diezmo'; n: number }
+  | { t: 'rey'; que: 'cura' | 'escudo' | 'diezmo' | 'deguello'; n: number }
   | { t: 'roba'; ids: string[] }
   | { t: 'descarta'; ids: string[] }
   | { t: 'baraja' }
@@ -114,14 +114,20 @@ function hayCanto(p: Partida, ef: readonly Efectiva[], jugada: Jugada, engano: b
 }
 
 /** El Contraataque del enemigo activo tal como te llegaría ahora: daño total y la parte que atraviesa el Escudo. */
-export function contraataque(p: Partida, e: Enemigo, o: { mitiga?: boolean; sinVida?: boolean } = {}): { n: number; directo: number } {
+export function contraataque(p: Partida, e: Enemigo, o: { mitiga?: boolean; sinVida?: boolean; repite?: boolean } = {}): { n: number; directo: number } {
   const c = p.combate!;
   let n = e.ataque + c.furia;
   if (e.jefe && e.palo === 'C' && o.sinVida) n = Math.ceil(n * B.reyes.C.contragolpe);
+  // la segunda cara del Caudillo: repetir la jugada del golpe anterior es servirle el cuello
+  const deguello = !!o.repite && deguelloArmado(e);
+  if (deguello) n *= B.reyes.S.deguello;
   if (o.mitiga) n = Math.ceil(n * B.mazos.chinchon.mitiga);
-  const directo = e.jefe && e.palo === 'S' ? Math.floor(n * B.reyes.S.perfora) : 0;
+  const directo = deguello ? n : e.jefe && e.palo === 'S' ? Math.floor(n * B.reyes.S.perfora) : 0;
   return { n, directo };
 }
+
+/** El Caudillo en su segunda cara castiga repetir la jugada del golpe anterior. */
+const deguelloArmado = (e: Enemigo): boolean => !!(e.jefe && e.palo === 'S' && e.segunda);
 
 /**
  * La cuenta de un golpe con esas cartas de la mano contra el enemigo activo. No cambia nada.
@@ -258,7 +264,7 @@ export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
   const abate = aVida >= e.vida;
   const exacto = aVida === e.vida;
   // «al pelo»: te pasaste por muy poco. No cobra oro, pero sostiene la racha y recarga el Cetro
-  const alPelo = abate && !exacto && !perfora && aVida - e.vida <= Math.max(1, Math.floor(e.vidaMax * B.exacto.alPelo));
+  const alPelo = abate && !exacto && aVida - e.vida <= Math.max(1, Math.floor(e.vidaMax * B.exacto.alPelo));
   lv = nivelBend(p, 'deguello');
   const ejecuta = !abate && lv > 0 && e.vida - aVida <= Math.floor(e.vidaMax * nivelDe(bn.deguello, lv));
   const sobra = abate && perfora ? (aVida - e.vida) * (tieneAmuleto(p, 'lanza') ? am.lanza : 1) : 0;
@@ -270,7 +276,7 @@ export function cuenta(p: Partida, sel: readonly Carta[]): Cuenta {
   if (!abate && !ejecuta) {
     if (e.aturdido > 0 || aturde > 0 || c.caraDePoker) contra = 0;
     else {
-      const k = contraataque(p, e, { mitiga: canto && p.mazoId === 'chinchon', sinVida: aVida === 0 });
+      const k = contraataque(p, e, { mitiga: canto && p.mazoId === 'chinchon', sinVida: aVida === 0, repite: c.ultimaJugada === jugada });
       const tuEscudo = Math.min(escudoTope(p), c.escudo + escudo);
       contra = k.n - Math.min(tuEscudo, k.n - k.directo);
     }
@@ -420,6 +426,7 @@ function abatir(p: Partida, evs: Ev[], o: { exacto: boolean; alPelo?: boolean; e
   if (o.alPelo) {
     // al pelo: sin premio, pero la racha sigue viva y el Cetro vuelve a cargarse
     if (tieneAmuleto(p, 'cetro')) c.cetro = true;
+    p.stats.alPelo = (p.stats.alPelo ?? 0) + 1;
     evs.push({ t: 'alpelo' });
   } else if (!o.exacto) p.racha = 0;
   // la regla única de las cargas: cada enemigo abatido con el palo de un Rey en el golpe, +1 (si llevás dones suyos)
@@ -456,7 +463,7 @@ function victoria(p: Partida, evs: Ev[]): void {
 }
 
 /** El Contraataque del enemigo activo, con todo lo que dispara. Devuelve false si la partida terminó. */
-function contraatacar(p: Partida, evs: Ev[], o: { mitiga: boolean; sinVida: boolean }): boolean {
+function contraatacar(p: Partida, evs: Ev[], o: { mitiga: boolean; sinVida: boolean; repite?: boolean }): boolean {
   const c = p.combate!;
   const e = c.fila[0];
   if (e.aturdido > 0) {
@@ -470,6 +477,7 @@ function contraatacar(p: Partida, evs: Ev[], o: { mitiga: boolean; sinVida: bool
     return true;
   }
   const k = contraataque(p, e, o);
+  if (o.repite && deguelloArmado(e)) evs.push({ t: 'rey', que: 'deguello', n: k.n });
   const frenado = Math.min(c.escudo, k.n - k.directo);
   c.escudo -= frenado;
   const llega = k.n - frenado;
@@ -480,7 +488,8 @@ function contraatacar(p: Partida, evs: Ev[], o: { mitiga: boolean; sinVida: bool
   }
   evs.push({ t: 'contra', n: k.n, frenado, vida: Math.max(0, p.vida), de: e.palo, rango: e.rango });
   if (e.jefe && e.palo === 'D') {
-    const cobra = Math.min(p.oro, B.reyes.D.diezmo * (e.segunda ? B.reyes.D.remate : 1));
+    // la segunda cara del Caudal: el Remate se lleva una tajada de la bolsa entera
+    const cobra = Math.min(p.oro, e.segunda ? Math.max(B.reyes.D.diezmo * 2, Math.ceil(p.oro * B.reyes.D.remate)) : B.reyes.D.diezmo);
     if (cobra > 0) {
       p.oro -= cobra;
       c.furia += cobra;
@@ -532,12 +541,12 @@ function finTurno(p: Partida, evs: Ev[], jugadas: Carta[]): void {
     evs.push({ t: 'furia', n: sube, por: 'rey' });
     const escala = B.enemigos.actos[Math.min(p.acto, B.enemigos.actos.length - 1)];
     if (e.palo === 'C' && e.escudo < e.escudoMax) {
-      const n = Math.min(e.escudoMax - e.escudo, Math.round(B.reyes.C.regenera * escala.escudo));
+      const n = Math.min(e.escudoMax - e.escudo, Math.round(B.reyes.C.regenera * escala.escudo * (e.segunda ? B.reyes.C.empalizadaRegenera : 1)));
       e.escudo += n;
       evs.push({ t: 'rey', que: 'escudo', n });
     }
     if (e.palo === 'H') {
-      const n = Math.round(B.reyes.H.cura * escala.vida);
+      const n = Math.round(B.reyes.H.cura * escala.vida * (e.segunda ? B.reyes.H.ultimaRonda : 1));
       const cabe = Math.min(n, e.vidaMax - e.vida);
       e.vida += cabe;
       if (cabe > 0) evs.push({ t: 'rey', que: 'cura', n: cabe });
@@ -608,7 +617,7 @@ export function golpear(p: Partida, ids: readonly string[]): Ev[] {
     if (p.vida > antes) evs.push({ t: 'cura', n: p.vida - antes });
     // la segunda cara del Bacanal: lo que vos te curás, él también
     if (e.jefe && e.palo === 'H' && e.segunda && p.vida > antes) {
-      const n = Math.min(e.vidaMax - e.vida, p.vida - antes);
+      const n = Math.min(e.vidaMax - e.vida, (p.vida - antes) * B.reyes.H.ultimaRonda);
       if (n > 0) {
         e.vida += n;
         evs.push({ t: 'rey', que: 'cura', n });
@@ -631,19 +640,16 @@ export function golpear(p: Partida, ids: readonly string[]): Ev[] {
     if (q.ejecuta) e.vida = 0;
     abatir(p, evs, { exacto: q.exacto, alPelo: q.alPelo, ejecutado: q.ejecuta, palos, sobra: q.sobra, deUnSaque: deUnSaque && q.abate });
   } else {
-    // la segunda cara del Caudillo: repetir la jugada del golpe anterior lo enfurece
-    if (e.jefe && e.palo === 'S' && e.segunda && jugadaAntes === q.jugada) {
-      c.furia += B.reyes.S.deguello;
-      evs.push({ t: 'furia', n: B.reyes.S.deguello, por: 'deguello' });
-    }
     // a media Vida, el Rey muestra su segunda cara
     if (e.jefe && !e.segunda && e.vida * 2 <= e.vidaMax) {
       e.segunda = true;
       evs.push({ t: 'segunda', palo: e.palo });
-      if (e.palo === 'C' && e.escudo < e.escudoMax) {
+      // la Empalizada del Cacique: un Escudo a la medida de su Vida (las Espadas lo atraviesan)
+      if (e.palo === 'C') {
+        e.escudoMax = Math.max(e.escudoMax, Math.round(e.vidaMax * B.reyes.C.empalizada));
         const n = e.escudoMax - e.escudo;
         e.escudo = e.escudoMax;
-        evs.push({ t: 'rey', que: 'escudo', n });
+        if (n > 0) evs.push({ t: 'rey', que: 'escudo', n });
       }
     }
     if (q.aturde) {
@@ -661,7 +667,7 @@ export function golpear(p: Partida, ids: readonly string[]): Ev[] {
     return evs;
   }
   if (!cae) {
-    const sigue = contraatacar(p, evs, { mitiga: q.canto && p.mazoId === 'chinchon', sinVida: q.aVida === 0 });
+    const sigue = contraatacar(p, evs, { mitiga: q.canto && p.mazoId === 'chinchon', sinVida: q.aVida === 0, repite: jugadaAntes === q.jugada });
     if (!sigue || !c.fila.length) return evs;
   }
   finTurno(p, evs, sel);

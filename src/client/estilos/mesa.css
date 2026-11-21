@@ -1312,48 +1312,6 @@ button:disabled .b-quedan {
 [data-total].espera {
   opacity: 0.18;
 }
-/* el nombre de lo que suma, subiendo desde su cifra */
-.c-vuela {
-  position: fixed;
-  z-index: 40;
-  translate: -50% -100%;
-  padding: calc(1px * var(--k)) calc(3px * var(--k));
-  font-size: var(--fs-s);
-  font-weight: normal;
-  white-space: nowrap;
-  color: #14101e;
-  background: #f2e8d0;
-  pointer-events: none;
-  animation: c-vuela 0.9s steps(9) both;
-}
-.c-vuela.v-d {
-  background: #ff1453;
-  color: #fff;
-}
-.c-vuela.v-m {
-  background: #2c7bf0;
-  color: #fff;
-}
-.c-vuela.v-x {
-  background: #ffd500;
-  font-size: var(--fs);
-}
-@keyframes c-vuela {
-  0% {
-    opacity: 0;
-    translate: -50% -40%;
-  }
-  12% {
-    opacity: 1;
-  }
-  75% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    translate: -50% calc(-100% - 26px * var(--k));
-  }
-}
 /* la ficha de la bandeja que dispara */
 .hud .ficha.dispara {
   animation: ficha-dispara 0.32s steps(4);
@@ -1427,7 +1385,6 @@ button:disabled .b-quedan {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .c-vuela,
   .fogonazo {
     display: none;
   }
@@ -1578,22 +1535,6 @@ button:disabled .b-quedan {
   animation: pantalla-entra 0.22s steps(5) both;
 }
 
-/* el cartel del conteo: uno solo a la vez, sobre el renglón de abajo de la cuenta, grande y sin tapar al enemigo */
-.c-vuela {
-  translate: -50% calc(-100% - 2px * var(--k));
-  font-size: var(--fs);
-  animation: c-cartel 0.14s steps(3) both;
-}
-@media (min-width: 1100px) {
-  .c-vuela {
-    font-size: max(var(--fs), 20px);
-  }
-}
-@keyframes c-cartel {
-  from {
-    scale: 1.25;
-  }
-}
 [data-cm] [data-v].espera {
   opacity: 0;
 }
@@ -2087,4 +2028,343 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 }
 @media (prefers-reduced-motion: reduce) {
   .mesa .e-rasgo.e-segunda { animation: none; }
+}
+
+/* ───────────── 0.16.0 · la mesa se lee ───────────── */
+
+/* ── la cuenta: del ancho de lo que dice (nada de franja de lado a lado), con su marco de hierro tramado; dorado si
+   abate ── */
+.mesa .cuenta-zona > .cuenta:not(.reposo):not(.invalida) {
+  width: auto;
+  max-width: 100%;
+  border-image-source: var(--m-hierro);
+}
+.mesa .cuenta-zona > .cuenta.abate:not(.reposo):not(.invalida) {
+  border-image-source: var(--m-dorado);
+}
+.c-formula {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 0.75);
+  row-gap: 2px;
+  min-width: 0;
+}
+/* lo que dan los palos va junto al total: es lo que el golpe te deja además del Daño */
+.c-formula > .c-total + .c-efecto {
+  margin-left: calc(var(--u) * 0.5);
+}
+/* lo que dan los palos, con su nombre: «CURA ♥ +15» */
+.cuenta .c-efecto {
+  gap: 4px;
+}
+.cuenta .c-efecto .icono {
+  --k: 1;
+  transform: none;
+  margin: -4px -2px;
+}
+.c-ef-rot {
+  font-weight: 400;
+}
+.c-efecto.ef-vida .c-ef-rot {
+  color: #7dffa0;
+}
+.c-efecto.ef-escudo .c-ef-rot {
+  color: #8fdcff;
+}
+.c-efecto.ef-oro .c-ef-rot {
+  color: var(--oro);
+}
+
+/* ── el desglose: dos renglones rotulados, DAÑO y MULTI; cada término con el icono de su pieza ── */
+.cuenta .c-desglose {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  font-size: var(--fs-s);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.c-desglose > .d-fila {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+}
+.d-rot {
+  flex: none;
+  min-width: 4.4em;
+  text-align: right;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.d-fd .d-rot,
+.d-fd .d-v {
+  color: #ff9db4;
+}
+.d-fm .d-rot,
+.d-fm .d-v {
+  color: #8fdcff;
+}
+.d-fm .d-x .d-v {
+  color: var(--oro);
+}
+.d-terminos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 0.4em;
+  row-gap: 0;
+  min-width: 0;
+}
+.d-t {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+}
+.d-n {
+  color: var(--hueso);
+}
+.d-v {
+  font-weight: 400;
+}
+.d-cartas {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+}
+.d-op,
+.d-sep {
+  font-style: normal;
+  color: var(--hueso-2);
+}
+/* los iconos van a escala entera (1×): se montan un poco sobre el aire del renglón para no agrandarlo */
+.c-desglose .d-i {
+  --k: 1;
+  margin: -5px -2px;
+}
+/* durante el conteo, cada término se enciende en su lugar cuando suma; los ya contados quedan encendidos */
+.c-desglose.contando .d-t {
+  opacity: 0.35;
+}
+.c-desglose.contando .d-t.encendido {
+  opacity: 1;
+}
+.c-desglose .d-t.encendido {
+  background: rgba(255, 213, 0, 0.14);
+  box-shadow: 0 0 0 1px rgba(255, 213, 0, 0.4);
+}
+.c-desglose .d-t.salta {
+  animation: d-enciende 0.3s steps(4);
+}
+@keyframes d-enciende {
+  35% {
+    scale: 1.15;
+    filter: brightness(1.8);
+  }
+}
+/* el total lleva la cuenta en gris mientras suma (la fórmula, entera desde el primer cuadro) */
+[data-total].cuenta-sube {
+  opacity: 1;
+}
+
+@media (min-width: 701px) {
+  /* arriba la fórmula y lo que pasa (TE PEGA, LE QUEDAN, CURA…); debajo, el desglose a lo ancho de la cuenta */
+  .mesa .cuenta-zona > .cuenta:not(.reposo):not(.invalida) {
+    display: grid;
+    grid-template-columns: auto minmax(0, auto);
+    justify-content: center;
+    align-items: center;
+    column-gap: calc(var(--u) * 1.5);
+    row-gap: 2px;
+    padding-left: var(--u);
+    padding-right: var(--u);
+  }
+  .mesa .cuenta .c-chips {
+    flex-basis: auto;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+  .mesa .cuenta .c-desglose {
+    grid-column: 1 / -1;
+    justify-self: center;
+    order: 0;
+    flex: none;
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .solo-movil {
+    display: none;
+  }
+}
+
+/* ── la Furia, inconfundible: «TE PEGA 21» y debajo un chip de llama aparte, «FURIA 3 · ya incluida · +2 por turno» ── */
+.e-furia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.e-furia-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px 0 2px;
+  background: #2a0b10;
+  box-shadow:
+    inset 0 0 0 2px #ff7b00,
+    0 0 0 1px var(--abismo);
+}
+.e-furia .e-furia-chip .icono {
+  --k: 1;
+  transform: none;
+  margin: -2px 0;
+}
+.e-furia .e-furia-chip .rotulo {
+  margin-left: 0;
+}
+.e-furia-nota {
+  font-size: var(--fs-s);
+  line-height: 1.15;
+  color: #ffc46b;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ── con mando, la zona punteada AL DESCARTE no se usa (no hay qué arrastrar): se va y la mano toma su ancho ── */
+@media (min-width: 701px) {
+  html[data-entrada='mando'] .mesa .mano-zona {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  html[data-entrada='mando'] .mesa .descarte-zona {
+    display: none;
+  }
+}
+
+/* ── la bandeja del HUD en el portátil y la Steam Deck: dos filas de fichas de 42 px en vez de esconder piezas ── */
+@media (min-width: 1100px) and (max-width: 1699px) {
+  button.hud-tiras {
+    --filas: 2;
+    row-gap: 4px;
+    column-gap: 4px;
+    align-content: center;
+  }
+  .hud-tiras .ficha:not(.carga) {
+    width: 42px;
+    height: 42px;
+  }
+  .hud-tiras .ficha.carga {
+    height: 42px;
+  }
+}
+
+/* ── teléfono ── */
+@media (max-width: 700px) {
+  /* la cuenta en pisos: la fórmula, el desglose compacto (iconos y cifras; nombres solo de la jugada y el canto) y,
+     al pie, lo que pasa */
+  .mesa .cuenta-zona > .cuenta:not(.reposo):not(.invalida) {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: center;
+    row-gap: 2px;
+    padding: 0 4px;
+  }
+  .mesa .cuenta:not(.reposo, .invalida)::after {
+    content: none;
+    display: none;
+  }
+  .mesa .cuenta .c-formula {
+    order: 0;
+    gap: 6px;
+  }
+  .mesa .cuenta .c-jugada {
+    display: none;
+  }
+  .mesa .cuenta .c-desglose {
+    order: 1;
+    max-width: 100%;
+    line-height: 1.15;
+  }
+  .mesa .cuenta .c-chips {
+    order: 2;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+  }
+  .c-desglose .d-rot {
+    min-width: 0;
+    width: 4.2em;
+  }
+  .c-desglose .d-t:not(.d-nombre) .d-n,
+  .c-desglose .d-nombre .d-i,
+  .c-desglose .d-sep {
+    display: none;
+  }
+  .c-desglose .d-terminos {
+    column-gap: 0.5em;
+  }
+  .c-desglose .d-cartas {
+    gap: 0;
+  }
+  .c-desglose .d-i {
+    margin: -6px -3px;
+  }
+  .cuenta .c-efecto .icono {
+    margin: -6px -4px;
+  }
+
+  /* la Furia en el teléfono: la llama con su cifra y, debajo, «incluida · +2/turno» */
+  .e-furia-nota {
+    font-size: var(--fs-s);
+  }
+
+  /* el Bufón ya no sube sobre la cabecera ni tapa el naipe del enemigo: se queda en su esquina de la escena y su
+     bocadillo aparece abajo, sobre la cuenta en reposo (si hay cartas elegidas, la cuenta manda y él calla) */
+  .esc-bufon,
+  .esc-bufon:has(.bocadillo[hidden]) {
+    inset: 0;
+    top: 0;
+    z-index: 20;
+    flex-direction: column;
+    align-items: flex-start;
+    /* (en la rejilla de la escena, un absoluto con «end» se encoge a su contenido: tiene que estirarse a toda la escena) */
+    align-self: stretch;
+    justify-self: stretch;
+  }
+  .esc-bufon .bocadillo {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    top: calc(100% + 2px);
+    bottom: auto;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    line-height: 1.25;
+  }
+  .mesa:has(.cuenta-zona .cuenta:not(.reposo)) .esc-bufon .bocadillo {
+    visibility: hidden;
+  }
+  .mesa:has(.esc-bufon .bocadillo:not([hidden])) .cuenta.reposo .pista {
+    visibility: hidden;
+  }
+}
+
+/* el Daño y el Multi brincan al sumar, sin pisar lo que tienen al lado (a 1,5× se montaban sobre el chip de la jugada) */
+.cuenta .c-parte.salta {
+  animation: parte-salta 0.3s steps(4);
+}
+@keyframes parte-salta {
+  40% {
+    scale: 1.15;
+    filter: brightness(1.4);
+  }
 }

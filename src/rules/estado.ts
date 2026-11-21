@@ -120,6 +120,8 @@ export interface Stats {
   reyes: number;
   abatidos: number;
   exactos: number;
+  /** Golpes «al pelo» (te pasaste por muy poco). Opcional: las partidas guardadas antes de la 0.16 no lo traen. */
+  alPelo?: number;
   cantos: number;
   pokers: number;
   golpes: number;

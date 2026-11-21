@@ -2,6 +2,7 @@
 // una persona. Lo usan el laboratorio (analyze:meta), las pruebas y la QA de humo; la mesa lo usa para «la mejor
 // jugada». No hace trampa: no mira el Mazo ni el azar que viene.
 import type { AmuletoId } from './amuletos';
+import { B } from './balance';
 import { CABALA, suerte } from './bufon';
 import { combinaciones, esComodin } from './cartas';
 import type { Carta } from './cartas';
@@ -41,6 +42,9 @@ function valor(p: Partida, q: Cuenta, sel: readonly Carta[]): number {
     v -= (q.contra ?? 0) * (1.6 + falta * 2.5);
     if (q.aturde) v += 10;
   }
+  // la Última ronda del Bacanal: cada punto que te curás se lo cura él ×2
+  const curaAlRey = e.jefe && e.palo === 'H' && e.segunda && !q.abate ? q.cura * B.reyes.H.ultimaRonda * 1.1 : 0;
+  v -= curaAlRey;
   v += q.cura * (0.4 + falta * 2.2) + q.escudo * (c.fila.length > 1 || !q.abate ? 0.9 : 0.2) + q.oro * 1.2;
   if (q.canto) v += 8;
   return v;

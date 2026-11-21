@@ -123,15 +123,18 @@
     "C": {
       "escudo": 30,
       "regenera": 12,
-      "contragolpe": 1.5
+      "contragolpe": 1.5,
+      "empalizada": 0.25,
+      "empalizadaRegenera": 2
     },
     "D": {
       "diezmo": 3,
-      "remate": 2
+      "remate": 0.25
     },
     "H": {
       "cura": 14,
-      "furiaCada": 4
+      "furiaCada": 4,
+      "ultimaRonda": 2
     }
   },
   "cargas": {
@@ -142,7 +145,7 @@
   },
   "mazos": {
     "escoba": {
-      "vida": 77,
+      "vida": 80,
       "mano": 3,
       "hasta": 9,
       "comodines": 2,
@@ -166,7 +169,7 @@
       "multiMano": 3
     },
     "chinchon": {
-      "vida": 60,
+      "vida": 63,
       "mano": 7,
       "hasta": 9,
       "comodines": 2,
@@ -175,7 +178,7 @@
       "multiMano": 0
     },
     "mentiroso": {
-      "vida": 45,
+      "vida": 43,
       "mano": 8,
       "hasta": 9,
       "comodines": 4,
@@ -184,7 +187,7 @@
       "multiMano": 0
     },
     "chancho": {
-      "vida": 87,
+      "vida": 90,
       "mano": 4,
       "hasta": 9,
       "comodines": 2,

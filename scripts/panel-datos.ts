@@ -104,6 +104,8 @@ const FUNCIONES = {
   cabalasPicantes: true,
   /** 0.15.0: en Steam Deck y portátil la letra mínima sube a 18 px, los botones llevan glifos del mando y los números del enemigo tienen rótulo. */
   deckDeVerdad: true,
+  /** 0.16.0: las segundas caras cambian el plan (Tajo de revés, Fortín, Remate, Última ronda). */
+  segundasFuertes: true,
 };
 
 const c = (palo: PaloCarta, n: number): Carta => ({ id: `${palo}${n}`, palo, n });

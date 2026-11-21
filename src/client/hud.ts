@@ -1,6 +1,6 @@
 // El HUD del jugador: una barra cincelada anclada abajo, con el retrato vivo del Personaje en el centro (mira a los
 // lados, parpadea, se lastima según la Vida que le queda, sonríe feroz al clavar un canto y hace una mueca al
-// recibir el Contraataque) y a sus lados la Vida, el Escudo, el oro, el Mazo y las tiras de Amuletos, Cábalas y
+// recibir un golpe) y a sus lados la Vida, el Escudo, el oro, el Mazo y las tiras de Amuletos, Cábalas y
 // Bendiciones con sus cargas. Todo se inspecciona al pasar el cursor o el foco.
 import { vocear } from './habla';
 import type { MazoId } from '../rules/mazos';
@@ -61,7 +61,7 @@ function tiras(p: Partida): string {
     })
     .join('');
   if (!amuletos && !aumentos && !cargas && !bendiciones) return `<span class="sub hud-nada">${t('llevas')}: ${t('nada')}</span>`;
-  return `<div class="hud-tira" data-tira="amuletos">${amuletos}${aumentos}</div><div class="hud-tira" data-tira="reyes">${cargas}${bendiciones}</div><span class="hud-mas" data-mas hidden></span>`;
+  return `<div class="hud-tira" data-tira="amuletos">${amuletos}${aumentos}</div><div class="hud-tira" data-tira="reyes">${cargas}${bendiciones}</div><span class="hud-mas" data-mas hidden data-tip-t="" data-tip="${t('masPiezasTip')}"></span>`;
 }
 
 /** El HTML del HUD. */
@@ -75,7 +75,7 @@ export function hudHtml(p: Partida, v: VistaHud = vistaDe(p)): string {
         <span class="valor">${pxHud('vida')}<span data-n="vida">${cifra(v.vida, 'roja', 'grande')}</span><span class="de" data-n="vidaMax">${cifra(`/${v.vidaMax}`, 'hueso')}</span></span>
         <span class="hud-barra"><i data-barra="vida" style="width:${Math.round((100 * v.vida) / v.vidaMax)}%"></i></span>
       </div>
-      <div class="hud-pozo" data-hud-escudo ${tip(t('escudo'), ajustes.idioma === 'en' ? 'Blocks the Counterattack before your Health.' : 'Frena el Contraataque antes que tu Vida.')}>
+      <div class="hud-pozo" data-hud-escudo ${tip(t('escudo'), t('escudoTip'))}>
         <span class="rotulo">${t('escudo')}</span>
         <span class="valor">${pxHud('escudo')}<span data-n="escudo">${cifra(v.escudo, 'azul', 'grande')}</span></span>
       </div>
@@ -90,7 +90,7 @@ export function hudHtml(p: Partida, v: VistaHud = vistaDe(p)): string {
         <span class="rotulo">${t('mazo')}</span>
         <span class="valor">${pxHud('mazo')}<span data-n="mazo">${cifra(v.mazo, 'hueso', 'grande')}</span></span>
       </button>
-      <button class="hud-tiras" data-tiras data-accion="ver-piezas" data-foco="hud-piezas" aria-label="${t('verLlevas')}">${tiras(p)}</button>
+      <button class="hud-tiras" data-tiras data-accion="ver-piezas" data-foco="hud-piezas" aria-label="${t('verLlevas')}" ${tip(t('llevas'), t('llevasTip'))}>${tiras(p)}</button>
       <kbd class="glifo g-mando g-rt hud-glifo" aria-hidden="true">RT</kbd>
     </div>
   </footer>`;
@@ -189,7 +189,7 @@ export function apagarRetrato(): void {
   if (vivo) clearInterval(vivo.reloj);
   vivo = null;
 }
-/** Un gesto que dura un rato: `feroz` al clavar un canto o un Golpe exacto, `mueca` al recibir el Contraataque. */
+/** Un gesto que dura un rato: `feroz` al clavar un canto o un Golpe exacto, `mueca` al recibir un golpe. */
 export function gestoRetrato(g: Gesto, ms = 900): void {
   if (!vivo) return;
   vivo.gesto = g;
@@ -259,7 +259,8 @@ export function gritar(mazo: MazoId, texto: string): void {
 }
 
 /**
- * La bandeja del HUD es una sola fila: lo que no entra no se apila ni se corta, se cuenta en un «+N» al final (todo
+ * La bandeja del HUD: una fila en el teléfono y a 1080p, dos filas de fichas en el portátil y la Steam Deck (el CSS
+ * lo dice con `--filas` en la bandeja). Lo que no entra no se apila ni se corta, se cuenta en un «+N» al final (todo
  * está en «LO QUE LLEVÁS», que se abre al tocarla).
  */
 export function ajustarBandeja(): void {
@@ -271,9 +272,11 @@ export function ajustarBandeja(): void {
   mas.hidden = true;
   el.classList.remove('con-mas');
   if (!fichas.length) return;
-  // una ficha está en otra fila si empieza por debajo de donde termina la primera (las hay de distinta altura:
-  // comparar solo el borde de arriba tomaba por «segunda fila» a las cargas y las Bendiciones)
-  const pie = (): number => fichas[0].offsetTop + fichas[0].offsetHeight - 2;
+  const filas = Math.max(1, Math.round(Number(getComputedStyle(el).getPropertyValue('--filas')) || 1));
+  const hueco = parseFloat(getComputedStyle(el).rowGap) || 0;
+  // una ficha está de más si empieza por debajo de donde termina la última fila permitida (las hay de distinta
+  // altura: comparar solo el borde de arriba tomaba por «segunda fila» a las cargas y las Bendiciones)
+  const pie = (): number => fichas[0].offsetTop + filas * fichas[0].offsetHeight + (filas - 1) * hueco - 2;
   const abajo = (el: HTMLElement): boolean => el.offsetTop >= pie();
   const sobran = (): HTMLElement[] => fichas.filter((f) => !f.hidden && abajo(f));
   let fuera = sobran();
@@ -299,9 +302,11 @@ export function ajustarBandeja(): void {
     const ultima = [...fichas].reverse().find((f) => !f.hidden);
     if (ultima) {
       ultima.hidden = true;
-      mas.textContent = `+${n + 1}`;
+      n++;
+      mas.textContent = `+${n}`;
     }
   }
+  mas.dataset.tipT = t('masPiezas', { n });
 }
 // la bandeja se vuelve a medir cuando cambia de tamaño (la pantalla recién montada todavía se está acomodando)
 if (typeof document !== 'undefined') {

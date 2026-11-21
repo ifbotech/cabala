@@ -2078,3 +2078,62 @@ button.visor-carta:disabled {
     row-gap: 0;
   }
 }
+
+/* ───────────── 0.16.0 · la mesa se lee ───────────── */
+
+/* JUGADAS: lo que el canto del Mazo le agrega a la jugada (con los números del motor), debajo de qué cartas pide */
+.j-canto {
+  display: block;
+  color: var(--oro);
+  font-size: var(--fs-s);
+  line-height: 1.3;
+}
+.j-canto-celda {
+  white-space: normal;
+}
+.j-canto-celda .j-canto {
+  color: #8fdcff;
+  text-align: right;
+  white-space: normal;
+}
+/* el glosario: cada palabra del juego en una línea */
+.glosario {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 0.5);
+}
+.glosa dt {
+  font-family: var(--rot);
+  font-size: var(--fr);
+  font-weight: 400;
+  text-transform: uppercase;
+  color: var(--oro);
+  line-height: 1.2;
+}
+.glosa dd {
+  margin: 0;
+  font-size: var(--fs-s);
+  line-height: 1.4;
+  color: var(--hueso);
+}
+
+@media (max-width: 700px) {
+  /* el Botín, a la altura del pulgar: el Bufón y el panel bajan hasta el HUD; ELEGIR y SEGUIR quedan a mano */
+  .botin:not(.directo) > .cuerpo {
+    justify-content: flex-end;
+    padding-bottom: 4px;
+  }
+  .botin .botin-panel [data-accion='seguir'] {
+    min-height: 48px;
+  }
+  /* el Fogón: SEGUIR baja a la barra del pulgar (justo sobre el HUD), a lo ancho */
+  .fogon > .cuerpo {
+    justify-content: flex-start;
+  }
+  .fogon > .cuerpo > [data-accion='seguir'] {
+    margin-top: auto;
+    align-self: stretch;
+    min-height: 48px;
+  }
+}

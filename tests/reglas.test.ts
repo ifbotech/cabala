@@ -436,7 +436,8 @@ describe('0.15.0: la defensa escala, el Golpe al pelo, la segunda cara y el sopl
     const e = p.combate!.fila[0];
     expect(evs.some((x) => x.t === 'segunda')).toBe(true);
     expect(e.segunda).toBe(true);
-    expect(e.escudo).toBeGreaterThanOrEqual(30);
+    // el Fortín (0.16): un Escudo a la medida de su Vida, no 30 fijos
+    expect(e.escudo).toBe(Math.round(1000 * B.reyes.C.empalizada));
     e.escudo = 0;
     p.combate!.mano = [c('S', 6), c('D', 6)];
     const otra = golpear(p, p.combate!.mano.map((x) => x.id));
@@ -451,5 +452,50 @@ describe('0.15.0: la defensa escala, el Golpe al pelo, la segunda cara y el sopl
     iniciarCombate(p, 'rey', [rey]);
     expect(p.combate!.fila[0].vida).toBe(320);
     expect(p.reyHerido).toBe(0);
+  });
+});
+
+describe('0.16.0: las segundas caras obligan a cambiar de plan', () => {
+  it('Tajo de revés: repetir la jugada contra el Caudillo duplica su golpe y atraviesa todo el Escudo', () => {
+    const mano = [c('C', 7), c('D', 7), c('C', 3), c('D', 3)];
+    const p = mesa('chinchon', mano, { palo: 'S', rango: 12, jefe: true, vidaMax: 1000, vida: 400, escudo: 0, ataque: 20, segunda: true });
+    p.combate!.escudo = 15;
+    p.combate!.ultimaJugada = 'par';
+    const repite = cuenta(p, [mano[0], mano[1]]);
+    p.combate!.ultimaJugada = 'flor';
+    const cambia = cuenta(p, [mano[0], mano[1]]);
+    expect(repite.contra!).toBeGreaterThan(cambia.contra!);
+    // atraviesa el Escudo: te llega entero
+    p.combate!.ultimaJugada = 'par';
+    const furia = p.combate!.furia;
+    expect(repite.contra).toBe((20 + furia) * B.reyes.S.deguello);
+    const evs = golpear(p, [mano[0].id, mano[1].id]);
+    expect(evs.some((x) => x.t === 'rey' && x.que === 'deguello')).toBe(true);
+  });
+  it('Remate: a media Vida el Caudal se lleva una tajada de la bolsa', () => {
+    const mano = [c('C', 3), c('S', 3)];
+    const p = mesa('chinchon', mano, { palo: 'D', rango: 12, jefe: true, vidaMax: 1000, vida: 400, escudo: 0, segunda: true });
+    p.oro = 100;
+    golpear(p, mano.map((x) => x.id));
+    expect(p.oro).toBe(100 - Math.ceil(100 * B.reyes.D.remate));
+  });
+  it('Última ronda: lo que te curás, el Bacanal se lo cura ×2', () => {
+    const mano = [c('H', 5), c('C', 5)];
+    const p = mesa('chinchon', mano, { palo: 'H', rango: 12, jefe: true, vidaMax: 1000, vida: 400, escudo: 0, segunda: true }, (q) => { q.vida = 10; });
+    const antes = p.vida;
+    const evs = golpear(p, mano.map((x) => x.id));
+    const curado = (evs.find((x) => x.t === 'cura') as { n: number } | undefined)?.n ?? 0;
+    expect(curado).toBeGreaterThan(0);
+    const alRey = evs.filter((x) => x.t === 'rey' && x.que === 'cura').map((x) => (x as { n: number }).n);
+    expect(alRey[0]).toBe(curado * B.reyes.H.ultimaRonda);
+    expect(curado).toBeLessThanOrEqual(p.vidaMax - antes);
+  });
+  it('el «al pelo» también vale con Espadas en el golpe', () => {
+    const mano = [c('S', 7), c('D', 7)];
+    const p = mesa('chinchon', mano, { vidaMax: 2000, vida: 1, escudo: 0 });
+    const k = cuenta(p, mano);
+    expect(k.perfora).toBe(true);
+    // la ventana del «al pelo» es un 5 % de la Vida máxima: 100 sobre 2000
+    expect(k.alPelo).toBe(k.aVida - 1 <= 100);
   });
 });
