@@ -112,6 +112,8 @@ const FUNCIONES = {
   tajoALaVista: true,
   /** 0.18.0: el conteo revela el total (la previa da el veredicto), la Vida máxima crece al vencer a un Rey y el Mentiroso arranca con Escudo. */
   conteoConSuspenso: true,
+  /** 0.19.0: el crítico dentro del MULTI, un solo TE PEGA, rasgo del Rey con su regla, foco distinto de la selección, botín de cinco piezas. */
+  mesaLimpia: true,
 };
 
 const c = (palo: PaloCarta, n: number): Carta => ({ id: `${palo}${n}`, palo, n });
