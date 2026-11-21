@@ -79,11 +79,12 @@ export const MAZO: Record<MazoId, MazoDef> = {
     nombre: L('El Mentiroso', 'The Liar'),
     lema: L('Cara de Piedra', 'Stone Face'),
     personaje: L('El Chamuyero', 'The Smooth Talker'),
-    regla: L('Cuatro Comodines y un Engaño por combate: mentí y cobrá.', 'Four Jokers and one Bluff per fight: lie and collect.'),
+    regla: L('Comodines, Escudo de entrada y un Engaño por combate: mentí y cobrá.', 'Jokers, an opening Shield and one Bluff per fight: lie and collect.'),
     canto: L('¡MENTIRA!', 'LIAR!'),
     reglas: [
       fillL(L('Mano de {n} cartas.', 'Hand of {n} cards.'), { n: m.mentiroso.mano }),
       fillL(L('Tu Mazo lleva {n} Comodines.', 'Your deck holds {n} Jokers.'), { n: m.mentiroso.comodines }),
+      fillL(L('Cara de Piedra: empezás cada combate con {e} de Escudo (×2 en el tramo 2, ×3 en el 3).', 'Stone Face: you start each fight with {e} Shield (×2 in act 2, ×3 in act 3).'), { e: m.mentiroso.caraDePiedra }),
       L('Engaño, una vez por combate: todas las cartas del golpe fingen ser tu carta más alta y nada les es Inmune.', 'Bluff, once per fight: every card in the hit poses as your highest card and nothing is Immune to them.'),
       fillL(L('Si el Engaño no abate al enemigo, su Furia sube {f}.', "If the Bluff doesn't take the enemy down, its Fury rises {f}."), { f: m.mentiroso.furiaFallo }),
     ],

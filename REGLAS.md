@@ -1,5 +1,5 @@
 # CÁBALA — Reglas
-> Versión 0.17.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
+> Versión 0.18.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
 
 *Todo es cuestión de cábala.* Roguelike de baraja española para un jugador. Elegís un Mazo, el Bufón te lleva por tres tramos de caminos y al fondo de cada uno te espera un Rey. Tu mano contra la Corte: cada golpe es **DAÑO × MULTI**.
 
@@ -82,7 +82,7 @@ Cada Rey te corteja con Bendiciones y, si es el jefe de un tramo, te enfrenta co
 
 | Rey | Apodo | Carga | Lo que da cada punto | Rasgo de jefe |
 |---|---|---|---|---|
-| El Rey de Espadas | **El Caudillo** | Filo | +1 de Daño en todos tus golpes por punto. | *Filo del Caudillo*: Su Furia sube 2 por turno y la mitad de lo que TE PEGA atraviesa tu Escudo. |
+| El Rey de Espadas | **El Caudillo** | Filo | +1 de Daño en todos tus golpes por punto. | *Estocada del Caudillo*: Su Furia sube 2 por turno y la mitad de lo que TE PEGA atraviesa tu Escudo. |
 | El Rey de Bastos | **El Cacique** | Coraza | +1 de Escudo al empezar cada combate por punto (tope 12). | *Coraza del Cacique*: Arranca con 30 de Escudo y recupera 12 por turno. Si tu golpe no le saca Vida, pega más fuerte. |
 | El Rey de Oros | **El Caudal** | Fortuna | +1 de oro al ganar cada combate por punto (tope 10). | *Diezmo del Caudal*: Cada vez que TE PEGA te cobra 3 de oro, y cada moneda que te saca es +1 de Furia. |
 | El Rey de Copas | **El Bacanal** | Brindis | +1 de Vida curada al ganar cada combate por punto (tope 10). | *Brindis del Bacanal*: Se cura 14 por turno; lo que no le cabe se le vuelve Furia. |
@@ -175,11 +175,11 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 
 | Mazo | Personaje | Vida · mano | Regla estrella | Se abre con |
 |---|---|---|---|---|
-| **Escoba** · Escoba del 15 | La Barrendera | 73 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×3 y más Daño para siempre. | abierto desde el principio |
-| **Truco** · Envido y Bravas | El Paisano Bravo | 88 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
-| **Chinchón** · Pierna y Escalera | La Timbera del Club | 43 · 7 | Piernas y Escaleras de palo crecen siempre y te cubren. | Vencé a un Rey. |
-| **El Mentiroso** · Cara de Piedra | El Chamuyero | 40 · 8 | Cuatro Comodines y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
-| **Chancho Va** · Mano al Centro | El Manotazo | 80 · 4 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
+| **Escoba** · Escoba del 15 | La Barrendera | 58 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×3 y más Daño para siempre. | abierto desde el principio |
+| **Truco** · Envido y Bravas | El Paisano Bravo | 54 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
+| **Chinchón** · Pierna y Escalera | La Timbera del Club | 26 · 7 | Piernas y Escaleras de palo crecen siempre y te cubren. | Vencé a un Rey. |
+| **El Mentiroso** · Cara de Piedra | El Chamuyero | 9 · 8 | Comodines, Escudo de entrada y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
+| **Chancho Va** · Mano al Centro | El Manotazo | 64 · 4 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
 
 **Escoba** (¡ESCOBA!)
 - Mano de 3 cartas, como en la mesa: tus golpes llevan +4 de Multi.
@@ -188,7 +188,7 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 - Cualquier grupo de cartas que sume 15 vale como jugada.
 
 **Truco** (¡ENVIDO!)
-- Mano de 3 cartas, como en la mesa: tus golpes llevan +3 de Multi.
+- Mano de 3 cartas, como en la mesa: tus golpes llevan +4 de Multi.
 - Tu Mazo va del 1 al 7, y barajarlo no sube la Furia.
 - Las 4 Bravas pegan de más: 1 de Espadas +24, 1 de Bastos +20, 7 de Espadas +16, 7 de Oros +12.
 - Dos cartas del mismo palo: ¡ENVIDO!, Multi 2 y +28 de Daño, más +1 por cada Envido ya cantado.
@@ -201,6 +201,7 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 **El Mentiroso** (¡MENTIRA!)
 - Mano de 8 cartas.
 - Tu Mazo lleva 3 Comodines.
+- Cara de Piedra: empezás cada combate con 12 de Escudo (×2 en el tramo 2, ×3 en el 3).
 - Engaño, una vez por combate: todas las cartas del golpe fingen ser tu carta más alta y nada les es Inmune.
 - Si el Engaño no abate al enemigo, su Furia sube 3.
 
@@ -235,7 +236,7 @@ El Bufón es el único anfitrión del juego y un chanta. Te sigue pantalla por p
 
 | Cábala | Humor | Opciones |
 |---|---|---|
-| **Cara o cruz** | cualquiera | *Apostar oro*: Apostás 10 de oro. Sale bien: +15. Si no, los perdés. · *No juego*: El Bufón se ofende: su humor baja un punto. |
+| **Cara o cruz** | cualquiera | *Apostar oro*: Apostás 10 de oro. Sale bien: +10. Si no, los perdés. · *No juego*: El Bufón se ofende: su humor baja un punto. |
 | **La carta tapada** | cualquiera | *Dar vuelta una*: Si sale bien, un Amuleto. Si no, −8 de Vida. · *Paso*: El Bufón se ofende: su humor baja un punto. |
 | **Pacto de sangre** | cualquiera | *Firmar*: −6 de Vida máxima. Elegís una Bendición. · *Ni loco*: El Bufón se ofende: su humor baja un punto. |
 | **El vale** | cualquiera | *Tomar el vale*: +15 de oro ya. El próximo Rey arranca con +3 de Furia. · *Rechazar*: El Bufón se ofende: su humor baja un punto. |

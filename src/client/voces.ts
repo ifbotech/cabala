@@ -43,7 +43,7 @@ export const VOZ = {
   aturde: [P('Lo dejaste viendo estrellas.', 'You have him seeing stars.')],
   victoria: [P('Limpito. Pasá a cobrar.', 'Clean. Come collect.'), P('Otro que se va al mazo.', 'Another one folds.')],
   botin: [P('Agarrá lo tuyo. Lo mío ya lo agarré.', 'Take yours. I already took mine.')],
-  cabala: [P('Elegí una. Las tres tienen trampa. O ninguna.', 'Pick one. All three are rigged. Or none.'), P('Una cábala no se explica. Se elige.', 'A cábala is not explained. It is chosen.')],
+  cabala: [P('Elegí una. Alguna tiene trampa. O ninguna.', 'Pick one. One of them is rigged. Or none.'), P('Una cábala no se explica. Se elige.', 'A cábala is not explained. It is chosen.')],
   pulperia: [P('Pasá, pasá. Precios de amigo… de amigo mío.', 'Come in. Friend prices… for my friends.'), P('Se mira y no se toca. Salvo que pagues.', 'Look, do not touch. Unless you pay.')],
   compra: [P('Buen ojo. Era el último, mirá vos.', 'Good eye. It was the last one, what do you know.')],
   sinOro: [P('Con eso no llegás ni al vuelto.', 'That will not even cover the change.')],

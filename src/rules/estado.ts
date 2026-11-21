@@ -94,7 +94,7 @@ export interface Oferta {
   /** Nivel de los Aumentos ofrecidos. */
   nivel?: Nivel;
 }
-export type ItemBotin = { t: 'oro'; n: number; hecho?: true } | { t: 'cura'; n: number; hecho?: true } | { t: 'oferta'; oferta: Oferta; hecho?: true };
+export type ItemBotin = { t: 'oro'; n: number; hecho?: true } | { t: 'cura'; n: number; hecho?: true } | { t: 'vidamax'; n: number; hecho?: true } | { t: 'oferta'; oferta: Oferta; hecho?: true };
 export interface Botin {
   de: 'inicio' | TipoCombate | 'cabala';
   items: ItemBotin[];

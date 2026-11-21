@@ -110,6 +110,8 @@ const FUNCIONES = {
   comunesDistintos: true,
   /** 0.17.0: la cifra grande del Rey muestra el golpe real con el ×2 del Tajo de revés y la regla queda a la vista. */
   tajoALaVista: true,
+  /** 0.18.0: el conteo revela el total (la previa da el veredicto), la Vida máxima crece al vencer a un Rey y el Mentiroso arranca con Escudo. */
+  conteoConSuspenso: true,
 };
 
 const c = (palo: PaloCarta, n: number): Carta => ({ id: `${palo}${n}`, palo, n });

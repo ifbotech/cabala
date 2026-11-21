@@ -346,6 +346,8 @@ export function iniciarCombate(p: Partida, tipo: TipoCombate, fila: Enemigo[]): 
   const R = B.reinados;
   let escudo = carga(p, 'C');
   if (tieneAumento(p, 'mesaservida')) escudo += B.aumentos.mesaservida;
+  // Cara de Piedra: el Mentiroso arranca cada combate con Escudo, que crece con el tramo
+  if (p.mazoId === 'mentiroso') escudo += B.mazos.mentiroso.caraDePiedra * tramoJugador(p);
   let furia = p.reinado >= 3 ? R.furiaInicial : 0;
   if (tipo === 'rey') {
     furia += p.furiaRey + (p.reinado >= 8 ? R.furiaReyes : 0);

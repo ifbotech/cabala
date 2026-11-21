@@ -220,7 +220,15 @@ function botinDe(p: Partida, tipo: TipoCombate): void {
   // cura: el Brindis, el Rescoldo y el respiro tras un Rey
   let cura = carga(p, 'H');
   if (nivelBend(p, 'rescoldo')) cura += Math.floor(c.escudo / bn.rescoldo);
-  if (tipo === 'rey') cura += Math.round(p.vidaMax * B.botin.curaRey);
+  if (tipo === 'rey') {
+    // vencer a un Rey te curte: la Vida máxima crece (se arranca frágil y se llega entero al final)
+    const sube = B.botin.vidaRey;
+    if (sube > 0) {
+      p.vidaMax += sube;
+      items.push({ t: 'vidamax', n: sube, hecho: true });
+    }
+    cura += Math.round(p.vidaMax * B.botin.curaRey);
+  }
   lv = nivelBend(p, 'convite');
   if (lv) {
     const sube = Math.min(bn.convite.tope, Math.floor(p.oro / bn.convite.cada));

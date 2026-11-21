@@ -145,7 +145,7 @@
   },
   "mazos": {
     "escoba": {
-      "vida": 73,
+      "vida": 58,
       "mano": 3,
       "hasta": 9,
       "comodines": 2,
@@ -154,7 +154,7 @@
       "multiMano": 4
     },
     "truco": {
-      "vida": 88,
+      "vida": 54,
       "mano": 3,
       "hasta": 7,
       "comodines": 2,
@@ -166,28 +166,29 @@
       },
       "envido": 28,
       "cargaDano": 1,
-      "multiMano": 3
+      "multiMano": 4
     },
     "chinchon": {
-      "vida": 43,
+      "vida": 26,
       "mano": 7,
       "hasta": 9,
       "comodines": 2,
       "cargaDano": 2,
-      "mitiga": 0.35,
+      "mitiga": 0.3,
       "multiMano": 1
     },
     "mentiroso": {
-      "vida": 40,
+      "vida": 9,
       "mano": 8,
-      "hasta": 9,
+      "hasta": 7,
       "comodines": 3,
       "enganos": 1,
       "furiaFallo": 3,
+      "caraDePiedra": 12,
       "multiMano": 0
     },
     "chancho": {
-      "vida": 80,
+      "vida": 64,
       "mano": 4,
       "hasta": 9,
       "comodines": 2,
@@ -215,6 +216,7 @@
       ]
     },
     "curaRey": 0.3,
+    "vidaRey": 12,
     "saltar": 4
   },
   "pulperia": {
@@ -261,7 +263,7 @@
     },
     "moneda": {
       "apuesta": 10,
-      "paga": 15
+      "paga": 10
     },
     "dobleTope": 25
   },
