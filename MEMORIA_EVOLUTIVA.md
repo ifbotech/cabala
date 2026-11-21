@@ -386,3 +386,28 @@ Diversión 7,48; Deck 66,7 %; Móvil 73,3 %. McNemar 2 suben / 9 bajan (p = 0,06
   jugando; lo que coinciden en señalar es el texto chico.
 - Se añadió al panel el preset `deck-36` (solo personas de Steam Deck) para hitos; todavía sin correr.
 - Dos agentes editando a la vez funcionó con una regla: carpetas disjuntas y CSS nuevo en secciones propias al final.
+
+## 0.15.0 · La segunda cara (aceptada)
+
+**Qué se buscó.** Atacar los P0/P1 del Jurado sobre la 0.14.0: la defensa plana (diseño), los Reyes de una nota, el
+Bufón sin dilemas, la letra de 16 px en Steam Deck y la mesa que no cedía en teléfonos bajos.
+
+**Qué entró.** Defensa ×1/×2/×3 por tramo con La Corte recalibrada; «¡AL PELO!» (pasarse ≤ 5 % sostiene la racha);
+Comunes que crecen con la carga de su Rey; segunda cara de cada Rey a media Vida, con chip permanente; Cábalas
+*El soplo*, *Mano larga* y *Firmar a ciegas*; letra mínima 18 px entre 1100 y 1699 px, glifos del mando y enemigo
+rotulado e inspeccionable; mesa móvil con consultas de contenedor y arrastre que avisa. Dos agentes en paralelo
+(Deck y móvil) en secciones propias de CSS.
+
+**Lecciones.**
+- El laboratorio depende de `notas.json`: el bot elige piezas con las notas, así que las dos pasadas (`--sin-notas`
+  y `--solo-notas`) no son un punto fijo. Una corrida rápida con las notas recién calculadas ya movió a Mentiroso a
+  55,8 % con el Altar lleno. Se certifica según el procedimiento, pero el balance tiene más ruido del que dice su
+  informe; conviene estabilizar las notas (promediar o congelar) antes de afinar fino.
+- Correr `analyze-meta` sin bandera hace una corrida completa que pisa el informe: siempre con `--sin-notas`.
+- Las cartas usadas en un golpe de prueba quedan gastadas: cada caso de Vitest con su mano nueva.
+- El conteo con cartel flotante, que arregló el amontonamiento de la 0.14, ahora tapa el desglose que inventó esta
+  misma versión: los seis jurados lo señalan. Próximo paso: encender cada término dentro del desglose.
+
+**Medición.** Jurado 7,1 · 7,0 · 7,8 · 7,1 (claridad · diversión · estética · veredicto). Panel pulso-60 simulado
+(n = 60, ruido ±10 puntos): aprobación 71,7 % (+8,4), F 194,93 (+11,5 contra la 0.14), Móvil 86,7 %, Deck 66,7 %,
+claridad 6,08 (−0,3).

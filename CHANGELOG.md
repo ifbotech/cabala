@@ -36,7 +36,16 @@ Bufón sin dilemas y la letra chica en Steam Deck.
   INMUNE A ESPADAS. El desglose de Daño y Multi vive en una línea fija bajo la cuenta.
 
 **Móvil**
-- (ver abajo)
+- **La mesa cede por alto:** en 390×664, 360×740 y con muesca entran enemigo, Vida, cuenta entera, mano y botones
+  sin pisarse (consultas sobre el propio alto de la mesa). La mano mide una fila o dos según las cartas.
+- **El arrastre avisa a dónde va:** esquinas que laten, «SOLTÁ ACÁ» visible y la cuenta siempre a la vista; un toque
+  que resbala ya no borra la selección.
+- La Pulpería lleva SALIR en la barra del pulgar y la Cábala usa todo el ancho.
+
+**Medición** (simulada y con su ruido)
+- Jurado Fable, media de los seis: Claridad 7,1 · Diversión 7,0 · Estética 7,8 · Veredicto 7,1 (0.14.0: 6,5 · 7,0 ·
+  7,8 · 6,8). Defecto unánime para la próxima: el cartel del conteo tapa el desglose.
+- Panel pulso-60: aprobación 71,7 % (0.14.0: 63,3 %; IC95 59–82 %), Móvil 86,7 %, Steam Deck 66,7 %, claridad 6,1.
 
 ## 0.14.0 · Cada pantalla, un lugar (2026-11-20)
 
