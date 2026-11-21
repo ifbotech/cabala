@@ -50,17 +50,48 @@ const centro = async (p: Page, sel: string) => {
   exigir(caja, `no se encuentra ${sel}`);
   return { x: caja.x + caja.width / 2, y: caja.y + caja.height / 2 };
 };
+/**
+ * Un punto de la carta que se ve (0.21: la carta elegida va al paño de las Postas, detrás de la mano, y asoma solo su
+ * franja de arriba; una persona la toma de ahí, no del centro que tapan las otras).
+ */
+async function puntoDe(p: Page, id: string): Promise<{ x: number; y: number }> {
+  await p.locator(`.carta[data-id="${id}"]`).first().waitFor({ state: 'visible' });
+  const pt = await p.evaluate((id) => {
+    const el = document.querySelector<HTMLElement>(`.carta[data-id="${id}"]`);
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    for (const fy of [0.5, 0.3, 0.15, 0.08, 0.7, 0.04])
+      for (const fx of [0.5, 0.3, 0.7]) {
+        const x = r.left + r.width * fx;
+        const y = r.top + r.height * fy;
+        if (y < 0 || y > innerHeight - 2) continue;
+        if (document.elementFromPoint(x, y)?.closest<HTMLElement>('.carta')?.dataset.id === id) return { x, y };
+      }
+    return null;
+  }, id);
+  exigir(pt, `la carta ${id} no se ve en ningún punto`);
+  return pt;
+}
 /** Arrastra una carta de la mano hasta el centro de una zona, paso a paso, como una persona. */
 async function arrastrar(p: Page, id: string, zona: string): Promise<void> {
-  const de = await centro(p, `.carta[data-id="${id}"]`);
+  const de = await puntoDe(p, id);
   const a = await centro(p, zona);
   await p.mouse.move(de.x, de.y);
   await p.mouse.down();
   for (let i = 1; i <= 12; i++) await p.mouse.move(de.x + ((a.x - de.x) * i) / 12, de.y + ((a.y - de.y) * i) / 12);
   await p.mouse.up();
 }
+/** Deja elegidas justo esas cartas (suelta las que sobran de antes), tocándolas donde se ven. */
 const elegir = async (p: Page, ids: string[]) => {
-  for (const id of ids) await p.locator(`.carta[data-id="${id}"]`).click();
+  const ya: string[] = await p.evaluate(() => [...document.querySelectorAll<HTMLElement>('.mano .carta.elegida')].map((x) => x.dataset.id ?? ''));
+  for (const id of [...ya.filter((x) => !ids.includes(x)), ...ids.filter((x) => !ya.includes(x))]) {
+    // (la carta viaja a su Posta o vuelve a la mano: se espera a que se pose antes de tocar la siguiente)
+    const pt = await puntoDe(p, id);
+    await p.mouse.click(pt.x, pt.y);
+    await p.waitForTimeout(260);
+  }
+  const quedan: string[] = await p.evaluate(() => [...document.querySelectorAll<HTMLElement>('.mano .carta.elegida')].map((x) => x.dataset.id ?? ''));
+  if (quedan.length !== ids.length || ids.some((x) => !quedan.includes(x))) console.log(`  · elegir: pedidas ${ids.join(',')} y quedaron ${quedan.join(',')}`);
 };
 
 async function hastaLaMesa(p: Page, url: string): Promise<void> {
@@ -155,7 +186,7 @@ await conServidor(5192, async (url) => {
     const total = await p.locator('[data-cuenta] [data-total] .cifra').getAttribute('aria-label');
     exigir(total && Number(total) > 0, 'la cuenta no enseña el TOTAL');
     // mientras se arrastra, el enemigo enciende su halo de destino
-    const de = await centro(p, `.carta[data-id="${d.ids[0]}"]`);
+    const de = await puntoDe(p, d.ids[0]);
     const a = await centro(p, '[data-carta]');
     await p.mouse.move(de.x, de.y);
     await p.mouse.down();
@@ -251,8 +282,12 @@ await conServidor(5192, async (url) => {
     const antes = (await estado(m))!;
     const c = (await consejo(m))!;
     const ids = c.t === 'golpe' ? c.ids : [antes.mano[0]];
-    // se toca la parte de arriba de cada carta: en la mano de dos filas es lo que asoma de las de atrás
-    for (const id of ids) await m.locator(`.carta[data-id="${id}"]`).tap({ position: { x: 24, y: 18 } });
+    // se toca cada carta donde se ve: en la mano de dos filas, lo que asoma de las de atrás (y la elegida se va al paño)
+    for (const id of ids) {
+      const pt = await puntoDe(m, id);
+      await m.touchscreen.tap(pt.x, pt.y);
+      await m.waitForTimeout(260);
+    }
     await m.locator('[data-accion="golpear"]').tap();
     await m.waitForFunction((g) => ((window as unknown as { __cabala: { sesion: { partida: { stats: { golpes: number } } } } }).__cabala.sesion.partida.stats.golpes ?? 0) > g, antes.golpes, { timeout: 8000 });
     const desborde = await m.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);

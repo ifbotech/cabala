@@ -473,13 +473,14 @@ export function ajustarBandeja(): void {
       mas.textContent = t('masCorto', { n });
     }
   }
-  if (abajo(mas)) {
+  // (hasta que el «+N» entre en la fila: «7 MORE» es más ancho que «7 MÁS», y con la bandeja de Chiches al lado del
+  // teléfono puede pedir una ficha más)
+  for (let i = 0; i < 40 && abajo(mas); i++) {
     const ultima = [...fichas].reverse().find((f) => !f.hidden);
-    if (ultima) {
-      ultima.hidden = true;
-      n++;
-      mas.textContent = t('masCorto', { n });
-    }
+    if (!ultima) break;
+    ultima.hidden = true;
+    n++;
+    mas.textContent = t('masCorto', { n });
   }
   mas.dataset.tipT = t('masPiezas', { n });
 }
