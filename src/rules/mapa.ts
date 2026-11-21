@@ -5,6 +5,7 @@
 //
 // El azar del Mapa está domado por reglas de balance (ver `REGLAS_MAPA` y `cumple`): se sortea el contenido de los
 // nodos hasta que la red entera las cumple. Todo sale de la semilla de la partida.
+import { B } from './balance';
 import { PALOS } from './cartas';
 import type { Palo } from './cartas';
 import type { Nodo, TipoNodo, Tramo } from './estado';
@@ -136,6 +137,18 @@ function deEmergencia(nodos: Nodo[]): void {
   }
 }
 
+/**
+ * Un Tesoro a la vista por tramo (0.22.0), en un combate de los pisos del medio: sobre una Guardia Brava se abre al
+ * vencerla; sobre una Guardia lleva candado de oro, que se paga en su Botín. Se ve desde la entrada del tramo.
+ */
+function ponerTesoro(e: ConAzar, nodos: Nodo[]): void {
+  const [desde, hasta] = B.tesoros.pisos;
+  const libres = nodos.filter((n) => n.piso >= desde && n.piso <= hasta && esCombate(n.tipo));
+  if (!libres.length) return;
+  const n = elegir(e, libres);
+  n.tesoro = n.tipo === 'elite' ? 'elite' : 'oro';
+}
+
 /** Un tramo del Mapa. */
 export function generarTramo(e: ConAzar, acto: number, rey: Palo): Tramo {
   const id = (piso: number, col: number) => `${acto}-${piso}-${col}`;
@@ -155,6 +168,7 @@ export function generarTramo(e: ConAzar, acto: number, rey: Palo): Tramo {
     if (!bien && intento < 60) continue; // esa forma no admite un reparto justo: se traza otra
     if (!bien) deEmergencia(nodos);
     for (const n of nodos) n.palos = n.tipo === 'rey' ? [rey] : palosDe(e, n.tipo, acto);
+    ponerTesoro(e, nodos);
     return { nodos, rey };
   }
 }

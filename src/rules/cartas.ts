@@ -25,7 +25,13 @@ export interface Carta {
   templada?: boolean;
   /** Forja Brava (tercera pasada): su número vale doble en el Daño. */
   brava?: boolean;
+  /** La mutación que le dejó la Forja Brava (0.22.0): Doble Filo, Roba Carta o Chispa de Oro. */
+  mutacion?: Mutacion;
 }
+
+/** Lo que la Forja Brava le deja a un naipe, además de duplicar su número (0.22.0). */
+export type Mutacion = 'doblefilo' | 'roba' | 'oro';
+export const MUTACIONES: readonly Mutacion[] = ['doblefilo', 'roba', 'oro'];
 
 export const MAX_NUM = 9;
 export const SOTA = 10;

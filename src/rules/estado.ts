@@ -84,6 +84,8 @@ export interface Nodo {
   sig: string[];
   /** Los palos de los enemigos que esperan ahí (se ven en el Mapa: cada uno es Inmune al suyo). */
   palos?: Palo[];
+  /** Un Tesoro a la vista (0.22.0): con candado de oro (se paga en el Botín de esa Guardia) o tras vencer a la Élite. */
+  tesoro?: 'oro' | 'elite';
 }
 export interface Tramo {
   nodos: Nodo[];
@@ -96,6 +98,10 @@ export interface Oferta {
   opciones: string[];
   /** Nivel de los Aumentos ofrecidos. */
   nivel?: Nivel;
+  /** Un Tesoro con candado: elegir cuesta ese oro (y saltarlo no paga nada). */
+  precio?: number;
+  /** Sale de un Tesoro (para el cofre de la pantalla). */
+  tesoro?: true;
 }
 export type ItemBotin = { t: 'oro'; n: number; hecho?: true } | { t: 'cura'; n: number; hecho?: true } | { t: 'vidamax'; n: number; hecho?: true } | { t: 'oferta'; oferta: Oferta; hecho?: true };
 export interface Botin {
