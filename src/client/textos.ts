@@ -389,7 +389,7 @@ export const EN: Record<keyof typeof ES, string> = {
   dano: 'DAMAGE',
   danoCorto: 'DMG',
   multi: 'MULT',
-  elegiCartas: 'Pick cards and drag them onto the enemy',
+  elegiCartas: 'Pick cards, drag them onto the enemy',
   noJugada: 'That is not a play',
   soloComodines: 'The Joker needs a card to copy',
   muchas: 'Up to 5 cards per hit',
