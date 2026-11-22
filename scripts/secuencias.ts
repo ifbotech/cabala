@@ -122,11 +122,28 @@ await conServidor(5198, async (url) => {
       };
       const libre = (pg: Page = p): Promise<unknown> => pg.waitForFunction(() => !(window as unknown as G).__mesa?.ocupado?.(), undefined, { timeout: 12000 });
 
-      // 1 · el Rey irrumpe: el duelo recién abierto, desde el primer cuadro
-      await p.goto(`${url}/?qa=rey-abre&vivo&lang=${LANG}`);
-      await p.waitForSelector('.mesa');
-      await despertar();
-      await rafaga('rey-irrumpe', 8, 230);
+      // 1 · el Rey irrumpe: el duelo abierto, con la Corte reducida a su último naipe y con 1 de Vida; se lo abate y la
+      // ráfaga filma al Rey entrando a la mesa (su halo, su cortina y su naipe), no a la Sota que lo precede
+      await mesa('rey-abre');
+      await p.waitForTimeout(400);
+      const entraRey = await p.evaluate(() => {
+        const g = window as unknown as G;
+        const x = g.__cabala.sesion.partida;
+        const fila = x.combate.fila;
+        if (!fila[fila.length - 1]?.jefe) return 'no hay Rey al fondo de la fila';
+        if (fila.length > 2) fila.splice(1, fila.length - 2);
+        if (fila.length < 2) return 'el Rey ya está en la mesa';
+        fila[0].vida = 1;
+        fila[0].escudo = 0;
+        g.__mesa.sincronizar();
+        const m = g.__cabala.mejorGolpe(x);
+        if (!m) return 'sin golpe para la Corte';
+        g.__mesa.golpear(m.ids, m.postas);
+        return true;
+      });
+      if (entraRey !== true) fallos.push(`${w} · rey-irrumpe: ${entraRey}`);
+      await p.waitForTimeout(500);
+      await rafaga('rey-irrumpe', 12, 230);
 
       // 2 · la segunda cara: un golpe que lo deja a media Vida (sin matarlo); el naipe se da vuelta y cae el cartel
       await mesa('mesa-rey');

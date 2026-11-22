@@ -261,10 +261,11 @@ export function monedas(x0: number, y0: number, x1: number, y1: number, n = 8, a
 }
 
 /** Un número que salta del golpe, sube, cae con gravedad y se apaga parpadeando. */
-const enVuelo = new Set<{ apagar: () => void }>();
-/** Apaga los números que están en el aire (entra un cartel o un rótulo en su lugar: un texto grande por vez). */
-export function limpiarNumeros(): void {
-  for (const n of enVuelo) n.apagar();
+const enVuelo = new Set<{ apagar: (forzar?: boolean) => void }>();
+/** Apaga los números que están en el aire (entra un cartel o un rótulo en su lugar: un texto grande por vez); con
+ * orzar, también el grande que todavía no cumplió su vida garantizada. */
+export function limpiarNumeros(forzar = false): void {
+  for (const n of enVuelo) n.apagar(forzar);
   enVuelo.clear();
 }
 const glifosDe = (texto: string | number, tono: TonoCifra) => [...String(texto).replace('×', 'x').replace('−', '-')].map((ch) => lienzo(`cf:${tono}:${ch}`, () => cifraMapa(ch, tono)));
@@ -356,8 +357,9 @@ export function numero(texto: string | number, x: number, y: number, tono: TonoC
   // —`vidaMin` segundos— y recién después se apaga)
   let apagarEn = Infinity;
   const yo = {
-    apagar: () => {
-      if (t < (o.vidaMin ?? 0)) {
+    // (0.23) orzar: el golpe del Rey toma la escena (el Tajo de revés) y el número grande se apaga ya
+    apagar: (forzar = false) => {
+      if (!forzar && t < (o.vidaMin ?? 0)) {
         apagarEn = o.vidaMin ?? 0;
         return;
       }
