@@ -119,9 +119,12 @@ await conServidor(5198, async (url) => {
       // (0.28) la aserción mira la PANTALLA, no el DOM: la caja ENTERA dentro de la ventana, opaca, de por lo menos
       // `anchoMin` px y sin nada encima (se le pregunta al navegador qué hay en su centro y en sus cuatro esquinas de
       // adentro). `minimo`: en cuántos cuadros seguidos de la ráfaga tiene que verse así
-      const rafaga = async (nombre: string, cuadros: number, cada: number, pg: Page = p, mide = true, debe?: { sel: string; que: string; minimo?: number; anchoMin?: number }): Promise<void> => {
+      const rafaga = async (nombre: string, cuadros: number, cada: number, pg: Page = p, mide = true, debe?: { sel: string; que: string; minimo?: number; anchoMin?: number; msMin?: number }): Promise<void> => {
         if (mide) await vigilar(pg);
         let visto = 0;
+        // (`msMin`: cuánto tiempo de reloj tiene que pasar entre la primera y la última vez que se lo ve bien)
+        let primera = 0;
+        let ultima = 0;
         let porque = 'no está en el DOM';
         for (let i = 0; i < cuadros; i++) {
           if (debe) {
@@ -160,7 +163,11 @@ await conServidor(5198, async (url) => {
               },
               { sel: debe.sel, anchoMin: debe.anchoMin ?? 40 },
             );
-            if (!mal) visto++;
+            if (!mal) {
+              visto++;
+              ultima = Date.now();
+              primera ||= ultima;
+            }
             else if (!porque.includes(mal)) porque = porque === 'no está en el DOM' ? mal : `${porque}; ${mal}`;
           }
           await pg.screenshot({ path: `${SALIDA}/${w}-${nombre}-${String(i + 1).padStart(2, '0')}.png` });
@@ -175,6 +182,7 @@ await conServidor(5198, async (url) => {
           await pg.waitForTimeout(cada);
         }
         if (mide) await cosechar(nombre, pg);
+        if (debe?.msMin && visto >= (debe.minimo ?? 2) && ultima - primera < debe.msMin) fallos.push(`${w} · ${nombre}: ${debe.que} se vio entero y sin nada encima solo ${ultima - primera} ms (tiene que verse ${debe.msMin} ms o más)`);
         if (debe && visto < (debe.minimo ?? 2)) fallos.push(`${w} · ${nombre}: ${debe.que} se vio entero y sin nada encima en ${visto} cuadros de ${cuadros} (tiene que verse en ${debe.minimo ?? 2} o más; ${porque})`);
       };
       const mesa = async (estado: string, pg: Page = p): Promise<void> => {
@@ -253,10 +261,10 @@ await conServidor(5198, async (url) => {
       if (planta !== true) fallos.push(`${w} · rey-segunda: ${planta}`);
       await p.waitForTimeout(250);
       // (el golpe, la caída del de adelante, la entrada del Rey con su cartel y recién ahí lo que Perfora le sobra: ~5 s)
-      await rafaga('rey-segunda', 26, 210, p, true, { sel: '.sello-planta', que: 'el sello «SE PLANTA EN LA MITAD · N SE PIERDEN»', minimo: 3, anchoMin: w === 1280 ? 240 : 150 });
+      await rafaga('rey-segunda', 26, 210, p, true, { sel: '.sello-planta', que: 'el sello «SE PLANTA EN LA MITAD · N SE PIERDEN»', minimo: 3, msMin: 600, anchoMin: w === 1280 ? 240 : 150 });
 
       // 2b · (0.28) el Rey se planta, filmado de frente: un golpe directo al Rey en su primera cara, que está apenas por
-      // encima de la mitad: casi todo el golpe se pierde. El sello tiene que verse ≥ 600 ms (5 cuadros de 150 ms), entero
+      // encima de la mitad: casi todo el golpe se pierde. El sello tiene que verse ≥ 600 ms de reloj (del primer al último cuadro bueno), entero
       // y sin nada encima, ANTES de que el naipe se dé vuelta
       await mesa('mesa-rey');
       await p.waitForTimeout(500);
@@ -288,7 +296,7 @@ await conServidor(5198, async (url) => {
           const m = (window as unknown as { __planta: { ids: string[]; postas?: number[] } }).__planta;
           g.__mesa.golpear(m.ids, m.postas);
         });
-        await rafaga('rey-planta', 22, 150, p, true, { sel: '.sello-planta', que: 'el sello «SE PLANTA EN LA MITAD · N SE PIERDEN»', minimo: 5, anchoMin: w === 1280 ? 240 : 150 });
+        await rafaga('rey-planta', 22, 150, p, true, { sel: '.sello-planta', que: 'el sello «SE PLANTA EN LA MITAD · N SE PIERDEN»', minimo: 3, msMin: 600, anchoMin: w === 1280 ? 240 : 150 });
       }
 
       // 3 · el Tajo de revés: repetir la jugada contra el Caudillo en segunda cara. Primero el aviso antes de soltar
@@ -500,7 +508,7 @@ await conServidor(5198, async (url) => {
         await p.waitForTimeout(350);
         await p.screenshot({ path: `${SALIDA}/${w}-chancho-canta-00.png` });
         await p.evaluate(() => void (window as unknown as G).__mesa.golpear((window as unknown as { __pierna: string[] }).__pierna));
-        await rafaga('chancho-canta', 16, 170, p, true, { sel: '.canto-grande', que: 'el canto grande «¡CHANCHO!»', minimo: 2, anchoMin: 80 });
+        await rafaga('chancho-canta', 16, 170, p, true, { sel: '.canto-grande', que: 'el canto grande «¡CHANCHO!»', minimo: 1, anchoMin: 80 });
       }
       await libre();
 

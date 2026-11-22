@@ -1156,7 +1156,10 @@ export function pantallaMesa(p: Partida): Pantalla {
           // lado del naipe (nunca le pasa por encima)
           const sePlanta = (planta || plantaPerfora) && pierde > 0;
           if (sePlanta) selloPlanta(pierde);
-          if (sePlanta && cs.length >= 3) cs.push(cs.shift()!);
+          if (sePlanta) {
+            const sin = cs.filter((k) => k.alinear !== 'izquierda');
+            if (sin.length) cs.splice(0, cs.length, ...sin);
+          }
           numero(entra, cs[0].x, cs[0].y, tono, grande ? 2 : 1, { carriles: cs, vx: cs[0].alinear === 'izquierda' ? 14 : cs[0].alinear === 'derecha' ? -14 : 0, vidaMin: grande ? 0.6 : 0.36 });
           tDano = performance.now();
           if (cantoPendiente) cantoGrande();
@@ -1674,7 +1677,11 @@ export function pantallaMesa(p: Partida): Pantalla {
     if (!r) return [{ x: innerWidth / 2, y: innerHeight / 3 }];
     const abajo: Carril = { x: r.left + r.width / 2, y: r.top + r.height * 0.7 };
     if (innerWidth <= 700) return [abajo, { x: r.left + r.width / 2, y: r.top + r.height * 0.55 }];
-    return [{ x: r.right + 6, y: r.top + r.height * 0.42, alinear: 'izquierda' }, { x: r.left - 6, y: r.top + r.height * 0.42, alinear: 'derecha' }, abajo];
+    const der: Carril = { x: r.right + 6, y: r.top + r.height * 0.42, alinear: 'izquierda' };
+    const izq: Carril = { x: r.left - 6, y: r.top + r.height * 0.42, alinear: 'derecha' };
+    // (0.28) con la escena baja (la Deck, el portátil) los costados del busto son del sello INMUNE y de la placa TE PEGA:
+    // el número cae primero sobre el enemigo mismo
+    return r.height < 200 ? [{ x: r.left + r.width / 2, y: r.top + r.height * 0.5 }, izq, der] : [der, izq, abajo];
   }
   // ───────────── los Chiches: tres huecos sobre la madera, a la derecha de la mesa (nunca en la mano) ─────────────
   /** Pinta la bandeja de Chiches y la apoya donde va: sobre los botones o, en el teléfono, al borde de la escena. */
