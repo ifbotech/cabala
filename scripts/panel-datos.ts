@@ -122,6 +122,7 @@ const FUNCIONES = {
   chichesDeMesa: true,
   evoluciones: true,
   altarDevuelve: true,
+  maldiciones: true,
 };
 
 const c = (palo: PaloCarta, n: number): Carta => ({ id: `${palo}${n}`, palo, n });
