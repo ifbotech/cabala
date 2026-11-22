@@ -8,7 +8,7 @@ import type { AumentoId, Nivel } from './aumentos';
 import { B } from './balance';
 import { CABALA, moverAfinidad, resolverCabala, sortearCabala } from './bufon';
 import { CABALLO, MUTACIONES, PALOS, REY, SOTA, barajaBase } from './cartas';
-import type { Palo } from './cartas';
+import type { Mutacion, Palo } from './cartas';
 import * as combate from './combate';
 import type { Ev } from './combate';
 import { carga, curar, donesDe, nivelBend, pagarVidaMax, tieneAumento, vidaMaxTrasCosto } from './estado';
@@ -434,7 +434,7 @@ export const puedeArrimar = (p: Partida): boolean => p.fase === 'fogon' && !!p.f
  * Templar un naipe en el Fogón: queda al rojo y hace Daño de más para siempre. La primera pasada es segura; cada
  * pasada más suma otro tanto, pero puede quemarlo: entonces sale del Mazo para siempre.
  */
-export function templar(p: Partida, cartaId: string): 'templada' | 'quemada' | null {
+export function templar(p: Partida, cartaId: string, mutacion?: Mutacion): 'templada' | 'quemada' | null {
   if (p.fase !== 'fogon') return null;
   const pasadas = p.fogonPasadas ?? 0;
   if (pasadas === 0 ? p.fogonHecho : p.fogonCarta !== cartaId || !puedeArrimar(p)) return null;
@@ -449,11 +449,18 @@ export function templar(p: Partida, cartaId: string): 'templada' | 'quemada' | n
   }
   // primera pasada: +Daño; segunda: otro tanto y queda Templada (+Multi al jugarla); tercera: Forja Brava (su número vale doble)
   if (pasadas < 2) carta.temple = (carta.temple ?? 0) + B.fogon.temple;
-  if (pasadas === 1) carta.templada = true;
+  if (pasadas === 1) {
+    carta.templada = true;
+    // las dos mutaciones que ofrece la Forja Brava quedan a la vista antes de jugarse la tercera pasada
+    const otras = [...MUTACIONES];
+    p.fogonMutaciones = [0, 1].map(() => otras.splice(Math.floor(azar(p) * otras.length), 1)[0]);
+  }
   if (pasadas === 2) {
-    // ¡FORJA BRAVA!: el número vale doble y el naipe sale del fuego con una mutación
+    // ¡FORJA BRAVA!: el naipe entero (número y temple) vale doble y sale del fuego con la mutación que elegiste
+    const ofrecidas = p.fogonMutaciones ?? [...MUTACIONES];
     carta.brava = true;
-    carta.mutacion = MUTACIONES[Math.floor(azar(p) * MUTACIONES.length)];
+    carta.mutacion = mutacion && ofrecidas.includes(mutacion) ? mutacion : ofrecidas[0];
+    p.fogonMutaciones = undefined;
   }
   p.fogonCarta = cartaId;
   p.fogonPasadas = pasadas + 1;

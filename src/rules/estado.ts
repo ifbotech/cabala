@@ -4,7 +4,7 @@ import type { ChicheId } from './chiches';
 import type { AmuletoId } from './amuletos';
 import type { AumentoId, Nivel } from './aumentos';
 import { B } from './balance';
-import type { Carta, Palo, Rango } from './cartas';
+import type { Carta, Mutacion, Palo, Rango } from './cartas';
 import type { MazoId } from './mazos';
 import type { BendicionId } from './reyes';
 import { BENDICION } from './reyes';
@@ -195,6 +195,8 @@ export interface Partida {
   /** El naipe que está en el fuego en este Fogón y las pasadas que lleva (null: no hay, o se quemó). */
   fogonCarta?: string | null;
   fogonPasadas?: number;
+  /** Las dos mutaciones que la Forja Brava ofrece a la vista (desde que el naipe queda Templado, 0.23.0). */
+  fogonMutaciones?: Mutacion[];
   /** Veces que purgaste y curaste en Pulperías (encarece el precio). */
   purgas: number;
   curas: number;

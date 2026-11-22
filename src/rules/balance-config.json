@@ -95,13 +95,13 @@
         "jefe": 0.85
       },
       {
-        "vida": 4.6,
+        "vida": 4.75,
         "ataque": 12,
         "escudo": 2,
         "jefe": 1
       },
       {
-        "vida": 14.3,
+        "vida": 14.75,
         "ataque": 28,
         "escudo": 4,
         "jefe": 1
@@ -255,7 +255,7 @@
   },
   "evoluciones": {
     "facon": {
-      "sobra": 2,
+      "sobra": 3,
       "multi": 1
     },
     "garrote": 1,

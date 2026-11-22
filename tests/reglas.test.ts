@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { AMULETO, AMULETOS } from '../src/rules/amuletos';
 import { B } from '../src/rules/balance';
-import { jugarEntera, mejorAcomodo, mejorGolpe, paso } from '../src/rules/bot';
+import { acomodoExacto, jugarEntera, mejorAcomodo, mejorGolpe, paso } from '../src/rules/bot';
 import { clasificar, resolver } from '../src/rules/cartas';
 import type { Carta, PaloCarta } from '../src/rules/cartas';
 import { CHICHES } from '../src/rules/chiches';
@@ -239,7 +239,8 @@ describe('los cantos de los Mazos', () => {
     const fino = [{ ...c('S', 7), temple: 8, templada: true, brava: true }];
     const p1 = mesa('chinchon', fino);
     const q1 = cuenta(p1, fino);
-    expect(q1.dano).toBe(q0.dano + 8 + 7);
+    // (0.23) la Forja Brava duplica el naipe entero: su número y su temple
+    expect(q1.dano).toBe(q0.dano + 8 + (7 + 8));
     expect(q1.multi).toBe(q0.multi + B.fogon.multiTemplada);
     // el Cetro: ×3 en el primer golpe; gastado, vuelve con un Golpe exacto
     const p2 = mesa('chinchon', base);
@@ -788,6 +789,50 @@ describe('0.22.0: Evoluciones, Forja Brava, Cábala Negra y Tesoros', () => {
     const p = mesa('chinchon', [c('S', 7), c('C', 2)], { ataque: 20 }, (x) => (x.amuletos = ['doscaras']));
     const sin = mesa('chinchon', [c('S', 7), c('C', 2)], { ataque: 20 });
     expect(cuenta(p, [p.combate!.mano[0]]).contra!).toBeGreaterThan(cuenta(sin, [sin.combate!.mano[0]]).contra!);
+  });
+});
+
+describe('0.23.0: la Forja Brava a la vista y el acomodo EXACTO', () => {
+  it('al quedar Templado el naipe, la Forja Brava muestra dos mutaciones distintas y sale la que elegiste', () => {
+    let vistas = 0;
+    for (let i = 0; i < 40 && vistas < 3; i++) {
+      const p = juego.nuevaPartida({ mazo: 'escoba', semilla: `FB${i}` });
+      p.fase = 'fogon';
+      p.fogonHecho = false;
+      p.fogonCarta = null;
+      p.fogonPasadas = 0;
+      const carta = p.mazo.find((k) => k.palo !== 'X')!;
+      juego.templar(p, carta.id);
+      if (juego.templar(p, carta.id) !== 'templada') continue;
+      const of = p.fogonMutaciones!;
+      expect(of).toHaveLength(2);
+      expect(of[0]).not.toBe(of[1]);
+      if (juego.templar(p, carta.id, of[1]) !== 'templada') continue;
+      vistas++;
+      expect(carta.brava).toBe(true);
+      expect(carta.mutacion).toBe(of[1]);
+      expect(p.fogonMutaciones).toBeUndefined();
+    }
+    expect(vistas).toBeGreaterThan(0);
+  });
+  it('si otra manera de apoyar las mismas cartas da Golpe exacto, la mesa la ofrece; si no, nada', () => {
+    const mano = [c('S', 2), c('C', 3), c('D', 4)];
+    const sin = mesa('mentiroso', mano, { vida: 999, vidaMax: 999 });
+    expect(acomodoExacto(sin, mano)).toBeNull();
+    // un enemigo cuya Vida es justo lo que pega una disposición que no es la mejor
+    const p = mesa('mentiroso', mano);
+    const totales = new Set<number>();
+    for (const a of [0, 1, 2, 3, 4]) for (const b of [0, 1, 2, 3, 4]) for (const d of [0, 1, 2, 3, 4]) {
+      if (a === b || b === d || a === d) continue;
+      const q = cuenta(p, mano, [a, b, d]);
+      if (q.ok) totales.add(q.total);
+    }
+    const maximo = cuenta(p, mano, mejorAcomodo(p, mano)).total;
+    const otro = [...totales].filter((t) => t < maximo).sort((x, y) => y - x)[0];
+    const justo = mesa('mentiroso', mano, { vida: otro, vidaMax: otro });
+    const pos = acomodoExacto(justo, mano);
+    expect(pos).not.toBeNull();
+    expect(cuenta(justo, mano, pos!).exacto).toBe(true);
   });
 });
 

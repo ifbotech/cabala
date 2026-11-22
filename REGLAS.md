@@ -48,7 +48,7 @@ Además tenés **3 descartes por combate**: descartar no gasta el turno. Solo se
 
 ### El paño: las Postas
 
-Las cartas del golpe se apoyan en las **Postas del paño**, tantas como tu mano (de 3 a 5). Al elegirlas, **la mesa las acomoda sola en la mejor disposición**; podés reordenarlas arrastrando o con LB/RB y la cuenta cambia al instante.
+Las cartas del golpe se apoyan en las **Postas del paño**, tantas como tu mano (de 3 a 5). Al elegirlas, **la mesa las acomoda sola en la mejor disposición**; podés reordenarlas arrastrando o con LB/RB y la cuenta cambia al instante. Si otra manera de apoyar esas mismas cartas abate con **Golpe exacto**, la mesa te la ofrece con el chip **EXACTO**.
 
 - **Posta del Medio** (rombo de oro): el naipe que cae ahí pega **×2 su número** de Daño.
 - **Chispa**: el naipe a la **derecha de un Comodín** pega **×2 su número** de Daño.
@@ -72,12 +72,12 @@ Consumibles de un solo uso que se apoyan **sobre la madera, a la derecha de la m
 
 | Amuleto | Evoluciona en | Qué hace |
 |---|---|---|
-| **Lanza del Caudillo** | **EL FACÓN MALDITO** | Todo golpe Perfora y lo que sobra pasa ×2. Cada abatido: +1 de Multi en el combate. |
+| **Lanza del Caudillo** | **EL FACÓN MALDITO** | Todo golpe Perfora y lo que sobra pasa ×3. Cada abatido: +1 de Multi en el combate. |
 | **Poncho del Cacique** | **GARROTE DEL CACIQUE** | Con 6 o más de Escudo: +2 de Multi. Tu Escudo entero se suma al Daño. |
 | **Cofre del Caudal** | **SOL DE LA TIMBA** | +1 de Multi por cada 30 de oro (tope +3). Cada abatido te paga 2 de oro. |
 | **Cáliz del Bacanal** | **BRINDIS DE SANGRE** | +2 de Multi siempre, y con 80 % de Vida o más, +1 más. |
 
-- **Forja Brava.** El Fogón tiene 3 pasadas sobre un naipe: +4 de Daño, Templada (+1 de Multi al jugarla) y **¡FORJA BRAVA!**, que duplica su número y le deja una mutación al azar: **Doble Filo** (+2 de Multi, te corta 2 de Vida), **Roba Carta** (robás 1) o **Chispa de Oro** (+3 de oro). La segunda pasada arriesga quemar el naipe un 35 % y la tercera un 50 %.
+- **Forja Brava.** El Fogón tiene 3 pasadas sobre un naipe: +4 de Daño, Templada (+1 de Multi al jugarla) y **¡FORJA BRAVA!**, que duplica el naipe entero (su número y su temple) y le deja la mutación que elijas entre dos a la vista: **Doble Filo** (+2 de Multi, te corta 2 de Vida), **Roba Carta** (robás 1) o **Chispa de Oro** (+3 de oro). La segunda pasada arriesga quemar el naipe un 35 % y la tercera un 50 %.
 - **Cábala Negra.** Una vez por partida, desde el segundo tramo, el Bufón cose naipes: **coser dos iguales** (dos del mismo número se vuelven uno que junta lo suyo y pega de más) o **trasplantar** (el primero se sacrifica y el segundo toma su palo y lo que le dejó el fuego).
 - **Tesoros a la Vista.** El Mapa muestra algunos nodos con cofre: tras la Élite se abre solo; tras la Guardia, con candado de 30 de oro. Adentro hay dos Amuletos para elegir uno.
 
@@ -106,8 +106,8 @@ Un enemigo **Aturdido** se salta su próximo Contraataque. La **Furia** es Ataqu
 | Tramo | Lugar | Vida | Ataque |
 |---|---|---|---|
 | 1 | El Arrabal | ×1.5 | +1 |
-| 2 | El Reñidero | ×4.6 | +12 |
-| 3 | La Corte de Medianoche | ×14.3 | +28 |
+| 2 | El Reñidero | ×4.75 | +12 |
+| 3 | La Corte de Medianoche | ×14.75 | +28 |
 
 La **Guardia Brava** (élite) tiene ×1.4 de Vida y +2 de Ataque. El **Rey** de cada tramo llega detrás de su Sota y su Caballo, con ×1.4 de Vida. Por cada Bendición suya que llevés, arranca con 5 % menos de Vida (tope 20 %).
 

@@ -119,6 +119,16 @@ export function mejorAcomodo(p: Partida, sel: readonly Carta[]): number[] {
   return mejor;
 }
 
+/**
+ * El otro acomodo que ofrece la mesa (0.23.0): una manera de apoyar esas mismas cartas que abate al enemigo con Golpe
+ * exacto, si existe y si la mejor disposición no lo es ya. El paño deja de ser solo un máximo: es el dial del exacto.
+ */
+export function acomodoExacto(p: Partida, sel: readonly Carta[]): number[] | null {
+  if (!sel.length || cuenta(p, sel, mejorAcomodo(p, sel)).exacto) return null;
+  for (const pos of permutaciones(postasDe(p), sel.length)) if (cuenta(p, sel, pos).exacto) return pos;
+  return null;
+}
+
 /** La mejor jugada de la mano según el bot (o null si no hay combate). */
 export function mejorGolpe(p: Partida): { ids: string[]; q: Cuenta; v: number; engano: boolean; postas?: number[] } | null {
   const c = p.combate;
@@ -274,8 +284,13 @@ function enFogon(p: Partida): void {
   const mejor = [...p.mazo].filter((k) => k.palo !== 'X').sort((a, b) => b.n + (b.temple ?? 0) - (a.n + (a.temple ?? 0)))[0];
   if (p.vida < p.vidaMax * 0.7 || !mejor) juego.descansar(p);
   else if (juego.templar(p, mejor.id) && juego.puedeArrimar(p)) {
-    // la segunda pasada paga (otro tanto de Daño y +Multi contra un tercio de quemarlo): la toma; la Forja Brava, no
-    juego.templar(p, mejor.id);
+    // la segunda pasada paga (otro tanto de Daño y +Multi contra un tercio de quemarlo): la toma; la Forja Brava (el
+    // naipe entero vale doble), solo si el Mazo aguanta perderlo, y elige la mutación que mejor le sienta
+    if (juego.templar(p, mejor.id) === 'templada' && juego.puedeArrimar(p) && p.mazo.length > B.jugador.mazoMin + 6) {
+      const of = p.fogonMutaciones ?? [];
+      const quiere = p.vida >= p.vidaMax * 0.8 && of.includes('doblefilo') ? 'doblefilo' : of.includes('roba') ? 'roba' : of[0];
+      juego.templar(p, mejor.id, quiere);
+    }
   }
   juego.salir(p);
 }

@@ -47,7 +47,7 @@ tabla(['Jugada', 'Cartas', 'Daño base', 'Multi'], [...JUGADAS, 'quince' as Juga
 
 p('### El paño: las Postas');
 p(
-  `Las cartas del golpe se apoyan en las **Postas del paño**, tantas como tu mano (de 3 a 5). Al elegirlas, **la mesa las acomoda sola en la mejor disposición**; podés reordenarlas arrastrando o con LB/RB y la cuenta cambia al instante.`,
+  `Las cartas del golpe se apoyan en las **Postas del paño**, tantas como tu mano (de 3 a 5). Al elegirlas, **la mesa las acomoda sola en la mejor disposición**; podés reordenarlas arrastrando o con LB/RB y la cuenta cambia al instante. Si otra manera de apoyar esas mismas cartas abate con **Golpe exacto**, la mesa te la ofrece con el chip **EXACTO**.`,
   '',
   `- **Posta del Medio** (rombo de oro): el naipe que cae ahí pega **×${B.postas.medio} su número** de Daño.`,
   `- **Chispa**: el naipe a la **derecha de un Comodín** pega **×${B.postas.chispa} su número** de Daño.`,
@@ -65,7 +65,7 @@ p(
 );
 tabla(['Amuleto', 'Evoluciona en', 'Qué hace'], EVOLUCIONES.map((de) => [`**${AMULETO[de].nombre.es}**`, `**${EVOLUCION[de].nombre.es}**`, EVOLUCION[de].desc.es]));
 p(
-  `- **Forja Brava.** El Fogón tiene ${B.fogon.pasadas} pasadas sobre un naipe: +${B.fogon.temple} de Daño, Templada (+${B.fogon.multiTemplada} de Multi al jugarla) y **¡FORJA BRAVA!**, que duplica su número y le deja una mutación al azar: **Doble Filo** (+${B.fogon.dobleFilo.multi} de Multi, te corta ${B.fogon.dobleFilo.vida} de Vida), **Roba Carta** (robás ${B.fogon.robaCarta}) o **Chispa de Oro** (+${B.fogon.chispaOro} de oro). La segunda pasada arriesga quemar el naipe un ${Math.round(B.fogon.riesgos[1] * 100)} % y la tercera un ${Math.round(B.fogon.riesgos[2] * 100)} %.`,
+  `- **Forja Brava.** El Fogón tiene ${B.fogon.pasadas} pasadas sobre un naipe: +${B.fogon.temple} de Daño, Templada (+${B.fogon.multiTemplada} de Multi al jugarla) y **¡FORJA BRAVA!**, que duplica el naipe entero (su número y su temple) y le deja la mutación que elijas entre dos a la vista: **Doble Filo** (+${B.fogon.dobleFilo.multi} de Multi, te corta ${B.fogon.dobleFilo.vida} de Vida), **Roba Carta** (robás ${B.fogon.robaCarta}) o **Chispa de Oro** (+${B.fogon.chispaOro} de oro). La segunda pasada arriesga quemar el naipe un ${Math.round(B.fogon.riesgos[1] * 100)} % y la tercera un ${Math.round(B.fogon.riesgos[2] * 100)} %.`,
   `- **Cábala Negra.** Una vez por partida, desde el segundo tramo, el Bufón cose naipes: **coser dos iguales** (dos del mismo número se vuelven uno que junta lo suyo y pega de más) o **trasplantar** (el primero se sacrifica y el segundo toma su palo y lo que le dejó el fuego).`,
   `- **Tesoros a la Vista.** El Mapa muestra algunos nodos con cofre: tras la Élite se abre solo; tras la Guardia, con candado de ${B.tesoros.precio} de oro. Adentro hay dos Amuletos para elegir uno.`,
 );

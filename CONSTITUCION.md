@@ -112,7 +112,7 @@ certificar (la huella del informe tiene que coincidir).
   duplican. Al despertar hay un jackpot de 1,2 s que se salta con cualquier input; en el HUD llevan un ícono prismático
   y en «ELEGÍ UNA» y La Pulpería la pieza que despierta una lleva el sello **«★ EVOLUCIONA»**.
 - **Forja Brava.** El Fogón tiene tres pasadas: +Daño, Templada (+Multi al jugarla) y **¡FORJA BRAVA!**, que duplica el
-  número del naipe y le deja una mutación al azar: **Doble Filo** (+Multi, pero te corta Vida), **Roba Carta** (robás
+  naipe entero (su número y su temple) y le deja la mutación que elegís entre dos a la vista (desde la 0.23): **Doble Filo** (+Multi, pero te corta Vida), **Roba Carta** (robás
   una al jugarla) o **Chispa de Oro** (paga oro al jugarla). Cada pasada arriesga más: el Fogón es apuesta.
 - **Cábala Negra.** Una vez por partida, desde el segundo tramo, el Bufón cose naipes en la trastienda: **coser dos
   iguales** (dos del mismo número se vuelven uno que junta lo suyo y pega más) o **trasplantar** (el primero se
@@ -122,6 +122,16 @@ certificar (la huella del informe tiene que coincidir).
 - **Contrapesos.** Los Legendarios y Prismáticos tienen poder de verdad y un costo picante y claro, escrito en su
   propia ficha (110 caracteres como máximo).
 - **TURBO.** Ninguna animación bloquea el input: el siguiente toque la corta.
+
+### 1.11 El Altar devuelve, el acomodo EXACTO y el resumen en dos capas (0.23.0)
+
+- **Devolver.** Cada mejora del Altar tiene su botón «Devolver», que reintegra entero lo que costó el nivel: probar no
+  castiga.
+- **EXACTO.** La mesa acomoda sola el golpe que más pega; si otra manera de apoyar esas mismas cartas abate con Golpe
+  exacto, lo ofrece con un chip **EXACTO** que se elige con un toque o un botón. El paño es el dial del exacto.
+- **Resumen de la partida** en la misma escena del final, en dos capas: **Build Estrella** (Evoluciones, hasta tres
+  Amuletos, la Bendición y la jugada que más usaste, el mejor golpe) y **Qué te frenó / Próximo récord**, con un botón
+  grande **OTRA MANO YA**.
 ## 2 · Dirección de arte: «Dark Dithered Lithography»
 
 **La vara es la de los 5 Dorsos.** Vale para todas las pantallas y componentes.

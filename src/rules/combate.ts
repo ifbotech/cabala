@@ -238,7 +238,7 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
   // Naipe de dos caras: nada es Inmune y, además, las cartas del palo del enemigo pegan doble
   if (tieneAmuleto(p, 'doscaras')) d('a:doscaras', ef.reduce((t, k) => t + (k.palo === e.palo ? k.n * (B.amuletos.doscarasDoble - 1) : 0), 0));
   // Forja Brava: el número del naipe vale doble
-  d('brava-forja', ef.reduce((t, k) => t + (!inmune(k.palo) && k.de.brava ? k.n : 0), 0));
+  d('brava-forja', ef.reduce((t, k) => t + (!inmune(k.palo) && k.de.brava ? k.n + (k.de.temple ?? 0) : 0), 0));
   // los naipes templados en el Fogón pegan de más
   d('temple', ef.reduce((s, k) => s + (inmune(k.palo) ? 0 : (k.de.temple ?? 0)), 0));
   // las manos cortas (Escoba, Truco, Chancho Va) pegan con Multi de más
