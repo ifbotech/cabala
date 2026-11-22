@@ -423,7 +423,7 @@ function ofertaHtml(p: Partida, oferta: Oferta, fraseRey: string): string {
       ${cabeza}
       <div class="opciones">${oferta.opciones.map(opcion).join('')}</div>
       ${oferta.tesoro ? '' : saltarHtml}
-    </div>`;
+    </div><b class="oferta-hay-mas" aria-hidden="true">${t('hayMas')}</b>`;
 }
 
 /**
@@ -533,6 +533,11 @@ function modalOferta(p: Partida, indice: number, alTerminar: () => void): void {
       }
   }
   reservarHud(velo);
+  // (0.27) en el teléfono, si la tercera opción queda bajo el HUD, la oferta lo avisa («hay más ↓», como la Pulpería)
+  const mirar = (): void => void velo.classList.toggle('hay-mas', velo.scrollHeight - velo.scrollTop - velo.clientHeight > 2);
+  velo.addEventListener('scroll', mirar, { passive: true });
+  mirar();
+  requestAnimationFrame(mirar);
   if (oferta.tipo === 'bendicion' && habla && !quieto()) teclear($('[data-teclea]', velo), fraseRey, habla);
   // la irrupción del Rey que habla: su aura se abre desde el retrato
   if (habla) {
@@ -1339,14 +1344,17 @@ function resumenHtml(p: Partida, r: ResumenPartida): string {
     ...e.amuletos.map((id) =>
       esEvolucionable(id) && e.evoluciones.includes(id) ? ficha(pxEvolucion(id), tx(EVOLUCION[id].nombre), tx(EVOLUCION[id].desc), 'evolucion') : ficha(pxAmuleto(id), tx(AMULETO[id].nombre), tx(AMULETO[id].desc)),
     ),
-    ...(e.bendicion ? [ficha(pxBendicion(e.bendicion.id), tx(BENDICION[e.bendicion.id].nombre), tx(BENDICION[e.bendicion.id].desc(e.bendicion.nivel))) + (e.bendicion.nivel > 1 ? `<b class="fin-nivel">${t('nivelN', { n: e.bendicion.nivel })}</b>` : '')] : []),
+    // (0.27) el nivel va debajo de SU pieza (suelto al final de la fila no se sabía de cuál era)
+    ...(e.bendicion
+      ? [`<span class="fin-pieza-col">${ficha(pxBendicion(e.bendicion.id), tx(BENDICION[e.bendicion.id].nombre), tx(BENDICION[e.bendicion.id].desc(e.bendicion.nivel)))}${e.bendicion.nivel > 1 ? `<b class="fin-nivel">${t('nivelN', { n: e.bendicion.nivel })}</b>` : ''}</span>`]
+      : []),
   ];
   // la Evolución, con su nombre a la vista (es lo primero que se lee de la build)
   const evo = e.evoluciones[0];
   const evoNombre = evo ? `<b class="fin-evo-nombre">${esc(tx(EVOLUCION[evo].nombre))}</b>` : '';
   // (0.24) tu jugada con cómo se arma («Envido · 2 del mismo palo»): la tabla de JUGADAS no siempre la tiene a la vista
   const jugada = e.jugada
-    ? `<span class="fin-jugada"><span class="rotulo">${t('jugadaFavorita')}</span><b>${esc(tx(JUGADA_NOMBRE[e.jugada]))}</b><span class="fin-jugada-como">${esc(tx(JUGADA_COMO[e.jugada]))}</span></span>`
+    ? `<span class="fin-jugada"><span class="rotulo">${t('jugadaFavorita')}:</span> <b>${esc(tx(JUGADA_NOMBRE[e.jugada]))}</b><span class="fin-jugada-como">${esc(tx(JUGADA_COMO[e.jugada]))}</span></span>`
     : '';
   const capa1 = `<div class="fin-capa fin-estrella">
       <h2 class="rotulo fin-capa-tit">${t('buildEstrella')}</h2>
@@ -1358,7 +1366,7 @@ function resumenHtml(p: Partida, r: ResumenPartida): string {
     const por = r.freno.por;
     const quien = por.jefe ? tx(REY_DEF[por.palo].apodo) : idioma() === 'en' ? `${tx(RANGO_NOMBRE[por.rango])} of ${tx(PALO_NOMBRE[por.palo])}` : `${tx(RANGO_NOMBRE[por.rango])} de ${tx(PALO_NOMBRE[por.palo])}`;
     freno = `<p class="fin-freno-quien">${pxPalo(por.palo)}<b>${esc(quien)}${por.elite ? ` · ${t('elite')}` : ''}</b><span class="sub">${t('frenoTramo', { n: por.acto + 1 })}</span></p>
-      <p class="fin-freno-vida"><span class="sub">${t('leQuedaba')}</span>${cifra(`${r.freno.leQuedaba}%`, 'roja', 'grande')}</p>`;
+      <p class="fin-freno-vida"><span class="sub">${t('leQuedaba')}</span>${cifra(`${r.freno.leQuedaba}%`, 'roja', 'grande')}<span class="sub">${t('deSuVida')}</span></p>`;
   } else freno = `<p class="fin-freno-quien"><b>${t(r.victoria ? 'sinFreno' : 'nada')}</b></p>`;
   const rec = r.record;
   const tipoRec = t(rec.tipo === 'golpe' ? 'recordGolpe' : rec.tipo === 'tramo' ? 'recordTramo' : 'recordVictoria');
@@ -1417,12 +1425,17 @@ export function pantallaFin(p: Partida): Pantalla {
   const heroe = gano
     ? `<div class="fin-heroe"><i class="fin-cara" style="background-image:url(${urlRetrato(p.mazoId, cuadro)})"></i></div>`
     : `<div class="fin-heroe partido"><span class="fin-cara-partida">${pxMitades(`pj:${p.mazoId}|caido`, () => personajeMapa(p.mazoId, cuadro), 2, 'fin-mitad')}</span></div>`;
+  // (0.27) si te frenó un Rey, el título lo nombra: «TE LLEVÓ EL CAUDILLO» (la Corte, solo si fue uno de la Corte)
+  const tituloDerrota = (): string => {
+    const por = (sesion.resumen ?? resumenDe(p, perfil)).freno?.por;
+    return por?.jefe ? t('derrotaRey', { quien: tx(REY_DEF[por.palo].apodo) }) : t('derrota');
+  };
   return {
     nombre: gano ? 'fin-victoria' : 'fin-derrota',
     atras: soltarPartida,
     html: () => `<main class="pantalla fin ${gano ? 'gano' : 'perdio'}">
       <div class="cuerpo fin-escena">
-        <h1 class="titulo fin-titulo">${t(gano ? 'victoria' : 'derrota')}</h1>
+        <h1 class="titulo fin-titulo">${gano ? t('victoria') : esc(tituloDerrota())}</h1>
         <div class="fin-cuadro">
           ${anfitrion(tx(alAzar(gano ? VOZ.gano : VOZ.perdio, fijo())), gano ? 'risa' : 'sombria', 'fin-bufon')}
           ${heroe}

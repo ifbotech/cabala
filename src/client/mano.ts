@@ -507,7 +507,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     regla.classList.remove('costado', 'arma');
     if (!conPano) {
       regla.style.maxWidth = `${ancho - 8}px`;
-      regla.hidden = raiz.classList.contains('arrastrando') || (telefono() ? techoTel() : raiz.clientHeight - h) < 24;
+      // (0.27: y calla mientras se juega el golpe: el desglose de la cuenta sigue ahí al lado)
+      regla.hidden = bloqueada || raiz.classList.contains('arrastrando') || (telefono() ? techoTel() : raiz.clientHeight - h) < 24;
       if (!regla.hidden) ponerEn(regla, Math.round((ancho - regla.offsetWidth) / 2), telefono() ? Math.max(2, Math.round(techoTel() - regla.offsetHeight - 4)) : 2, Z.pano);
     } else regla.hidden = true;
     // la marca del Medio va pegada a su naipe (si lo hay), a la derecha de su número

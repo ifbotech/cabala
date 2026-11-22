@@ -428,6 +428,19 @@ function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[
       }
     }
   }
+  // (0.27) «oferta-sin-aviso»: en el teléfono, si una opción de ELEGÍ UNA queda cortada bajo el borde del velo (sobre
+  // el HUD), el aviso «hay más ↓» está a la vista y SALTAR se ve sin deslizar
+  for (const velo of esMovil ? [...document.querySelectorAll<HTMLElement>('#capa .velo')].filter((v) => v.querySelector('.oferta')) : []) {
+    const V = velo.getBoundingClientRect();
+    const cortada = [...velo.querySelectorAll('.oferta .opcion')].filter(visible).some((o) => o.getBoundingClientRect().bottom > V.bottom + 2);
+    const aviso = velo.querySelector('.oferta-hay-mas');
+    if (cortada && !(aviso && visible(aviso) && aviso.getBoundingClientRect().bottom <= V.bottom + 1)) fallos.push({ regla: 'oferta-sin-aviso', detalle: 'una opción queda cortada bajo el HUD y no hay aviso «hay más ↓» a la vista' });
+    const saltar = velo.querySelector('.oferta [data-accion="saltar"]');
+    if (saltar && visible(saltar)) {
+      const S = saltar.getBoundingClientRect();
+      if (S.bottom > V.bottom + 1 || S.top < V.top - 1) fallos.push({ regla: 'oferta-sin-aviso', detalle: `SALTAR no se ve sin deslizar (${Math.round(S.top)} → ${Math.round(S.bottom)} en un velo de ${Math.round(V.top)} → ${Math.round(V.bottom)})` });
+    }
+  }
   // restos de español en la pantalla inglesa
   if (idioma === 'en') {
     const texto = (document.querySelector('#app') as HTMLElement).innerText + (document.querySelector('#capa') as HTMLElement).innerText;

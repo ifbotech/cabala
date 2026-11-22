@@ -319,7 +319,7 @@ export function deltaHud(de: 'vida' | 'escudo' | 'oro', n: number, o: { icono?: 
   el.setAttribute('role', 'status');
   const txt = n < 0 ? `-${-n}` : `+${n}`;
   el.setAttribute('aria-label', `${txt} ${t(de)}`);
-  el.innerHTML = `${o.icono ?? ''}${cifra(txt, de === 'vida' ? 'roja' : de === 'escudo' ? 'azul' : 'oro', de === 'vida' ? 'grande' : '')}${de === 'vida' ? '' : `<span class="hd-que">${t(de)}</span>`}`;
+  el.innerHTML = `${o.icono ?? ''}${cifra(txt, de === 'vida' ? 'roja' : de === 'escudo' ? 'azul' : 'oro', de === 'vida' && innerWidth > 700 ? 'grande' : '')}${de === 'vida' ? '' : `<span class="hd-que">${t(de)}</span>`}`;
   // (uno por caja: el que llega reemplaza al anterior)
   caja.querySelector('.hud-delta')?.remove();
   caja.append(el);
@@ -393,7 +393,7 @@ export function reubicarGrito(): void {
  * renglón, justo arriba del retrato, es el único hueco cerca de él.
  */
 export const ZONAS_SIN_GRITO =
-  '#app button:not(:disabled), #app [data-accion]:not(:disabled), #app .mano .carta, #app .cuenta:not(.reposo), #app [data-hud-vida], #app [data-hud-escudo], #app [data-hud-oro], #app .hud [data-n], #app .mesa-top .lado > *, #app .panel:not(.botin-panel)';
+  '#app button:not(:disabled), #app [data-accion]:not(:disabled), #app .mano .carta, #app .cuenta:not(.reposo), #app [data-hud-vida], #app [data-hud-escudo], #app [data-hud-oro], #app .hud [data-n], #app .mesa-top .lado > *, #app .panel:not(.botin-panel), #app .mesa .chiches';
 /** Lo que mejor no tapa (si no hay otro hueco, tapa lo menos posible): lo del enemigo, el Bufón y lo que dice, el Botín. */
 const ZONAS_MEJOR_NO = '#app .e-centro, #app .e-vida, #app .e-ataque, #app .e-rasgo, #app .e-sellos > *, #app .corte-carta, #app .esc-bufon .bufon, #app .bocadillo:not([hidden]), #app .botin-panel > .titulo, #app .botin-fila, #app button:disabled';
 /** Lo más lejos que puede caer el grito de su retrato (el hueco entre las dos cajas), salvo que cerca no haya lugar. */

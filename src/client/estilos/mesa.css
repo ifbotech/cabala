@@ -3695,7 +3695,7 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     top: 10%;
     bottom: auto;
     translate: none;
-    max-width: min(13em, 30vw);
+    max-width: min(11em, 30vw);
     white-space: normal;
   }
   .mesa .rey-rotulo {
@@ -5376,4 +5376,43 @@ body.mueve-pano [data-cuenta] .cuenta.previa {
   .mesa .mano-zona:has([data-accion='engano']) .botones [data-accion='descartar'] {
     font-size: 14px;
   }
+}
+@media (max-width: 380px) {
+  /* (en el teléfono angosto la placa de renglón no lleva el chip de la Furia —ya va sumada en la cifra—: no llega al
+     sello INMUNE) */
+  @container escena (max-height: 176px) {
+    .mesa .enemigo .e-ataque .e-furia {
+      display: none;
+    }
+  }
+}
+
+/* ───────────── 0.27 · el dial es un botón con verbo ───────────── */
+/* «TOCÁ · DEJALO JUSTO» con el dedo o el ratón; con el mando o el teclado, su glifo (R3 / X) */
+.c-dial .dial-toca {
+  flex: none;
+  padding: 2px 6px;
+  font-family: var(--rot);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: 0.06em;
+  color: #09070f;
+  background: var(--oro);
+}
+html[data-entrada='mando'] .c-dial .dial-toca,
+html[data-entrada='teclado'] .c-dial .dial-toca {
+  display: none;
+}
+/* cada premio (y la fórmula «no pasan 24 ×3 = 72») va entero en su renglón: se parte entre premios, nunca adentro */
+.c-dial .dial-premio {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 0;
+}
+.c-dial .dial-premio > span {
+  white-space: nowrap;
+}
+.c-dial .dial-premio > .dial-sep {
+  white-space: pre;
 }

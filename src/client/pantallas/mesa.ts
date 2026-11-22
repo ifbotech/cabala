@@ -22,7 +22,7 @@ import { agacharMusica, nota, sonar, vozBufon } from '../audio';
 import { estadoMusica, ponerFuego, ponerMusica } from '../musica';
 import { teclear } from '../habla';
 import { RAMPA_CURA, RAMPA_ESCUDO, RAMPA_GOLPE, RAMPA_PALO, chispas, destello, haloRey, limpiarNumeros, lluviaDeMonedas, monedas, motas, numero, partirNaipe, quiebre, tajo, tajoDeReves, type Carril } from '../fx/efectos';
-import { alCeder, cajaDe, reservar, soltar as soltarTurno, ubicar } from '../fx/director';
+import { alCeder, cajaDe, pisan, reservar, soltar as soltarTurno, tomadas, ubicar } from '../fx/director';
 import { S, congelar, enFoto, fogonazoCandil, ponerClima, sacudir } from '../fx/motor';
 import { actualizarTiras, avivarRetrato, cargaQue, deltaHud, nombreCarga, dispararFicha, gestoFijo, gestoRetrato, gritar, hudHtml, mirarHacia, ponerHud, poseRetrato, reubicarGrito, vistaDe, type VistaHud } from '../hud';
 import { guardar, pintarFase } from '../juego';
@@ -34,7 +34,7 @@ import type { AumentoId } from '../../rules/aumentos';
 import type { BendicionId } from '../../rules/reyes';
 import { CHICHE_CORTO, JUGADA_NOMBRE, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_AYUDA, PASO_NOMBRE, RANGO_NOMBRE, RASGO_CORTA, SEGUNDA_BURLA, SEGUNDA_CORTA, TRAMO_NOMBRE } from '../textos';
 import { ENSENANZA, GRITO, VOZ } from '../voces';
-import { $, bufonHtml, esc, fichaDe, gestoBufon, ocultarTip, reyHtml, tip, type Pantalla } from '../ui';
+import { $, bufonHtml, esc, fichaDe, gestoBufon, ocultarTip, reubicarTip, reyHtml, tip, type Pantalla } from '../ui';
 import { glifo, porTeclado } from '../nav';
 import { pausa, quieto } from '../ritmo';
 import { accionesComunes, calentarOfertas, modalJugadas, textoGlosario } from './camino';
@@ -276,7 +276,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     if (clase === 'r') return nombreCarga(id as Palo);
     if (de === 'canto') return tx(MAZO[p.mazoId].canto);
     // (el Dado Cargado se lee como lo que da: «MULTI +3», también en el teléfono)
-    if (de === 'prox' && dadoArmado) return t('multi');
+    if (de === 'prox' && dadoArmado) return tx(PASO_NOMBRE.dado);
     return PASO_NOMBRE[de] ? tx(PASO_NOMBRE[de]) : de;
   }
   /** La ayuda corta de cada término del desglose: la de su pieza o la del glosario. */
@@ -504,14 +504,15 @@ export function pantallaMesa(p: Partida): Pantalla {
       ? [t('chipExactoOro', { o: B.exacto.oro }), t('chipExactoMulti', { m: multi })]
       : [conPasan ? t('dialPasan', { n: pasan }) : t('chipMaximoPremio', { n: Math.max(0, otra.total - q.total) })];
     // (en el teléfono, lo que el exacto pierde queda en la ayuda: el chip de la cuenta, justo debajo, ya dice lo que pasa)
-    const pierde = d.exacto ? (conPasan && innerWidth > 700 ? [t('dialPierde', { n: pasan })] : []) : [t('dialSinOro', { o: B.exacto.oro })];
+    // (0.27: también en el teléfono: la cuenta dice «72 PASAN» y el dial, que con él esos 72 no pasan)
+    const pierde = d.exacto ? (conPasan ? [t('dialPierde', { n: pasan })] : []) : [t('dialSinOro', { o: B.exacto.oro })];
     const ayuda = d.exacto
       ? `${t('exactoTip', { o: B.exacto.oro, m: multi })}${conPasan ? ` ${t('dialPierdeTip', { n: pasan })}` : ''}`
       : conPasan
         ? t('maximoTipPerfora', { n: pasan, o: B.exacto.oro })
         : t('maximoTip');
     const premio = [...gana.map((x) => `<span>${esc(x)}</span>`), ...pierde.map((x) => `<span class="dial-pierde">${esc(x)}</span>`)];
-    return `<button class="btn marco prisma c-dial ${d.exacto ? 'dial-exacto' : 'dial-maximo'}" data-accion="dial" data-tecla="x" data-foco="dial" ${tip(rot, ayuda)}>${glifo('R3', 'X')}<span class="dial-txt"><b class="dial-verbo">${esc(rot)}</b><span class="dial-premio">${premio.join('<i class="dial-sep" aria-hidden="true"> · </i>')}</span></span></button>`;
+    return `<button class="btn marco prisma c-dial ${d.exacto ? 'dial-exacto' : 'dial-maximo'}" data-accion="dial" data-tecla="x" data-foco="dial" ${tip(rot, ayuda)}>${glifo('R3', 'X')}<b class="dial-toca">${esc(t('dialToca'))}</b><span class="dial-txt"><b class="dial-verbo">${esc(rot)}</b><span class="dial-premio">${premio.join('<i class="dial-sep" aria-hidden="true"> · </i>')}</span></span></button>`;
   }
   /** Lo que la cuenta lleva en su propio renglón cuando el dial no entra al costado del paño. */
   let dialEnCuenta = '';
@@ -521,7 +522,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     // en reposo, la zona de la cuenta dice qué hacer
     // (con mando o teclado, la pista es de botones: el CSS enseña la que toca según `html[data-entrada]`)
     // (con el Dado Cargado tirado, la cuenta en reposo ya dice lo que suma al próximo golpe)
-    const dado = dadoArmado ? `<span class="chip d-dado" ${tip(tx(PASO_NOMBRE.dado), tx(PASO_AYUDA.dado))}>${pxChiche('dado', 'd-i')}${t('multi')} +${B.chiches.dado}</span>` : '';
+    const dado = dadoArmado ? `<span class="chip d-dado" ${tip(tx(PASO_NOMBRE.dado), tx(PASO_AYUDA.dado))}>${pxChiche('dado', 'd-i')}${esc(tx(PASO_NOMBRE.dado))}: ${t('multi')} +${B.chiches.dado}</span>` : '';
     if (!sel.length)
       return `<div class="cuenta reposo">${dado}<span class="sub pista p-puntero">${t('elegiCartas')}</span><span class="sub pista p-botones">${glifo('A', 'ENTER')} ${t('pistaElige')} · ${glifo('LB', 'Q')}${glifo('RB', 'W')} ${t('pistaCorre')} · ${glifo('X', 'G')} ${t('pistaGolpea')} · ${glifo('Y', 'D')} ${t('pistaDescarta')}</span></div>`;
     if (!q.ok) {
@@ -559,7 +560,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     const vidaE = enemigo?.vida ?? 0;
     // (0.26) con Perfora y alguien detrás, lo que sobra dice también lo que pasa: «SOBRAN 24 ×3 = 72 PASAN»
     const sc = sobraCifras(q);
-    const sobranTxt = q.perfora && q.sobra > 0 && hayDetras() ? (sc.m > 1 ? t(innerWidth > 700 ? 'sobranPasan' : 'sobranPasanCorto', { n: sc.base, m: sc.m, s: sc.s }) : t('sobranPasan1', { n: sc.base })) : t('sobran', { n: q.aVida - vidaE });
+    const sobranTxt = q.perfora && q.sobra > 0 && hayDetras() ? (sc.m > 1 ? t(innerWidth > 700 ? 'sobranPasan' : 'sobranPasanCorto', { n: sc.base, m: sc.m, s: sc.s }) : t('sobranPasan1', { n: sc.base })) : t('sobranPierden', { n: q.aVida - vidaE });
     const revela = q.abate ? (q.exacto ? '' : sobranTxt) : !q.ejecuta && enemigo ? t('leQuedan', { n: Math.max(0, vidaE - q.aVida) }) : '';
     const queda = revela ? `<span class="chip c-queda c-revela">${esc(revela)}</span>` : '';
     // con el Tajo de revés armado, un solo chip y una sola fórmula, igual que en la placa del Rey: «TE PEGA 42 (21 ×2)»
@@ -579,10 +580,10 @@ export function pantallaMesa(p: Partida): Pantalla {
     const planta = !!q.frenaEnMitad && !q.abate;
     const veredicto = q.abate
       ? q.exacto
-        ? `<b class="c-veredicto v-exacto">${t('exacto')}</b>`
+        ? `<b class="c-veredicto v-exacto">${dialEnCuenta && !dialExacto ? t('estadoJusto') : t('exacto')}</b>`
         : q.alPelo
           ? `<b class="c-veredicto v-alpelo">${t('alPelo')}</b>`
-          : `<b class="c-veredicto v-abate">${t('loAbatis')}</b>`
+          : `<b class="c-veredicto v-abate">${dialEnCuenta && dialExacto ? t('estadoTodo') : t('loAbatis')}</b>`
       : q.ejecuta
         ? `<b class="c-veredicto v-abate">${t('loAbatisDeguello')}</b>`
         : planta
@@ -678,6 +679,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     marcarTajada(sel.length ? q : null);
     marcarPano(q, sel);
     reubicarGrito();
+    reubicarTip();
     // el Ataque del enemigo late más fuerte cuando el golpe elegido no lo abate
     const ataque = $('[data-ataque]');
     ataque?.classList.toggle('inminente', !!enemigo && enemigo.aturdido <= 0 && !(q.ok && (q.abate || q.ejecuta)));
@@ -1458,7 +1460,20 @@ export function pantallaMesa(p: Partida): Pantalla {
     };
     const arriba = (tr: string) => poner({ top: '6px', bottom: 'auto', left: '50%', right: 'auto', translate: tr });
     const abajo = (tr: string) => poner({ top: 'auto', bottom: '6px', left: '50%', right: 'auto', translate: tr });
-    ubicar(b, 'bocadillo', ms, [poner({}), arriba('-50% 0'), abajo('-50% 0'), arriba('-42% 0'), abajo('-42% 0'), arriba('-58% 0'), abajo('-58% 0'), arriba('-34% 0'), abajo('-34% 0'), arriba('-68% 0'), abajo('-68% 0')]);
+    // (0.27) primero al pie de lo que se ve del naipe (arriba le tapaba la corona), después arriba
+    const alts = [poner({}), abajo('-50% 0'), arriba('-50% 0'), abajo('-42% 0'), arriba('-42% 0'), abajo('-58% 0'), arriba('-58% 0'), abajo('-34% 0'), arriba('-34% 0'), abajo('-68% 0'), arriba('-68% 0')];
+    const pd = ubicar(b, 'bocadillo', ms, alts);
+    // (y si no hay dónde sin pisar el número de tu golpe, que pesa más, espera a que el número se vaya: no se le monta)
+    const pisa = (): boolean => tomadas(pd.id).some((c) => pisan(pd.caja, c) > 0);
+    if (pisa()) {
+      soltarTurno(pd.id);
+      b.style.visibility = 'hidden';
+      window.setTimeout(() => {
+        if (!b.isConnected) return;
+        b.style.visibility = '';
+        ubicar(b, 'bocadillo', Math.max(400, ms - 500), alts);
+      }, 500);
+    }
   }
   /** El Rey dice algo corto en plena pelea (no frena nada): un bocadillo tecleado con su voz, bajo su naipe. */
   let reyHablo = 0;
@@ -1666,6 +1681,11 @@ export function pantallaMesa(p: Partida): Pantalla {
     if (!r || !r.width) return centro($('[data-cuenta]'));
     return { x: r.left + Math.min(60, r.width * 0.15), y: r.top };
   }
+  /** (0.27) La cara del enemigo: lo de arriba de su naipe, que es lo que siempre se ve (su centro queda tras la cuenta). */
+  function caraEnemigo(): { x: number; y: number } {
+    const r = ($('[data-enemigo] .e-centro') ?? $('[data-carta]'))?.getBoundingClientRect();
+    return r ? { x: r.left + r.width / 2, y: r.top + Math.min(r.height / 2, 56) } : centro(null);
+  }
   /** Usa el Chiche del hueco `i`: no gasta el turno. Lo que no se puede usar ahora (la Ginebra con la Vida llena) se niega. */
   async function usarChiche(i: number): Promise<void> {
     if (ocupado || !p.combate) return;
@@ -1694,7 +1714,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     boton?.classList.add('usado');
     // cada uno va a lo suyo: la Ginebra a tu Vida, el Dado y el Fósforo al enemigo, la Tiza y el Poroto a la mano
     // (el Dado, a la cuenta: ahí se lee «MULTI +3»)
-    const a = id === 'ginebra' ? centro($('[data-hud-vida]')) : id === 'dado' ? bordeCuenta() : id === 'fosforo' ? centro($('[data-carta]')) : centro($('[data-mano]'));
+    const a = id === 'ginebra' ? centro($('[data-hud-vida]')) : id === 'dado' ? bordeCuenta() : id === 'fosforo' ? caraEnemigo() : centro($('[data-mano]'));
     await volarChiche(id, de, a);
     if (id === 'dado') dadoArmado = true;
     if (!quieto() && (id === 'fosforo' || id === 'dado')) {
@@ -2530,6 +2550,12 @@ export function pantallaMesa(p: Partida): Pantalla {
         const foco = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>('.carta')?.dataset.id;
         mano.elegir(sel.map((k) => k.id), d.postas);
         sonar(d.exacto ? 'exacto' : 'clic');
+        // (0.27) ya está justo: el Bufón no sigue pidiendo «¡Dejalo en 0 justo!»
+        const b = $('[data-voz]');
+        if (b && b.textContent === t('bufonDial')) {
+          clearTimeout(vozReloj);
+          b.hidden = true;
+        }
         if (foco) $<HTMLElement>(`.mano .carta[data-id="${foco}"]`)?.focus();
       },
       // (con el dedo, el primer toque enseña qué hace y lo deja listo; el segundo lo usa. El cursor ya lo enseña al pasar

@@ -429,7 +429,8 @@ export function montarQa(estado: string): void {
       const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
       if (mesa && elegidas.length) mesa.mano.elegir(elegidas.map((k) => k.id));
       // (0.25) con el mando: el dial lleva R3 (la Y sigue siendo DESCARTAR); el Bufón lo presenta
-      document.documentElement.dataset.entrada = 'mando';
+      // (0.27: en el teléfono no hay mando: el dial lleva su «TOCÁ»)
+      if (innerWidth > 700) document.documentElement.dataset.entrada = 'mando';
       if (estado === 'mesa-pega-todo') $<HTMLElement>('[data-accion="dial"]')?.click();
       break;
     }

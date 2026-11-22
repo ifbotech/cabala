@@ -108,13 +108,18 @@ await conServidor(5198, async (url) => {
         });
         for (const x of xs) fallos.push(`${w} · ${nombre}: ${x}`);
       };
-      const rafaga = async (nombre: string, cuadros: number, cada: number, pg: Page = p, mide = true): Promise<void> => {
+      // (0.27) `debe`: algo que TIENE que verse en algún cuadro de la ráfaga (el sello «SE PLANTA EN LA MITAD»): si no
+      // sale en ninguno, la corrida falla
+      const rafaga = async (nombre: string, cuadros: number, cada: number, pg: Page = p, mide = true, debe?: { sel: string; que: string }): Promise<void> => {
         if (mide) await vigilar(pg);
+        let visto = 0;
         for (let i = 0; i < cuadros; i++) {
+          if (debe && (await pg.evaluate((sel) => [...document.querySelectorAll<HTMLElement>(sel)].some((el) => { const r = el.getBoundingClientRect(); const st = getComputedStyle(el); return r.width > 2 && r.height > 2 && st.visibility !== 'hidden' && Number(st.opacity) > 0.3; }), debe.sel))) visto++;
           await pg.screenshot({ path: `${SALIDA}/${w}-${nombre}-${String(i + 1).padStart(2, '0')}.png` });
           await pg.waitForTimeout(cada);
         }
         if (mide) await cosechar(nombre, pg);
+        if (debe && visto < 2) fallos.push(`${w} · ${nombre}: ${debe.que} se vio en ${visto} cuadros de ${cuadros} (tiene que verse en 2 o más)`);
       };
       const mesa = async (estado: string, pg: Page = p): Promise<void> => {
         await pg.goto(`${url}/?qa=${estado}&vivo&lang=${LANG}`);
@@ -192,7 +197,7 @@ await conServidor(5198, async (url) => {
       if (planta !== true) fallos.push(`${w} · rey-segunda: ${planta}`);
       await p.waitForTimeout(250);
       // (el golpe, la caída del de adelante, la entrada del Rey con su cartel y recién ahí lo que Perfora le sobra: ~5 s)
-      await rafaga('rey-segunda', 24, 210);
+      await rafaga('rey-segunda', 26, 210, p, true, { sel: '.sello-planta', que: 'el sello «SE PLANTA EN LA MITAD · N SE PIERDEN»' });
 
       // 3 · el Tajo de revés: repetir la jugada contra el Caudillo en segunda cara. Primero el aviso antes de soltar
       // (el chip rojo junto a TE PEGA y el ×2 del Rey), después el golpe que vuelve doble y atraviesa el Escudo. La

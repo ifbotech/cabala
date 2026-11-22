@@ -234,7 +234,8 @@ function obstaculos(ancla: HTMLElement): DOMRect[] {
     if (r.width < 2 || r.height < 2 || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) continue;
     const s = getComputedStyle(o);
     if (s.visibility === 'hidden' || Number(s.opacity) === 0) continue;
-    out.push(r);
+    // (0.27: con 3 px de aire: la ayuda no queda rozando la cuenta ni un botón)
+    out.push(new DOMRect(r.left - 3, r.top - 3, r.width + 6, r.height + 6));
   }
   return out;
 }
@@ -370,6 +371,18 @@ function carrilDelMapa(el: HTMLElement, r: DOMRect): boolean {
   tipEl.dataset.lado = x >= r.right ? 'der' : 'izq';
   return true;
 }
+/**
+ * (0.27) La ayuda abierta se rehace cuando cambia la entrada (del teclado al mando: «Pulsá Enter» pasa a «Pulsá A») y se
+ * vuelve a ubicar cuando la mesa repinta la cuenta debajo de ella.
+ */
+export function reubicarTip(rehacer = false): void {
+  const el = tipAncla;
+  if (!el || !tipEl) return;
+  if (!el.isConnected) return ocultarTip();
+  if (rehacer) mostrarTip(el);
+  else ubicarTip(el);
+}
+if (typeof MutationObserver !== 'undefined' && typeof document !== 'undefined') new MutationObserver(() => reubicarTip(true)).observe(document.documentElement, { attributes: true, attributeFilter: ['data-entrada'] });
 export function ocultarTip(): void {
   tipEl?.remove();
   tipAncla?.removeAttribute('data-tip-abierto');
