@@ -20,12 +20,12 @@ await conServidor(5197, async (url) => {
       const foto = (nombre: string) => p.screenshot({ path: `${SALIDA}/${w}-${nombre}.png` });
       const listo = (pg: Page) => pg.waitForFunction(() => !document.querySelector('.cortina'), undefined, { timeout: 8000 });
 
-      await p.goto(`${url}/?perfil=nuevo`);
+      await p.goto(`${url}/?perfil=nuevo&lang=es`);
       await p.waitForSelector('.portada [data-accion="jugar"]');
       await p.waitForTimeout(140);
       await foto('portada-entrando');
 
-      await p.goto(`${url}/?qa=mesa&vivo`);
+      await p.goto(`${url}/?qa=mesa&vivo&lang=es`);
       await p.waitForSelector('[data-mano] .carta');
       await listo(p);
       await p.waitForTimeout(700);
@@ -33,7 +33,7 @@ await conServidor(5197, async (url) => {
       await p.waitForTimeout(350);
       await foto('mesa-grito');
 
-      await p.goto(`${url}/?qa=mesa-rey&vivo`);
+      await p.goto(`${url}/?qa=mesa-rey&vivo&lang=es`);
       await p.waitForSelector('[data-mano] .carta');
       await listo(p);
       await p.waitForTimeout(500);
@@ -51,7 +51,7 @@ await conServidor(5197, async (url) => {
       await foto('rey-cae');
 
       // 0.12.0: el Comodín espectral, el conteo en cadena y la racha encendida
-      await p.goto(`${url}/?qa=mesa-mentiroso&vivo`);
+      await p.goto(`${url}/?qa=mesa-mentiroso&vivo&lang=es`);
       await p.waitForSelector('[data-mano] .carta');
       await listo(p);
       await p.waitForTimeout(600);
@@ -74,7 +74,7 @@ await conServidor(5197, async (url) => {
       await foto('conteo');
       await p.waitForTimeout(2200);
 
-      await p.goto(`${url}/?qa=fogon&vivo`);
+      await p.goto(`${url}/?qa=fogon&vivo&lang=es`);
       await p.waitForSelector('[data-accion="templar"]');
       await p.waitForTimeout(900);
       await p.click('[data-accion="templar"]');
@@ -88,6 +88,19 @@ await conServidor(5197, async (url) => {
         await p.waitForTimeout(650);
         await foto('fogon-despues');
       }
+
+      // (0.25) la Forja Brava (tercera pasada), en castellano: el naipe baja a la fogata, que crece; y lo que sale
+      await p.goto(`${url}/?qa=forja-brava-eleccion&vivo&lang=es`);
+      await p.waitForSelector('.forja-mut');
+      await p.waitForTimeout(900);
+      await foto('forja-brava-elegir');
+      await p.click('.forja-mut');
+      await p.waitForTimeout(500);
+      await foto('fogon-suspenso-brava');
+      await p.waitForTimeout(900);
+      await foto('fogon-suspenso-brava-llama');
+      await p.waitForTimeout(700);
+      await foto('forja-brava-despues');
       await ctx.close();
     }
   } finally {

@@ -1276,13 +1276,22 @@ function mapa(W: number, H: number, kit: Kit): Escenario {
 
 // ───────────── el Fogón ─────────────
 
+/** (0.25) El fuego del Fogón crece mientras dura la Forja Brava (0 a 1); y dónde arde, en celdas, para que el naipe baje hasta él. */
+let avivado = 0;
+let fuegoEn: { x: number; y: number } | null = null;
+export const avivarFogon = (f: number): void => {
+  avivado = Math.max(0, Math.min(1, f));
+};
+export const dondeFuego = (): { x: number; y: number } | null => fuegoEn;
+
 function fogon(W: number, H: number, kit: Kit): Escenario {
   const vert = H > W;
   const yH = Math.round(H * (vert ? 0.2 : 0.3));
   // el fuego, donde la pantalla deja un claro: bajo los paneles en apaisado, entre «Seguir» y el HUD en móvil
   const fx = Math.round(W * (vert ? 0.5 : 0.52));
   const fy = Math.round(H * (vert ? 0.795 : 0.725));
-  const s = vert ? 1.15 : 2.1;
+  // (0.25: en el teléfono la fogata ya no es de 20 px: casi el doble)
+  const s = vert ? 1.9 : 2.1;
   const q = (v: number): number => Math.round(v * s);
   const CIELO = 0;
   const SIL = 1;
@@ -1408,6 +1417,8 @@ function fogon(W: number, H: number, kit: Kit): Escenario {
     ),
   );
   const llama = llamas(q(19), q(25), 6);
+  let llamaBrava: HTMLCanvasElement[] | null = null;
+  fuegoEn = { x: fx, y: fy - q(8) };
   const chispas = brasero(
     Math.round((W * H) / 9000),
     (arranque) => {
@@ -1421,11 +1432,15 @@ function fogon(W: number, H: number, kit: Kit): Escenario {
   return {
     ...perezosos(cuadros),
     base: 2,
-    elegir: (t) => Math.max(0, Math.min(4, 2 + Math.round(1.5 * Math.sin(t * 1.5) + 0.6 * Math.sin(t * 7.3 + 1)))),
+    elegir: (t) => (avivado > 0 ? 4 : Math.max(0, Math.min(4, 2 + Math.round(1.5 * Math.sin(t * 1.5) + 0.6 * Math.sin(t * 7.3 + 1))))),
     animar(x, dt, t, quieto) {
-      const c = llama[quieto ? 0 : Math.floor(t * 9) % llama.length];
+      // con la Forja Brava, la llama brava: una vez y media más grande y más ligera
+      const brava = avivado > 0 && !quieto;
+      if (brava) llamaBrava ??= llamas(q(29), q(40), 6);
+      const fuego = brava && llamaBrava ? llamaBrava : llama;
+      const c = fuego[quieto ? 0 : Math.floor(t * (brava ? 14 : 9)) % fuego.length];
       x.drawImage(c, fx - (c.width >> 1), fy - q(2) - c.height + 1);
-      if (!quieto) chispas(x, dt);
+      if (!quieto) chispas(x, brava ? dt * 2 : dt);
     },
   };
 }

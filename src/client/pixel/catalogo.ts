@@ -6,7 +6,7 @@ import { MAZOS as DORSOS } from './dorsos';
 import { GLIFOS, TONO_CIFRA, cifraMapa, type TonoCifra } from './cifras';
 import { AMULETOS_PX, AUMENTOS_PX, BENDICIONES_PX, CHICHES_PX, EVOLUCIONES_PX, HUD_PX, NODOS_PX, amuletoMapa, aumentoMapa, bendicionMapa, chicheMapa, evolucionMapa, hudMapa, inmuneMapa, nodoMapa, estrellaMapa } from './iconos';
 import { logoMapa } from './logo';
-import { BARRAS, barraMapa, marcoMapa, panoMapa, type Estilo } from './marcos';
+import { BARRAS, barraMapa, brasaMapa, marcoMapa, panoMapa, type Estilo } from './marcos';
 import { comodinMapa, dorsoNaipe, naipeMapa, naipeSegundaMapa } from './naipes';
 import { cuadros, personajeMapa } from './personajes';
 import { REYES_PX, mascaraMapa, reyRetrato } from './reyes';
@@ -46,6 +46,7 @@ export function catalogo(): Pieza[] {
   }
   for (const [id, rampa] of Object.entries(BARRAS)) out.push({ grupo: 'marcos', id: `barra-${id}`, m: barraMapa(rampa), k: 6 });
   out.push({ grupo: 'marcos', id: 'pano', m: panoMapa(), k: 4 });
+  out.push({ grupo: 'marcos', id: 'brasa', m: brasaMapa(), k: 6 });
   out.push({ grupo: 'logo', id: 'logo', m: logoMapa(), k: 4 });
   for (const tono of Object.keys(TONO_CIFRA) as TonoCifra[]) for (const g of GLIFOS) out.push({ grupo: 'cifras', id: `${tono}-${g}`, m: cifraMapa(g, tono), k: 3 });
   return out;

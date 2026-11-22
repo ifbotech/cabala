@@ -22,7 +22,7 @@ import { sonar } from '../audio';
 import { chispas, destello, haloRey, humo, lluviaDeMonedas, monedas, numero, partirNaipe } from '../fx/efectos';
 import { teclear } from '../habla';
 import { RAPIDO, pausa, quieto } from '../ritmo';
-import { congelar, enFoto, sacudir } from '../fx/motor';
+import { avivarFuego, congelar, enFoto, fuegoEnPantalla, sacudir } from '../fx/motor';
 import { avivarRetrato, cargaQue, hudHtml, reubicarGrito } from '../hud';
 import { avanzar, guardar, irPortada, sesion, soltarPartida } from '../juego';
 import type { Expresion } from '../pixel/bufon';
@@ -32,7 +32,7 @@ import { naipeMapa } from '../pixel/naipes';
 import { personajeMapa } from '../pixel/personajes';
 import { vigilarEvoluciones } from '../evolucion';
 import { MUTACION_PX } from '../mano';
-import { JUGADA_COMO, JUGADA_NOMBRE, MUTACION_DESC, MUTACION_NOMBRE, NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_AYUDA, PASO_NOMBRE, RANGO_NOMBRE, TRAMO_NOMBRE } from '../textos';
+import { JUGADA_COMO, JUGADA_NOMBRE, MUTACION_COSTO, MUTACION_DESC, MUTACION_GANA, MUTACION_NOMBRE, NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_AYUDA, PASO_NOMBRE, RANGO_NOMBRE, TRAMO_NOMBRE } from '../textos';
 import { resumenDe, type ResumenPartida } from '../../rules/resumen';
 import { VOZ } from '../voces';
 import { bufonDice } from '../bufon-vivo';
@@ -856,13 +856,24 @@ export function pantallaFogon(p: Partida): Pantalla {
     const r = $(sel)?.getBoundingClientRect();
     return r ? { x: r.left + r.width / 2, y: r.top + r.height / 2, r } : null;
   };
-  /** El naipe recién templado: un fogonazo y su «+4» que sube. */
-  const fogonazo = (): void => {
+  /** El naipe recién templado: un fogonazo y su «+4» que sube (0.25: en la Forja Brava, un «×2» grande: lo que pasó es que el naipe entero se duplicó). */
+  const fogonazo = (brava = false): void => {
     const c = centroDe('.fuego-carta');
     if (!c || quieto()) return;
     destello(c.x, c.y, FUEGO, 22);
     chispas(c.x, c.y, FUEGO, 16, 90, -40);
-    numero(`+${B.fogon.temple}`, c.x, c.y - c.r.height * 0.4, 'oro', 2);
+    numero(brava ? '×2' : `+${B.fogon.temple}`, c.x, c.y - c.r.height * 0.4, 'oro', brava ? 3 : 2);
+  };
+  /** (0.25) La placa del temple en palabras: «+12 de Daño · ★ +1 de Multi · naipe entero ×2». */
+  const placaHtml = (c: Carta): string =>
+    [t('placaTemple', { n: c.temple ?? 0 }), c.templada ? t('placaMulti', { m: B.fogon.multiTemplada }) : '', c.brava ? t('placaBrava') : '']
+      .filter(Boolean)
+      .map((s) => `<span>${esc(s)}</span>`)
+      .join('');
+  /** (0.25) El chip de la mutación con su costo a la vista (Doble Filo: «−2 de Vida al jugarlo»). */
+  const mutChip = (m: Mutacion): string => {
+    const costo = MUTACION_COSTO[m];
+    return `<span class="chip mutacion-chip" data-mut ${tip(tx(MUTACION_NOMBRE[m]), tx(MUTACION_DESC[m]), t('forjaBrava'))}>${pxHud(MUTACION_PX[m])} <b>${esc(tx(MUTACION_NOMBRE[m]))}</b>${costo ? `<span class="mc-costo">${esc(tx(costo))}</span>` : ''}</span>`;
   };
   /** La segunda opción del Fogón: templar un naipe; el naipe que ya está en el fuego (¿otra pasada?); o su ceniza. */
   const fuegoHtml = (): string => {
@@ -874,19 +885,31 @@ export function pantallaFogon(p: Partida): Pantalla {
       // (0.23) la tercera pasada se elige: las dos mutaciones que ofrece el fuego, a la vista con lo que hacen y lo que
       // cuestan (sin pasar el puntero), y cada una es su propio botón de FORJA BRAVA
       const muts = pasadas >= 2 && puede ? (p.fogonMutaciones ?? []) : [];
+      const riesgo = Math.round(B.fogon.riesgos[2] * 100);
+      // (0.25) cada mutación: lo que da y, aparte y en carmesí, lo que cuesta; las cajas de regla, de la misma altura
+      const mutBoton = (m: Mutacion, i: number): string => {
+        const costo = MUTACION_COSTO[m];
+        return `<button class="opcion marco dorado forja-mut" data-accion="arrimar" data-mut="${m}" data-foco="mut-${i}" ${i === 0 ? 'data-inicio' : ''}><span class="fm-icono">${pxHud(MUTACION_PX[m])}</span><b class="fm-nombre">${esc(tx(MUTACION_NOMBRE[m]))}</b><span class="fm-desc">${esc(tx(MUTACION_GANA[m]))}${costo ? `<span class="fm-costo"><b class="fm-costo-rot">${t('forjaCuesta')}</b> ${esc(tx(costo))}</span>` : ''}</span></button>`;
+      };
       const arrimar = !puede
         ? ''
         : muts.length
           ? `<div class="forja-elige"><b class="forja-elige-tit rotulo">${t('forjaElegi')}</b>
-              ${muts.map((m, i) => `<button class="opcion marco dorado forja-mut" data-accion="arrimar" data-mut="${m}" data-foco="mut-${i}" ${i === 0 ? 'data-inicio' : ''}><span class="fm-icono">${pxHud(MUTACION_PX[m])}</span><b class="fm-nombre">${esc(tx(MUTACION_NOMBRE[m]))}</b><span class="fm-desc">${esc(tx(MUTACION_DESC[m]))}</span></button>`).join('')}
-              <span class="op-desc forja-riesgo largo">${t('riesgoBrava', { p: Math.round(B.fogon.riesgos[2] * 100) })}</span><span class="op-desc forja-riesgo corto">${t('forjaQuema', { p: Math.round(B.fogon.riesgos[2] * 100) })}</span></div>`
-          : `<button class="btn marco ${pasadas >= 2 ? 'oro' : 'prisma'} chico" data-accion="arrimar" data-foco="arrimar" data-inicio>${pasadas >= 2 ? t('forjaBrava') : t('arrimar')}</button><span class="op-desc">${pasadas >= 2 ? t('riesgoBrava', { p: Math.round(B.fogon.riesgos[2] * 100) }) : t('riesgo', { n: B.fogon.temple, m: B.fogon.multiTemplada, p: Math.round(B.fogon.riesgos[1] * 100) })}</span>`;
-      // (la placa del temple va DEBAJO del naipe, no encima: tapaba media carta en el teléfono)
-      return `<div class="opcion marco hierro fuego">
-        <span class="fuego-naipe"><span class="fuego-carta">${pxNaipe(enFuego)}</span><span class="c-temple f-temple">+${enFuego.temple}${enFuego.templada ? '★' : ''}${enFuego.brava ? ' ×2' : ''}</span></span>
+              ${muts.map(mutBoton).join('')}</div>`
+          : `<button class="btn marco ${pasadas >= 2 ? 'oro' : 'prisma'} chico" data-accion="arrimar" data-foco="arrimar" data-inicio>${pasadas >= 2 ? t('forjaBrava') : t('arrimar')}</button><span class="op-desc">${pasadas >= 2 ? t('riesgoBrava', { p: riesgo }) : t('riesgo', { n: B.fogon.temple, m: B.fogon.multiTemplada, p: Math.round(B.fogon.riesgos[1] * 100) })}</span>`;
+      // (0.25) en la tercera pasada la apuesta va arriba y grande, y lo que el naipe ya tiene se lee como estado (YA
+      // TIENE…), no como una tercera opción
+      const apuesta = muts.length ? `<p class="forja-apuesta" role="note"><b class="fa-rot">${t('forjaApuesta', { p: riesgo })}</b><span class="fa-si">${esc(t('forjaSiSale'))}</span></p>` : '';
+      const estado = muts.length
+        ? `<p class="fuego-estado fuego-hoy"><b class="fe-rot">${t('forjaYaTiene')}</b><span class="f-placa">${placaHtml(enFuego)}</span></p>`
+        : `<b class="op-nombre fuego-estado">${enFuego.brava ? t('forjada') : enFuego.templada ? t('templadaMulti', { n: enFuego.temple ?? 0, m: B.fogon.multiTemplada }) : t('templada', { n: enFuego.temple ?? 0 })}</b>`;
+      // (la placa del temple va DEBAJO del naipe, no encima: tapaba media carta en el teléfono; 0.25: en palabras)
+      return `<div class="opcion marco hierro fuego${enFuego.brava ? ' forjado' : ''}">
+        ${apuesta}
+        <span class="fuego-naipe"><span class="fuego-carta">${pxNaipe(enFuego)}</span>${muts.length ? '' : `<span class="c-temple f-temple f-placa">${placaHtml(enFuego)}</span>`}</span>
         ${recienBrava ? `<b class="forja-grito rotulo" role="status">${t('forjaBrava')}</b>` : ''}
-        ${enFuego.mutacion ? `<span class="chip mutacion-chip" data-mut ${tip(tx(MUTACION_NOMBRE[enFuego.mutacion]), tx(MUTACION_DESC[enFuego.mutacion]), t('forjaBrava'))}>${pxHud(MUTACION_PX[enFuego.mutacion])} ${esc(tx(MUTACION_NOMBRE[enFuego.mutacion]))}</span>` : ''}
-        <b class="op-nombre fuego-estado">${enFuego.brava ? t('forjada') : enFuego.templada ? t('templadaMulti', { n: enFuego.temple ?? 0, m: B.fogon.multiTemplada }) : t('templada', { n: enFuego.temple ?? 0 })}</b>
+        ${enFuego.mutacion ? mutChip(enFuego.mutacion) : ''}
+        ${estado}
         ${arrimar}
       </div>`;
     }    // (ya descansaste: TEMPLAR queda en un renglón apagado, no en una caja vacía)
@@ -911,7 +934,10 @@ export function pantallaFogon(p: Partida): Pantalla {
     html: () => `<main class="pantalla en-partida fogon">
       <header class="cabecera"><h1 class="titulo">${t('fogon')}</h1><div class="lado">${botonMenu()}</div></header>
       <div class="cuerpo">
-        ${anfitrion(tx(alAzar(VOZ.fogon, fijo())), 'reposo')}
+        ${
+          // (0.25) en la tercera pasada el Bufón no dice «el fuego no cobra»: dice que es una apuesta
+          anfitrion(p.fogonCarta && juego.puedeArrimar(p) && (p.fogonPasadas ?? 0) >= 2 && !seQuemo ? t('bufonForjaBrava') : tx(alAzar(VOZ.fogon, fijo())), 'reposo')
+        }
         <div class="opciones">
           ${descansoHtml()}
           ${fuegoHtml()}
@@ -938,6 +964,7 @@ export function pantallaFogon(p: Partida): Pantalla {
     alSalir: () => {
       clearInterval(brasas);
       clearTimeout(relojBrava);
+      avivarFuego(0);
     },
     acciones: {
       ...accionesComunes(p),
@@ -980,6 +1007,15 @@ export function pantallaFogon(p: Partida): Pantalla {
           // los primeros 400 ms no se cortan (TURBO corta el resto)
           el?.classList.add('bravo');
           $('.fogon .opcion.fuego')?.classList.add('forjando');
+          // (0.25) el naipe baja hasta la fogata de verdad y la fogata crece mientras dura el suspenso
+          const f = fuegoEnPantalla();
+          const r0 = el?.getBoundingClientRect();
+          if (el && f && r0 && !quieto()) {
+            el.style.setProperty('--bx', `${Math.round(f.x - (r0.left + r0.width / 2))}px`);
+            el.style.setProperty('--by', `${Math.round(f.y - (r0.top + r0.height / 2))}px`);
+            el.classList.add('baja');
+          }
+          avivarFuego(1);
           sonar('forjaSube');
           if (!quieto()) await new Promise((ok) => setTimeout(ok, 400));
           await pausa(1100);
@@ -989,6 +1025,7 @@ export function pantallaFogon(p: Partida): Pantalla {
         }
         const rect = el?.getBoundingClientRect();
         const r = juego.templar(p, carta.id, mut);
+        avivarFuego(0);
         recienBrava = brava && r === 'templada';
         // al salir del fuego bravo: el golpe se congela un instante (hitstop) y la mesa se sacude
         if (recienBrava && !quieto()) {
@@ -1010,7 +1047,7 @@ export function pantallaFogon(p: Partida): Pantalla {
         guardar();
         repintar();
         ocupado = false;
-        if (r === 'templada') fogonazo();
+        if (r === 'templada') fogonazo(recienBrava);
         if (recienBrava) {
           // ¡FORJA BRAVA!: el grito sobre el naipe, un estallido de oro y la mutación con la que salió del fuego
           const c = centroDe('.fuego-carta');

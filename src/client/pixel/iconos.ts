@@ -783,11 +783,20 @@ const HUD: Record<HudPx, Dibujo> = {
   // las mutaciones de la Forja Brava (0.22): el Doble Filo es una hoja carmesí con filo de los dos lados (una gota de
   // sangre al pie: también te corta a vos); Roba Carta, dos naipes con una cruz de oro; Chispa de Oro, la moneda con su
   // chispa
+  // (0.25) el Doble Filo es un facón de hoja doble, de acero, con los DOS filos en carmesí (el de la luz claro, el de la
+  // sombra hondo), guarda de oro, cabo de madera y una chispa roja que salta del filo: ya no un lápiz labial
   doblefilo: (l) => {
-    hoja(l, 5, 24, 23, 4, 2.6, ROJO);
-    l.trazo(3, 21, 9, 27, 1.1, 'y');
-    destello(l, 22, 22, 3);
-    gota(l, 7, 13, 2.2);
+    hoja(l, 9, 19, 25, 3, 3.4, ACERO);
+    l.linea(7, 16, 19, 4, 'e').linea(8, 16, 20, 4, 'r');
+    l.linea(12, 21, 24, 9, 'R').linea(12, 20, 23, 9, 'r');
+    l.trazo(5, 15, 13, 23, 1.3, '¤');
+    vol(l, ORO, { base: 0.66 });
+    l.trazo(8, 20, 3, 25, 1.7, '¤');
+    vol(l, MADERA, { base: 0.62 });
+    l.elipse(3, 25, 1.6, 1.6, '¤');
+    vol(l, ORO);
+    destello(l, 23, 20, 3, 'r');
+    l.set(23, 20, 'e');
   },
   roba: (l) => {
     naipe(l, 2, 8, 13, 18, true);

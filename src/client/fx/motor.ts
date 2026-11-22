@@ -8,7 +8,7 @@
 import { ajustes } from '../almacen';
 import type { Palo } from '../../rules/cartas';
 import { BAYER4 } from '../pixel/dither';
-import { armarEscenario, type Escena, type Escenario } from './escenas';
+import { armarEscenario, avivarFogon, dondeFuego, type Escena, type Escenario } from './escenas';
 
 export type Ctx = CanvasRenderingContext2D;
 
@@ -201,6 +201,15 @@ export function efecto(e: Efecto): void {
 /** Congela los efectos unos milisegundos: el golpe pesa (hitstop). */
 export function congelar(ms: number): void {
   if (!ajustes.calma) congelado = Math.max(congelado, ms);
+}
+/** (0.25) La Forja Brava aviva la fogata del fondo (0 a 1; nada en modo foto ni con «Reducir movimiento»). */
+export function avivarFuego(f: number): void {
+  avivarFogon(foto || ajustes.calma ? 0 : f);
+}
+/** (0.25) Dónde arde la fogata del Fogón, en píxeles de la pantalla (o nada si la escena no la tiene armada). */
+export function fuegoEnPantalla(): { x: number; y: number } | null {
+  const f = escena === 'fogon' ? dondeFuego() : null;
+  return f ? { x: f.x * S, y: f.y * S } : null;
 }
 /** Modo foto: la escena queda quieta y determinista (QA visual). */
 export function modoFoto(si: boolean): void {

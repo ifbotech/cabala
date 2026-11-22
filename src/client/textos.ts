@@ -316,7 +316,7 @@ export const ES = {
   maximoTip: 'Vuelve al acomodo que más pega.',
   bufonDial: '¡Dejalo en 0 justo y cobrás oro y Multi!',
   pistaJusto: 'lo deja justo',
-  forjaElegi: 'TERCERA PASADA: ELEGÍ LA MUTACIÓN',
+  forjaElegi: 'ELEGÍ LA MUTACIÓN',
   forjaQuema: '{p} % de que se queme',
   fogonUsado: 'El fuego ya se usó',
   evolucionDe: 'Evolución de {a}',
@@ -344,9 +344,12 @@ export const ES = {
   nivelN: 'nivel {n}',
   hayMas: 'hay más ↓',
   forjaYaTiene: 'YA TIENE',
-  forjaApuesta: 'APUESTA: {p} % DE QUE SE QUEME',
-  forjaSiSale: 'Si sale: el naipe entero ×2 y la mutación que elijas',
+  forjaApuesta: 'APUESTA: {p} % SE QUEMA',
+  forjaSiSale: 'Si sale, el naipe entero vale doble.',
   forjaCuesta: 'cuesta',
+  placaTemple: '+{n} de Daño',
+  placaMulti: '★ +{m} de Multi',
+  placaBrava: 'naipe entero ×2',
   bufonForjaBrava: 'Tercera pasada: o vale doble, o ceniza. Elegí la mutación y rezá.',
   temple: 'Daño',
 };
@@ -651,7 +654,7 @@ export const EN: Record<keyof typeof ES, string> = {
   maximoTip: 'Back to the hardest-hitting layout.',
   bufonDial: 'Leave it at exactly 0: gold and Mult!',
   pistaJusto: 'makes it exact',
-  forjaElegi: 'THIRD PASS: PICK THE MUTATION',
+  forjaElegi: 'PICK THE MUTATION',
   forjaQuema: '{p}% it burns',
   fogonUsado: 'The fire is spent',
   evolucionDe: 'Evolution of {a}',
@@ -678,9 +681,12 @@ export const EN: Record<keyof typeof ES, string> = {
   nivelN: 'level {n}',
   hayMas: 'more ↓',
   forjaYaTiene: 'ALREADY HAS',
-  forjaApuesta: 'GAMBLE: {p}% IT BURNS',
-  forjaSiSale: 'If it holds: the whole card ×2 and the mutation you pick',
+  forjaApuesta: 'GAMBLE: {p}% IT BURNS',
+  forjaSiSale: 'If it holds, the whole card counts double.',
   forjaCuesta: 'costs',
+  placaTemple: '+{n} Damage',
+  placaMulti: '★ +{m} Mult',
+  placaBrava: 'whole card ×2',
   bufonForjaBrava: 'Third pass: double or ashes. Pick the mutation and pray.',
   temple: 'Damage',
 };
@@ -804,6 +810,15 @@ export const MUTACION_DESC: Record<'doblefilo' | 'roba' | 'oro', Par> = {
   doblefilo: P(`Al jugarlo: +${B.fogon.dobleFilo.multi} de Multi, y te corta ${B.fogon.dobleFilo.vida} de Vida (nunca te mata).`, `When played: +${B.fogon.dobleFilo.multi} Mult, and it cuts you for ${B.fogon.dobleFilo.vida} Health (never lethal).`),
   roba: P(`Al jugarlo, tu próxima mano trae ${B.fogon.robaCarta} carta de más.`, `When played, your next hand draws ${B.fogon.robaCarta} extra card.`),
   oro: P(`Al jugarlo: +${B.fogon.chispaOro} de oro.`, `When played: +${B.fogon.chispaOro} gold.`),
+};
+/** (0.25) Lo que da cada mutación, sin su costo, y el costo aparte: en la carta de elegir y en el chip va a la vista. */
+export const MUTACION_GANA: Record<'doblefilo' | 'roba' | 'oro', Par> = {
+  doblefilo: P(`Al jugarlo: +${B.fogon.dobleFilo.multi} de Multi.`, `When played: +${B.fogon.dobleFilo.multi} Mult.`),
+  roba: MUTACION_DESC.roba,
+  oro: MUTACION_DESC.oro,
+};
+export const MUTACION_COSTO: Partial<Record<'doblefilo' | 'roba' | 'oro', Par>> = {
+  doblefilo: P(`−${B.fogon.dobleFilo.vida} de Vida al jugarlo`, `−${B.fogon.dobleFilo.vida} Health when played`),
 };
 
 /** El nombre corto de cada Chiche, el que se lee bajo su icono en la bandeja de la mesa. */

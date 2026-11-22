@@ -10,7 +10,7 @@ import type { BendicionId } from '../rules/reyes';
 import { cifraMapa, type TonoCifra } from './pixel/cifras';
 import { amuletoMapa, aumentoMapa, bendicionMapa, chicheMapa, evolucionMapa, hudMapa, inmuneMapa, nodoMapa, paloMapa, estrellaMapa, type HudPx, type NodoPx } from './pixel/iconos';
 import { logoMapa } from './pixel/logo';
-import { BARRAS, barraMapa, marcoMapa, panoMapa, type Estilo } from './pixel/marcos';
+import { BARRAS, barraMapa, brasaMapa, marcoMapa, panoMapa, type Estilo } from './pixel/marcos';
 import { comodinMapa, dorsoNaipe, naipeMapa, naipeSegundaMapa } from './pixel/naipes';
 import { tintas } from './pixel/paleta';
 import { mitad } from './pixel/partido';
@@ -109,6 +109,7 @@ export function forjarCss(): void {
   }
   for (const [id, rampa] of Object.entries(BARRAS)) vars.push(`--b-${id}:url(${url(`barra:${id}`, () => barraMapa(rampa))})`);
   vars.push(`--pano:url(${url('pano', panoMapa)})`);
+  vars.push(`--t-brasa:url(${url('brasa', brasaMapa)})`);
   const hoja = document.createElement('style');
   hoja.id = 'forja';
   hoja.textContent = `:root{${vars.join(';')}}`;

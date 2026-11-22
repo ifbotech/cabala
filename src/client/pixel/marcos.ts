@@ -225,6 +225,30 @@ export function barraMapa(rampa: string): Mapa {
 /** Los rellenos de barra del juego: Vida (carmesí), Escudo (cian), la herida reciente (hueso) y el avance (oro). */
 export const BARRAS = { vida: 'Rre', escudo: 'bcA', herida: 'hmw', oro: 'oyY', verde: 'glK' } as const;
 
+/**
+ * (0.25) La brasa: el relleno de las cartas de la Forja Brava, una tira de 8 × 64 celdas que se repite a lo ancho.
+ * Arriba la noche índigo; abajo, la luz del fuego que sube desde la fogata (del vino al ámbar), todo en Bayer.
+ */
+export function brasaMapa(): Mapa {
+  const hecho = cache.get('brasa');
+  if (hecho) return hecho;
+  const W = 8;
+  const H = 64;
+  const l = new Lienzo(W, H);
+  const rampa = '09fvRzo';
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      const v = Math.max(0, (y / (H - 1) - 0.15) / 0.85) ** 1.6;
+      const p = v * (rampa.length - 1);
+      const i = Math.min(rampa.length - 2, Math.floor(p));
+      const sube = p - i > umbral(x, y, 4);
+      l.set(x, y, rampa[sube ? i + 1 : i]).marcar(x, y);
+    }
+  const m = l.mapa();
+  cache.set('brasa', m);
+  return m;
+}
+
 // ───────────── el paño de la mesa ─────────────
 
 /**
