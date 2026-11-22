@@ -305,6 +305,27 @@ export function poseRetrato(pose: 'festeja' | 'tiembla' | 'guina', ms = 900): vo
   window.setTimeout(() => el.classList.remove(pose), ms);
 }
 
+/**
+ * (0.27) Lo que le pasa a una cifra tuya se dice ADENTRO de su caja del HUD y ANTES de que la cifra cambie: «−18» sobre
+ * tu VIDA, «−5 ESCUDO» sobre tu ESCUDO, «−3 ORO» sobre tu oro (con el ícono de quien lo cobra, si es una maldición).
+ * Nace montado en el canto de arriba de su caja (sobre el rótulo; nunca sobre la cifra, la mano ni los botones), salta
+ * y se va solo en un segundo: no sigue ahí cuando empieza el turno siguiente.
+ */
+export function deltaHud(de: 'vida' | 'escudo' | 'oro', n: number, o: { icono?: string } = {}): void {
+  const caja = $<HTMLElement>(`[data-hud-${de}]`);
+  if (!caja || !n || enFoto()) return;
+  const el = document.createElement('b');
+  el.className = `hud-delta hd-${de}${n > 0 ? ' hd-sube' : ''}`;
+  el.setAttribute('role', 'status');
+  const txt = n < 0 ? `-${-n}` : `+${n}`;
+  el.setAttribute('aria-label', `${txt} ${t(de)}`);
+  el.innerHTML = `${o.icono ?? ''}${cifra(txt, de === 'vida' ? 'roja' : de === 'escudo' ? 'azul' : 'oro', de === 'vida' ? 'grande' : '')}${de === 'vida' ? '' : `<span class="hd-que">${t(de)}</span>`}`;
+  // (uno por caja: el que llega reemplaza al anterior)
+  caja.querySelector('.hud-delta')?.remove();
+  caja.append(el);
+  window.setTimeout(() => el.remove(), ajustes.calma ? 1500 : 1050);
+}
+
 /** La ficha de una pieza en la bandeja pega un brinco (dispara en el conteo). Devuelve su centro, o null si no está a la vista. */
 export function dispararFicha(pieza: string): { x: number; y: number } | null {
   let el = $<HTMLElement>(`.hud [data-pieza="${pieza}"]`);

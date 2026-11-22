@@ -41,7 +41,7 @@ export const ESTADOS = [
   'altar-devolver', 'resumen-victoria', 'resumen-derrota', 'mesa-exacto', 'fogon-mutaciones', 'hud-evolucion-foco',
   'mesa-dejalo-justo', 'resumen-derrota-movil', 'forja-brava-eleccion',
   'mesa-pega-todo', 'mesa-maldicion', 'mesa-garrote', 'mesa-limpia',
-  'mesa-sol', 'mesa-chinchon',
+  'mesa-sol', 'mesa-chinchon', 'mesa-chancho',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
 /** Estados que solo tienen sentido en vivo (`&vivo`, para las secuencias del Jurado): no entran en la QA visual. */
@@ -462,13 +462,16 @@ export function montarQa(estado: string): void {
       break;
     }
     case 'mesa-chinchon': {
-      // (0.26) el turno del ¡CHINCHÓN! el enemigo no te pega: una Pierna elegida que no lo abate dice «NO TE PEGA ·
-      // ¡CHINCHÓN!» (es una foto de QA: las tres primeras cartas se vuelven un 4 de tres palos)
+      // (0.27) ¡CHINCHÓN! corta la mano: una Pierna elegida que no lo abate dice en su renglón «CORTÁS · 4 cartas × 3 =
+      // +12 ESCUDO», las cuatro cartas que quedan en la mano llevan su sello de Escudo y la placa TE PEGA lo descuenta
+      // (es una foto de QA: las tres primeras cartas se vuelven un 4 de tres palos y el enemigo pega fuerte)
       const p = partida('chinchon', (x) => enCombate(x));
       const c = p.combate!;
       const e = c.fila[0];
       e.aturdido = 0;
       e.vida = e.vidaMax = Math.max(e.vidaMax, 300);
+      e.ataque = Math.max(e.ataque, 23);
+      c.escudo = 0;
       const palos = (['S', 'C', 'D', 'H'] as const).filter((x) => x !== e.palo);
       for (let i = 0; i < 3; i++) c.mano[i] = { ...c.mano[i], n: 4, palo: palos[i] };
       montar(p);
@@ -476,6 +479,11 @@ export function montarQa(estado: string): void {
       mesa?.mano.elegir(c.mano.slice(0, 3).map((k) => k.id));
       break;
     }
+    case 'mesa-chancho':
+      // (0.27) la mano de 4 de Chancho Va en reposo: la QA la toca naipe por naipe («elige-cinco») en las tres ventanas
+      // del teléfono y mide que ninguno de los que no elegiste se mueva
+      montar(partida('chancho', (p) => enCombate(p)));
+      break;
     case 'mesa-limpia':
       // (0.25) la Escoba en el primer tramo arranca con Escudo: el rótulo MESA LIMPIA sobre su caja y el Bufón que lo dice
       montar(partida('escoba', (p) => p.acto === 0 && enCombate(p, 0)));

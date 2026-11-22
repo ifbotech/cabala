@@ -55,6 +55,11 @@ const SONIDO = {
   // el golpe: el cuerpo grave (el ruido del impacto va en RUIDO)
   golpe: [[150, 0.07, 'square', 0.22, 60], [90, 0.1, 'sawtooth', 0.2, 40]],
   fuerte: [[110, 0.08, 'sawtooth', 0.26, 40], [70, 0.16, 'square', 0.24, 30], [220, 0.05, 'square', 0.12]],
+  // (0.27) el remate del golpe chico: cuando tu número ya se posó, un toc seco de madera y una nota que cae y cierra
+  // (corto y limpio: no pisa lo que viene, que es lo que te pegan)
+  remateChico: [[294, 0.035, 'triangle', 0.2, 196], [147, 0.09, 'triangle', 0.18, 98]],
+  // (0.27) ¡CHINCHÓN! corta la mano: cada carta que te quedó paga su Escudo con un toque de vidrio que sube
+  corta: [[1175, 0.03, 'square', 0.08], [1568, 0.06, 'triangle', 0.1]],
   exacto: [[660, 0.06, 'square', 0.16], [880, 0.06, 'square', 0.16], [1320, 0.14, 'square', 0.16]],
   canto: [[523, 0.07, 'square', 0.16], [659, 0.07, 'square', 0.16], [784, 0.07, 'square', 0.16], [1047, 0.16, 'square', 0.16]],
   contra: [[200, 0.06, 'sawtooth', 0.24, 80], [120, 0.14, 'sawtooth', 0.22, 50]],
@@ -118,6 +123,7 @@ const RUIDO: Partial<Record<keyof typeof SONIDO | 'segunda', Ruido[]>> = {
   forja: [{ dur: 0.05, vol: 0.4, filtro: 'bandpass', corte: 1200, q: 0.7 }],
   golpe: [{ dur: 0.03, vol: 0.42, filtro: 'bandpass', corte: 1800, q: 0.7 }, { dur: 0.09, vol: 0.28, filtro: 'lowpass', corte: 700 }],
   fuerte: [{ dur: 0.04, vol: 0.5, filtro: 'bandpass', corte: 1400, q: 0.6 }, { dur: 0.2, vol: 0.34, filtro: 'lowpass', corte: 500, hasta: 120 }],
+  remateChico: [{ dur: 0.025, vol: 0.2, filtro: 'bandpass', corte: 2400, q: 1.6 }],
   contra: [{ dur: 0.05, vol: 0.36, filtro: 'bandpass', corte: 900, q: 0.8 }, { dur: 0.16, vol: 0.2, filtro: 'lowpass', corte: 400 }],
   cae: [{ dur: 0.14, vol: 0.24, filtro: 'highpass', corte: 2400, hasta: 900 }],
   frena: [{ dur: 0.05, vol: 0.22, filtro: 'bandpass', corte: 3200, q: 3 }],

@@ -25,10 +25,17 @@ const lang = args.find((a) => a.startsWith('--lang='))?.split('=')[1] === 'en' ?
 const soloVentana = args.find((a) => a.startsWith('--ventana='))?.split('=')[1];
 const pedidos = args.filter((a) => !a.startsWith('-'));
 const estados = ESTADOS.filter((e) => !pedidos.length || pedidos.includes(e));
-/** El móvil bajo (390 de ancho en Safari, con sus barras): solo los estados de mesa, que son los que ceden por alto. */
-const VENTANA_BAJA = { nombre: '390x664', w: 390, h: 664 } as const;
-const ESTADOS_BAJA: readonly string[] = ['mesa', 'mesa-seleccion', 'mesa-mentiroso', 'mesa-rey', 'mesa-segunda', 'mesa-segunda-cambia', 'mesa-conteo', 'mesa-escudo'];
-const ventanas = [...VENTANAS, VENTANA_BAJA].filter((v) => !soloVentana || v.nombre === soloVentana);
+/**
+ * Los móviles bajos: 390×664 (390 de ancho en Safari, con sus barras) y, desde la 0.27, 360×740 (un Android angosto).
+ * Solo los estados de mesa, que son los que ceden por alto.
+ */
+const VENTANAS_BAJAS = [
+  { nombre: '390x664', w: 390, h: 664 },
+  { nombre: '360x740', w: 360, h: 740 },
+] as const;
+const ESTADOS_BAJA: readonly string[] = ['mesa', 'mesa-seleccion', 'mesa-mentiroso', 'mesa-rey', 'mesa-segunda', 'mesa-segunda-cambia', 'mesa-conteo', 'mesa-escudo', 'mesa-escalon', 'mesa-chinchon', 'mesa-chancho', 'mesa-garrote'];
+const esBaja = (nombre: string): boolean => VENTANAS_BAJAS.some((v) => v.nombre === nombre);
+const ventanas = [...VENTANAS, ...VENTANAS_BAJAS].filter((v) => !soloVentana || v.nombre === soloVentana);
 const carpeta = `artifacts/visual-qa${lang === 'en' ? '-en' : ''}`;
 
 interface Fallo {
@@ -209,6 +216,74 @@ function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[
       const asoma = Math.round(Math.min(caja(centro).bottom, caja(vida).top) - arriba);
       if (asoma < 80) fallos.push({ regla: 'solape-enemigo', detalle: `el naipe del enemigo asoma solo ${asoma} px (mínimo 80)` });
     }
+  }
+  // (0.27) «texto-pisado»: en la mesa, lo que se lee no se pisa con un naipe (los de la mano, los del paño, la pila de
+  // La Corte), con un chip de la cuenta ni con un botón, y los chips y los términos del desglose no se pisan entre sí.
+  // Se mide la caja de cada renglón de TEXTO (no la de su contenedor): así cae «¡CHINCHÓ» bajo el naipe de La Corte,
+  // «23 − 5 ESCUDO» contra su borde, «corre de Posta» bajo el 2 de Espadas y «TAKES IT DOWN» contra su chip vecino.
+  // No cuenta la mesa tapada por un modal o una micro-escena, ni lo que va en el aire al arrastrar
+  if (mesa && !mesa.classList.contains('cobra') && !document.querySelector('#capa .velo, .cortina') && !document.body.classList.contains('arrastrando')) {
+    const cruzan = (a: DOMRect, b: DOMRect) => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 2 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 2;
+    const donde = (r: DOMRect) => `${Math.round(r.left)},${Math.round(r.top)} → ${Math.round(r.right)},${Math.round(r.bottom)}`;
+    /** Las cajas de los renglones de texto de un elemento (cada nodo de texto, cada línea). */
+    const renglones = (el: Element): DOMRect[] => {
+      const out: DOMRect[] = [];
+      const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      for (let n = w.nextNode(); n; n = w.nextNode()) {
+        if (!(n.textContent ?? '').trim() || !n.parentElement || !visible(n.parentElement)) continue;
+        const r = document.createRange();
+        r.selectNodeContents(n);
+        for (const c of r.getClientRects()) if (c.width > 2 && c.height > 2) out.push(c);
+      }
+      return out;
+    };
+    const de = (sel: string) => [...document.querySelectorAll(sel)].filter((el) => visible(el) && el.getBoundingClientRect().width > 2);
+    const textos: [string, Element[]][] = [
+      ['el TE PEGA', de('.mesa .e-ataque')],
+      ['el rasgo del Rey', de('.mesa .e-barras > .e-rasgo, .mesa .rey-rotulo')],
+      ['los sellos del enemigo', de('.mesa .e-sellos > *')],
+      ['el rótulo de La Corte', de('.mesa .corte > .rotulo, .mesa .corte > .corte-n')],
+      ['la cuenta', de('.mesa [data-cuenta] .cuenta:not(.reposo) :is(.c-formula, .c-chips > *, .c-corta, .c-dial, .c-pista-pano, .d-fila)')],
+      ['la regla del paño', de('.mesa .pano-regla:not([hidden])')],
+      ['el sello del Escalón', de('.mesa .posta-escalon:not([hidden])')],
+    ];
+    const obstaculos: [string, Element[]][] = [
+      ['un naipe de la mano', de('.mesa .mano .carta').filter((c) => Number((c as HTMLElement).style.zIndex || 0) < 100 && !c.classList.contains('elegida'))],
+      ['un naipe del paño', de('.mesa .mano .carta.elegida').filter((c) => Number((c as HTMLElement).style.zIndex || 0) < 100)],
+      ['el naipe de La Corte', de('.mesa .corte .corte-carta')],
+      ['un chip de la cuenta', de('.mesa [data-cuenta] .cuenta:not(.reposo) :is(.c-chips > *, .c-jugada, .c-efecto, .c-corta, .c-dial)')],
+      ['un botón', de('.mesa .botones .btn, .mesa .chiches .chiche')],
+    ];
+    const vistos = new Set<string>();
+    for (const [que, els] of textos)
+      for (const el of els) {
+        const rs = renglones(el);
+        for (const [otro, os] of obstaculos)
+          for (const o of os) {
+            if (o === el || o.contains(el) || el.contains(o)) continue;
+            // (el sello del Escalón va A PROPÓSITO sobre el pie de sus naipes del paño)
+            if (que === 'el sello del Escalón' && otro === 'un naipe del paño') continue;
+            const R = o.getBoundingClientRect();
+            // (la mano que baja bajo el paño se recorta en el pie de su zona: cuenta lo que se ve)
+            const ins = /^inset\(([^)]*)\)/.exec(getComputedStyle(o).clipPath)?.[1].split(/\s+/).map((v) => parseFloat(v) || 0);
+            const caja = ins?.length ? new DOMRect(R.left, R.top, R.width, Math.max(0, R.height - Math.max(0, ins[2] ?? ins[0]))) : R;
+            const r = rs.find((x) => cruzan(x, caja));
+            const clave = `${que}|${otro}`;
+            if (!r || vistos.has(clave)) continue;
+            vistos.add(clave);
+            fallos.push({ regla: 'texto-pisado', detalle: `${que} («${(el.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 24)}», ${donde(r)}) se pisa con ${otro} (${nombre(o)}, ${donde(caja)})` });
+          }
+      }
+    // los términos del desglose no se montan sobre su vecino (ni quietos ni encendidos a mitad del conteo)
+    const ts = de('.mesa [data-cuenta] .c-desglose .d-terminos > :is(.d-t, .d-cartas)').map((el) => ({ el, r: el.getBoundingClientRect() }));
+    for (let i = 0; i < ts.length; i++)
+      for (let j = i + 1; j < ts.length; j++)
+        if (cruzan(ts[i].r, ts[j].r) && !vistos.has('terminos')) {
+          vistos.add('terminos');
+          fallos.push({ regla: 'texto-pisado', detalle: `el término «${(ts[i].el.textContent ?? '').trim().slice(0, 16)}» del desglose (${donde(ts[i].r)}) se monta sobre «${(ts[j].el.textContent ?? '').trim().slice(0, 16)}» (${donde(ts[j].r)})` });
+        }
+    // (0.27) en el teléfono, el paño enseña naipes ENTEROS (nada de medio naipe cortado)
+    for (const c of de('.mesa .mano .carta.elegida')) if (getComputedStyle(c).clipPath !== 'none' && Number((c as HTMLElement).style.zIndex || 0) < 100) fallos.push({ regla: 'pano-cortado', detalle: `el naipe ${(c as HTMLElement).dataset.id} apoyado en el paño va recortado (${getComputedStyle(c).clipPath})` });
   }
   // (0.21) cada naipe de la mano y del paño deja ver su índice: el de arriba a la izquierda o el de abajo a la derecha
   // (cabeza abajo). Ni la vecina, ni la carta con el foco, ni los naipes del paño, ni el HUD le tapan los dos
@@ -525,7 +600,7 @@ await conServidor(5191, async (url) => {
       pagina.on('console', (m) => m.type() === 'error' && errores.push(m.text()));
       mkdirSync(`${carpeta}/${v.nombre}`, { recursive: true });
       for (const estado of estados) {
-        if (v.nombre === VENTANA_BAJA.nombre && !ESTADOS_BAJA.includes(estado)) continue;
+        if (esBaja(v.nombre) && !ESTADOS_BAJA.includes(estado)) continue;
         errores.length = 0;
         await pagina.goto(`${url}/?qa=${estado}&lang=${lang}`, { waitUntil: 'domcontentloaded' });
         await pagina.waitForSelector('html[data-qa="listo"]', { timeout: 15000 });
@@ -565,7 +640,8 @@ await conServidor(5191, async (url) => {
         // las flechas de la QA hacen de cruceta: en Steam Deck y en los estados «-mando» los glifos son los del mando
         // (X, Y, LT…), no los del teclado (G, D, E…), como los vería quien juega con el mando de verdad
         if (estado.endsWith('-mando') || (v.nombre === '1280x800' && estado !== 'mesa-arrastrando')) await pagina.evaluate(() => (document.documentElement.dataset.entrada = 'mando'));
-        await pagina.waitForTimeout(120);
+        // (al pasar a mando la mano cambia de ancho y la cuenta se vuelve a pintar: se mide con sus entradas ya posadas)
+        await pagina.waitForTimeout(estado.endsWith('-mando') || v.nombre === '1280x800' ? 320 : 120);
         const fallos = await pagina.evaluate(auditar, { esMovil: v.w < 700, idioma: lang, deck: v.nombre === '1280x800' && estado !== 'mesa-arrastrando' });
         for (const e of errores) fallos.push({ regla: 'error-js', detalle: e.slice(0, 200) });
         for (const x of flechas) fallos.push({ regla: 'flecha-foco', detalle: x });
@@ -587,7 +663,7 @@ await conServidor(5191, async (url) => {
         // (y con tu Escudo frenando casi todo y la causa larga en el chip, «TE PEGA 3 (23 − 20 ESCUDO)»: la misma mesa
         // se mide en reposo y con la jugada elegida, en la misma página)
         const tope = v.w < 700 ? 8 : 4;
-        const quietaTel = v.w < 700 && v.h >= 800;
+        const quietaTel = v.w < 700;
         if (estado === 'mesa-escudo' && (v.w > 700 || quietaTel)) {
           type M = { __mesa: { mano: { elegir(ids: string[]): void } }; __qaSel: string[] };
           await pagina.evaluate(() => (window as unknown as M).__mesa.mano.elegir([]));
@@ -619,40 +695,75 @@ await conServidor(5191, async (url) => {
         }
         await pagina.screenshot({ path: `${carpeta}/${v.nombre}/${estado}.png` });
         const m = await pagina.evaluate(medir, { esMovil: v.w < 700 });
-        // (0.26) «elige-dos» en el teléfono, con la mano de 3 (Escoba) y la de 8 (Mentiroso): dos toques de verdad, uno
-        // en un naipe y otro en el lugar donde se veía otro en reposo. El segundo toque tiene que elegir ese naipe (no
-        // soltar el primero ni caer en el paño) y ningún naipe que no elegiste se corre más de 8 px en todo el gesto
-        // (en el teléfono bajo de 390×664, con la cuenta a la vista, no queda alto para el índice de lo apoyado sin
-        // achicar al enemigo de más: ahí la mano cede, como en la 0.25)
-        if (quietaTel && (estado === 'mesa' || estado === 'mesa-mentiroso')) {
-          const reposoMano = await cajasMesa();
-          const ids = await pagina.evaluate(() => [...document.querySelectorAll<HTMLElement>('[data-mano] .carta')].map((el) => el.dataset.id!));
-          // (el primer toque, al del medio; el segundo, al de su derecha: el que tenía debajo el paño de la 0.25)
-          const a = ids[Math.floor((ids.length - 1) / 2)];
-          const b = ids[Math.floor((ids.length - 1) / 2) + 1];
-          const centroDe = (id: string) => pagina.evaluate((x) => {
-            const el = document.querySelector<HTMLElement>(`[data-mano] .carta[data-id="${x}"]`)!;
-            const r = el.getBoundingClientRect();
-            // (en la mano de 8, del naipe de la fila de atrás se toca la franja que asoma)
-            return { x: r.left + Math.min(r.width / 2, 30), y: r.top + 20 };
-          }, id);
-          const pb = await centroDe(b);
-          const pa = await centroDe(a);
-          await pagina.touchscreen.tap(pa.x, pa.y);
-          await pagina.waitForTimeout(200);
-          const uno = await cajasMesa();
-          await pagina.touchscreen.tap(pb.x, pb.y);
-          await pagina.waitForTimeout(200);
-          const dos = await cajasMesa();
-          const sel = await pagina.evaluate(() => (window as unknown as { __mesa: { mano: { seleccion(): string[] } } }).__mesa.mano.seleccion());
-          if (!sel.includes(a) || !sel.includes(b)) fallos.push({ regla: 'elige-dos', detalle: `dos toques (${a} y luego ${b}) dejan elegido [${sel.join(',')}]` });
-          for (const [paso, cajas] of [['primer', uno], ['segundo', dos]] as const)
-            for (const [s, r] of Object.entries(cajas)) {
-              const ant = reposoMano[s];
-              if (!ant || !r || !s.startsWith('naipe')) continue;
-              const corre = Math.max(...r.map((n, i) => Math.abs(n - ant[i])));
-              if (corre > 8) fallos.push({ regla: 'elige-dos', detalle: `${s} se corre ${corre} px con el ${paso} toque (${ant.join(',')} → ${r.join(',')})` });
+        // (0.27) «el dedo manda», sin excepciones («elige-tres», «elige-cinco»): en las TRES ventanas del teléfono
+        // (390×844, 390×664 y 360×740) y con las manos de 3 (Escoba), 4 (Chancho Va), 7 (Chinchón) y 8 (El Mentiroso),
+        // toques de verdad, uno por naipe, hasta llenar el paño (hasta 5). Cada toque va al lugar donde ese naipe se
+        // veía EN REPOSO y tiene que elegirlo; después de cada toque, la x y la y de cada naipe NO elegido son las de
+        // reposo (±1 px), el elegido solo sube y GOLPEAR y DESCARTAR no se corren. El último toque, en la silueta del
+        // primer naipe, lo devuelve a su lugar. Un solo píxel de más rompe la puerta
+        if (v.w < 700 && ['mesa', 'mesa-chancho', 'mesa-chinchon', 'mesa-mentiroso'].includes(estado)) {
+          type M = { __mesa: { mano: { elegir(ids: string[]): void; seleccion(): string[] } } };
+          await pagina.evaluate(() => (window as unknown as M).__mesa.mano.elegir([]));
+          await pagina.waitForTimeout(220);
+          const cajas = (): Promise<Record<string, { c: number[]; elegida: boolean }>> =>
+            pagina.evaluate(() => {
+              const out: Record<string, { c: number[]; elegida: boolean }> = {};
+              const caja = (el: Element): number[] => {
+                const r = el.getBoundingClientRect();
+                return [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)];
+              };
+              for (const el of document.querySelectorAll<HTMLElement>('[data-mano] .carta')) out[`naipe ${el.dataset.id}`] = { c: caja(el), elegida: el.classList.contains('elegida') };
+              for (const s of ['[data-accion="golpear"]', '[data-accion="descartar"]']) {
+                const el = document.querySelector(s);
+                if (el) out[s] = { c: caja(el), elegida: false };
+              }
+              return out;
+            });
+          const reposoMano = await cajas();
+          const postas = await pagina.evaluate(() => document.querySelectorAll('[data-mano] .posta').length);
+          // el orden de los toques: de menor a mayor sin repetir número (la Escalera del Mentiroso arma su Escalón al
+          // tercer toque), después los que falten; los Comodines, al final
+          const orden = await pagina.evaluate(() => {
+            const cs = [...document.querySelectorAll<HTMLElement>('[data-mano] .carta')].map((el) => ({ id: el.dataset.id!, n: Number(el.dataset.n), x: el.dataset.palo === 'X' }));
+            const lisas = cs.filter((k) => !k.x).sort((a, b) => a.n - b.n);
+            const unicas = lisas.filter((k, i) => lisas.findIndex((o) => o.n === k.n) === i);
+            return [...unicas, ...lisas.filter((k) => !unicas.includes(k)), ...cs.filter((k) => k.x)].map((k) => k.id);
+          });
+          const toques = orden.slice(0, Math.min(5, postas));
+          const medirPaso = async (paso: string, elegidas: string[]): Promise<void> => {
+            const sel = await pagina.evaluate(() => (window as unknown as M).__mesa.mano.seleccion());
+            if (sel.length !== elegidas.length || elegidas.some((id) => !sel.includes(id))) fallos.push({ regla: 'elige-cinco', detalle: `${paso}: quedó elegido [${sel.join(',')}] y tenía que ser [${elegidas.join(',')}]` });
+            const ahora = await cajas();
+            for (const [s, a] of Object.entries(ahora)) {
+              const r = reposoMano[s];
+              if (!r) continue;
+              if (!a.elegida) {
+                const corre = Math.max(...a.c.map((n, i) => Math.abs(n - r.c[i])));
+                if (corre > 1) fallos.push({ regla: 'elige-cinco', detalle: `${paso}: ${s} se corre ${corre} px sin haberlo elegido (${r.c.join(',')} → ${a.c.join(',')})` });
+              } else if (a.c[1] >= r.c[1]) fallos.push({ regla: 'elige-cinco', detalle: `${paso}: ${s}, elegido, no sube (y ${r.c[1]} → ${a.c[1]})` });
             }
+          };
+          let escalon = false;
+          for (let i = 0; i < toques.length; i++) {
+            const r = reposoMano[`naipe ${toques[i]}`].c;
+            // (se toca lo que asoma del naipe en reposo: su franja de la izquierda, arriba)
+            await pagina.touchscreen.tap(r[0] + Math.min(r[2] / 2, 30), r[1] + 20);
+            await pagina.waitForTimeout(240);
+            await medirPaso(`toque ${i + 1} de ${toques.length}`, toques.slice(0, i + 1));
+            escalon ||= await pagina.evaluate(() => !!document.querySelector('[data-mano] .posta-escalon:not([hidden])'));
+            if (i === 2 || i === toques.length - 1) await pagina.screenshot({ path: `${carpeta}/${v.nombre}/${estado}.elige-${i + 1}.png` });
+          }
+          if (estado === 'mesa-mentiroso' && !escalon) fallos.push({ regla: 'elige-cinco', detalle: 'la Escalera del Mentiroso no llegó a armar su Escalón: la prueba no cubre el caso que pidió el Jurado' });
+          // la silueta del hueco devuelve su naipe
+          if (toques.length) {
+            const r = reposoMano[`naipe ${toques[0]}`].c;
+            await pagina.touchscreen.tap(r[0] + Math.min(r[2] / 2, 30), r[1] + 20);
+            await pagina.waitForTimeout(240);
+            await medirPaso('toque en la silueta del primero', toques.slice(1));
+          }
+          // (y la mesa vuelve a como estaba para las medidas de dianas)
+          await pagina.evaluate(() => (window as unknown as M).__mesa.mano.elegir([]));
+          await pagina.waitForTimeout(200);
         }
         for (const x of m.chicas) fallos.push({ regla: 'diana-chica', detalle: x });
         for (const x of m.pisadas) fallos.push({ regla: 'dianas-pisadas', detalle: x });

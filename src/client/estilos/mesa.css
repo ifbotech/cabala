@@ -4949,3 +4949,431 @@ body.mueve-pano [data-cuenta] .cuenta.previa {
     column-gap: 0.7em;
   }
 }
+/* ───────────── 0.27 · «el dedo manda»: la mano no cede, cede lo demás ───────────── */
+
+/* la silueta tramada del naipe que subió al paño, en el hueco que dejó en la mano: «acá estaba» (un toque lo devuelve) */
+.mano .hueco {
+  position: absolute;
+  left: 0;
+  top: 0;
+  line-height: 0;
+  cursor: pointer;
+  opacity: 0.5;
+  -webkit-mask-image: repeating-conic-gradient(#000 0% 25%, transparent 0% 50%);
+  mask-image: repeating-conic-gradient(#000 0% 25%, transparent 0% 50%);
+  -webkit-mask-size: calc(2px * var(--k-naipe)) calc(2px * var(--k-naipe));
+  mask-size: calc(2px * var(--k-naipe)) calc(2px * var(--k-naipe));
+}
+.mano .hueco .px {
+  pointer-events: none;
+  filter: saturate(0.35) brightness(0.75);
+}
+.mano.bloqueada .hueco {
+  cursor: default;
+}
+/* el Escalón armado: un sello (una cinta sobre el pie de los naipes de la escalera), no peldaños */
+.posta-escalon.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  white-space: nowrap;
+  box-shadow: 0 0 0 1px var(--oro);
+}
+.posta-escalon[hidden] {
+  display: none;
+}
+/* la envoltura del desglose: en el teléfono no existe (sus hijos son de la cuenta) */
+.c-bajo {
+  display: contents;
+}
+.c-pista-pano {
+  display: none;
+}
+
+@media (min-width: 701px) {
+  /* la cuenta es un renglón (la fórmula y lo que pasa); su desglose, el dial y la pista del mando bajan a una columna a
+     la izquierda, y a su derecha, en la misma franja, va el paño con sus naipes enteros. La zona de la cuenta no crece
+     nunca: la escena no se achica ni con el Garrote, ni con el dial, ni en inglés */
+  .mesa .cuenta-zona {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  .mesa .cuenta-zona:has(> .cuenta.reposo),
+  .mesa .cuenta-zona:has(> .cuenta.invalida) {
+    justify-content: center;
+  }
+  .mesa .cuenta-zona > .cuenta:not(.reposo):not(.invalida) {
+    position: relative;
+  }
+  .mesa .cuenta .c-bajo {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    margin-top: calc(8px * var(--kf) + 4px);
+    cursor: default;
+  }
+  .mesa .cuenta .c-bajo .c-desglose {
+    justify-self: auto;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 100%;
+    white-space: normal;
+    padding: 4px 8px;
+    background: rgba(11, 7, 17, 0.72);
+    box-shadow: 0 0 0 1px #2a2238;
+  }
+  .mesa .cuenta .c-bajo .c-desglose > .d-fila {
+    align-items: flex-start;
+  }
+  .mesa .cuenta .c-bajo .c-desglose .d-terminos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    row-gap: 2px;
+  }
+  .mesa .cuenta .c-bajo .c-dial-fila {
+    justify-content: flex-start;
+    margin-top: 0;
+    width: auto;
+    max-width: 100%;
+  }
+  html[data-entrada='mando'] .mesa.con-pano .c-pista-pano,
+  html[data-entrada='teclado'] .mesa.con-pano .c-pista-pano {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 14px;
+    font-family: var(--cuerpo);
+    font-size: var(--fs-s);
+    color: var(--hueso-2);
+  }
+  .c-pista-pano .pp-uno {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .c-pista-pano b {
+    font-weight: 400;
+  }
+  /* si la columna es más alta que el paño: primero las piezas van con su icono y su cifra (sin el nombre), después se
+     va la pista del mando y por último el aire */
+  .mesa .cuenta .c-bajo.chico .c-desglose .d-pieza .d-n {
+    display: none;
+  }
+  .mesa .cuenta .c-bajo.chico-2 .c-desglose .d-t:not(.d-nombre) .d-n {
+    display: none;
+  }
+  .mesa .cuenta .c-bajo.chico-3 .c-pista-pano {
+    display: none;
+  }
+  .mesa .cuenta .c-bajo.chico-3 {
+    gap: 2px;
+  }
+  .mesa .cuenta .c-bajo.chico-3 .c-desglose {
+    padding: 0 6px;
+    line-height: 1.05;
+  }
+}
+
+@media (max-width: 700px) {
+  /* la cuenta plegada: el desglose se va (queda a un toque, en la ayuda de la cuenta) */
+  .mesa .cuenta.plegada .c-desglose {
+    display: none;
+  }
+  /* y, si hace falta, toda en un renglón: la fórmula chica y lo que pasa («66×6=396 · TE PEGA 19») */
+  .mesa .cuenta-zona > .cuenta.plegada-2:not(.reposo):not(.invalida) {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    column-gap: 8px;
+    row-gap: 2px;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .mesa .cuenta.plegada-2 .c-formula {
+    flex: none;
+    flex-wrap: nowrap;
+  }
+  .mesa .cuenta.plegada-2 .c-chips {
+    flex: none;
+    flex-wrap: nowrap;
+  }
+  .mesa .cuenta.plegada-2 .c-dial-fila {
+    flex-basis: 100%;
+    order: 3;
+  }
+  .mesa .cuenta.plegada-2 .cifra.grande {
+    --kd: 1;
+  }
+  .mesa .cuenta.plegada-2 .c-jugada,
+  .mesa .cuenta.plegada-2 .c-efectos,
+  .mesa .cuenta.plegada-2 .c-efecto,
+  .mesa .cuenta.plegada-2 .c-canto,
+  .mesa .cuenta.plegada-2 .c-causa,
+  .mesa .cuenta.plegada-2 .c-frena {
+    display: none;
+  }
+  /* (lo que le queda ya lo dice la tajada de su barra de Vida, justo arriba) */
+  .mesa .cuenta.plegada-2 .c-queda {
+    display: none;
+  }
+}
+
+/* ───────────── 0.27 · ¡CHINCHÓN! corta la mano ───────────── */
+/* el renglón propio de la cuenta: «CORTÁS · 4 cartas × 2 = 🛡 +8 ESCUDO», en celeste de Escudo */
+.c-corta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 8px;
+  white-space: nowrap;
+  cursor: help;
+  color: #b8f6ff;
+  background: #0b1626;
+  box-shadow: 0 0 0 1px #00c8ff;
+  font-family: var(--cuerpo);
+  font-size: var(--fs-s);
+  line-height: 1.2;
+}
+.c-corta .cc-verbo,
+.c-corta .cc-que {
+  font-family: var(--rot);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: #8fdcff;
+}
+.c-corta .cc-verbo {
+  color: var(--oro);
+}
+.c-corta .cc-da {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.c-corta .icono {
+  --k: 1;
+}
+@media (max-width: 700px) {
+  .mesa .cuenta .c-corta {
+    order: 1;
+    gap: 4px;
+    padding: 0 6px;
+  }
+  .mesa .cuenta .c-corta .icono {
+    margin: -4px -2px;
+  }
+  /* plegada a un renglón: «CORTÁS 🛡 +8» junto a la fórmula (lo que te pega ya lo dice la placa del enemigo, arriba) */
+  .mesa .cuenta.plegada-2 .c-corta {
+    order: 2;
+  }
+  .mesa .cuenta.plegada-2 .c-corta .cc-cuenta,
+  .mesa .cuenta.plegada-2 .c-corta .cc-que,
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-chips > .rojo,
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-chips > .c-nopega {
+    display: none;
+  }
+}
+/* las cartas que te quedan en la mano son las que pagan: su sello de Escudo y un filo celeste */
+.mano .carta .c-paga {
+  position: absolute;
+  left: calc(3px * var(--k-naipe, 1));
+  top: calc(34px * var(--k-naipe, 1));
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  padding: 0 3px 0 0;
+  line-height: 1;
+  pointer-events: none;
+  background: #0b1626;
+  box-shadow: 0 0 0 1px #00c8ff;
+  --k: 1;
+}
+.mano .carta .c-paga b {
+  font-family: var(--cuerpo);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 18px;
+  color: #b8f6ff;
+}
+.mano .carta .c-paga .icono {
+  transform: scale(0.8);
+  margin: -2px -3px;
+}
+.mano .carta.paga:not(.elegida) .px {
+  box-shadow: 0 0 0 calc(1px * var(--k-naipe)) #00c8ff;
+}
+.mano .carta.paga-ya .c-paga {
+  animation: paga-ya 0.32s steps(4);
+}
+.mano .carta.paga-ya .px {
+  box-shadow:
+    0 0 0 calc(2px * var(--k-naipe)) #b8f6ff,
+    0 0 0 calc(4px * var(--k-naipe)) rgba(0, 200, 255, 0.5);
+}
+@keyframes paga-ya {
+  40% {
+    transform: scale(1.5);
+  }
+}
+.escudo-vuela {
+  position: fixed;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+  filter: drop-shadow(0 0 3px rgba(0, 200, 255, 0.8));
+}
+.escudo-vuela .icono {
+  --k: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mano .carta.paga-ya .c-paga {
+    animation: none;
+  }
+}
+
+/* ───────────── 0.27 · lo que se lee no se pisa ───────────── */
+/* los chips que se revelan y los términos que se encienden ya no crecen sobre su vecino: brillan en su lugar */
+@keyframes revela-chip {
+  from {
+    filter: brightness(1.9);
+    box-shadow: 0 0 0 2px var(--oro);
+  }
+}
+@keyframes d-enciende {
+  35% {
+    filter: brightness(1.9);
+    box-shadow: 0 0 0 2px rgba(255, 213, 0, 0.9);
+  }
+}
+@media (min-width: 701px) {
+  /* la causa del TE PEGA neto («23 − 5 ESCUDO») va DEBAJO de la cifra, en un renglón, nunca al costado (ahí está el
+     naipe de La Corte). Su renglón existe siempre: la placa no cambia de alto cuando la causa aparece o se va */
+  .mesa .e-ataque .e-golpe {
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .mesa .e-ataque .e-neto,
+  .mesa .e-ataque .e-neto[hidden] {
+    position: static;
+    translate: none;
+    display: flex;
+    flex-direction: row;
+    gap: 0.35em;
+    min-height: 1.1em;
+  }
+  .mesa .e-ataque .e-neto[hidden] {
+    visibility: hidden;
+  }
+}
+/* el veredicto y los chips no se achican ni se montan: si no entran en el renglón, la cuenta se aprieta (apretarCuenta) */
+.mesa .cuenta .c-veredicto,
+.mesa .cuenta .c-chips > .chip {
+  flex: none;
+}
+/* el sello del Escalón, a la letra chica: una cinta, no un cartel */
+.posta-escalon.chip {
+  font-size: var(--fs-s);
+  line-height: 1.1;
+}
+.posta-escalon.chip .p-icono,
+.posta-escalon.chip .cifra {
+  --k: 1;
+  --kc: 1;
+}
+@media (min-width: 1700px) {
+  /* a 1080p la placa lleva el emblema grande: la causa se arrima a la cifra y la placa no llega a la barra de Vida */
+  .mesa .e-ataque .e-neto,
+  .mesa .e-ataque .e-neto[hidden] {
+    margin-top: -6px;
+    margin-bottom: -10px;
+  }
+}
+@media (max-width: 700px) {
+  /* (0.27) con la escena baja (algo apoyado: cedieron la cuenta y la escena, no la mano), la placa TE PEGA es un
+     renglón sobre la esquina de abajo del naipe del enemigo: el emblema, la cifra y lo que frena tu Escudo. Sin rótulo
+     (lo dice el chip de la cuenta, justo debajo) no llega a la pila de La Corte ni a la cabecera */
+  .mesa .escena {
+    container: escena / size;
+  }
+  @container escena (max-height: 176px) {
+    .mesa .enemigo .e-ataque,
+    .mesa:has(.corte .corte-carta) .enemigo .e-ataque {
+      grid-area: centro;
+      justify-self: end;
+      align-self: end;
+      z-index: 1;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      column-gap: 2px;
+      min-width: 0;
+      max-width: none;
+      margin: 0 0 2px;
+      padding: 1px 4px;
+      background: rgba(11, 7, 17, 0.9);
+    }
+    .mesa .enemigo .e-ataque > .e-pega,
+    .mesa .enemigo .e-ataque .e-llamas,
+    .mesa .enemigo .e-ataque .e-furia-nota {
+      display: none;
+    }
+    .mesa .enemigo .e-ataque .e-golpe {
+      flex-direction: row;
+      align-items: center;
+      gap: 4px;
+    }
+    .mesa .enemigo .e-ataque .e-neto {
+      flex-basis: auto;
+    }
+    .mesa .enemigo .e-ataque > .icono {
+      --k: 1;
+    }
+  }
+  /* la cuenta plegada a un renglón con una maldición o con «CORTÁS»: lo que te pega lo dice la placa del enemigo */
+  .mesa .cuenta.plegada-2 .c-mal-rot {
+    display: none;
+  }
+  .mesa .cuenta.plegada-2:has(.c-maldicion) .c-chips > .rojo {
+    display: none;
+  }
+}
+/* teléfono angosto (360 px): el sello INMUNE no entra entre el Bufón y el naipe: va sobre el canto izquierdo del naipe,
+   abajo (su índice queda libre), y DESCARTAR junta sus letras para entrar entero con el antifaz del Engaño al lado */
+@media (max-width: 380px) {
+  .mesa .enemigo .e-sellos {
+    align-self: end;
+    translate: 34px 0;
+    z-index: 2;
+  }
+  .mesa .botones [data-accion='descartar'] {
+    letter-spacing: 0;
+    padding: 0 2px;
+    gap: 2px;
+  }
+}
+/* el veredicto entra cayendo y brillando, sin crecer sobre el chip de al lado */
+@keyframes veredicto {
+  from {
+    translate: 0 -6px;
+    filter: brightness(1.8);
+  }
+}
+@media (max-width: 380px) {
+  .mesa .mano-zona:has([data-accion='engano']) .botones [data-accion='descartar'] {
+    font-size: 14px;
+  }
+}
