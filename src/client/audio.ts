@@ -72,6 +72,8 @@ const SONIDO = {
   paso: [[196, 0.04, 'triangle', 0.2], [262, 0.05, 'triangle', 0.16]],
   fuego: [[90, 0.16, 'sawtooth', 0.14, 240], [240, 0.12, 'sawtooth', 0.1, 520]],
   suspenso: [[220, 0.09, 'square', 0.08], [247, 0.09, 'square', 0.09], [277, 0.09, 'square', 0.1], [311, 0.09, 'square', 0.11], [349, 0.09, 'square', 0.12], [392, 0.09, 'square', 0.13], [440, 0.12, 'square', 0.14]],
+  // (0.24) la tercera pasada: el fuego que sube y sube (un rugido grave que trepa y un tintineo que se apura arriba)
+  forjaSube: [[82, 0.36, 'sawtooth', 0.12, 165], [165, 0.32, 'sawtooth', 0.13, 330], [330, 0.26, 'square', 0.1, 523], [523, 0.12, 'square', 0.09], [587, 0.1, 'square', 0.1], [659, 0.08, 'square', 0.11], [740, 0.07, 'square', 0.12], [831, 0.06, 'square', 0.13], [932, 0.05, 'square', 0.14], [1047, 0.12, 'triangle', 0.15]],
   ceniza: [[420, 0.07, 'sawtooth', 0.16, 160], [200, 0.12, 'sawtooth', 0.16, 70], [90, 0.3, 'sawtooth', 0.14, 40]],
   brota: [[660, 0.03, 'triangle', 0.1]],
   victoria: [[523, 0.1, 'square', 0.16], [659, 0.1, 'square', 0.16], [784, 0.1, 'square', 0.16], [1047, 0.1, 'square', 0.16], [1319, 0.3, 'square', 0.16]],

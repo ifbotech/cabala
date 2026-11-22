@@ -22,7 +22,7 @@ import { sonar } from '../audio';
 import { chispas, destello, haloRey, humo, lluviaDeMonedas, monedas, numero, partirNaipe } from '../fx/efectos';
 import { teclear } from '../habla';
 import { RAPIDO, pausa, quieto } from '../ritmo';
-import { enFoto } from '../fx/motor';
+import { congelar, enFoto, sacudir } from '../fx/motor';
 import { avivarRetrato, cargaQue, hudHtml, reubicarGrito } from '../hud';
 import { avanzar, guardar, irPortada, sesion, soltarPartida } from '../juego';
 import type { Expresion } from '../pixel/bufon';
@@ -876,7 +876,7 @@ export function pantallaFogon(p: Partida): Pantalla {
         ? ''
         : muts.length
           ? `<div class="forja-elige"><b class="forja-elige-tit rotulo">${t('forjaElegi')}</b>
-              ${muts.map((m, i) => `<button class="btn marco oro forja-mut" data-accion="arrimar" data-mut="${m}" data-foco="mut-${i}" ${i === 0 ? 'data-inicio' : ''}>${pxHud(MUTACION_PX[m])}<span class="fm-txt"><b class="fm-nombre">${esc(tx(MUTACION_NOMBRE[m]))}</b><small class="fm-desc">${esc(tx(MUTACION_DESC[m]))}</small></span></button>`).join('')}
+              ${muts.map((m, i) => `<button class="opcion marco dorado forja-mut" data-accion="arrimar" data-mut="${m}" data-foco="mut-${i}" ${i === 0 ? 'data-inicio' : ''}><span class="fm-icono">${pxHud(MUTACION_PX[m])}</span><b class="fm-nombre">${esc(tx(MUTACION_NOMBRE[m]))}</b><span class="fm-desc">${esc(tx(MUTACION_DESC[m]))}</span></button>`).join('')}
               <span class="op-desc forja-riesgo largo">${t('riesgoBrava', { p: Math.round(B.fogon.riesgos[2] * 100) })}</span><span class="op-desc forja-riesgo corto">${t('forjaQuema', { p: Math.round(B.fogon.riesgos[2] * 100) })}</span></div>`
           : `<button class="btn marco ${pasadas >= 2 ? 'oro' : 'prisma'} chico" data-accion="arrimar" data-foco="arrimar" data-inicio>${pasadas >= 2 ? t('forjaBrava') : t('arrimar')}</button><span class="op-desc">${pasadas >= 2 ? t('riesgoBrava', { p: Math.round(B.fogon.riesgos[2] * 100) }) : t('riesgo', { n: B.fogon.temple, m: B.fogon.multiTemplada, p: Math.round(B.fogon.riesgos[1] * 100) })}</span>`;
       // (la placa del temple va DEBAJO del naipe, no encima: tapaba media carta en el teléfono)
@@ -914,7 +914,12 @@ export function pantallaFogon(p: Partida): Pantalla {
           ${descansoHtml()}
           ${fuegoHtml()}
         </div>
-        <button class="btn marco ${p.fogonHecho ? 'oro' : 'hierro'} grande" data-accion="seguir" data-foco="seguir" ${p.fogonHecho && !juego.puedeArrimar(p) ? 'data-inicio' : ''}>${t('seguir')}</button>
+        ${
+          // (0.24) con la tercera pasada por elegir, SEGUIR es secundario (hierro y chico): lo que se lee son las dos mutaciones
+          p.fogonHecho && juego.puedeArrimar(p) && (p.fogonPasadas ?? 0) >= 2
+            ? `<button class="btn marco hierro chico fogon-seguir" data-accion="seguir" data-foco="seguir">${t('seguir')}</button>`
+            : `<button class="btn marco ${p.fogonHecho ? 'oro' : 'hierro'} grande" data-accion="seguir" data-foco="seguir" ${p.fogonHecho && !juego.puedeArrimar(p) ? 'data-inicio' : ''}>${t('seguir')}</button>`
+        }
       </div>
       ${hudHtml(p)}
     </main>`,
@@ -965,14 +970,30 @@ export function pantallaFogon(p: Partida): Pantalla {
         ocupado = true;
         // el suspenso: el naipe tiembla sobre las llamas mientras sube el chisporroteo
         const el = $('.fuego-carta');
+        const brava = (p.fogonPasadas ?? 0) >= 2;
         el?.classList.add('al-fuego');
         for (const b of document.querySelectorAll<HTMLButtonElement>('[data-accion="arrimar"]')) b.setAttribute('disabled', '');
-        sonar('suspenso');
-        await pausa(820);
+        if (brava) {
+          // (0.24) la tercera pasada se hace esperar: 1,5 s con el fuego que sube y el naipe que tiembla cada vez más;
+          // los primeros 400 ms no se cortan (TURBO corta el resto)
+          el?.classList.add('bravo');
+          $('.fogon .opcion.fuego')?.classList.add('forjando');
+          sonar('forjaSube');
+          if (!quieto()) await new Promise((ok) => setTimeout(ok, 400));
+          await pausa(1100);
+        } else {
+          sonar('suspenso');
+          await pausa(820);
+        }
         const rect = el?.getBoundingClientRect();
-        const brava = (p.fogonPasadas ?? 0) >= 2;
         const r = juego.templar(p, carta.id, mut);
         recienBrava = brava && r === 'templada';
+        // al salir del fuego bravo: el golpe se congela un instante (hitstop) y la mesa se sacude
+        if (recienBrava && !quieto()) {
+          congelar(110);
+          el?.classList.add('congela');
+          await new Promise((ok) => setTimeout(ok, 110));
+        }
         if (r === 'quemada') {
           seQuemo = true;
           sonar('ceniza');
@@ -994,6 +1015,7 @@ export function pantallaFogon(p: Partida): Pantalla {
           if (c && !quieto()) {
             destello(c.x, c.y, FUEGO, 34);
             chispas(c.x, c.y, ['#ffd500', '#ff7b00', '#00c8ff', '#ff1453'], 26, 140, -30);
+            sacudir($('main.fogon'), 3);
           }
           clearTimeout(relojBrava);
           relojBrava = window.setTimeout(() => {

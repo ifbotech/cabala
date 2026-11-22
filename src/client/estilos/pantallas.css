@@ -4254,3 +4254,124 @@ button.visor-carta:disabled {
     gap: calc(var(--u) * 1.5);
   }
 }
+
+/* ── la Forja Brava ── */
+/* las dos mutaciones son cartas de elección grandes: el icono a 2× (32 px), el nombre en oro y la regla en texto claro
+   sobre fondo liso; SEGUIR pasa a secundario */
+.forja-elige {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.opcion.forja-mut {
+  --kf: 1;
+  width: auto;
+  min-height: 48px;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 10px 8px;
+}
+.forja-mut .fm-icono {
+  --k: max(2, var(--k2));
+  line-height: 0;
+}
+.forja-mut .fm-nombre {
+  font-family: var(--rot);
+  font-size: var(--fr);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--oro);
+}
+.forja-mut .fm-desc {
+  align-self: stretch;
+  padding: 4px 6px;
+  font-family: var(--cuerpo);
+  font-size: 16px;
+  line-height: 1.25;
+  text-transform: none;
+  color: var(--hueso);
+  background: rgba(9, 7, 15, 0.88);
+}
+.fogon .fogon-seguir {
+  align-self: center;
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  .forja-mut .fm-desc {
+    font-size: var(--fs);
+  }
+}
+/* el fuego bravo: el naipe tiembla cada vez más fuerte y se enciende; al salir, un instante congelado */
+.fuego-carta.al-fuego.bravo {
+  animation:
+    fuego-late 0.14s steps(2) infinite alternate,
+    tiembla-sube 1.5s steps(15) both;
+}
+@keyframes tiembla-sube {
+  0%,
+  20%,
+  40%,
+  60%,
+  80% {
+    translate: calc(-1px * var(--k)) 0;
+    filter: sepia(0.6) saturate(2.2) brightness(1.1);
+  }
+  10%,
+  30% {
+    translate: calc(1px * var(--k)) calc(-1px * var(--k));
+  }
+  50%,
+  70% {
+    translate: calc(2px * var(--k)) calc(-2px * var(--k));
+    filter: sepia(0.4) saturate(2.6) brightness(1.35);
+  }
+  90% {
+    translate: calc(3px * var(--k)) calc(-3px * var(--k));
+    filter: sepia(0.2) saturate(3) brightness(1.7);
+  }
+  100% {
+    translate: calc(-3px * var(--k)) calc(-2px * var(--k));
+    filter: saturate(3) brightness(2);
+  }
+}
+.fuego-carta.congela {
+  animation-play-state: paused;
+}
+.fogon .opcion.fuego.forjando {
+  filter: drop-shadow(0 0 0 #ff7b00);
+  animation: forja-brilla 0.3s steps(2) infinite alternate;
+}
+@keyframes forja-brilla {
+  to {
+    filter: drop-shadow(0 calc(-3px * var(--k)) 0 #ff7b00);
+  }
+}
+/* (en el teléfono, una debajo de la otra a todo el ancho: el icono a la izquierda, el nombre y la regla a su lado) */
+@media (max-width: 700px) {
+  .forja-elige {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .opcion.forja-mut {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'icono nombre'
+      'icono desc';
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 4px;
+    padding: 8px;
+    text-align: left;
+  }
+  .forja-mut .fm-icono {
+    grid-area: icono;
+  }
+  .forja-mut .fm-nombre {
+    grid-area: nombre;
+  }
+  .forja-mut .fm-desc {
+    grid-area: desc;
+    font-size: 14px;
+  }
+  .fogon .fogon-seguir {
+    min-height: 48px;
+  }
+}

@@ -452,6 +452,8 @@ export function montarQa(estado: string): void {
       p.fogonHecho = true;
       p.fogonMutaciones = ['doblefilo', 'oro'];
       montar(p);
+      // (0.24) las dos cartas de elección, como las ve el mando (glifos y SEGUIR secundario)
+      if (estado === 'forja-brava-eleccion') document.documentElement.dataset.entrada = 'mando';
       break;
     }
     case 'forja-brava': {
