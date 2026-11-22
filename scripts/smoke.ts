@@ -295,7 +295,22 @@ await conServidor(5192, async (url) => {
         await p.waitForFunction((g) => {
           const s = (window as unknown as { __cabala: { sesion: { partida: null | { fase: string; stats: { golpes: number }; combate?: { descartes: number } } } } }).__cabala.sesion.partida;
           return !s || s.fase !== 'combate' || s.stats.golpes !== g[0] || (s.combate?.descartes ?? 0) !== g[1] || !document.querySelector('.mano .carta.elegida');
-        }, [x.golpes, x.descartes], { timeout: 8000 });
+        }, [x.golpes, x.descartes], { timeout: 8000 }).catch(async (e) => {
+          // (0.28) si el golpe no llega, el humo dice cómo quedó la mesa (y con qué semilla) en vez de un tope pelado
+          const foto = await p.evaluate(() => {
+            const g = (window as unknown as { __cabala: { sesion: { partida: null | { semilla: string; fase: string; stats: { golpes: number }; combate?: { turno: number; mano: unknown[] } } } } }).__cabala.sesion.partida;
+            return {
+              semilla: g?.semilla, fase: g?.fase, golpes: g?.stats.golpes, turno: g?.combate?.turno, mano: g?.combate?.mano.length,
+              elegidas: document.querySelectorAll('.mano .carta.elegida').length,
+              bloqueada: !!document.querySelector('.mano.bloqueada'),
+              capa: [...(document.querySelector('#capa')?.children ?? [])].map((c) => c.className).join(' | '),
+              velo: !!document.querySelector('.velo'),
+              botones: [...document.querySelectorAll<HTMLButtonElement>('.mesa [data-accion]')].map((b) => `${b.dataset.accion}${b.disabled ? '(no)' : ''}`).join(' '),
+              mesa: document.querySelector('.mesa')?.className,
+            };
+          });
+          throw new Error(`HUMO: el golpe no llegó (${c.t}${c.engano ? ' con engaño' : ''}, paso ${pasos}): ${JSON.stringify(foto)} · ${String(e).split(String.fromCharCode(10))[0]}`);
+        });
       } else if (x.fase === 'botin') {
         if (await p.locator('[data-accion="abrir"]').count()) await p.locator('[data-accion="abrir"]').first().click();
         else if (await p.locator('.botin [data-accion="seguir"]').count()) await p.click('.botin [data-accion="seguir"]');
