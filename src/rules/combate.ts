@@ -13,6 +13,7 @@ import type { Combate, Enemigo, Partida, TipoCombate } from './estado';
 import type { MazoId } from './mazos';
 import { CHICHES, huecosChiche } from './chiches';
 import type { ChicheId } from './chiches';
+import { evoluciono } from './evoluciones';
 import { nivelDe } from './reyes';
 import { azar, barajar, dado } from './rng';
 
@@ -46,6 +47,9 @@ export type Ev =
   | { t: 'chiche'; id: ChicheId }
   | { t: 'prenda'; id: ChicheId }
   | { t: 'salva' }
+  | { t: 'mutacion'; que: 'doblefilo' | 'roba' | 'oro'; n: number }
+  /** Una pieza cobra su precio en Vida (el Cetro del Bufón al empezar cada combate). */
+  | { t: 'cobra'; de: 'cetro'; n: number }
   | { t: 'victoria' }
   | { t: 'derrota' };
 
@@ -94,6 +98,9 @@ export interface Cuenta {
   /** En qué Posta del paño quedó cada carta elegida (mismo orden que la selección) y si armó Escalón (0.21.0). */
   postas?: number[];
   escalon?: boolean;
+  /** Lo que roban las cartas con Roba Carta y la Vida que corta el Doble Filo (0.22.0). */
+  roba?: number;
+  corta?: number;
 }
 
 const NULA: Cuenta = {
@@ -126,6 +133,8 @@ function hayCanto(p: Partida, ef: readonly Efectiva[], jugada: Jugada, engano: b
 export function contraataque(p: Partida, e: Enemigo, o: { mitiga?: boolean; sinVida?: boolean; repite?: boolean } = {}): { n: number; directo: number } {
   const c = p.combate!;
   let n = e.ataque + c.furia;
+  // el Naipe de dos caras tiene su precio: la Corte te pega más fuerte
+  if (tieneAmuleto(p, 'doscaras')) n = Math.ceil(n * (1 + B.amuletos.doscarasContra));
   if (e.jefe && e.palo === 'C' && o.sinVida) n = Math.ceil(n * B.reyes.C.contragolpe);
   // la segunda cara del Caudillo: repetir la jugada del golpe anterior es servirle el cuello
   const deguello = !!o.repite && deguelloArmado(e);
@@ -269,8 +278,11 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
   // ── los poderes de palo (también los da una carta que no hace Daño por Inmune)
   const escudo = cuantas('C') * (B.palos.escudoPorBasto * tramoJugador(p) + (nivelBend(p, 'empalizada') ? nivelDe(bn.empalizada, nivelBend(p, 'empalizada')) : 0) + (tieneAmuleto(p, 'rebenque') ? amC.rebenqueEscudo * tramoJugador(p) : 0));
   const cura = cuantas('H') * (B.palos.curaPorCopa * tramoJugador(p) + (nivelBend(p, 'otraronda') ? nivelDe(bn.otraronda, nivelBend(p, 'otraronda')) : 0) + (tieneAmuleto(p, 'mate') ? amC.mateCura * tramoJugador(p) : 0));
-  const oro = cuantas('D') * B.palos.oroPorOro;
+  const vivasMut = (mu: string) => ef.filter((k) => !k.copia && k.de.mutacion === mu).length;
+  const oro = cuantas('D') * B.palos.oroPorOro + vivasMut('oro') * B.fogon.chispaOro;
   const perfora = cuantas('S') > 0 || tieneAmuleto(p, 'lanza');
+  // el Garrote del Cacique: tu Escudo se suma al Daño
+  if (evoluciono(p, 'poncho')) d('ev:poncho', Math.floor(c.escudo * B.evoluciones.garrote));
 
   // ── Multi: primero lo que suma…
   if (escalon) m('posta:escalon', B.postas.escalon);
@@ -281,15 +293,22 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
   if (tieneAmuleto(p, 'moneda') && cuantas('D') >= amC.monedaDesde) m('a:moneda', amC.monedaMulti);
   // los naipes Templados (segunda pasada por el Fogón) suman Multi al jugarlos
   m('templada', ef.filter((k) => !inmune(k.palo) && k.de.templada).length * B.fogon.multiTemplada);
+  m('mut:doblefilo', vivasMut('doblefilo') * B.fogon.dobleFilo.multi);
   const au = B.aumentos;
   if (tieneAumento(p, 'sermano') && c.golpes === 0) m('u:sermano', au.sermano);
   if (tieneAumento(p, 'retruco') && e.golpes > 0) m('u:retruco', au.retruco);
 
   const am = B.amuletos;
-  if (tieneAmuleto(p, 'poncho') && c.escudo >= am.poncho.escudo) m('a:poncho', am.poncho.multi);
+  if (tieneAmuleto(p, 'poncho') && c.escudo >= am.poncho.escudo) m(evoluciono(p, 'poncho') ? 'ev:poncho' : 'a:poncho', am.poncho.multi);
   if (tieneAmuleto(p, 'taba') && c.dado >= am.taba.desde) m('a:taba', am.taba.multi);
-  if (tieneAmuleto(p, 'cofre')) m('a:cofre', Math.min(am.cofre.tope, Math.floor(p.oro / am.cofre.cada)));
-  if (tieneAmuleto(p, 'caliz') && p.vida >= p.vidaMax * am.caliz.vida) m('a:caliz', am.caliz.multi);
+  const sol = evoluciono(p, 'cofre');
+  if (tieneAmuleto(p, 'cofre')) m(sol ? 'ev:cofre' : 'a:cofre', Math.min(sol ? B.evoluciones.sol.tope : am.cofre.tope, Math.floor(p.oro / am.cofre.cada)));
+  const brindis = evoluciono(p, 'caliz');
+  if (tieneAmuleto(p, 'caliz') && (brindis || p.vida >= p.vidaMax * am.caliz.vida)) m(brindis ? 'ev:caliz' : 'a:caliz', am.caliz.multi);
+  // el Brindis de Sangre: con la Vida alta, otro tanto de Multi
+  if (brindis && p.vida >= p.vidaMax * am.caliz.vida) m('ev:caliz', B.evoluciones.brindis);
+  // el Cascabel cobra su precio: un golpe sin canto va con Multi de menos
+  if (tieneAmuleto(p, 'cascabel') && !canto) m('a:cascabel-sin', -B.amuletos.cascabelSinCanto);
   lv = nivelBend(p, 'pesofuerte');
   if (lv) m('b:pesofuerte', Math.min(bn.pesofuerte.tope, Math.floor(p.oro / nivelDe(bn.pesofuerte.cada, lv))));
   lv = nivelBend(p, 'sangreporsangre');
@@ -310,6 +329,8 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
   if (tieneAumento(p, 'contraflor')) x('u:contraflor', au.contraflor.multi);
 
   const multiFinal = Math.max(1, multi) * por;
+  // Falta Envido tiene su precio: las Copas te curan la mitad
+  const curaFinal = tieneAumento(p, 'faltaenvido') ? Math.floor(cura * au.faltaenvido.cura) : cura;
   const total = dano * multiFinal;
 
   // ── contra el enemigo activo
@@ -325,7 +346,7 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
   const alPelo = abate && !exacto && aVida - e.vida <= Math.max(1, Math.floor(e.vidaMax * B.exacto.alPelo));
   lv = nivelBend(p, 'deguello');
   const ejecuta = !abate && !frenaEnMitad && lv > 0 && e.vida - aVida <= Math.floor(e.vidaMax * nivelDe(bn.deguello, lv));
-  const sobra = abate && perfora ? (aVida - e.vida) * (tieneAmuleto(p, 'lanza') ? am.lanza : 1) : 0;
+  const sobra = abate && perfora ? (aVida - e.vida) * (evoluciono(p, 'lanza') ? B.evoluciones.facon.sobra : tieneAmuleto(p, 'lanza') ? am.lanza : 1) : 0;
   let aturde = 0;
   if (canto && p.mazoId === 'chancho') aturde = B.mazos.chancho.aturde * dob;
   if (!aturde && tieneAmuleto(p, 'boleadoras') && !e.boleado && cuantas('C') >= 2) aturde = 1;
@@ -340,7 +361,9 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
     }
   }
 
-  return { ok: true, jugada, ef, dano, multi: multiFinal, total, pasos, canto, critico, perfora, escudo, cura, oro, aEscudo, aVida, abate, exacto, alPelo, ejecuta, sobra, aturde, contra, frenaEnMitad, postas: enPosta, escalon };
+  const roba = vivasMut('roba') * B.fogon.robaCarta;
+  const corta = vivasMut('doblefilo') * B.fogon.dobleFilo.vida;
+  return { ok: true, jugada, ef, dano, multi: multiFinal, total, pasos, canto, critico, perfora, escudo, cura: curaFinal, oro, aEscudo, aVida, abate, exacto, alPelo, ejecuta, sobra, aturde, contra, frenaEnMitad, postas: enPosta, escalon, roba, corta };
 }
 
 // ───────────────────────── enemigos ─────────────────────────
@@ -353,7 +376,7 @@ export function crearEnemigo(p: Partida, palo: Palo, rango: Rango, o: { elite?: 
   let vida = (en.vida as Record<string, number>)[rango] * acto.vida;
   if (o.elite) vida *= en.elite.vida;
   if (o.jefe) {
-    vida *= en.jefe.vida;
+    vida *= en.jefe.vida * acto.jefe;
     vida *= 1 - Math.min(en.jefe.sangreTope, donesDe(p, palo) * en.jefe.sangreConocida);
     if (p.reinado >= 4) vida *= 1 + R.vidaReyes;
   } else if (p.reinado >= 2) vida *= 1 + R.vidaGuardias;
@@ -422,7 +445,7 @@ export function iniciarCombate(p: Partida, tipo: TipoCombate, fila: Enemigo[]): 
     escudo: Math.min(escudoTope(p), escudo),
     furia,
     turno: 1,
-    descartes: Math.max(0, j.descartes + (tieneAumento(p, 'cortedemazo') ? B.aumentos.cortedemazo : 0) - (p.reinado >= 5 ? R.descartes : 0)),
+    descartes: Math.max(0, j.descartes + (tieneAumento(p, 'cortedemazo') ? B.aumentos.cortedemazo : 0) - (p.reinado >= 5 ? R.descartes : 0) - (tieneAumento(p, 'valecuatro') ? B.aumentos.valecuatro.descartes : 0)),
     pasar: p.mazoId === 'chancho',
     enganos: p.mazoId === 'mentiroso' ? B.mazos.mentiroso.enganos * doble(p) : 0,
     engano: false,
@@ -436,6 +459,12 @@ export function iniciarCombate(p: Partida, tipo: TipoCombate, fila: Enemigo[]): 
   };
   p.combate = c;
   p.fase = 'combate';
+  // el Cetro del Bufón cobra su precio: cada combate empieza costándote Vida (nunca te mata)
+  if (tieneAmuleto(p, 'cetro')) {
+    const n = Math.min(B.amuletos.cetroVida * tramoJugador(p), Math.max(0, p.vida - 1));
+    p.vida -= n;
+    if (n) evs.push({ t: 'cobra', de: 'cetro', n });
+  }
   if (tieneAmuleto(p, 'bota')) {
     const antes = p.vida;
     curar(p, B.amuletos.bota);
@@ -501,6 +530,12 @@ function abatir(p: Partida, evs: Ev[], o: { exacto: boolean; alPelo?: boolean; e
     evs.push({ t: 'carga', rey: palo, n: 1 });
   }
   if (tieneAmuleto(p, 'facon') && o.palos.includes('S')) c.proxMulti += 1;
+  // las Evoluciones que cobran al abatir
+  if (evoluciono(p, 'lanza')) c.multiCombate += B.evoluciones.facon.multi;
+  if (evoluciono(p, 'cofre')) {
+    p.oro += B.evoluciones.sol.oro;
+    evs.push({ t: 'oro', n: B.evoluciones.sol.oro });
+  }
   if (nivelBend(p, 'sangria')) {
     const antes = p.vida;
     curar(p, B.bendiciones.sangria);
@@ -694,6 +729,12 @@ export function golpear(p: Partida, ids: readonly string[], postas?: readonly nu
     p.oro += q.oro;
     evs.push({ t: 'oro', n: q.oro });
   }
+  // el Doble Filo corta a los dos lados (nunca te mata: te deja en 1)
+  if (q.corta) {
+    const n = Math.min(q.corta, Math.max(0, p.vida - 1));
+    p.vida -= n;
+    evs.push({ t: 'mutacion', que: 'doblefilo', n });
+  }
   // el daño
   const deUnSaque = e.golpes === 0;
   e.golpes++;
@@ -737,6 +778,11 @@ export function golpear(p: Partida, ids: readonly string[], postas?: readonly nu
     if (!sigue || !c.fila.length) return evs;
   }
   finTurno(p, evs, sel);
+  // Roba Carta: la mano siguiente trae cartas de más
+  if (q.roba) {
+    robar(p, q.roba, evs);
+    evs.push({ t: 'mutacion', que: 'roba', n: q.roba });
+  }
   return evs;
 }
 

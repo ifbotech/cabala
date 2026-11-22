@@ -6,6 +6,7 @@ import { AMULETO, AMULETOS } from './amuletos';
 import type { AmuletoId } from './amuletos';
 import { B, L, fillL } from './balance';
 import { esComodin } from './cartas';
+import type { Carta, Palo } from './cartas';
 import { curar, pagarVidaMax, tieneAumento } from './estado';
 import type { Botin, Partida } from './estado';
 import { azar, elegir } from './rng';
@@ -57,7 +58,10 @@ export interface OpcionCabala {
   /** Se juega a la suerte (la moneda del Bufón). */
   aSuerte?: true;
   puede?: (p: Partida) => boolean;
-  hacer: (p: Partida, sale: boolean) => ResultadoCabala;
+  /** Pide elegir naipes del Mazo (la Cábala Negra): cuántos y si esos sirven. */
+  cartas?: number;
+  validas?: (p: Partida, ids: readonly string[]) => boolean;
+  hacer: (p: Partida, sale: boolean, ids?: readonly string[]) => ResultadoCabala;
 }
 
 export interface CabalaDef {
@@ -417,10 +421,86 @@ export const CABALAS: readonly CabalaDef[] = [
     ],
   },
 ];
-export const CABALA = Object.fromEntries(CABALAS.map((c) => [c.id, c])) as Record<string, CabalaDef>;
+/** Los naipes del Mazo que la Cábala Negra puede tocar (ni Comodines ni la Carta Marcada). */
+const cosibles = (p: Partida) => p.mazo.filter((c) => !esComodin(c) && !c.marcada);
+const naipe = (p: Partida, id: string) => p.mazo.find((c) => c.id === id);
+/** Lo que el fuego y la Forja le dejaron a un naipe pasa a otro. */
+function heredar(a: Carta, de: Carta): void {
+  if (de.temple) a.temple = (a.temple ?? 0) + de.temple;
+  if (de.templada) a.templada = true;
+  if (de.brava) a.brava = true;
+  if (de.mutacion && !a.mutacion) a.mutacion = de.mutacion;
+}
+const nombreNaipe = (c: Carta): L => L(`${c.n} de ${PALO_ES[c.palo as Palo]}`, `${c.n} of ${PALO_EN[c.palo as Palo]}`);
+const PALO_ES: Record<Palo, string> = { S: 'Espadas', C: 'Bastos', D: 'Oros', H: 'Copas' };
+const PALO_EN: Record<Palo, string> = { S: 'Swords', C: 'Clubs', D: 'Coins', H: 'Cups' };
+
+/**
+ * La Cábala Negra (0.22.0): el Bufón cose naipes en la trastienda. Sale una vez por partida, en la primera Cábala del
+ * segundo tramo en adelante. Se sacrifica un naipe para darle su palo y su temple a otro, o se cosen dos del mismo número
+ * en uno solo que suma todo y pega de más.
+ */
+export const CABALA_NEGRA: CabalaDef = {
+  id: 'negra',
+  humor: 'normal',
+  titulo: L('La Cábala Negra', 'The Black Cábala'),
+  propone: L('Tengo aguja, hilo negro y ningún escrúpulo. Dame dos naipes y te devuelvo uno mejor.', 'I have a needle, black thread and no scruples. Give me two cards and I hand you back a better one.'),
+  opciones: [
+    {
+      id: 'coser',
+      texto: L('Coser dos iguales', 'Sew two alike'),
+      detalle: L('Dos naipes del mismo número se vuelven uno: junta todo lo suyo y suma su número de Daño.', 'Two cards of the same number become one: it keeps all they had and adds its number as Damage.'),
+      acepta: true,
+      cartas: 2,
+      puede: (p) => p.mazo.length > B.jugador.mazoMin && cosibles(p).some((a, i, xs) => xs.some((b, j) => j !== i && b.n === a.n)),
+      validas: (p, ids) => {
+        const [a, b] = ids.map((id) => naipe(p, id));
+        return ids.length === 2 && ids[0] !== ids[1] && !!a && !!b && !esComodin(a) && !esComodin(b) && !a.marcada && !b.marcada && a.n === b.n;
+      },
+      hacer: (p, _sale, ids = []) => {
+        const a = naipe(p, ids[0])!;
+        const b = naipe(p, ids[1])!;
+        heredar(a, b);
+        a.temple = (a.temple ?? 0) + a.n;
+        p.mazo.splice(p.mazo.indexOf(b), 1);
+        const t = nombreNaipe(a);
+        return { texto: fillL(L('Cosido: un {a} que pega +{n} de más.', 'Sewn: a {b} that strikes +{n} more.'), { a: t.es, b: t.en, n: a.temple }), bueno: true };
+      },
+    },
+    {
+      id: 'trasplantar',
+      texto: L('Trasplantar', 'Transplant'),
+      detalle: L('Sacrificás el primer naipe: el segundo toma su palo y lo que le dejó el fuego.', 'You sacrifice the first card: the second takes its suit and whatever the fire left it.'),
+      acepta: true,
+      cartas: 2,
+      puede: (p) => p.mazo.length > B.jugador.mazoMin && cosibles(p).length >= 2,
+      validas: (p, ids) => {
+        const [a, b] = ids.map((id) => naipe(p, id));
+        return ids.length === 2 && ids[0] !== ids[1] && !!a && !!b && !esComodin(a) && !esComodin(b) && !a.marcada && !b.marcada;
+      },
+      hacer: (p, _sale, ids = []) => {
+        const de = naipe(p, ids[0])!;
+        const a = naipe(p, ids[1])!;
+        a.palo = de.palo;
+        heredar(a, de);
+        p.mazo.splice(p.mazo.indexOf(de), 1);
+        const t = nombreNaipe(a);
+        return { texto: fillL(L('Trasplantado: ahora es un {a}.', 'Transplanted: it is now a {b}.'), { a: t.es, b: t.en }), bueno: true };
+      },
+    },
+    nada(L('No toco nada', 'Hands off')),
+  ],
+};
+
+export const CABALA = Object.fromEntries([...CABALAS, CABALA_NEGRA].map((c) => [c.id, c])) as Record<string, CabalaDef>;
 
 /** La Cábala que propone el Bufón en este nodo, según su humor. */
 export function sortearCabala(p: Partida): CabalaDef {
+  // la Cábala Negra: una vez por partida, en la primera Cábala del segundo tramo en adelante (si hay qué coser)
+  if (p.acto >= 1 && !p.negra && CABALA_NEGRA.opciones.some((o) => o.acepta && (!o.puede || o.puede(p)))) {
+    p.negra = true;
+    return CABALA_NEGRA;
+  }
   const de = (h: CabalaDef['humor']) => CABALAS.filter((c) => c.humor === h);
   if (p.afinidad >= 2 && azar(p) < 0.6) return elegir(p, de('buena'));
   if (p.afinidad <= -2 && azar(p) < 0.6) return elegir(p, de('garca'));
@@ -438,11 +518,11 @@ export function sortearCabala(p: Partida): CabalaDef {
  * Resuelve una opción de la Cábala: tira la suerte si hace falta, mueve el humor del Bufón y, si lo rechazaste estando
  * ya garca, le sopla tu juego al próximo Rey.
  */
-export function resolverCabala(p: Partida, def: CabalaDef, opcion: OpcionCabala): ResultadoCabala {
+export function resolverCabala(p: Partida, def: CabalaDef, opcion: OpcionCabala, ids?: readonly string[]): ResultadoCabala {
   // la apuesta trampa va con la moneda cargada: la suerte de siempre, a la mitad
   const prob = suerte(p) * (def.humor === 'garca' ? 0.5 : 1);
   const sale = opcion.aSuerte ? azar(p) < prob : true;
-  const r = opcion.hacer(p, sale);
+  const r = opcion.hacer(p, sale, ids);
   if (opcion.acepta) moverAfinidad(p, 1);
   else {
     moverAfinidad(p, -1);

@@ -86,22 +86,25 @@
       "11": 14,
       "12": 17
     },
-    "escudoCaballo": 14,
+    "escudoCaballo": 17,
     "actos": [
       {
         "vida": 1.5,
         "ataque": 1,
-        "escudo": 1
+        "escudo": 1,
+        "jefe": 0.85
       },
       {
-        "vida": 4.3,
+        "vida": 4.6,
         "ataque": 12,
-        "escudo": 2
+        "escudo": 2,
+        "jefe": 1
       },
       {
-        "vida": 13.3,
+        "vida": 14.3,
         "ataque": 28,
-        "escudo": 4
+        "escudo": 4,
+        "jefe": 1
       }
     ],
     "elite": {
@@ -145,7 +148,7 @@
   },
   "mazos": {
     "escoba": {
-      "vida": 74,
+      "vida": 72,
       "mano": 3,
       "hasta": 9,
       "comodines": 2,
@@ -154,7 +157,7 @@
       "multiMano": 3
     },
     "truco": {
-      "vida": 62,
+      "vida": 61,
       "mano": 3,
       "hasta": 7,
       "comodines": 2,
@@ -169,7 +172,7 @@
       "multiMano": 4
     },
     "chinchon": {
-      "vida": 26,
+      "vida": 27,
       "mano": 7,
       "hasta": 9,
       "comodines": 2,
@@ -178,17 +181,17 @@
       "multiMano": 3
     },
     "mentiroso": {
-      "vida": 19,
+      "vida": 17,
       "mano": 8,
-      "hasta": 7,
+      "hasta": 6,
       "comodines": 3,
       "enganos": 1,
       "furiaFallo": 3,
-      "caraDePiedra": 22,
+      "caraDePiedra": 17,
       "multiMano": 0
     },
     "chancho": {
-      "vida": 47,
+      "vida": 49,
       "mano": 4,
       "hasta": 9,
       "comodines": 2,
@@ -242,7 +245,32 @@
       0.35,
       0.5
     ],
-    "multiTemplada": 1
+    "multiTemplada": 1,
+    "dobleFilo": {
+      "multi": 2,
+      "vida": 2
+    },
+    "chispaOro": 3,
+    "robaCarta": 1
+  },
+  "evoluciones": {
+    "facon": {
+      "sobra": 2,
+      "multi": 1
+    },
+    "garrote": 1,
+    "sol": {
+      "oro": 2,
+      "tope": 3
+    },
+    "brindis": 1
+  },
+  "tesoros": {
+    "precio": 30,
+    "pisos": [
+      2,
+      4
+    ]
   },
   "postas": {
     "medio": 2,
@@ -306,6 +334,9 @@
     "cascabel": 2,
     "cascabelMulti": 1,
     "doscarasDoble": 2,
+    "doscarasContra": 0.25,
+    "cascabelSinCanto": 1,
+    "cetroVida": 2,
     "comunes": {
       "cuchilloRemata": 2,
       "rebenqueEscudo": 1,
@@ -416,17 +447,23 @@
     "irsealmazo": 0.3,
     "faltaenvido": {
       "vida": 0.4,
-      "multi": 3
+      "multi": 3,
+      "cura": 0.5
     },
     "valecuatro": {
-      "multi": 2
+      "multi": 2,
+      "descartes": 1
     },
     "barajacargada": {
       "de": [
         2,
         3
       ],
-      "a": 9
+      "a": 9,
+      "contraDe": [
+        8
+      ],
+      "contraA": 1
     },
     "pactogarca": {
       "oro": 40,
@@ -450,8 +487,8 @@
       160
     ],
     "vida": 0.03,
-    "oro": 2,
-    "descuento": 0.03,
+    "oro": 1,
+    "descuento": 0.02,
     "suerte": 0.05,
     "reyes": 1,
     "purga": 2

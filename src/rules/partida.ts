@@ -7,7 +7,7 @@ import { AUMENTO, aumentosDe } from './aumentos';
 import type { AumentoId, Nivel } from './aumentos';
 import { B } from './balance';
 import { CABALA, moverAfinidad, resolverCabala, sortearCabala } from './bufon';
-import { CABALLO, PALOS, REY, SOTA, barajaBase } from './cartas';
+import { CABALLO, MUTACIONES, PALOS, REY, SOTA, barajaBase } from './cartas';
 import type { Palo } from './cartas';
 import * as combate from './combate';
 import type { Ev } from './combate';
@@ -65,14 +65,15 @@ export function ofertaBendicion(p: Partida): Oferta {
   return { tipo: 'bendicion', opciones };
 }
 
-const PESOS: Record<'elite' | 'rey' | 'tienda', Record<Rareza, number>> = {
+const PESOS: Record<'elite' | 'rey' | 'tienda' | 'tesoro', Record<Rareza, number>> = {
+  tesoro: { comun: 0, raro: 15, epico: 60, legendario: 25 },
   elite: { comun: 35, raro: 42, epico: 20, legendario: 3 },
   rey: { comun: 0, raro: 40, epico: 45, legendario: 15 },
   tienda: { comun: 45, raro: 35, epico: 16, legendario: 4 },
 };
 
 /** `n` Amuletos distintos que no lleves, sorteados por rareza según de dónde salen. */
-export function sortearAmuletos(p: Partida, de: 'elite' | 'rey' | 'tienda', n: number): AmuletoId[] {
+export function sortearAmuletos(p: Partida, de: 'elite' | 'rey' | 'tienda' | 'tesoro', n: number): AmuletoId[] {
   const out: AmuletoId[] = [];
   for (let i = 0; i < n; i++) {
     // nunca dos Comunes en la misma oferta: la tienda tiene que ser una decisión, no tres variantes de lo mismo
@@ -255,6 +256,9 @@ function botinDe(p: Partida, tipo: TipoCombate): void {
   }
   if (tipo === 'guardia') items.push({ t: 'oferta', oferta: ofertaBendicion(p) });
   if (tipo === 'elite') items.push({ t: 'oferta', oferta: { tipo: 'amuleto', opciones: sortearAmuletos(p, 'elite', 3) } });
+  // el Tesoro a la vista del nodo: tras la Élite se abre solo; tras la Guardia, con candado de oro
+  const tesoro = tipo !== 'rey' ? nodoActual(p)?.tesoro : undefined;
+  if (tesoro) items.push({ t: 'oferta', oferta: { tipo: 'amuleto', opciones: sortearAmuletos(p, 'tesoro', 2), tesoro: true, ...(tesoro === 'oro' ? { precio: conDescuento(p, B.tesoros.precio) } : {}) } });
   if (tipo === 'rey') {
     items.push({ t: 'oferta', oferta: { tipo: 'amuleto', opciones: sortearAmuletos(p, 'rey', 3) } });
     items.push({ t: 'oferta', oferta: ofertaAumento(p, p.acto === 0 ? 'oro' : 'prisma') });
@@ -305,7 +309,13 @@ function tomar(p: Partida, oferta: Oferta, id: string, reemplaza?: AmuletoId): b
   p.aumentos.push(u);
   const au = B.aumentos;
   if (u === 'cartamarcada') p.mazo.push({ id: 'M1', palo: 'S', n: 1, marcada: true });
-  if (u === 'barajacargada') for (const c of p.mazo) if (au.barajacargada.de.includes(c.n) && c.palo !== 'X') c.n = au.barajacargada.a;
+  if (u === 'barajacargada')
+    for (const c of p.mazo) {
+      if (c.palo === 'X') continue;
+      // los 2 y los 3 suben a 9, pero los 8 caen a 1 (el precio del Prismático)
+      if (au.barajacargada.de.includes(c.n)) c.n = au.barajacargada.a;
+      else if (au.barajacargada.contraDe.includes(c.n)) c.n = au.barajacargada.contraA;
+    }
   if (u === 'pactogarca') {
     p.oro += au.pactogarca.oro;
     p.furiaRey += au.pactogarca.furia;
@@ -329,11 +339,14 @@ function tomar(p: Partida, oferta: Oferta, id: string, reemplaza?: AmuletoId): b
 export function elegirOferta(p: Partida, item: number, id: string | null, reemplaza?: AmuletoId): boolean {
   const it = p.botin?.items[item];
   if (p.fase !== 'botin' || !it || it.t !== 'oferta' || it.hecho) return false;
+  const precio = it.oferta.precio ?? 0;
   if (id === null) {
-    p.oro += B.botin.saltar;
+    // saltar un Tesoro con candado no paga nada
+    if (!precio) p.oro += B.botin.saltar;
   } else {
-    if (!it.oferta.opciones.includes(id)) return false;
+    if (!it.oferta.opciones.includes(id) || p.oro < precio) return false;
     if (!tomar(p, it.oferta, id, reemplaza)) return false;
+    p.oro -= precio;
   }
   it.hecho = true;
   return true;
@@ -435,7 +448,11 @@ export function templar(p: Partida, cartaId: string): 'templada' | 'quemada' | n
   // primera pasada: +Daño; segunda: otro tanto y queda Templada (+Multi al jugarla); tercera: Forja Brava (su número vale doble)
   if (pasadas < 2) carta.temple = (carta.temple ?? 0) + B.fogon.temple;
   if (pasadas === 1) carta.templada = true;
-  if (pasadas === 2) carta.brava = true;
+  if (pasadas === 2) {
+    // ¡FORJA BRAVA!: el número vale doble y el naipe sale del fuego con una mutación
+    carta.brava = true;
+    carta.mutacion = MUTACIONES[Math.floor(azar(p) * MUTACIONES.length)];
+  }
   p.fogonCarta = cartaId;
   p.fogonPasadas = pasadas + 1;
   return 'templada';
@@ -443,13 +460,15 @@ export function templar(p: Partida, cartaId: string): 'templada' | 'quemada' | n
 
 // ───────────────────────── Cábala del Bufón ─────────────────────────
 
-export function responderCabala(p: Partida, opcionId: string): boolean {
+/** Responde la Cábala. Las opciones que piden naipes (la Cábala Negra) los reciben en ids, en orden. */
+export function responderCabala(p: Partida, opcionId: string, ids?: readonly string[]): boolean {
   const estado = p.cabala;
   if (p.fase !== 'cabala' || !estado || estado.resultado) return false;
   const def = CABALA[estado.id];
   const op = def?.opciones.find((o) => o.id === opcionId);
   if (!def || !op || (op.puede && !op.puede(p))) return false;
-  const r = resolverCabala(p, def, op);
+  if (op.cartas && (!ids || !op.validas?.(p, ids))) return false;
+  const r = resolverCabala(p, def, op, ids);
   estado.resultado = { ...r.texto, bueno: r.bueno };
   if (r.oferta === 'bendicion') p.botin = { de: 'cabala', items: [{ t: 'oferta', oferta: ofertaBendicion(p) }] };
   if (r.oferta === 'aumento') p.botin = { de: 'cabala', items: [{ t: 'oferta', oferta: ofertaAumento(p, p.acto === 0 ? 'plata' : 'oro') }] };

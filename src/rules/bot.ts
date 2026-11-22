@@ -181,10 +181,12 @@ function resolverBotin(p: Partida, o: OpcionesBot): void {
         }
       }
     }
+    // un Tesoro con candado se abre solo si queda un resto de oro después de pagarlo
+    if (id !== null && (it.oferta.precio ?? 0) > 0 && p.oro < (it.oferta.precio ?? 0) + 5) id = null;
     let reemplaza: AmuletoId | undefined;
     if (it.oferta.tipo === 'amuleto' && p.amuletos.length >= p.huecos) {
       reemplaza = peorAmuleto(p);
-      if (!o.ofertasAlAzar && PESO_NOTA[notaDe('amuleto', id)] <= PESO_NOTA[notaDe('amuleto', reemplaza)]) id = null;
+      if (id !== null && !o.ofertasAlAzar && PESO_NOTA[notaDe('amuleto', id)] <= PESO_NOTA[notaDe('amuleto', reemplaza)]) id = null;
     }
     if (!juego.elegirOferta(p, i, id, reemplaza)) {
       juego.elegirOferta(p, i, null);
@@ -260,7 +262,20 @@ function enFogon(p: Partida): void {
   juego.salir(p);
 }
 
+/** La Cábala Negra del bot: cose el par más alto; si no hay, trasplanta el naipe más bajo en el más alto. */
+function enCabalaNegra(p: Partida): void {
+  const cartas = p.mazo.filter((c) => !esComodin(c) && !c.marcada).sort((a, b) => b.n - a.n);
+  const par = cartas.find((a, i) => cartas.some((b, j) => j !== i && b.n === a.n));
+  const otro = par && cartas.find((b) => b !== par && b.n === par.n);
+  if (par && otro && juego.responderCabala(p, 'coser', [par.id, otro.id])) return void juego.salir(p);
+  const baja = cartas[cartas.length - 1];
+  if (cartas.length >= 2 && juego.responderCabala(p, 'trasplantar', [baja.id, cartas[0].id])) return void juego.salir(p);
+  juego.responderCabala(p, 'no');
+  juego.salir(p);
+}
+
 function enCabala(p: Partida): void {
+  if (p.cabala!.id === 'negra') return enCabalaNegra(p);
   const def = CABALA[p.cabala!.id];
   const si = def.opciones.filter((op) => op.acepta && (!op.puede || op.puede(p)));
   const no = def.opciones.find((op) => !op.acepta);
