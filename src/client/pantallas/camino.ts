@@ -996,12 +996,49 @@ export function pantallaFogon(p: Partida): Pantalla {
 
 // ───────────────────────── la Cábala del Bufón ─────────────────────────
 
+/**
+ * (0.23) El momento de Coser: la aguja con su hilo negro sale del segundo naipe y entra en el primero, el segundo se
+ * corre encima del primero y se apaga (dos naipes que se vuelven uno), y un fogonazo violeta los sella.
+ */
+async function coserNaipes(naipes: HTMLElement[], rects: DOMRect[]): Promise<void> {
+  const capa = $('#capa');
+  const [a, b] = rects;
+  const centro = (r: DOMRect) => ({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+  const ca = centro(a);
+  const cb = centro(b);
+  const aguja = document.createElement('span');
+  aguja.className = 'negra-aguja';
+  aguja.innerHTML = pxHud('aguja');
+  aguja.style.left = `${cb.x}px`;
+  aguja.style.top = `${cb.y}px`;
+  capa?.appendChild(aguja);
+  // el hilo: una raya negra que se estira detrás de la aguja
+  const hilo = document.createElement('i');
+  hilo.className = 'negra-hilo';
+  const largo = Math.hypot(ca.x - cb.x, ca.y - cb.y);
+  hilo.style.left = `${cb.x}px`;
+  hilo.style.top = `${cb.y}px`;
+  hilo.style.width = `${largo}px`;
+  hilo.style.transform = `rotate(${Math.atan2(ca.y - cb.y, ca.x - cb.x)}rad) scaleX(0)`;
+  capa?.appendChild(hilo);
+  const dx = ca.x - cb.x;
+  const dy = ca.y - cb.y;
+  aguja.animate([{ transform: 'translate(-50%, -50%)' }, { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px - 24px))`, offset: 0.6 }, { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))` }], { duration: 420, easing: 'steps(7)', fill: 'forwards' });
+  hilo.animate([{ transform: `rotate(${Math.atan2(dy, dx)}rad) scaleX(0)` }, { transform: `rotate(${Math.atan2(dy, dx)}rad) scaleX(1)` }], { duration: 420, easing: 'steps(7)', fill: 'forwards' });
+  naipes[1].animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${a.left - b.left}px, ${a.top - b.top}px)`, opacity: 0.25 }], { duration: 420, delay: 160, easing: 'steps(6)', fill: 'forwards' });
+  await pausa(600);
+  destello(ca.x, ca.y, ['#ffffff', '#e0c8ff', '#9b4dff', '#4a1a8a'], 24);
+  chispas(ca.x, ca.y, ['#e0c8ff', '#9b4dff', '#ffd500'], 12, 90, -30);
+  aguja.remove();
+  hilo.remove();
+}
 export function pantallaCabala(p: Partida): Pantalla {
   const def = CABALA[p.cabala!.id];
   const pct = Math.round(suerte(p) * (def.humor === 'garca' ? 0.5 : 1) * 100);
   // (0.22) la Cábala Negra pide naipes del Mazo: elegida la opción, la bandeja de naipes se abre en la misma escena
   let elegida: OpcionCabala | null = null;
   let ids: string[] = [];
+  let cosiendo = false;
   const cerrarBandeja = (): void => {
     elegida = null;
     ids = [];
@@ -1012,7 +1049,13 @@ export function pantallaCabala(p: Partida): Pantalla {
   const bandejaHtml = (o: OpcionCabala): string => {
     const n = o.cartas ?? 2;
     const tocables = p.mazo.filter((c) => !esComodin(c) && !c.marcada);
-    const grupos = (['S', 'C', 'D', 'H'] as const).map((s) => ordenar(tocables.filter((c) => c.palo === s))).filter((g) => g.length);
+    // (0.23) en el teléfono, un renglón por número con los cuatro palos lado a lado (los pares para coser quedan juntos);
+    // en escritorio, un renglón por palo
+    const ORDEN_PALO = ['S', 'C', 'D', 'H'];
+    const porNumero = matchMedia('(max-width: 700px)').matches;
+    const grupos = porNumero
+      ? [...new Set(tocables.map((c) => c.n))].sort((a, b) => a - b).map((n) => tocables.filter((c) => c.n === n).sort((a, b) => ORDEN_PALO.indexOf(a.palo) - ORDEN_PALO.indexOf(b.palo)))
+      : (['S', 'C', 'D', 'H'] as const).map((s) => ordenar(tocables.filter((c) => c.palo === s))).filter((g) => g.length);
     const primero = ids[0] ? p.mazo.find((c) => c.id === ids[0]) : undefined;
     const pista = o.id === 'trasplantar' ? t('negraPrimero') : o.id === 'coser' ? t('negraIguales') : '';
     const listo = ids.length === n && (!o.validas || o.validas(p, ids));
@@ -1032,7 +1075,7 @@ export function pantallaCabala(p: Partida): Pantalla {
             .join('')}</div>`,
       )
       .join('');
-    return `<section class="panel marco hierro negra-bandeja">
+    return `<section class="panel marco hierro negra-bandeja ${porNumero ? 'por-numero' : ''}">
           <h2 class="rotulo">${esc(tx(o.texto))}</h2>
           <p class="negra-pista">${esc(t('negraElegi', { n }))}${pista ? ` · ${esc(pista)}` : ''}</p>
           <div class="visor-cartas rollo">${filas}</div>
@@ -1111,14 +1154,26 @@ export function pantallaCabala(p: Partida): Pantalla {
         else $<HTMLElement>(`[data-foco="negra-${id}"]`)?.focus();
       },
       volver: () => cerrarBandeja(),
-      coser: () => {
+      coser: async () => {
+        if (cosiendo) return;
+        const opcion = elegida?.id;
+        // (0.23) los dos naipes antes de responder: la aguja va del segundo al primero y los cose en uno
+        const naipes = ids.map((id) => $<HTMLElement>(`[data-foco="negra-${id}"]`)).filter((e): e is HTMLElement => !!e);
+        const rects = naipes.map((e) => e.getBoundingClientRect());
         if (!elegida || !juego.responderCabala(p, elegida.id, ids)) {
           sonar('error');
           return;
         }
+        if (opcion === 'coser' && rects.length === 2) {
+          sonar('coser');
+          if (!quieto() && !enFoto()) {
+            cosiendo = true;
+            await coserNaipes(naipes, rects);
+            cosiendo = false;
+          }
+        } else sonar('oro');
         elegida = null;
         ids = [];
-        sonar('oro');
         guardar();
         repintar();
       },
