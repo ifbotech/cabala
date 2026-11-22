@@ -487,6 +487,22 @@ piezas con icono de Vida máxima, grito junto al retrato; Vida máxima por Rey p
 
 **Medición.** Jurado 7,6 · 7,5 · 8,0 · 7,6. Panel 70,0 % (IC95 57–80 %); Deck 33 % (n = 9), Móvil 93 % (n = 15).
 
+## 0.23.0 · Otra mano ya (publicada)
+
+**Qué se buscó.** El Salto 3 (Altar que devuelve, resumen en dos capas con OTRA MANO YA) y los P0 de la 0.22: dibujo
+propio de las Evoluciones, el baúl del Tesoro, la Cábala Negra en el teléfono; además, una Forja Brava que valga la
+apuesta y el chip EXACTO para que el paño pida una decisión.
+
+**Lecciones.**
+- El mayor salto del ciclo (+0,3 de Claridad, +0,2 de Veredicto) vino de mostrar lo que ya existía (Evoluciones con arte,
+  regla legible con mando), no de reglas nuevas.
+- Un chip que usa la misma palabra que un veredicto («EXACTO» frente a «¡EXACTO!») se lee como estado, no como acción;
+  y con «SOBRAN 24» al lado parece contradecirse. Las acciones van con verbo y premio.
+- Una ayuda que se abre sola con el foco del programa tapa títulos y botones: el foco automático no debe abrir ayudas.
+- El Facón que Perfora puede saltear la segunda cara del Rey: la sobra tiene que respetar «se planta en la mitad».
+
+**Medición.** Jurado 7,9 · 8,0 · 8,1 · 7,9. Panel simulado 71,7 % (IC95 59–82 %, n = 60, dentro del ruido); Deck 56 %
+(n = 9), Móvil 93 % (n = 15).
 ## 0.22.0 · Lo que despierta en la trastienda (publicada)
 
 **Qué se buscó.** El Salto 2: Evoluciones, Forja Brava con mutación, Cábala Negra, Tesoros a la vista, contrapesos y

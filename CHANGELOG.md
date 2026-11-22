@@ -3,6 +3,31 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.23.0 · Otra mano ya (2026-11-22)
+
+Tercer Salto: probar no castiga, el final te deja con ganas de volver y el Fogón se vuelve una apuesta que vale.
+
+**Reglas**
+- **Devolver en el Altar**: cada mejora reintegra entero lo que costó su nivel.
+- **¡FORJA BRAVA!** duplica el naipe entero (número y temple) y deja **elegir entre dos mutaciones a la vista**.
+- **El chip EXACTO** del paño: si otra manera de apoyar las mismas cartas abate con Golpe exacto, la mesa la ofrece
+  (R3 o X, o un toque) y vuelve a MÁXIMO con otro.
+- El Facón Maldito pasa la sobra ×3 (la Lanza, ×2); la Corte de los tramos 2 y 3 trae un poco más de Vida.
+
+**El final y la mesa**
+- **Resumen en dos capas** en la misma escena del final: la build estrella (Evoluciones, Amuletos, Bendición, tu jugada y
+  tu mejor golpe) y **Qué te frenó / Próximo récord**, con el botón grande **OTRA MANO YA**.
+- Las **Evoluciones** tienen dibujo propio: el jackpot muestra «antes ▶ después», no se corta en sus primeros 400 ms y
+  la ficha vuela al HUD, que toma foco de mando; «Lo que llevás» muestra la forma despierta.
+- El Tesoro es un **baúl de hierro** que se abre con su sonido; la Cábala Negra cose con aguja e hilo y en el teléfono
+  agrupa por número; el paño queda reservado en el teléfono y la mano no salta bajo el pulgar.
+- El Fósforo no se gasta si no destraba nada; el Tajo de revés ya no muestra cuatro veces el mismo número.
+
+**Medición** · Laboratorio (3000 partidas por celda, sin avisos) · Altar vacío / lleno: Escoba 29,5 / 46,0 · Truco
+29,3 / 47,5 · Chinchón 30,9 / 47,7 · Mentiroso 30,9 / 48,3 · Chancho 30,2 / 46,6 %. Jurado: Claridad 7,9 · Diversión 8,0 ·
+Estética 8,1 · Veredicto 7,9. Panel **simulado** (n = 60, ruido ±10): 71,7 % (IC95 59–82 %); Deck 56 % (n = 9),
+Móvil 93 % (n = 15).
+
 ## 0.22.0 · Lo que despierta en la trastienda (2026-11-22)
 
 Segundo Salto: las piezas se transforman, el Fogón se vuelve apuesta de verdad y el mapa muestra lo que hay que ganar.
