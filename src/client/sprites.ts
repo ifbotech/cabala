@@ -16,6 +16,7 @@ import { tintas } from './pixel/paleta';
 import { mitad } from './pixel/partido';
 import { personajeMapa, type Cuadro } from './pixel/personajes';
 import { pixeles } from './pixel/raster';
+import { REY_PX, mascaraMapa } from './pixel/reyes';
 import { medida, type Mapa } from './pixel/rejilla';
 
 const T = tintas();
@@ -74,6 +75,8 @@ export const pxPalo = (s: Palo, cls = '') => px(`palo:${s}`, () => paloMapa(s), 
 export const pxInmune = (s: Palo, cls = '') => px(`inmune:${s}`, () => inmuneMapa(s), `inmune ${cls}`);
 export const pxEstrella = (cls = '') => px('estrella', estrellaMapa, `estrella ${cls}`);
 export const pxLogo = (cls = '') => px('logo', logoMapa, `logo ${cls}`);
+/** La máscara de cartón de un Rey (la que se pone el Bufón en las irrupciones). */
+export const pxMascara = (s: Palo, cls = '') => px(`mascara:${s}`, () => mascaraMapa(REY_PX[s]), `mascara ${cls}`);
 export const pxPano = (cls = '') => px('pano', panoMapa, `pano ${cls}`);
 /**
  * Un dibujo partido en dos por una grieta (los Reyes vencidos en los finales, tu retrato en la derrota): las dos mitades,

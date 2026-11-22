@@ -27,7 +27,7 @@ import { actualizarTiras, avivarRetrato, cargaQue, dispararFicha, gestoFijo, ges
 import { guardar, pintarFase } from '../juego';
 import { crearMano, type Mano, type Zona } from '../mano';
 import type { Expresion } from '../pixel/bufon';
-import { cifra, pxChiche, lienzoNaipe, lienzoNaipeSegunda, pxNaipeSegunda, pxAmuleto, pxAumento, pxBendicion, pxEstrella, pxHud, pxInmune, pxNaipe, pxNodo, pxPalo } from '../sprites';
+import { cifra, pxChiche, lienzoNaipe, lienzoNaipeSegunda, pxMascara, pxNaipeSegunda, pxAmuleto, pxAumento, pxBendicion, pxEstrella, pxHud, pxInmune, pxNaipe, pxNodo, pxPalo } from '../sprites';
 import type { AmuletoId } from '../../rules/amuletos';
 import type { AumentoId } from '../../rules/aumentos';
 import type { BendicionId } from '../../rules/reyes';
@@ -86,7 +86,7 @@ function cortina(html: string, ms: number, cls = '', alMontar?: (el: HTMLElement
 /** La banda del Bufón con la máscara del Rey (la QA la fotografía quieta, a mitad de la escena). */
 export function mascaraHtml(palo: Palo): string {
   const r = REY_DEF[palo];
-  return `<div class="irr-banda mascarada" style="--aura:${AURA[palo]}"><span class="mz-par">${bufonHtml('risa', 'mz-bufon')}<span class="mz-mascara" aria-hidden="true">${reyHtml(palo, 'calma', 'mz-rey')}</span></span><div class="irr-texto"><b class="titulo">${esc(tx(r.apodo))}</b><span class="sub">${esc(t('mascaraRey'))}</span></div></div>`;
+  return `<div class="irr-banda mascarada" style="--aura:${AURA[palo]}"><span class="mz-par">${bufonHtml('risa', 'mz-bufon')}<span class="mz-mascara" aria-hidden="true">${pxMascara(palo)}</span></span><div class="irr-texto"><b class="titulo">${esc(tx(r.apodo))}</b><span class="sub">${esc(t('mascaraRey'))}</span></div></div>`;
 }
 
 export function pantallaMesa(p: Partida): Pantalla {

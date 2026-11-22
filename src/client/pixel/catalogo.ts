@@ -9,7 +9,7 @@ import { logoMapa } from './logo';
 import { BARRAS, barraMapa, marcoMapa, panoMapa, type Estilo } from './marcos';
 import { comodinMapa, dorsoNaipe, naipeMapa, naipeSegundaMapa } from './naipes';
 import { cuadros, personajeMapa } from './personajes';
-import { REYES_PX, reyRetrato } from './reyes';
+import { REYES_PX, mascaraMapa, reyRetrato } from './reyes';
 import type { Mapa } from './rejilla';
 
 export interface Pieza {
@@ -28,6 +28,7 @@ export function catalogo(): Pieza[] {
   for (const d of DORSOS) out.push({ grupo: 'dorsos', id: d, m: dorsoNaipe(d), k: 3 });
   for (const e of EXPRESIONES) out.push({ grupo: 'bufon', id: e, m: bufonMapa(e), k: 3 });
   for (const r of REYES_PX) for (const a of ['calma', 'parpadeo', 'habla', 'vencido'] as const) out.push({ grupo: 'reyes', id: `${r}-${a}`, m: reyRetrato(r, a), k: 4 });
+  for (const r of REYES_PX) out.push({ grupo: 'reyes', id: `${r}-mascara`, m: mascaraMapa(r), k: 4 });
   for (const mz of MAZOS) for (const c of cuadros()) out.push({ grupo: `personaje-${mz}`, id: `${c.gesto}-${c.mirada}-${c.herida}`, m: personajeMapa(mz, c), k: 3 });
   for (const id of AMULETOS_PX) out.push({ grupo: 'amuletos', id, m: amuletoMapa(id)!, k: 4 });
   for (const id of AUMENTOS_PX) out.push({ grupo: 'aumentos', id, m: aumentoMapa(id)!, k: 4 });

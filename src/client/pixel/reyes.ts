@@ -264,6 +264,58 @@ function fondoMapa(id: ReyPx, animo: Animo): string[] {
 /** El fondo del retrato de un Rey (la penumbra de su palo), para ponerlo detrás del busto. */
 export const reyFondo = (id: ReyPx, animo: Animo = 'calma'): string[] => fondoMapa(id, animo);
 
+/** Ancho y alto de la máscara de un Rey, en celdas. */
+export const MASCARA_W = 34;
+export const MASCARA_H = 60;
+/**
+ * La máscara de un Rey: la que el Bufón se pone delante de la cara (las irrupciones del Rey). Cartón laqueado con su
+ * corona, sus cejas y su barba, las cuencas vacías (por ahí mira el Bufón), las cintas del color del manto atadas en
+ * las sienes y la varilla de madera de donde se la sostiene. Un solo cuadro de 34 × 60 celdas, su cara centrada en
+ * (16, 26), como la del retrato.
+ */
+export function mascaraMapa(id: ReyPx): string[] {
+  const r = RASGO[id];
+  const m = RAMPA5[r.manto];
+  const l = new Lienzo(MASCARA_W, MASCARA_H);
+  const cx = 16;
+  const cy = CY;
+  // la varilla, detrás: baja desde la quijada izquierda hasta el borde de abajo
+  l.trazo(cx - 7, cy + 10, cx - 11, MASCARA_H - 1, 1.1, '¤');
+  sombrear(l, '¤', '9Nndx', { base: 0.55, pendiente: 1, borde: 1, fuerzaBorde: 0.35, brillo: 1, fuerzaBrillo: 0.3 });
+  // las cintas, atadas en las sienes y caídas en dos puntas
+  for (const lado of [-1, 1]) {
+    const x0 = cx + (lado < 0 ? -10 : 10.5);
+    l.elipse(x0 + lado, cy - 3, 1.6, 1.6, '¤');
+    l.trazo(x0 + lado, cy - 2, x0 + lado * 2, cy + 6, 0.8, '¤');
+    l.trazo(x0 + lado * 2, cy + 6, x0 + lado, cy + 15, 0.8, '¤');
+    l.trazo(x0 + lado * 2, cy - 2, x0 + lado * 4, cy + 4, 0.8, '¤');
+    l.trazo(x0 + lado * 4, cy + 4, x0 + lado * 4, cy + 11, 0.8, '¤');
+  }
+  sombrear(l, '¤', m, { base: 0.6, pendiente: 1, borde: 1, fuerzaBorde: 0.35, brillo: 1, fuerzaBrillo: 0.3 });
+  // la cara de cartón: más ancha que la del Rey (tapa la del que la lleva), los pómulos marcados y el canto del recorte
+  l.poli([[cx - 8, cy - 11], [cx + 8, cy - 11], [cx + 10.5, cy - 5], [cx + 11, cy + 1], [cx + 8, cy + 8], [cx + 2.5, cy + 12.5], [cx - 1.5, cy + 12.5], [cx - 7, cy + 8], [cx - 10, cy + 1], [cx - 9.5, cy - 5]], 'p');
+  sombrear(l, 'p', '9spP', { base: 0.64, pendiente: 1.2, borde: 2, fuerzaBorde: 0.55, brillo: 1, fuerzaBrillo: 0.3, ancho: 0.8 });
+  // las cuencas: vacías, en almendra, sin pupila
+  for (const ox of [-4, 4.5]) {
+    hueco(l, cx + ox, cy - 0.5, 3.2, 1.7, '0', { curva: 1 });
+    // el espesor del cartón: el canto de abajo de la cuenca agarra la luz
+    l.rect(Math.round(cx + ox - 2), cy + 1, 4, 1, 'P');
+  }
+  const ceja = r.pelo[1] === 'h' ? 'h' : r.pelo[1];
+  // las cejas pintadas, que bajan hacia la nariz (el ceño del Rey)
+  l.poli([[cx - 9, cy - 6], [cx - 1, cy - 3], [cx - 1, cy - 2], [cx - 9, cy - 4]], ceja);
+  l.poli([[cx + 1, cy - 3], [cx + 10, cy - 6], [cx + 10, cy - 4], [cx + 1, cy - 2]], ceja);
+  // la nariz, con su sombra del lado de abajo a la derecha
+  l.linea(cx, cy - 2, cx + 1, cy + 3, 's');
+  l.set(cx - 1, cy + 4, 's').set(cx + 2, cy + 4, '9');
+  // los colores de la mejilla, pintados a mano
+  l.rect(cx - 8, cy + 3, 2, 1, 'R').rect(cx + 7, cy + 3, 2, 1, 'R');
+  r.cara?.(l, cx, cy, false);
+  r.barba(l, cx, cy, false);
+  r.corona(l, cx, 14);
+  return l.mapa();
+}
+
 /** El retrato entero de un Rey (fondo y busto) en un solo mapa de 64 × 64 celdas. */
 export function reyRetrato(id: ReyPx, animo: Animo = 'calma'): string[] {
   return Lienzo.de(fondoMapa(id, animo)).pegar(reyMapa(id, animo), 0, 0).mapa();

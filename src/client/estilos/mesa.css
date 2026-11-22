@@ -4291,31 +4291,17 @@ button.chiche:focus-visible {
   display: inline-block;
   line-height: 0;
 }
-/* la máscara: la cara del Rey recortada en un óvalo de píxeles, sostenida delante de la del Bufón; a los 0,6 s se la
-   arranca y sale volando, girando, hacia la mesa */
+/* la máscara: una pieza propia de la forja (src/client/pixel/reyes.ts, mascaraMapa), de cartón laqueado con la corona,
+   la barba y las cintas del Rey, sostenida de su varilla delante de la cara del Bufón (su cara cae justo sobre la de él);
+   a los 0,6 s se la arranca y sale volando, girando, hacia la mesa */
 .mz-mascara {
+  --k: var(--k-bufon);
   position: absolute;
-  left: 50%;
-  top: 6%;
-  width: 62%;
-  aspect-ratio: 1;
-  overflow: hidden;
-  translate: -50% 0;
-  clip-path: polygon(25% 0, 75% 0, 100% 25%, 100% 72%, 75% 100%, 25% 100%, 0 72%, 0 25%);
-  background: var(--abismo);
-  box-shadow: inset 0 0 0 4px var(--aura, #ffd500);
+  left: calc(26px * var(--k-bufon));
+  top: calc(13px * var(--k-bufon));
+  line-height: 0;
+  transform-origin: 47% 43%;
   animation: mz-arranca 1.1s steps(1, end) forwards;
-}
-.mz-mascara .rey {
-  --k-rey: var(--k2);
-  position: absolute;
-  left: 50%;
-  top: -14%;
-  translate: -50% 0;
-}
-.mz-mascara .r-fondo,
-.mz-mascara .r-aura {
-  display: none;
 }
 @keyframes mz-arranca {
   0%,
