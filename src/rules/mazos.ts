@@ -66,12 +66,12 @@ export const MAZO: Record<MazoId, MazoDef> = {
     nombre: L('Chinchón', 'Chinchón'),
     lema: L('Pierna y Escalera', 'Sets and Runs'),
     personaje: L('La Timbera del Club', 'The Club Gambler'),
-    regla: L('Piernas y Escaleras de palo crecen siempre y te cubren.', 'Sets and suited Runs grow forever and cover you.'),
+    regla: L('Pierna o Escalera de palo: ¡CHINCHÓN! Cortás y tu mano es Escudo.', 'Set or suited Run: CHINCHÓN! You cut and your hand is Shield.'),
     canto: L('¡CHINCHÓN!', 'CHINCHÓN!'),
     reglas: [
       fillL(L('Mano de {n} cartas: tus golpes llevan +{x} de Multi.', 'Hand of {n} cards: your hits carry +{x} Mult.'), { n: m.chinchon.mano, x: m.chinchon.multiMano }),
       fillL(L('Cada Pierna o Escalera de palo: ¡CHINCHÓN!, +{d} de Daño para siempre en esas jugadas.', 'Each Set or suited Run: CHINCHÓN! +{d} permanent Damage on those plays.'), { d: m.chinchon.cargaDano }),
-      L('Ese turno, el enemigo no te pega: ¡CHINCHÓN! te cubre entero.', 'That turn, the enemy does not hit you: CHINCHÓN! covers you whole.'),
+      fillL(L('Cortás la mano: +{e} de Escudo por cada carta que te queda sin jugar (×2 y ×3 en los tramos 2 y 3).', 'You cut the hand: +{e} Shield for each card left unplayed (×2 and ×3 in stretches 2 and 3).'), { e: m.chinchon.corta }),
     ],
     desbloqueo: { stat: 'reyes', n: 1, texto: L('Vencé a un Rey.', 'Defeat a King.') },
   },
@@ -101,7 +101,7 @@ export const MAZO: Record<MazoId, MazoDef> = {
     reglas: [
       fillL(L('Mano de {n} cartas, como en la mesa: tus golpes llevan +{x} de Multi.', 'Hand of {n} cards, as at the table: your hits carry +{x} Mult.'), { n: m.chancho.mano, x: m.chancho.multiMano }),
       L('Cada turno, descartar 1 sola carta es gratis: robás otra en el acto.', 'Each turn, discarding 1 single card is free: you draw another right away.'),
-      fillL(L('Pierna (3 iguales): ¡CHANCHO!, ×{y} de Multi y el enemigo queda Aturdido 1 turno.', '3 of a kind: CHANCHO! ×{y} Mult and the enemy is Stunned for 1 turn.'), { y: m.chancho.pierna }),
+      L('Pierna (3 iguales): ¡CHANCHO!, el enemigo queda Aturdido 1 turno.', '3 of a kind: CHANCHO! The enemy is Stunned for 1 turn.'),
       fillL(L('Póker (4 iguales): ¡CHANCHO!, ×{x} de Multi y Aturdido {t} turnos.', '4 of a kind: CHANCHO! ×{x} Mult and Stunned for {t} turns.'), { x: m.chancho.multi, t: m.chancho.aturde }),
       L('De un saque: si abatís a un enemigo de un solo golpe, el siguiente entra Aturdido.', 'In one swipe: take an enemy down in a single hit and the next one enters Stunned.'),
     ],

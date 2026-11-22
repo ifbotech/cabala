@@ -213,8 +213,6 @@ export function pantallaMesa(p: Partida): Pantalla {
     if (enemigo.aturdido > 0) return t('aturdidoCausa');
     if (q.aturde > 0) return t('loAturdis');
     if (c().caraDePoker) return fichaDe('aumento', 'caradepoker').nombre;
-    // (0.26) el turno del ¡CHINCHÓN! el enemigo no te pega: lo dice el canto, no tu Escudo
-    if (q.canto && p.mazoId === 'chinchon' && B.mazos.chinchon.mitiga === 0) return tx(MAZO.chinchon.canto);
     return t('tuEscudo');
   };
   function enemigoHtml(): string {
@@ -337,7 +335,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     const nada = { html: '', ayuda: '', causa: '' };
     const e = c().fila[0];
     if (!e || q.contra === null || q.contra <= 0) return nada;
-    const k = contraataque(p, e, { mitiga: q.canto && p.mazoId === 'chinchon', sinVida: q.aVida === 0, repite: repiteJugada(c().ultimaJugada, q.jugada) });
+    const k = contraataque(p, e, { sinVida: q.aVida === 0, repite: repiteJugada(c().ultimaJugada, q.jugada) });
     const frena = k.n - q.contra;
     if (frena <= 0) return nada;
     const causa = `${k.n} − ${frena} ${t('escudo')}`;
@@ -658,10 +656,6 @@ export function pantallaMesa(p: Partida): Pantalla {
       let corto = '';
       if (neto !== null) {
         causa = tajo ? '' : frenaEscudo(q).causa;
-        // (0.26) el ¡CHINCHÓN! que no te deja pegar: la placa dice 0 y por qué
-        if (neto === 0 && !causa && q.canto && p.mazoId === 'chinchon' && enemigo.aturdido <= 0 && !c().caraDePoker && !q.aturde) {
-          causa = tx(MAZO.chinchon.canto);
-        }
       } else if (sel.length && q.ok && (q.abate || q.ejecuta)) {
         // (0.26) lo que abate no recibe contragolpe: la placa no vuelve al golpe crudo del naipe, dice NO TE PEGA · LO ABATÍS
         golpe = 0;

@@ -105,6 +105,8 @@ export interface Cuenta {
   corta?: number;
   /** La Vida que te cobra la maldición de una Evolución en este golpe (0.25.0): el Facón si no abate, el Brindis siempre. */
   maldicion?: number;
+  /** (0.27.0) El Escudo que da ¡CHINCHÓN! por cortar la mano (ya sumado en `escudo`). */
+  cortaMano?: number;
 }
 
 const NULA: Cuenta = {
@@ -135,7 +137,7 @@ function hayCanto(p: Partida, ef: readonly Efectiva[], jugada: Jugada, engano: b
 }
 
 /** El Contraataque del enemigo activo tal como te llegaría ahora: daño total y la parte que atraviesa el Escudo. */
-export function contraataque(p: Partida, e: Enemigo, o: { mitiga?: boolean; sinVida?: boolean; repite?: boolean } = {}): { n: number; directo: number } {
+export function contraataque(p: Partida, e: Enemigo, o: { sinVida?: boolean; repite?: boolean } = {}): { n: number; directo: number } {
   const c = p.combate!;
   let n = e.ataque + c.furia;
   // el Naipe de dos caras tiene su precio: la Corte te pega más fuerte
@@ -144,7 +146,6 @@ export function contraataque(p: Partida, e: Enemigo, o: { mitiga?: boolean; sinV
   // la segunda cara del Caudillo: repetir la jugada del golpe anterior es servirle el cuello
   const deguello = !!o.repite && deguelloArmado(e);
   if (deguello) n *= B.reyes.S.deguello;
-  if (o.mitiga) n = Math.ceil(n * B.mazos.chinchon.mitiga);
   const directo = deguello ? n : e.jefe && e.palo === 'S' ? Math.floor(n * B.reyes.S.perfora) : 0;
   return { n, directo };
 }
@@ -283,6 +284,9 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
   // ── los poderes de palo (también los da una carta que no hace Daño por Inmune)
   let escudo = cuantas('C') * (B.palos.escudoPorBasto * tramoJugador(p) + (nivelBend(p, 'empalizada') ? nivelDe(bn.empalizada, nivelBend(p, 'empalizada')) : 0) + (tieneAmuleto(p, 'rebenque') ? amC.rebenqueEscudo * tramoJugador(p) : 0));
   let cura = cuantas('H') * (B.palos.curaPorCopa * tramoJugador(p) + (nivelBend(p, 'otraronda') ? nivelDe(bn.otraronda, nivelBend(p, 'otraronda')) : 0) + (tieneAmuleto(p, 'mate') ? amC.mateCura * tramoJugador(p) : 0));
+  // (0.27.0) ¡CHINCHÓN! corta la mano: cada carta que te queda sin jugar te da Escudo (crece con el tramo, como los Bastos)
+  const cortaMano = canto && p.mazoId === 'chinchon' ? Math.max(0, c.mano.length - sel.length) * B.mazos.chinchon.corta * tramoJugador(p) : 0;
+  escudo += cortaMano;
   const vivasMut = (mu: string) => ef.filter((k) => !k.copia && k.de.mutacion === mu).length;
   // el Sol de la Timba: tus Oros pagan el doble
   const oro = cuantas('D') * B.palos.oroPorOro * (evoluciono(p, 'cofre') ? B.evoluciones.sol.oroDoble : 1) + vivasMut('oro') * B.fogon.chispaOro;
@@ -361,7 +365,7 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
   if (!abate && !ejecuta) {
     if (e.aturdido > 0 || aturde > 0 || c.caraDePoker) contra = 0;
     else {
-      const k = contraataque(p, e, { mitiga: canto && p.mazoId === 'chinchon', sinVida: aVida === 0, repite: repiteJugada(c.ultimaJugada, jugada) });
+      const k = contraataque(p, e, { sinVida: aVida === 0, repite: repiteJugada(c.ultimaJugada, jugada) });
       // la maldición del Garrote: la mitad del Escudo que pega se gasta antes de que te peguen
       const tuEscudo = Math.min(escudoTope(p), c.escudo - (evoluciono(p, 'poncho') ? Math.ceil(c.escudo * B.evoluciones.gasta) : 0) + escudo);
       contra = k.n - Math.min(tuEscudo, k.n - k.directo);
@@ -372,7 +376,7 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
   const corta = vivasMut('doblefilo') * B.fogon.dobleFilo.vida;
   // las maldiciones de las Evoluciones: el Facón corta si el golpe no abate; el Brindis bebe en cada golpe
   const maldicion = (evoluciono(p, 'lanza') && !abate && !ejecuta ? B.evoluciones.facon.corta : 0) + (brindis ? B.evoluciones.brindis.bebe : 0);
-  return { ok: true, jugada, ef, dano, multi: multiFinal, total, pasos, canto, critico, perfora, escudo, cura: curaFinal, oro, aEscudo, aVida, abate, exacto, alPelo, ejecuta, sobra, aturde, contra, frenaEnMitad, postas: enPosta, escalon, roba, corta, maldicion };
+  return { ok: true, jugada, ef, dano, multi: multiFinal, total, pasos, canto, critico, perfora, escudo, cura: curaFinal, oro, aEscudo, aVida, abate, exacto, alPelo, ejecuta, sobra, aturde, contra, frenaEnMitad, postas: enPosta, escalon, roba, corta, maldicion, cortaMano };
 }
 
 // ───────────────────────── enemigos ─────────────────────────
@@ -586,7 +590,7 @@ function victoria(p: Partida, evs: Ev[]): void {
 }
 
 /** El Contraataque del enemigo activo, con todo lo que dispara. Devuelve false si la partida terminó. */
-function contraatacar(p: Partida, evs: Ev[], o: { mitiga: boolean; sinVida: boolean; repite?: boolean }): boolean {
+function contraatacar(p: Partida, evs: Ev[], o: { sinVida: boolean; repite?: boolean }): boolean {
   const c = p.combate!;
   const e = c.fila[0];
   if (e.aturdido > 0) {
@@ -800,7 +804,7 @@ export function golpear(p: Partida, ids: readonly string[], postas?: readonly nu
     return evs;
   }
   if (!cae) {
-    const sigue = contraatacar(p, evs, { mitiga: q.canto && p.mazoId === 'chinchon', sinVida: q.aVida === 0, repite: repiteJugada(jugadaAntes, q.jugada) });
+    const sigue = contraatacar(p, evs, { sinVida: q.aVida === 0, repite: repiteJugada(jugadaAntes, q.jugada) });
     if (!sigue || !c.fila.length) return evs;
   }
   finTurno(p, evs, sel);

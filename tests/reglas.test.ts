@@ -258,13 +258,19 @@ describe('los cantos de los Mazos', () => {
     expect(q.canto).toBe(true);
     expect(q.dano - pano(q)).toBe(1 + 7 + B.mazos.truco.bravas.S1 + B.mazos.truco.bravas.S7 + B.mazos.truco.envido);
   });
-  it('Chinchón: Pierna o Escalera de palo cantan y frenan medio Contraataque', () => {
-    const mano = [c('S', 4), c('H', 4), c('D', 4), c('S', 9)];
+  it('Chinchón (0.27.0): ¡CHINCHÓN! corta la mano y cada carta que queda sin jugar da Escudo', () => {
+    const mano = [c('S', 4), c('H', 4), c('D', 4), c('S', 9), c('D', 2)];
     const p = mesa('chinchon', mano);
     const e = p.combate!.fila[0];
     const q = cuenta(p, mano.slice(0, 3));
     expect(q.canto).toBe(true);
-    expect(q.contra).toBe(Math.ceil(e.ataque * B.mazos.chinchon.mitiga));
+    expect(q.cortaMano).toBe(2 * B.mazos.chinchon.corta);
+    expect(q.escudo).toBe(2 * B.mazos.chinchon.corta);
+    expect(q.contra).toBe(Math.max(0, e.ataque - q.escudo));
+    // sin canto no hay corte; y en el tramo 3 el corte vale el triple
+    expect(cuenta(p, [mano[3]]).cortaMano).toBe(0);
+    p.acto = 2;
+    expect(cuenta(p, mano.slice(0, 3)).cortaMano).toBe(2 * B.mazos.chinchon.corta * 3);
   });
   it('El Mentiroso: con Engaño todas las cartas fingen ser la más alta y nada es Inmune', () => {
     const mano = [c('H', 9), c('H', 2), c('S', 3), c('C', 4)];

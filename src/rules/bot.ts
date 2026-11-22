@@ -8,6 +8,7 @@ import { combinaciones, esComodin } from './cartas';
 import type { Carta } from './cartas';
 import { cuenta, medioDe, postasDe, postasPorDefecto, puedeDescartar } from './combate';
 import { huecosChiche } from './chiches';
+import { evoluciono } from './evoluciones';
 import type { Cuenta } from './combate';
 import type { Nodo, Oferta, Partida } from './estado';
 import * as juego from './partida';
@@ -178,6 +179,14 @@ export function decidir(p: Partida): Decision | null {
   // Chancho Va: el pase gratis siempre se usa con la peor carta que no entra en el golpe
   if (c.pasar && fuera.length && puedeDescartar(p, 1) === 'gratis' && c.mazo.length + c.descarte.length > 0) return { t: 'descarte', ids: [fuera[0].id] };
   if (flojo && c.descartes > 0 && fuera.length >= 2) return { t: 'descarte', ids: fuera.slice(0, 3).map((k) => k.id) };
+  // (0.27.0) el Sol de la Timba: sin descartes, paga con oro para cavar cuando el golpe es flojo, o cuando no canta ni
+  // abate y la bolsa aguanta (deja una reserva para no apagar el Multi del propio Sol); nunca fuerza una baraja nueva
+  if (c.descartes === 0 && evoluciono(p, 'cofre') && fuera.length) {
+    const tira = fuera.slice(0, 3);
+    const sol = B.evoluciones.sol;
+    const busca = !m.q.abate && !m.q.ejecuta && !m.q.canto && (p.oro >= sol.descarte + B.amuletos.cofre.cada * sol.tope || p.oro % B.amuletos.cofre.cada >= sol.descarte);
+    if ((flojo || busca) && c.mazo.length >= tira.length && puedeDescartar(p, tira.length) === 'descarte') return { t: 'descarte', ids: tira.map((k) => k.id) };
+  }
   // como la mesa (0.25.0): si abate sin Perfora, apoya las mismas cartas de la manera que deja el Golpe exacto
   let postas = m.postas;
   if (m.q.abate && !m.q.exacto && !m.q.perfora) {

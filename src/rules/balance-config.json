@@ -178,7 +178,7 @@
       "hasta": 8,
       "comodines": 2,
       "cargaDano": 2,
-      "mitiga": 0,
+      "corta": 2,
       "multiMano": 1
     },
     "mentiroso": {
