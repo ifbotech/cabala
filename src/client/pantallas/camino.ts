@@ -36,6 +36,7 @@ import { JUGADA_COMO, JUGADA_NOMBRE, MUTACION_DESC, MUTACION_NOMBRE, NODO_DESC, 
 import { resumenDe, type ResumenPartida } from '../../rules/resumen';
 import { VOZ } from '../voces';
 import { bufonDice } from '../bufon-vivo';
+import { glifo } from '../nav';
 import { $, abrirModal, anfitrion, bufonHtml, cerrarModal, esc, fichaDe, irASalida, repintar, reyHtml, sinergiaHtml, tip, type Accion, type Pantalla } from '../ui';
 
 const fijo = (): number | undefined => (enFoto() ? 0 : undefined);
@@ -1217,7 +1218,8 @@ export function pantallaCabala(p: Partida): Pantalla {
  */
 function resumenHtml(p: Partida, r: ResumenPartida): string {
   const e = r.estrella;
-  const ficha = (icono: string, nombre: string, desc: string, cls = ''): string => `<span class="ficha fin-pieza ${cls}" ${tip(nombre, desc)}>${icono}</span>`;
+  // (0.24) cada pieza es un botón (el mando llega con la cruceta y lee su regla en la ayuda), con el icono a ≥ 40 px
+  const ficha = (icono: string, nombre: string, desc: string, cls = ''): string => `<button type="button" class="ficha fin-pieza ${cls}" data-foco="pieza" aria-label="${esc(nombre)}" ${tip(nombre, desc)}>${icono}</button>`;
   const piezas = [
     ...e.amuletos.map((id) =>
       esEvolucionable(id) && e.evoluciones.includes(id) ? ficha(pxEvolucion(id), tx(EVOLUCION[id].nombre), tx(EVOLUCION[id].desc), 'evolucion') : ficha(pxAmuleto(id), tx(AMULETO[id].nombre), tx(AMULETO[id].desc)),
@@ -1227,7 +1229,10 @@ function resumenHtml(p: Partida, r: ResumenPartida): string {
   // la Evolución, con su nombre a la vista (es lo primero que se lee de la build)
   const evo = e.evoluciones[0];
   const evoNombre = evo ? `<b class="fin-evo-nombre">${esc(tx(EVOLUCION[evo].nombre))}</b>` : '';
-  const jugada = e.jugada ? `<span class="fin-jugada"><span class="rotulo">${t('jugadaFavorita')}</span><b>${esc(tx(JUGADA_NOMBRE[e.jugada]))}</b></span>` : '';
+  // (0.24) tu jugada con cómo se arma («Envido · 2 del mismo palo»): la tabla de JUGADAS no siempre la tiene a la vista
+  const jugada = e.jugada
+    ? `<span class="fin-jugada"><span class="rotulo">${t('jugadaFavorita')}</span><b>${esc(tx(JUGADA_NOMBRE[e.jugada]))}</b><span class="fin-jugada-como">${esc(tx(JUGADA_COMO[e.jugada]))}</span></span>`
+    : '';
   const capa1 = `<div class="fin-capa fin-estrella">
       <h2 class="rotulo fin-capa-tit">${t('buildEstrella')}</h2>
       <div class="fin-build">${piezas.length ? `<span class="fin-piezas">${piezas.join('')}</span>` : ''}${evoNombre}${jugada}</div>
@@ -1242,8 +1247,10 @@ function resumenHtml(p: Partida, r: ResumenPartida): string {
   } else freno = `<p class="fin-freno-quien"><b>${t(r.victoria ? 'sinFreno' : 'nada')}</b></p>`;
   const rec = r.record;
   const tipoRec = t(rec.tipo === 'golpe' ? 'recordGolpe' : rec.tipo === 'tramo' ? 'recordTramo' : 'recordVictoria');
+  // (0.24) ESTA PARTIDA y TU MEJOR, cada una con su rótulo y una raya en el medio; con récord nuevo, la cifra sube
+  // (pantallaFin la cuenta desde tu mejor de antes)
   const record = `<p class="fin-rec-tipo"><b>${tipoRec}</b>${rec.nuevo ? `<span class="chip sinergia fin-rec-nuevo">${t('recordNuevo')}</span>` : ''}</p>
-      <p class="fin-rec-cifras"><span class="fin-rec-col"><span class="sub">${t('recordEsta')}</span>${cifra(rec.actual, rec.nuevo ? 'oro' : 'hueso', 'grande')}</span><span class="fin-rec-col"><span class="sub">${t('recordMejor')}</span>${cifra(rec.mejor, 'hueso', 'grande')}</span></p>`;
+      <p class="fin-rec-cifras"><span class="fin-rec-col fin-rec-esta"><span class="fin-rec-rot">${t('recordEsta')}</span>${cifra(rec.actual, rec.nuevo ? 'oro' : 'hueso', 'grande')}</span><span class="fin-rec-col fin-rec-mejor"><span class="fin-rec-rot">${t('recordMejor')}</span>${cifra(rec.mejor, 'hueso', 'grande')}</span></p>`;
   const capa2 = `<div class="fin-capa fin-dos">
       <div class="fin-freno"><h3 class="rotulo fin-capa-tit">${t('queTeFreno')}</h3>${freno}</div>
       <div class="fin-record"><h3 class="rotulo fin-capa-tit">${t('proximoRecord')}</h3>${record}</div>
@@ -1251,6 +1258,33 @@ function resumenHtml(p: Partida, r: ResumenPartida): string {
   void p;
   return capa1 + capa2;
 }
+/**
+ * (0.24) ¡NUEVO RÉCORD!: la cifra de ESTA PARTIDA sube desde tu mejor de antes hasta la nueva (1,1 s, con un tic por
+ * paso y un golpe al llegar). En foto o con «Reducir movimiento», queda puesta.
+ */
+function contarRecord(): void {
+  const r = sesion.resumen?.record;
+  const el = $('.fin-rec-esta');
+  if (!r?.nuevo || !el || enFoto() || quieto()) return;
+  const desde = Math.min(r.mejor, r.actual);
+  const pasos = 22;
+  let i = 0;
+  const poner = (n: number): void => el.querySelector('.cifra')?.replaceWith(document.createRange().createContextualFragment(cifra(n, 'oro', 'grande')));
+  poner(desde);
+  const reloj = window.setInterval(() => {
+    i++;
+    if (!el.isConnected) return void clearInterval(reloj);
+    const f = 1 - (1 - i / pasos) ** 2;
+    poner(Math.round(desde + (r.actual - desde) * f));
+    if (i % 3 === 0) sonar('clic');
+    if (i >= pasos) {
+      clearInterval(reloj);
+      el.classList.add('llega');
+      sonar('oro');
+    }
+  }, 50);
+}
+
 export function pantallaFin(p: Partida): Pantalla {
   const gano = !!p.fin?.victoria;
   const s = p.stats;
@@ -1287,7 +1321,7 @@ export function pantallaFin(p: Partida): Pantalla {
         </div>
         <div class="fila fin-botones">
           <button class="btn marco oro grande fin-otra" data-accion="otra" data-foco="otra" data-inicio aria-label="${esc(t('otraManoTip', { m: tx(MAZO[p.mazoId].nombre) }))}">${pxHud('mazo')} ${t('otraManoYa')}</button>
-          <button class="btn marco" data-accion="altar" data-foco="altar">${t('altar')}</button>
+          <button class="btn marco" data-accion="altar" data-foco="altar" data-tecla="d">${glifo('Y', 'D')}${t('altar')}</button>
           <button class="btn marco" data-accion="portada" data-foco="portada">${t('portada')}</button>
         </div>
       </div>
@@ -1295,6 +1329,7 @@ export function pantallaFin(p: Partida): Pantalla {
     alMontar: () => {
       sonar(gano ? 'victoria' : 'derrota');
       if (gano && !enFoto()) lluviaDeMonedas(0, innerWidth, -10, 60);
+      contarRecord();
     },
     acciones: {
       // OTRA MANO YA: otra partida con el mismo Mazo y el mismo Reinado, sin pasar por la elección

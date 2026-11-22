@@ -305,7 +305,7 @@ export const ES = {
   recordTramo: 'TRAMO MÁS ALTO',
   recordVictoria: 'GANAR CON ESTE MAZO',
   recordNuevo: '¡NUEVO RÉCORD!',
-  recordEsta: 'ESTA',
+  recordEsta: 'ESTA PARTIDA',
   recordMejor: 'TU MEJOR',
   chipExacto: 'DEJALO JUSTO',
   chipMaximo: 'PEGÁ CON TODO',

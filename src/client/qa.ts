@@ -519,6 +519,12 @@ export function montarQa(estado: string): void {
       let p: Partida | null = null;
       for (let i = 0; i < 40 && (!p || p.fin?.victoria); i++) p = partida('truco', (x) => x.fase === 'fin', `QA${i}`, {});
       montar(p!);
+      // (0.24) en el teléfono, la segunda capa: el cuadro deslizado hasta el fondo (QUÉ TE FRENÓ, el récord y los Porotos
+      // quedan sobre la fila de botones, no debajo)
+      if (estado === 'resumen-derrota-movil') {
+        const cuadro = $<HTMLElement>('.fin-cuadro');
+        if (cuadro) cuadro.scrollTop = cuadro.scrollHeight;
+      }
       break;
     }
     case 'mesa-grito': {

@@ -4052,7 +4052,7 @@ html[data-entrada='mando'] :is(.opcion, button):focus-visible > .op-glifo {
   --foco-2: #e8fdff;
   --flecha-foco: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 7' shape-rendering='crispEdges'%3E%3Cpath fill='%2309070f' d='M0 0h11v2h-1v1H9v1H8v1H7v1H6v1H5V6H4V5H3V4H2V3H1V2H0z'/%3E%3Cpath fill='%237df3ff' d='M1 1h9v1H9v1H8v1H7v1H6v1H5V5H4V4H3V3H2V2H1z'/%3E%3Cpath fill='%23e8fdff' d='M2 1h3v1H2z'/%3E%3Cpath fill='%232fa8c8' d='M7 2h2v1H7zM6 4h1v1H6z'/%3E%3C/svg%3E");
 }
-:is(#capa .velo, .p-botin, .p-elegi-una, .p-pulperia, .p-mapa, .p-fogon) :is(.opcion, .btn, .nodo.abierto, .visor-carta):focus-visible {
+:is(#capa .velo, .p-botin, .p-elegi-una, .p-pulperia, .p-mapa, .p-fogon, main.fin) :is(.opcion, .btn, .nodo.abierto, .visor-carta, .fin-pieza):focus-visible {
   outline: calc(2px * var(--k)) solid var(--foco);
   outline-offset: calc(2px * var(--k));
   box-shadow:
@@ -4065,7 +4065,7 @@ html[data-entrada='mando'] :is(.opcion, button):focus-visible > .op-glifo {
     outline-color: var(--foco-2);
   }
 }
-:is(#capa .velo, .p-botin, .p-elegi-una, .p-pulperia, .p-mapa, .p-fogon) :is(.opcion, .btn, .nodo.abierto, .visor-carta):focus-visible::before {
+:is(#capa .velo, .p-botin, .p-elegi-una, .p-pulperia, .p-mapa, .p-fogon, main.fin) :is(.opcion, .btn, .nodo.abierto, .visor-carta, .fin-pieza):focus-visible::before {
   content: '';
   position: absolute;
   z-index: 5;
@@ -4084,12 +4084,12 @@ html[data-entrada='mando'] :is(.opcion, button):focus-visible > .op-glifo {
     translate: -50% calc(2px * var(--k));
   }
 }
-:is(#capa .velo, .p-botin, .p-elegi-una, .p-pulperia, .p-mapa, .p-fogon) .btn {
+:is(#capa .velo, .p-botin, .p-elegi-una, .p-pulperia, .p-mapa, .p-fogon, main.fin) .btn {
   position: relative;
 }
 @media (prefers-reduced-motion: reduce) {
-  :is(#capa .velo, .p-botin, .p-elegi-una, .p-pulperia, .p-mapa, .p-fogon) :is(.opcion, .btn, .nodo.abierto, .visor-carta):focus-visible,
-  :is(#capa .velo, .p-botin, .p-elegi-una, .p-pulperia, .p-mapa, .p-fogon) :is(.opcion, .btn, .nodo.abierto, .visor-carta):focus-visible::before {
+  :is(#capa .velo, .p-botin, .p-elegi-una, .p-pulperia, .p-mapa, .p-fogon, main.fin) :is(.opcion, .btn, .nodo.abierto, .visor-carta, .fin-pieza):focus-visible,
+  :is(#capa .velo, .p-botin, .p-elegi-una, .p-pulperia, .p-mapa, .p-fogon, main.fin) :is(.opcion, .btn, .nodo.abierto, .visor-carta, .fin-pieza):focus-visible::before {
     animation: none;
   }
 }

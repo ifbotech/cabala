@@ -4162,3 +4162,95 @@ button.visor-carta:disabled {
     --k: max(1, calc(var(--k2) - 1));
   }
 }
+
+/* ── el resumen del final ── */
+/* las piezas de TU MANO ESTRELLA son botones (la cruceta llega y su ayuda dice la regla), con el icono a 2× (≥ 48 px) */
+.fin-pieza {
+  --k: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 2px;
+  border: 0;
+  background: rgba(9, 7, 15, 0.55);
+  line-height: 0;
+  cursor: help;
+}
+.fin-piezas {
+  gap: 10px;
+}
+.fin-nivel {
+  margin-left: 0;
+}
+.fin-jugada {
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.fin-jugada-como {
+  flex-basis: 100%;
+  text-align: center;
+  font-family: var(--cuerpo);
+  font-size: 16px;
+  color: var(--hueso-2);
+}
+/* ESTA PARTIDA | TU MEJOR: dos columnas con su rótulo encima y una raya entre las dos */
+.fin-rec-cifras {
+  align-items: stretch;
+  gap: 0;
+}
+.fin-rec-col {
+  gap: 6px;
+  padding: 0 calc(var(--u) * 1.5);
+}
+.fin-rec-mejor {
+  background: linear-gradient(rgba(232, 220, 200, 0.28), rgba(232, 220, 200, 0.28)) 0 0 / 2px 100% no-repeat;
+}
+.fin-rec-rot {
+  font-family: var(--rot);
+  font-size: 16px;
+  line-height: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--hueso);
+  background: var(--abismo);
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+.fin-rec-esta.llega .cifra {
+  animation: rec-llega 0.42s steps(5) both;
+}
+@keyframes rec-llega {
+  40% {
+    scale: 1.35;
+    filter: brightness(1.6);
+  }
+  to {
+    scale: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fin-rec-esta.llega .cifra {
+    animation: none;
+  }
+}
+/* en el teléfono, el cuadro se desliza entre el título y los botones: la fila de botones ya no tapa la segunda capa */
+@media (max-width: 700px) {
+  .fin-cuadro {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    align-items: start;
+    padding-bottom: var(--u);
+  }
+  .fin-botones {
+    position: relative;
+    z-index: 1;
+  }
+  /* (QUÉ TE FRENÓ arriba y PRÓXIMO RÉCORD debajo, cada uno a todo el ancho: lado a lado no entraban) */
+  .fin-dos {
+    flex-direction: column;
+    align-items: stretch;
+    gap: calc(var(--u) * 1.5);
+  }
+}
