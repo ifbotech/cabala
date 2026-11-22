@@ -724,7 +724,7 @@ export function pantallaPulperia(p: Partida): Pantalla {
       const tienda = p.tienda!;
       const cura = Math.round(p.vidaMax * B.pulperia.curarPct);
       return `<main class="pantalla en-partida pulperia">
-      <header class="cabecera"><h1 class="titulo">${t('pulperia')}</h1><div class="lado"><button class="btn marco oro" data-accion="salir" data-foco="salir">${t('salir')} ›</button></div></header>
+      <header class="cabecera"><h1 class="titulo">${t('pulperia')}</h1><div class="lado"><b class="pul-hay-mas" aria-hidden="true">${t('hayMas')}</b><button class="btn marco oro" data-accion="salir" data-foco="salir">${t('salir')} ›</button></div></header>
       <div class="pul-cuerpo">
         ${anfitrion(voz, gesto, 'pul-bufon')}
         <div class="bandejas">
@@ -763,7 +763,18 @@ export function pantallaPulperia(p: Partida): Pantalla {
       ${hudHtml(p)}
     </main>`;
     },
-    alMontar: () => avivarRetrato(p),
+    alMontar: () => {
+      avivarRetrato(p);
+      // (0.26) en el teléfono el mostrador se desliza bajo SALIR: mientras quede algo abajo, «hay más ↓» sobre el botón
+      const cuerpo = $('.pulperia .pul-cuerpo');
+      const main = $('.pulperia');
+      if (cuerpo && main) {
+        const mirar = (): void => void main.classList.toggle('hay-mas', cuerpo.scrollHeight - cuerpo.scrollTop - cuerpo.clientHeight > 8);
+        cuerpo.addEventListener('scroll', mirar, { passive: true });
+        mirar();
+        requestAnimationFrame(mirar);
+      }
+    },
     acciones: {
       ...accionesComunes(p),
       comprar: (el) => {
