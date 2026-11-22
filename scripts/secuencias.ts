@@ -1,7 +1,7 @@
 // Secuencias de cuadros para el Jurado Fable: lo que una foto quieta no cuenta. Cada secuencia son varios cuadros
 // seguidos del mismo momento (la irrupción del Rey, su segunda cara, el Tajo de revés, la caída del Rey encadenada con
-// el botín, el golpe con su conteo, el Chiche que se usa y el golpe en el paño de Postas, el botín que brota sobre la
-// mesa, el paso en el mapa), en Steam Deck y en móvil,
+// el botín, el golpe con su conteo, el Chiche que se usa y el golpe en el paño de Postas, el contragolpe y la maldición
+// del Garrote (0.26), el botín que brota sobre la mesa, el paso en el mapa), en Steam Deck y en móvil,
 // en español. En Steam Deck, además, un recorrido entero con un mando virtual (la API Gamepad del navegador, leída
 // por nav.ts como la de un mando de verdad): elegir, golpear, cobrar y elegir el premio sin tocar el ratón.
 // Quedan en artifacts/jurado/secuencias/<ventana>-<momento>-NN.png.
@@ -30,7 +30,7 @@ interface Q {
 }
 type G = {
   __cabala: {
-    sesion: { partida: { racha: number; vida: number; vidaMax: number; bendiciones: Record<string, number>; combate: { golpes: number; ultimaJugada?: string; mano: { id: string; palo: string }[]; fila: { vida: number; vidaMax: number; escudo: number; palo: string; jefe?: boolean; segunda?: boolean }[] } } };
+    sesion: { partida: { racha: number; vida: number; vidaMax: number; bendiciones: Record<string, number>; combate: { golpes: number; ultimaJugada?: string; caraDePoker?: boolean; mano: { id: string; palo: string }[]; fila: { vida: number; vidaMax: number; escudo: number; palo: string; jefe?: boolean; segunda?: boolean; aturdido?: number }[] } } };
     mejorGolpe: (p: unknown) => { ids: string[]; postas?: number[] } | null;
   };
   __mesa: {
@@ -39,7 +39,7 @@ type G = {
     cuenta: (ids: string[]) => Q;
     ocupado: () => boolean;
     usarChiche: (i: number) => Promise<void>;
-    mano: { elegir(ids: string[], postas?: number[]): void };
+    mano: { elegir(ids: string[], postas?: number[]): void; seleccion(): string[] };
   };
   __pad?: { pulsar(i: number, ms?: number): void };
 };
@@ -324,6 +324,44 @@ await conServidor(5198, async (url) => {
         });
         await rafaga('postas-golpe', 10, 150);
       }
+
+      // 5c · (0.26) el contragolpe: un golpe que no abate y el enemigo que te pega (el «−N» pegado a tu VIDA y a tu
+      // ESCUDO, el grito, el retrato que hace la mueca)
+      await mesa('mesa');
+      await p.waitForTimeout(600);
+      const pega = await p.evaluate(() => {
+        const g = window as unknown as G;
+        const x = g.__cabala.sesion.partida;
+        x.combate.fila[0].aturdido = 0;
+        x.combate.caraDePoker = false;
+        g.__mesa.sincronizar();
+        const ids = x.combate.mano.map((k) => [k.id]).find((c) => {
+          const q = g.__mesa.cuenta(c);
+          return q.ok && !q.abate && !q.ejecuta && !!q.contra && q.contra > 0;
+        });
+        if (!ids) return 'sin un golpe que no abata';
+        g.__mesa.mano.elegir(ids);
+        (window as unknown as { __pega: string[] }).__pega = ids;
+        return true;
+      });
+      if (pega !== true) fallos.push(`${w} · contragolpe: ${pega}`);
+      else {
+        await p.waitForTimeout(300);
+        await p.screenshot({ path: `${SALIDA}/${w}-contragolpe-00.png` });
+        await p.evaluate(() => void (window as unknown as G).__mesa.golpear((window as unknown as { __pega: string[] }).__pega));
+        await rafaga('contragolpe', 16, 220);
+      }
+
+      // 5d · (0.26) la maldición: el Garrote del Cacique avisa «−N de Escudo» antes de golpear y lo cobra en la caja del
+      // ESCUDO después del respiro del número, antes de que te peguen
+      await mesa('mesa-garrote');
+      await p.waitForTimeout(600);
+      await p.screenshot({ path: `${SALIDA}/${w}-maldicion-00.png` });
+      await p.evaluate(() => {
+        const g = window as unknown as G;
+        g.__mesa.golpear(g.__mesa.mano.seleccion());
+      });
+      await rafaga('maldicion', 16, 220);
 
       // 6 · el último enemigo de un combate común cae: lo mismo que el Rey, más corto
       await mesa('mesa');
