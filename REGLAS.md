@@ -1,5 +1,5 @@
 # CÁBALA — Reglas
-> Versión 0.21.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
+> Versión 0.22.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
 
 *Todo es cuestión de cábala.* Roguelike de baraja española para un jugador. Elegís un Mazo, el Bufón te lleva por tres tramos de caminos y al fondo de cada uno te espera un Rey. Tu mano contra la Corte: cada golpe es **DAÑO × MULTI**.
 
@@ -85,14 +85,14 @@ Un enemigo **Aturdido** se salta su próximo Contraataque. La **Furia** es Ataqu
 | Enemigo | Vida | Ataque | Escudo |
 |---|---|---|---|
 | Sota (10) | 100 | ⚔ 11 | — |
-| Caballo (11) | 150 | ⚔ 14 | 14 |
+| Caballo (11) | 150 | ⚔ 14 | 17 |
 | Rey (12) | 230 | ⚔ 17 | — |
 
 | Tramo | Lugar | Vida | Ataque |
 |---|---|---|---|
 | 1 | El Arrabal | ×1.5 | +1 |
-| 2 | El Reñidero | ×4.3 | +12 |
-| 3 | La Corte de Medianoche | ×13.3 | +28 |
+| 2 | El Reñidero | ×4.6 | +12 |
+| 3 | La Corte de Medianoche | ×14.3 | +28 |
 
 La **Guardia Brava** (élite) tiene ×1.4 de Vida y +2 de Ataque. El **Rey** de cada tramo llega detrás de su Sota y su Caballo, con ×1.4 de Vida. Por cada Bendición suya que llevés, arranca con 5 % menos de Vida (tope 20 %).
 
@@ -160,9 +160,9 @@ Exactamente **15**: tres por palo (uno Común, uno Raro, uno Épico) y tres del 
 | **Mate curado** | Copas | Común | +2 de Daño por cada Copa del golpe (×2 en el tramo 2, ×3 en el 3). Y cada Copa te cura +1 más. | 10 |
 | **Bota de vino** | Copas | Raro | Al empezar cada combate curás 8 de Vida. | 16 |
 | **Cáliz del Bacanal** | Copas | Épico | Con 80 % de Vida o más: +2 de Multi. | 24 |
-| **Cascabel del Bufón** | El Bufón | Legendario | Los cantos de tu Mazo valen doble, y cada canto te deja +1 de Multi para el resto del combate. | 40 |
-| **Naipe de dos caras** | El Bufón | Legendario | Nada es Inmune a tus cartas, y las del palo del enemigo pegan ×2. | 40 |
-| **Cetro del Bufón** | El Bufón | Legendario | Tu primer golpe de cada combate pega ×3. Cada Golpe exacto lo vuelve a cargar. | 40 |
+| **Cascabel del Bufón** | El Bufón | Legendario | Tus cantos valen doble y cada uno deja +1 de Multi. Golpe sin canto: −1 de Multi. | 40 |
+| **Naipe de dos caras** | El Bufón | Legendario | Nada es Inmune a tus cartas y las del palo enemigo pegan ×2, pero la Corte te pega +25 %. | 40 |
+| **Cetro del Bufón** | El Bufón | Legendario | Tu primer golpe de cada combate pega ×3 y cada Golpe exacto lo recarga. Cada combate: −2 de Vida (×tramo). | 40 |
 
 Las piezas no llevan nota ni nivel: se eligen por lo que hacen. Cuando una potencia tu Mazo o algo que ya llevás, la mesa le pone la etiqueta **★ SINERGIA** con una línea que dice por qué.
 
@@ -184,9 +184,9 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 | **Retruco** | Oro | Si el enemigo sobrevivió a tu golpe anterior: +1 de Multi. |
 | **Cara de Póker** | Oro | Lo primero que TE PEGAN en cada combate no llega. |
 | **Irse al Mazo** | Oro | Una vez por partida, el golpe que te mataría no llega y curás 30 % de tu Vida. |
-| **Falta Envido** | Prismático | Al golpear con 40 % de Vida o menos: ×3 de Multi. |
-| **Vale Cuatro** | Prismático | Golpes con toda tu mano (o con 5 cartas): ×2 de Multi. |
-| **Baraja Cargada** | Prismático | Los 2 y los 3 de tu Mazo se vuelven 9. |
+| **Falta Envido** | Prismático | Al golpear con 40 % de Vida o menos: ×3 de Multi. Pero tus Copas curan la mitad. |
+| **Vale Cuatro** | Prismático | Golpes con toda tu mano (o con 5 cartas): ×2 de Multi. Pero un descarte menos por combate. |
+| **Baraja Cargada** | Prismático | Los 2 y los 3 de tu Mazo se vuelven 9. Pero los 8 se vuelven 1. |
 | **Pacto Garca** | Prismático · Maldición | +40 de oro ya, pero el próximo Rey arranca con +2 de Furia. |
 | **Contraflor al Resto** | Prismático · Maldición | ×2 de Multi en todos tus golpes, pero perdés el 60 % de tu Vida máxima. |
 | **Vender el Alma** | Prismático · Maldición | +1 carta en la mano, pero el Bufón se queda con 6 de tu Vida máxima. |
@@ -195,11 +195,11 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 
 | Mazo | Personaje | Vida · mano | Regla estrella | Se abre con |
 |---|---|---|---|---|
-| **Escoba** · Escoba del 15 | La Barrendera | 74 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×3 y más Daño para siempre. | abierto desde el principio |
-| **Truco** · Envido y Bravas | El Paisano Bravo | 62 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
-| **Chinchón** · Pierna y Escalera | La Timbera del Club | 26 · 7 | Piernas y Escaleras de palo crecen siempre y te cubren. | Vencé a un Rey. |
-| **El Mentiroso** · Cara de Piedra | El Chamuyero | 19 · 8 | Comodines, Escudo de entrada y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
-| **Chancho Va** · Mano al Centro | El Manotazo | 47 · 4 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
+| **Escoba** · Escoba del 15 | La Barrendera | 72 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×3 y más Daño para siempre. | abierto desde el principio |
+| **Truco** · Envido y Bravas | El Paisano Bravo | 61 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
+| **Chinchón** · Pierna y Escalera | La Timbera del Club | 27 · 7 | Piernas y Escaleras de palo crecen siempre y te cubren. | Vencé a un Rey. |
+| **El Mentiroso** · Cara de Piedra | El Chamuyero | 17 · 8 | Comodines, Escudo de entrada y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
+| **Chancho Va** · Mano al Centro | El Manotazo | 48 · 4 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
 
 **Escoba** (¡ESCOBA!)
 - Mano de 3 cartas, como en la mesa: tus golpes llevan +3 de Multi.
@@ -221,7 +221,7 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 **El Mentiroso** (¡MENTIRA!)
 - Mano de 8 cartas.
 - Tu Mazo lleva 3 Comodines.
-- Cara de Piedra: empezás cada combate con 22 de Escudo.
+- Cara de Piedra: empezás cada combate con 17 de Escudo.
 - Engaño, una vez por combate: todas las cartas del golpe fingen ser tu carta más alta y nada les es Inmune.
 - Si el Engaño no abate al enemigo, su Furia sube 3.
 
@@ -277,8 +277,8 @@ Ganes o pierdas, cada partida deja **Porotos** (4 por combate, 8 por Guardia Bra
 | Mejora | Efecto | Niveles | Coste de cada nivel |
 |---|---|---|---|
 | **Vida Inicial** | +3 % de Vida por nivel. | 5 | 20 · 40 · 70 · 110 · 160 |
-| **Oro de Arranque** | +2 de oro al empezar por nivel. | 5 | 20 · 40 · 70 · 110 · 160 |
-| **Descuento en Pulpería** | Todo cuesta 3 % menos por nivel. | 5 | 20 · 40 · 70 · 110 · 160 |
+| **Oro de Arranque** | +1 de oro al empezar por nivel. | 5 | 20 · 40 · 70 · 110 · 160 |
+| **Descuento en Pulpería** | Todo cuesta 2 % menos por nivel. | 5 | 20 · 40 · 70 · 110 · 160 |
 | **Suerte del Bufón** | +5 % de que sus trucos te salgan bien por nivel. | 5 | 20 · 40 · 70 · 110 · 160 |
 | **Poder de Reyes** | Tu primera Bendición llega con +1 carga por nivel. | 2 | 110 · 160 |
 | **Hueco de Amuleto** | +1 hueco de Amuleto. | 1 | 160 |
