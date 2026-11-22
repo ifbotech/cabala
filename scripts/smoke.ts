@@ -234,7 +234,7 @@ await conServidor(5192, async (url) => {
     exigir(total && Number(total) > 0, 'la cuenta no enseña el TOTAL');
     // mientras se arrastra, el enemigo enciende su halo de destino
     const de = await puntoDe(p, d.ids[0]);
-    const a = await centro(p, '[data-carta]');
+    const a = await centro(p, '[data-soltar="enemigo"]');
     await p.mouse.move(de.x, de.y);
     await p.mouse.down();
     for (let i = 1; i <= 12; i++) await p.mouse.move(de.x + ((a.x - de.x) * i) / 12, de.y + ((a.y - de.y) * i) / 12);
@@ -288,7 +288,9 @@ await conServidor(5192, async (url) => {
           }
           // uno de cada cuatro golpes, arrastrando; el resto, con el botón
           if (pasos % 4 === 0) {
-            await arrastrar(p, c.ids[0], '[data-carta]');
+            // (0.28: se suelta sobre lo que se VE del enemigo —su busto—, como lo haría una persona; el centro del naipe entero
+            // puede quedar tapado bajo su barra)
+            await arrastrar(p, c.ids[0], '[data-soltar="enemigo"]');
             arrastres++;
           } else await p.click('[data-accion="golpear"]');
         }
