@@ -299,6 +299,7 @@ export function pantallaMapa(p: Partida): Pantalla {
   const tramo = juego.tramoActual(p);
   const abiertos = juego.nodosAlcanzables(p).map((n) => n.id);
   const rey = REY_DEF[tramo.rey];
+  const pisoAca = tramo.nodos.find((n) => n.id === p.pos)?.piso ?? -1;
   const voz = tx(alAzar(VOZ.mapa[humorDe(p.afinidad)], fijo()));
   // el temblor de cada nodo: de costado algo más; de alto, poco (con más, el «ESTÁS ACÁ» quedaba bajo los sellos del nodo de arriba)
   const corrimiento = (id: string): [number, number] => {
@@ -312,7 +313,8 @@ export function pantallaMapa(p: Partida): Pantalla {
   };
   const nodo = (n: Nodo): string => {
     const [nx, ny] = lugar(n);
-    const estado = n.id === p.pos ? 'actual' : p.camino.includes(n.id) ? 'hecho' : abiertos.includes(n.id) ? 'abierto' : 'lejos';
+    // (0.24: el que quedó atrás sin pisarse —en un piso ya pasado— es «pasado»: como el recorrido, ya no se toca)
+    const estado = n.id === p.pos ? 'actual' : p.camino.includes(n.id) ? 'hecho' : abiertos.includes(n.id) ? 'abierto' : n.piso <= pisoAca ? 'lejos pasado' : 'lejos';
     const inmune = n.palos?.length ? t('inmuneA', { palo: n.palos.map((s) => tx(PALO_NOMBRE[s])).join(', ') }) : '';
     const nombre = n.tipo === 'rey' ? `${tx(rey.nombre)} · ${tx(rey.apodo)}` : tx(NODO_NOMBRE[n.tipo]);
     const desc = n.tipo === 'rey' ? `${tx(rey.rasgo)}: ${tx(rey.rasgoDesc)}` : tx(NODO_DESC[n.tipo]);

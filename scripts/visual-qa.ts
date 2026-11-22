@@ -322,11 +322,12 @@ function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[
     }
   }
   // (0.24) ninguna ayuda abierta tapa un botón, un título ni una cifra del HUD («tip-tapa»), salvo los de la propia
-  // pieza que se inspecciona
+  // pieza que se inspecciona (los nodos del Mapa que quedaron atrás —recorridos, salteados y el de ESTÁS ACÁ— no
+  // cuentan: no se tocan más)
   for (const t of [...document.querySelectorAll('.tip')].filter(visible)) {
     const T = t.getBoundingClientRect();
     const ancla = document.querySelector('[data-tip-abierto]');
-    for (const o of [...document.querySelectorAll('#app button, #capa button, #app .titulo, #capa .titulo, #app .hud [data-n]')].filter(visible)) {
+    for (const o of [...document.querySelectorAll('#app button:not(.nodo.hecho, .nodo.pasado, .nodo.actual), #capa button, #app .titulo, #capa .titulo, #app .hud [data-n]')].filter(visible)) {
       if (ancla && (o === ancla || o.contains(ancla) || ancla.contains(o))) continue;
       const O = o.getBoundingClientRect();
       if (Math.min(T.right, O.right) - Math.max(T.left, O.left) > 2 && Math.min(T.bottom, O.bottom) - Math.max(T.top, O.top) > 2) {

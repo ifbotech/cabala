@@ -206,7 +206,9 @@ function obstaculos(ancla: HTMLElement): DOMRect[] {
   // (y la pieza misma: la ayuda no tapa lo que se está mirando)
   const out: DOMRect[] = [ancla.getBoundingClientRect()];
   for (const o of document.querySelectorAll<HTMLElement>(TAPA_NUNCA)) {
-    if (o === ancla || o.contains(ancla) || ancla.contains(o) || o.closest('.tip, .calienta')) continue;
+    // (lo que quedó atrás en el Mapa —recorrido, salteado, ESTÁS ACÁ— no se toca más: la ayuda puede pasarle por encima
+    // antes que tapar el camino que sigue)
+    if (o === ancla || o.contains(ancla) || ancla.contains(o) || o.closest('.tip, .calienta') || o.matches('.nodo.hecho, .nodo.pasado, .nodo.actual')) continue;
     const r = o.getBoundingClientRect();
     if (r.width < 2 || r.height < 2 || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) continue;
     const s = getComputedStyle(o);
