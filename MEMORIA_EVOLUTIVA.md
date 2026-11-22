@@ -487,6 +487,25 @@ piezas con icono de Vida máxima, grito junto al retrato; Vida máxima por Rey p
 
 **Medición.** Jurado 7,6 · 7,5 · 8,0 · 7,6. Panel 70,0 % (IC95 57–80 %); Deck 33 % (n = 9), Móvil 93 % (n = 15).
 
+## 0.21.0 · La mesa de paño (publicada)
+
+**Qué se buscó.** El Salto 1 del mandato para despegar de Balatro: Postas del paño con Medio, Chispa y Escalón, y Chiches
+de un solo uso sobre la madera.
+
+**Qué entró.** Postas de 3 a 5 con acomodo automático (`mejorAcomodo`) y reorden a mano; cinco Chiches con Prenda de la
+Corte; Máscara del Rey como pieza de la forja.
+
+**Lecciones.**
+- El jurado previo bajó (7,3 · 7,6 · 7,9 · 7,6) porque el paño quedaba detrás de la mano: una mecánica nueva que no se ve
+  resta más de lo que suma. Se archivó como `jurado/0.21.0-previa` y se arregló antes de publicar.
+- El Escalón «+1 por naipe» premiaba las manos largas: Chinchón, Mentiroso y Chancho perdieron 5 puntos al pasarlo a +2
+  fijo y se reafinaron con el Multi de mano y la Vida.
+- Con la mesa acomodando sola, el paño deja de ser una decisión (jurado de diseño): el reordenamiento tiene que valer algo
+  más que el máximo, por ejemplo apuntar al exacto. Y la mano y el paño no pueden compartir franja.
+- Al rebasar ramas de reglas, tomar `--theirs` en `balance-config.json` pisa los números recién afinados.
+
+**Medición.** Jurado 7,5 · 7,7 · 8,0 · 7,7. Panel simulado 70,0 % (IC95 57–80 %, n = 60, dentro del ruido de la 0.20);
+Deck 67 % (n = 9), Móvil 73 % (n = 15).
 ## 0.20.0 · Las dos caras del Rey (publicada)
 
 **Qué se buscó.** Que cada Rey muestre su segunda cara, sacar el Multi plano de la Escoba, ordenar lo que vuela sobre la

@@ -3,6 +3,33 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.21.0 · La mesa de paño (2026-11-21)
+
+Primer Salto para despegar de los juegos de cartas con puntaje: el golpe se apoya en un paño con lugares que importan, y
+la mesa tiene a mano sus chucherías de pulpería.
+
+**Las Postas del paño**
+- Las cartas del golpe se apoyan en **3 a 5 Postas** (tantas como tu mano). La **Posta del Medio** pega ×2 su número; el
+  naipe a la **derecha de un Comodín** recibe su **Chispa** (×2 su número); tres o más en orden creciente arman
+  **Escalón** (+2 de Multi).
+- **La mesa acomoda sola** la mejor disposición al elegir; se reordena arrastrando o con LB/RB y DAÑO × MULTI cambia al
+  instante. Cada Posta lleva su símbolo y su ayuda corta; Medio, Chispa y Escalón están en el glosario.
+
+**Los Chiches**
+- Tres huecos **sobre la madera, a la derecha de la mesa** (nunca en la mano): Vaso de Ginebra, Dado Cargado, Fósforo de
+  Fogón, Polvo de Tiza y Poroto de Yapa. Un solo uso, no gastan el turno; un clic o arrastrarlos al enemigo. En el
+  teléfono, el primer toque explica y el segundo usa.
+- Se compran en La Pulpería o la Corte los suelta como **Prenda** al abatir con exacto, al pelo o cantando.
+
+**La mesa**
+- El Rey entra con la **Máscara del Bufón**, una pieza propia de la forja; fichas y porotos saltan sin cruzar las cifras
+  del HUD; lo que te pegan va en un carril junto a VIDA; la mano no se hunde bajo el HUD en la Deck ni en el portátil.
+
+**Medición** · Laboratorio (3000 partidas por celda, sin avisos) · Altar vacío / lleno: Escoba 30,1 / 46,7 · Truco
+30,2 / 48,2 · Chinchón 29,7 / 45,9 · Mentiroso 29,1 / 47,3 · Chancho 29,4 / 46,6 %. Jurado: Claridad 7,5 · Diversión 7,7 ·
+Estética 8,0 · Veredicto 7,7. Panel **simulado** (n = 60, ruido ±10): 70,0 % (IC95 57–80 %); Deck 67 % (n = 9),
+Móvil 73 % (n = 15).
+
 ## 0.20.0 · Las dos caras del Rey (2026-11-21)
 
 Paquete dictado por el Jurado sobre la 0.19.0: Reyes que morían sin mostrar su segunda cara, un Multi de mano que
