@@ -454,7 +454,21 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     ultimo = ahora;
     const quieto = todoQuieto();
     const dest = destinos();
-    const { k } = medidas();
+    const { k, w } = medidas();
+    // (0.23) el Comodín tapado por su vecina de la derecha (la mano de 8) lleva su nombre de canto, a la izquierda: en
+    // la franja que queda a la vista entra entero (centrado arriba, la vecina se comía la mitad: «COMOD»)
+    for (const c of naipes) {
+      if (c.carta.palo !== 'X') continue;
+      const yo = dest.get(c.carta.id);
+      let tapada = false;
+      if (yo && !c.elegida) {
+        for (const o of naipes) {
+          const d = o === c || o.elegida ? undefined : dest.get(o.carta.id);
+          if (d && Math.abs(d.y - yo.y) < 4 && d.x > yo.x && d.x - yo.x < w - 2) tapada = true;
+        }
+      }
+      if (c.el.classList.contains('rotulo-canto') !== tapada) c.el.classList.toggle('rotulo-canto', tapada);
+    }
     const caja = raiz.getBoundingClientRect();
     // con el dedo, el grupo que apunta al enemigo se posa sobre su naipe, por encima de la barra de Vida: la cuenta
     // (Daño × Multi = total) queda entera a la vista mientras se decide

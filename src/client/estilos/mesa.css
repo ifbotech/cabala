@@ -1148,47 +1148,6 @@ html[data-entrada='teclado'] .pano-regla .p-mando .g-tecla {
   transform: translateX(-50%);
   --k: 1;
 }
-/* (0.21) el índice al pie: con naipes en el paño (que va encima de la mano y le tapa la parte de arriba), cada naipe
-   de la mano enseña su número abajo a la izquierda, en la franja que queda a la vista bajo las Postas */
-.c-pie {
-  display: none;
-}
-.mano.con-pano .carta:not(.elegida) .c-pie {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
-  left: calc(3px * var(--k-naipe, 1));
-  bottom: calc(3px * var(--k-naipe, 1) + var(--pie-oculto, 0px));
-  min-width: calc(14px * var(--k-naipe, 1));
-  height: calc(14px * var(--k-naipe, 1));
-  padding: 0 2px;
-  background: #f4efe2;
-  box-shadow: 0 0 0 2px #0b0711;
-  font-family: var(--cuerpo);
-  font-size: max(16px, calc(13px * var(--k-naipe, 1)));
-  line-height: 1;
-  text-shadow:
-    1px 0 0 currentColor,
-    0 1px 0 currentColor;
-  pointer-events: none;
-  z-index: 2;
-}
-.c-pie[data-palo='S'] {
-  color: #1238a8;
-}
-.c-pie[data-palo='C'] {
-  color: #0a5424;
-}
-.c-pie[data-palo='D'] {
-  color: #7a3300;
-}
-.c-pie[data-palo='H'] {
-  color: #930030;
-}
-.c-pie[data-palo='X'] {
-  color: #7a5a00;
-}
 /* el Comodín lleva su nombre */
 .c-rotulo {
   position: absolute;
@@ -1382,46 +1341,6 @@ html[data-entrada='teclado'] .pano-regla .p-mando .g-tecla {
   }
 }
 
-/* ───────────── 0.11.0: el índice grande del naipe, donde el naipe va a escala 1 (portátil y Steam Deck) ───────────── */
-
-.c-indice {
-  display: none;
-}
-@media (min-width: 701px) and (max-width: 1500px) {
-  .mano .carta .c-indice {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    left: 3px;
-    top: 3px;
-    min-width: 25px;
-    height: 27px;
-    padding: 0 1px;
-    background: #f4efe2;
-    font-size: 28px;
-    line-height: 1;
-    /* la letra del cuerpo es fina: se engorda un píxel para que pese como el índice del naipe */
-    text-shadow:
-      1px 0 0 currentColor,
-      0 1px 0 currentColor,
-      1px 1px 0 currentColor;
-    pointer-events: none;
-  }
-  .c-indice[data-palo='S'] {
-    color: #1238a8;
-  }
-  .c-indice[data-palo='C'] {
-    color: #0a5424;
-  }
-  .c-indice[data-palo='D'] {
-    color: #7a3300;
-  }
-  .c-indice[data-palo='H'] {
-    color: #930030;
-  }
-}
-
 .cuenta .c-chips > * {
   flex: none;
 }
@@ -1457,6 +1376,7 @@ html[data-entrada='teclado'] .pano-regla .p-mando .g-tecla {
 /* (0.22) el Comodín espectral conserva su nombre: corrido a la esquina de arriba a la derecha, lejos del índice de lo
    que copia (el de arriba a la izquierda) */
 .carta:has(.c-espectro) .c-rotulo {
+  display: block;
   left: auto;
   right: calc(3px * var(--k-naipe, 1));
   transform: none;
@@ -1598,13 +1518,6 @@ html[data-entrada='teclado'] .pano-regla .p-mando .g-tecla {
 button:disabled .b-quedan {
   color: inherit;
 }
-@media (min-width: 701px) and (max-width: 1500px) {
-  .mano .carta .c-indice {
-    left: 5px;
-    top: 5px;
-  }
-}
-
 /* ───────────── 0.14.0 · el golpe con peso, el conteo pieza por pieza y la caída del Rey ───────────── */
 
 /* el hitstop de verdad: mientras dura, nada de la mesa se mueve */
@@ -1984,15 +1897,6 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
   /* ENGAÑO es un botón de pleno derecho, del alto de DESCARTAR */
   .botones .btn.chico {
     min-height: calc(48px * var(--k) * 0.5 + 24px);
-  }
-}
-
-/* ── el naipe enfocado a 1,1×: su índice grande crece con él (antes asomaba el del dibujo por debajo: «77») ── */
-@media (min-width: 701px) and (max-width: 1500px) {
-  .mano .carta:focus-visible .c-indice {
-    transform: scale(1.1);
-    /* el centro del naipe (100 × 140), visto desde la esquina del índice (5, 5) */
-    transform-origin: 45px 65px;
   }
 }
 
@@ -3933,9 +3837,6 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
       0 0 0 calc(6px * var(--k-naipe)) #09070f;
   }
 }
-.mano .carta:focus-visible .c-indice {
-  transform: none;
-}
 /* la flecha del foco: un chevron de 11 × 7 celdas, celeste con su canto de tinta, a caballo del canto de arriba */
 .carta:focus-visible::before {
   content: '';
@@ -4692,4 +4593,22 @@ button.chiche:focus-visible {
   .chip.c-dial {
     min-height: 44px;
   }
+}
+/* (0.23) el Comodín espectral conserva su nombre (la regla de la 0.3 que lo escondía cuando copia ganaba: lo de arriba
+   le devuelve el display); y el Comodín tapado por su vecina (mano de 8) lo lleva de canto, en su franja a la vista */
+.mano .carta.rotulo-canto:not(.elegida) .c-rotulo {
+  left: calc(2px * var(--k-naipe, 1));
+  top: calc(2px * var(--k-naipe, 1));
+  transform: none;
+  writing-mode: vertical-rl;
+  font-family: var(--cuerpo);
+  font-size: var(--fs-s);
+  text-transform: uppercase;
+  letter-spacing: 0;
+  text-orientation: mixed;
+  padding: calc(4px * var(--k-naipe, 1)) 1px;
+}
+.mano .carta.rotulo-canto:not(.elegida) .c-copia {
+  left: calc(2px * var(--k-naipe, 1));
+  transform: none;
 }
