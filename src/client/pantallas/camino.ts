@@ -900,7 +900,8 @@ export function pantallaFogon(p: Partida): Pantalla {
       const n = Math.floor(t * 12);
       if (n !== cuadro) {
         cuadro = n;
-        const crece = capa.classList.contains('sale') ? 0.3 : [0.5, 0.75, 1][Math.min(2, Math.floor(t / 0.4))];
+        // (0.28) cuando el naipe arde, la fogata sube un escalón más antes de apagarse
+        const crece = capa.classList.contains('arde') ? 1.3 : capa.classList.contains('sale') ? 0.3 : [0.5, 0.75, 1][Math.min(2, Math.floor(t / 0.4))];
         const img = c.createImageData(W, H);
         for (let px = 0; px < W; px++) {
           const u = Math.abs((px - W / 2) / (W / 2));
@@ -908,8 +909,11 @@ export function pantallaFogon(p: Partida): Pantalla {
           const diente = Math.abs(((px + n * 3) % 14) - 7) / 7;
           const baile = 0.82 + 0.18 * Math.sin(px * 0.41 + n * 1.9) + 0.1 * Math.sin(px * 0.13 - n * 1.1);
           // (las puntas de afuera caen: dos cuernos de fuego, no una losa)
-          const borde = Math.min(1, (1 - u) / 0.14);
-          const alto = Math.max(2, H * crece * (0.26 + 0.8 * u ** 1.4) * baile * (0.72 + 0.28 * diente) * (0.25 + 0.75 * borde));
+          // (0.28) los hombros caen en curva (no a plomo) y el medio no es una losa: sus lenguas son más hondas y bailan
+          // con otro compás, así la base se lee como brasas que respiran
+          const borde = Math.min(1, (1 - u) / 0.3) ** 1.6;
+          const medio = 0.2 + 0.1 * Math.sin(px * 0.23 + n * 0.7) + 0.06 * Math.sin(px * 0.61 - n * 1.3);
+          const alto = H * crece * (medio + 0.8 * u ** 1.4) * baile * (0.5 + 0.5 * diente) * borde;
           for (let yy = 0; yy < alto && yy < H; yy++) {
             const py = H - 1 - yy;
             const v = yy / alto;
@@ -1125,8 +1129,8 @@ export function pantallaFogon(p: Partida): Pantalla {
           // (0.27) ya elegiste: el Bufón no sigue diciendo «Elegí la mutación y rezá»; contiene el aliento
           const globo = $('main.fogon .anfitrion .bocadillo') ?? $('main.fogon .bocadillo');
           if (globo) globo.textContent = t('bufonSuspenso');
-          const bf = $('main.fogon .anfitrion .bufon');
-          if (bf) gestoBufon(bf, 'sombria');
+          const an = $('main.fogon .anfitrion');
+          if (an) gestoBufon(an, 'sombria');
           if (!quieto()) await new Promise((ok) => setTimeout(ok, 400));
           await pausa(1100);
         } else {
@@ -1144,9 +1148,23 @@ export function pantallaFogon(p: Partida): Pantalla {
           (capa?.querySelector('.fuego-carta') ?? el)?.classList.add('congela');
           await new Promise((ok) => setTimeout(ok, 110));
         }
+        // (0.28) el anfitrión juega la apuesta: en el mismo cuadro del resultado cambia de cara, de pose y de frase
+        const reaccion = (sale: boolean): void => {
+          if (!brava) return;
+          const an = $('main.fogon .anfitrion');
+          const globo = $('main.fogon .anfitrion .bocadillo') ?? $('main.fogon .bocadillo');
+          if (globo) globo.textContent = t(sale ? 'bufonForjaSale' : 'bufonForjaQuema');
+          if (an) gestoBufon(an, sale ? 'risa' : 'burla');
+          const bf = $('main.fogon .anfitrion .bufon');
+          bf?.classList.remove('festeja', 'lamenta');
+          void (bf as HTMLElement | null)?.offsetWidth;
+          bf?.classList.add(sale ? 'festeja' : 'lamenta');
+        };
         if (r === 'quemada') {
           seQuemo = true;
           sonar('ceniza');
+          reaccion(false);
+          capa?.classList.add('arde');
           if (rect && !quieto()) {
             // el naipe se parte en brasas y se va en humo (sobre la fogata, donde está)
             partirNaipe(lienzoNaipe(carta.palo as Exclude<typeof carta.palo, 'X'>, carta.n), rect, FUEGO);
@@ -1157,6 +1175,7 @@ export function pantallaFogon(p: Partida): Pantalla {
         } else if (r === 'templada') sonar(recienBrava ? 'forja' : 'canto');
         // (0.26) el «×2» de la Forja Brava estalla sobre la fogata, con el naipe entero todavía ahí; recién después
         // vuelve el panel (y SEGUIR)
+        if (recienBrava) reaccion(true);
         if (recienBrava && capa && rect && !quieto()) {
           capa.classList.add('sale');
           const cx = rect.left + rect.width / 2;
