@@ -72,6 +72,11 @@ export interface Mano {
   correr(id: string, dir: -1 | 1): boolean;
   /** Las marcas del paño (Chispa y Escalón) que dice la cuenta. */
   marcar(m: MarcasPano): void;
+  /**
+   * (0.24) El dial del paño (DEJALO JUSTO ↔ PEGÁ CON TODO) a la derecha de los naipes apoyados, si entra. Devuelve si
+   * entró; si no, la cuenta lo lleva en su propio renglón. Con `''` se va.
+   */
+  dial(html: string): boolean;
   /** Las cartas elegidas vuelan a un punto y desaparecen (el golpe). */
   volar(ids: readonly string[], a: { x: number; y: number }): Promise<void>;
   /** Sacude las cartas elegidas (jugada que no vale). */
@@ -164,7 +169,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
   raiz.append(pano);
   const regla = document.createElement('span');
   regla.className = 'pano-regla';
-  regla.innerHTML = `<span class="p-linea">${pxHud('medio', 'p-icono')}<b>${esc(t('postaMedioAyuda'))}</b></span><i class="p-sep">·</i><span class="p-linea p-esc">${pxHud('escalon', 'p-icono')}<b class="p-largo">${esc(t('panoEscalon', { n: B.postas.escalon }))}</b><b class="p-corto">${esc(`${tx(PASO_NOMBRE['posta:escalon'])} +${B.postas.escalon}`)}</b></span><span class="p-linea p-mando">${glifo('LB', 'Q')}${glifo('RB', 'W')}<b>${esc(t('pistaCorre'))}</b></span>`;
+  regla.innerHTML = `<span class="p-linea">${pxHud('medio', 'p-icono')}<b>${esc(t('postaMedioAyuda'))}</b></span><i class="p-sep">·</i><span class="p-linea p-esc">${pxHud('escalon', 'p-icono')}<b class="p-largo">${esc(t('panoEscalon', { n: B.postas.escalon }))}</b><b class="p-corto">${esc(`${tx(PASO_NOMBRE['posta:escalon'])} +${B.postas.escalon}`)}</b></span><span class="p-linea p-mando">${glifo('LB', 'Q')}${glifo('RB', 'W')}<b>${esc(t('pistaCorre'))}</b></span><span class="p-linea p-mando p-dial">${glifo('Y', 'X')}<b>${esc(t('pistaJusto'))}</b></span>`;
   raiz.append(regla);
   const slots = enPosta.map((_, i) => {
     const el = document.createElement('div');
@@ -194,6 +199,12 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
   rotEscalon.className = 'posta-escalon chip canto';
   rotEscalon.setAttribute('role', 'status');
   raiz.append(rotEscalon);
+  // (0.24) el dial: una acción con su verbo y su premio, al costado derecho de lo apoyado (lo que reacomoda)
+  const dialEl = document.createElement('div');
+  dialEl.className = 'pano-dial';
+  dialEl.hidden = true;
+  raiz.append(dialEl);
+  let dialAlto = 0;
 
   let cacheMedidas: { w: number; h: number; k: number; kp: number; tapa: number; clave: string } | null = null;
   const medidas = () => {
@@ -446,6 +457,11 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     }
     rotEscalon.hidden = !chipVa;
     regla.classList.toggle('arma', !!marcas.escalon && !chipVa);
+    // el dial: a la derecha del paño, al pie de los naipes (el chip del Escalón, si está, queda arriba)
+    if (!dialEl.hidden) {
+      const techo = chipVa ? Math.max(0, lp.y - lp.subida + 2) + rotEscalon.offsetHeight + 6 : 0;
+      ponerEn(dialEl, lp.xs[nPostas - 1] + wp + 14, Math.max(techo, lp.y + lp.hv - dialAlto), Z.marca + 3);
+    }
   }
 
   function cuadro(ahora: number): void {
@@ -896,6 +912,26 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       cambio();
     },
     correr,
+    dial(html) {
+      if (dialEl.innerHTML !== html) dialEl.innerHTML = html;
+      dialEl.hidden = !html;
+      if (!html) return false;
+      const lp = lugaresPosta();
+      const der = lp.xs[nPostas - 1] + lp.wp + 14;
+      // (el premio parte en dos renglones si hace falta: lo que manda es el ancho que queda a la derecha del paño)
+      const libre = raiz.clientWidth - 4 - der;
+      dialEl.style.maxWidth = `${Math.max(0, libre)}px`;
+      dialAlto = dialEl.offsetHeight;
+      const entra = libre >= 180 && dialEl.scrollWidth <= libre && dialAlto <= lp.hv + lp.subida;
+      if (!entra) {
+        dialEl.hidden = true;
+        dialEl.innerHTML = '';
+        return false;
+      }
+      puesto.delete(dialEl);
+      pintarPano();
+      return true;
+    },
     marcar(m) {
       marcas = m;
       rotEscalon.innerHTML = m.escalon ? `${pxHud('escalon', 'p-icono')}<b class="p-esc-txt">${esc(t('escalon'))}</b>${cifra(`+${m.escalon}`, 'azul')}` : '';

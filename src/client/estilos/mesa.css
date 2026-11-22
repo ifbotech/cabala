@@ -4561,38 +4561,98 @@ button.chiche:focus-visible {
     visibility: hidden;
   }
 }
-/* ───────────── 0.23: el dial del paño (chip EXACTO ↔ MÁXIMO junto a la cuenta) ───────────── */
-.chip.c-dial {
+/* ───────────── 0.24: el dial del paño es una acción con verbo y premio ───────────── */
+/* «DEJALO JUSTO / +3 de oro · +1 Multi al próximo»: marco prisma (color propio, ni el oro de GOLPEAR ni el verde del
+   veredicto), al costado derecho de lo apoyado o, si no entra, en su propio renglón al pie de la cuenta. Y del mando */
+.pano-dial {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: auto;
+}
+.pano-dial[hidden] {
+  display: none;
+}
+.pano-dial .c-dial {
+  max-width: 100%;
+}
+.btn.c-dial {
+  --kf: 1;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  cursor: pointer;
+  gap: 8px;
+  min-height: 48px;
+  padding: 2px 8px;
+  text-align: left;
+  color: #fff;
   pointer-events: auto;
-  min-height: 44px;
-  padding: 0 calc(6px * var(--k));
-  border: calc(4px * var(--k)) solid transparent;
-  border-image: var(--m-oro) 8 fill / calc(4px * var(--k)) / 0 repeat;
-  color: #1c1024;
 }
-.chip.c-dial.dial-maximo {
-  border-image-source: var(--m-hierro);
-  color: var(--hueso);
-}.chip.c-dial:hover,
-.chip.c-dial:focus-visible {
-  outline: 2px solid #7df3ff;
-  outline-offset: 2px;
-}.chip.c-dial.dial-exacto {
+.c-dial .dial-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.c-dial .dial-verbo {
+  white-space: nowrap;
+}
+.c-dial .dial-verbo {
+  font-family: var(--rot);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.06em;
+  color: #fff;
+  text-shadow: 1px 1px 0 #2a0b3d;
+}
+.c-dial .dial-premio {
+  font-family: var(--cuerpo);
+  font-size: 16px;
+  line-height: 18px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--oro);
+  text-shadow: 1px 1px 0 #1c1024;
+}
+.c-dial.dial-maximo .dial-premio {
+  color: #ff8fa8;
+}
+.c-dial .dial-sep {
+  font-style: normal;
+}
+/* (al costado del paño, cada premio en su renglón; en la cuenta, en uno solo con su «·») */
+.pano-dial .dial-premio {
+  display: flex;
+  flex-direction: column;
+}
+.pano-dial .dial-sep {
+  display: none;
+}
+.c-dial.dial-exacto {
   animation: dial-late 0.9s steps(2) infinite alternate;
 }
 @keyframes dial-late {
   100% {
-    transform: translateY(calc(-1px * var(--k)));
+    translate: 0 -2px;
   }
 }
-@media (pointer: coarse) {
-  .chip.c-dial {
-    min-height: 44px;
+@media (prefers-reduced-motion: reduce) {
+  .c-dial.dial-exacto {
+    animation: none;
   }
+}
+.c-dial-fila {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 4px;
+}
+/* (con el dial a la vista, Y es el dial: DESCARTAR apaga su glifo Y y la regla del costado lo dice) */
+html[data-entrada='mando'] .mesa.con-dial [data-accion='descartar'] > .glifo.g-y {
+  display: none;
+}
+html[data-entrada] .mesa:not(.con-dial) .pano-regla .p-mando.p-dial {
+  display: none;
 }
 /* (0.23) el Comodín espectral conserva su nombre (la regla de la 0.3 que lo escondía cuando copia ganaba: lo de arriba
    le devuelve el display); y el Comodín tapado por su vecina (mano de 8) lo lleva de canto, en su franja a la vista */
@@ -4637,4 +4697,14 @@ body.mueve-pano [data-cuenta] .cuenta.previa .c-desglose {
 }
 body.mueve-pano [data-cuenta] .cuenta.previa {
   filter: grayscale(0.8);
+}
+
+/* ───────────── 0.24 · claridad en la mesa ───────────── */
+/* a 1080p la columna de botones (Chiches, GOLPEAR, DESCARTAR) no cabía en sus 220 px y DESCARTAR se metía en el HUD:
+   toma el alto entero de la zona de la mano, apoyada abajo */
+@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+  .mesa .botones {
+    max-height: none;
+    align-self: end;
+  }
 }

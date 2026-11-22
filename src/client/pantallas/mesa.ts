@@ -90,6 +90,9 @@ export function mascaraHtml(palo: Palo): string {
   return `<div class="irr-banda mascarada" style="--aura:${AURA[palo]}"><span class="mz-par">${bufonHtml('risa', 'mz-bufon')}<span class="mz-mascara" aria-hidden="true">${pxMascara(palo)}</span></span><div class="irr-texto"><b class="titulo">${esc(tx(r.apodo))}</b><span class="sub">${esc(t('mascaraRey'))}</span></div></div>`;
 }
 
+/** Las partidas (por su semilla) en las que el Bufón ya presentó DEJALO JUSTO. */
+const dialPresentado = new Set<string>();
+
 export function pantallaMesa(p: Partida): Pantalla {
   const c = () => p.combate!;
   let mano: Mano | null = null;
@@ -118,6 +121,7 @@ export function pantallaMesa(p: Partida): Pantalla {
   /** El Chiche que el primer toque dejó listo (el segundo lo usa) y con qué se tocó la mesa por última vez. */
   let chicheListo: number | null = null;
   let ultimoPuntero = '';
+  let observaMano: ResizeObserver | null = null;
 
   // ───────────── el Bufón habla ─────────────
   function decir(texto: string, gesto: Expresion = 'reposo', ms = 3400): void {
@@ -145,6 +149,12 @@ export function pantallaMesa(p: Partida): Pantalla {
     }, ms);
   }
   const voz = (lista: readonly { es: string; en: string }[], gesto: Expresion = 'reposo') => decir(tx(alAzar(lista, enFoto() ? 0 : undefined)), gesto);
+  /** (0.24) La primera vez que aparece DEJALO JUSTO en la partida, el Bufón lo explica en un renglón. */
+  function presentarDial(): void {
+    if (dialPresentado.has(p.semilla)) return;
+    dialPresentado.add(p.semilla);
+    decir(t('bufonDial'), 'brillo', 5200);
+  }
 
   // ───────────── pintar ─────────────
   /** El Caudillo en segunda cara: si repetís la jugada, su Tajo de revés pega ×2 y atraviesa el Escudo. */
@@ -346,7 +356,7 @@ export function pantallaMesa(p: Partida): Pantalla {
   }
   /**
    * (0.23) El dial del paño: si otra manera de apoyar estas mismas cartas abate con Golpe exacto, la cuenta ofrece el
-   * chip EXACTO (un toque, R3 o X lo aplica); ya en el exacto, el chip MÁXIMO vuelve a la disposición que más pega. La
+   * dial DEJALO JUSTO (un toque, Y, R3 o X lo aplica); ya en el exacto, PEGÁ CON TODO vuelve a la disposición que más pega. La
    * cuenta siempre dice lo que hay en el paño.
    */
   function dialDe(q: Cuenta, sel: Carta[]): { postas: number[]; exacto: boolean } | null {
@@ -359,12 +369,23 @@ export function pantallaMesa(p: Partida): Pantalla {
     const ahora = postasDeSel(sel) ?? [];
     return !cuenta(p, sel, max).exacto && max.some((x, i) => x !== ahora[i]) ? { postas: max, exacto: false } : null;
   }
-  function dialHtml(q: Cuenta, sel: Carta[]): string {
-    const d = dialDe(q, sel);
+  /**
+   * (0.24) El dial es una acción con verbo y premio: «DEJALO JUSTO · +3 de oro · +2 Multi al próximo» (lo que paga el
+   * Golpe exacto, con la racha que sube) o, ya en el exacto, «PEGÁ CON TODO · +N al total». Va en Y (el mando), X (el
+   * teclado) o un toque; color propio (prisma) y fuera del renglón del veredicto.
+   */
+  function dialHtml(q: Cuenta, sel: Carta[], d: { postas: number[]; exacto: boolean } | null): string {
     if (!d) return '';
+    const multi = B.exacto.multi * Math.min(B.exacto.rachaTope, (p.racha ?? 0) + 1);
     const rot = t(d.exacto ? 'chipExacto' : 'chipMaximo');
-    return `<button class="chip c-dial ${d.exacto ? 'dial-exacto' : 'dial-maximo'}" data-accion="dial" data-tecla="x" ${tip(rot, t(d.exacto ? 'exactoTip' : 'maximoTip'))}>${glifo('R3', 'X')}${rot}</button>`;
+    const premio = d.exacto
+      ? [t('chipExactoOro', { o: B.exacto.oro }), t('chipExactoMulti', { m: multi })]
+      : [t('chipMaximoPremio', { n: Math.max(0, cuenta(p, sel, d.postas).total - q.total) })];
+    const ayuda = d.exacto ? t('exactoTip', { o: B.exacto.oro, m: multi }) : t('maximoTip');
+    return `<button class="btn marco prisma c-dial ${d.exacto ? 'dial-exacto' : 'dial-maximo'}" data-accion="dial" data-tecla="x" data-foco="dial" ${tip(rot, ayuda)}>${glifo('Y', 'X')}<span class="dial-txt"><b class="dial-verbo">${esc(rot)}</b><span class="dial-premio">${premio.map((x) => `<span>${esc(x)}</span>`).join('<i class="dial-sep" aria-hidden="true"> · </i>')}</span></span></button>`;
   }
+  /** Lo que la cuenta lleva en su propio renglón cuando el dial no entra al costado del paño. */
+  let dialEnCuenta = '';
   function cuentaHtml(q: Cuenta, sel: Carta[]): string {
     // en reposo, la zona de la cuenta dice qué hacer
     // (con mando o teclado, la pista es de botones: el CSS enseña la que toca según `html[data-entrada]`)
@@ -453,8 +474,9 @@ export function pantallaMesa(p: Partida): Pantalla {
         </span>
         ${efectos ? `<span class="c-efectos">${efectos}</span>` : ''}
       </span>
-      <span class="c-chips">${veredicto}${dialHtml(q, sel)}${q.canto ? `<span class="chip canto c-canto">${esc(tx(MAZO[p.mazoId].canto))}</span>` : ''}${q.perfora && enemigo && enemigo.escudo > 0 ? `<span class="chip azul">${t('perfora')}</span>` : ''}${destino}</span>
+      <span class="c-chips">${veredicto}${q.canto ? `<span class="chip canto c-canto">${esc(tx(MAZO[p.mazoId].canto))}</span>` : ''}${q.perfora && enemigo && enemigo.escudo > 0 ? `<span class="chip azul">${t('perfora')}</span>` : ''}${destino}</span>
       ${desglose}
+      ${dialEnCuenta ? `<span class="c-dial-fila">${dialEnCuenta}</span>` : ''}
     </div>`;
   }
   /**
@@ -485,6 +507,13 @@ export function pantallaMesa(p: Partida): Pantalla {
     const sel = seleccion();
     const q = cuentaDe(sel);
     const el = $('[data-cuenta]');
+    // (0.24) el dial: al costado del paño si entra; si no, en su renglón de la cuenta. Y lo toma mientras está
+    const d = dialDe(q, sel);
+    const dial = dialHtml(q, sel, d);
+    dialEnCuenta = dial && !mano?.dial(dial) ? dial : '';
+    if (!dial) mano?.dial('');
+    $('.mesa')?.classList.toggle('con-dial', !!dial);
+    if (d?.exacto) presentarDial();
     if (el) {
       el.innerHTML = cuentaHtml(q, sel);
       fijarAnchos(el);
@@ -2031,6 +2060,15 @@ export function pantallaMesa(p: Partida): Pantalla {
       pintarArriba();
       pintarChiches();
       arrastreChiches(raiz);
+      // (0.24) si la mano cambia de ancho (la ventana, o el mando que se lleva la zona AL DESCARTE), el dial vuelve a
+      // medir si entra al costado del paño
+      let anchoMano = zonaMano.clientWidth;
+      observaMano = new ResizeObserver(() => {
+        if (zonaMano.clientWidth === anchoMano) return;
+        anchoMano = zonaMano.clientWidth;
+        if (!ocupado && mano?.seleccion().length) pintarCuenta();
+      });
+      observaMano.observe(zonaMano);
       const nuevo = c().turno === 1 && c().golpes === 0 && c().descartes >= B.jugador.descartes - (p.reinado >= 5 ? 1 : 0);
       const repartir = () => {
         mano?.poner(c().mano, nuevo ? centro($('[data-accion="ver-mazo"]', raiz)) : undefined);
@@ -2069,6 +2107,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     },
     alSalir: () => {
       document.removeEventListener('pointermove', seguir);
+      observaMano?.disconnect();
       ponerFuego(false);
       clearTimeout(vozReloj);
       mano?.destruir();

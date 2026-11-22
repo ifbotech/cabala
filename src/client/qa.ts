@@ -39,6 +39,7 @@ export const ESTADOS = [
   'mesa-chispa', 'mesa-escalon', 'mesa-postas-arrastre', 'mesa-chiches', 'mesa-chiche-usa', 'mesa-prenda', 'pulperia-chiches', 'rey-mascara', 'mesa-escudo-mando',
   'evolucion-jackpot', 'hud-evolucion', 'oferta-evoluciona', 'forja-brava', 'cabala-negra', 'mapa-tesoro', 'botin-tesoro',
   'altar-devolver', 'resumen-victoria', 'resumen-derrota', 'mesa-exacto', 'fogon-mutaciones', 'hud-evolucion-foco',
+  'mesa-dejalo-justo', 'resumen-derrota-movil', 'forja-brava-eleccion',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
 /** Estados que solo tienen sentido en vivo (`&vivo`, para las secuencias del Jurado): no entran en la QA visual. */
@@ -362,6 +363,7 @@ export function montarQa(estado: string): void {
       if (estado === 'mesa-prenda') void mesa.prenda('dado');
       break;
     }
+    case 'mesa-dejalo-justo':
     case 'mesa-exacto': {
       // (0.23) el dial del paño: lo elegido, acomodado al máximo, sobra; otra manera de apoyarlo abate justo (chip EXACTO)
       const p = partida(mazo, (x) => enCombate(x));
@@ -398,6 +400,8 @@ export function montarQa(estado: string): void {
       montar(p);
       const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
       if (mesa && elegidas.length) mesa.mano.elegir(elegidas.map((k) => k.id));
+      // (0.24) con el mando: DEJALO JUSTO lleva la Y (y DESCARTAR la apaga); el Bufón lo presenta
+      if (estado === 'mesa-dejalo-justo') document.documentElement.dataset.entrada = 'mando';
       break;
     }
     case 'fogon':
@@ -436,6 +440,7 @@ export function montarQa(estado: string): void {
       $<HTMLElement>(`[data-accion="abrir"][data-i="${p.botin!.items.indexOf(it!)}"]`)?.click();
       break;
     }
+    case 'forja-brava-eleccion':
     case 'fogon-mutaciones': {
       // (0.23) el naipe Templado (dos pasadas) y la tercera a elegir: las dos mutaciones a la vista, con efecto y costo
       const p = partida(mazo, (x) => x.fase === 'fogon', 'QA', undefined, 'fogon');
@@ -509,6 +514,7 @@ export function montarQa(estado: string): void {
       break;
     }
     case 'resumen-derrota':
+    case 'resumen-derrota-movil':
     case 'fin-derrota': {
       let p: Partida | null = null;
       for (let i = 0; i < 40 && (!p || p.fin?.victoria); i++) p = partida('truco', (x) => x.fase === 'fin', `QA${i}`, {});

@@ -227,13 +227,15 @@ export function iniciarNav(): void {
       if (recien(0)) activar();
       if (recien(1)) atras();
       if (recien(2)) atajo('g');
-      if (recien(3)) atajo('d');
+      // (0.24) Y: con DEJALO JUSTO (o PEGÁ CON TODO) a la vista, lo aplica; si no, descarta. El glifo Y de DESCARTAR se
+      // apaga mientras tanto (R3 y la X del teclado siguen siendo el dial)
+      if (recien(3) && !atajo('x')) atajo('d');
       // LB / RB: con una carta del paño enfocada, la corren de Posta; si no, saltan entre la mano y los botones
       if (recien(4) && !correrPosta(-1)) saltar(false);
       if (recien(5) && !correrPosta(1)) saltar(true);
       // L3: el foco va a la bandeja de Chiches (y de ahí, A lo usa)
       if (recien(10)) irAChiches();
-      // (0.23) R3: el dial del paño (EXACTO ↔ MÁXIMO), cuando la cuenta lo ofrece
+      // (0.23) R3: el dial del paño (DEJALO JUSTO ↔ PEGÁ CON TODO), cuando la cuenta lo ofrece
       if (recien(11)) atajo('x');
       if (recien(6)) atajo('e');
       if (recien(7)) alternar('ver-piezas', '.piezas');
