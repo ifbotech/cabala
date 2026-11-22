@@ -442,6 +442,21 @@ function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[
       if (S.bottom > V.bottom + 1 || S.top < V.top - 1) fallos.push({ regla: 'oferta-sin-aviso', detalle: `SALTAR no se ve sin deslizar (${Math.round(S.top)} → ${Math.round(S.bottom)} en un velo de ${Math.round(V.top)} → ${Math.round(V.bottom)})` });
     }
   }
+  // (0.28) «placa-cara»: en el teléfono, la placa TE PEGA no pisa la CARA del enemigo (la caja del sombrero y el rostro
+  // de la figura: del 30 al 70 % del ancho del naipe y del 12 al 33 % de su alto), con cualquier alto de escena
+  if (esMovil && !document.querySelector('#capa .velo, .cortina, .mesa.cobra')) {
+    const naipe = document.querySelector('.mesa [data-carta]');
+    const placa = document.querySelector('.mesa .e-ataque');
+    const centroE = document.querySelector('.mesa .e-centro');
+    if (naipe && placa && centroE && visible(placa) && visible(naipe)) {
+      const n = naipe.getBoundingClientRect();
+      const c = centroE.getBoundingClientRect();
+      const p = placa.getBoundingClientRect();
+      const cara = { l: n.left + n.width * 0.3, r: n.left + n.width * 0.7, t: n.top + n.height * 0.12, b: Math.min(n.top + n.height * 0.33, c.bottom) };
+      if (cara.b - cara.t > 8 && Math.min(p.right, cara.r) - Math.max(p.left, cara.l) > 2 && Math.min(p.bottom, cara.b) - Math.max(p.top, cara.t) > 2)
+        fallos.push({ regla: 'placa-cara', detalle: `la placa TE PEGA (${Math.round(p.left)},${Math.round(p.top)} → ${Math.round(p.right)},${Math.round(p.bottom)}) tapa la cara del enemigo (${Math.round(cara.l)},${Math.round(cara.t)} → ${Math.round(cara.r)},${Math.round(cara.b)})` });
+    }
+  }
   // (0.28) «jugada-sin-nombre»: con una jugada válida elegida, su NOMBRE (Par, Escalera, Pierna…) está a la vista en la
   // cuenta: en su chip, en su casilla del renglón plegado del teléfono o en su término del desglose. En ninguna
   // ventana ni con ningún alto se elige a ciegas

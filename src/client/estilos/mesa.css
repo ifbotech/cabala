@@ -6299,3 +6299,85 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
     display: none;
   }
 }
+
+/* ───────────── 0.28 · la placa TE PEGA no tapa la cara del enemigo ─────────────
+   con la escena baja del teléfono, la placa de un renglón arranca al 70 % del ancho del naipe (pasada la cara, que va
+   al centro) y sigue hacia la derecha, por fuera del naipe: del enemigo se ve su índice, su sombrero y su cara */
+@media (max-width: 700px) {
+  @container escena (max-height: 176px) {
+    .mesa .enemigo .e-ataque,
+    .mesa:has(.corte .corte-carta) .enemigo .e-ataque {
+      justify-self: start;
+      translate: calc(70px * var(--k-enemigo)) 0;
+      white-space: nowrap;
+    }
+  }
+}
+@media (max-width: 700px) {
+  @container escena (max-height: 176px) {
+    /* (y en UN renglón, con su causa al lado: «19 🛡−4»; así no sube hasta la pila de La Corte) */
+    .mesa .enemigo .e-ataque:has(.e-neto:not([hidden])),
+    .mesa:has(.corte .corte-carta) .enemigo .e-ataque:has(.e-neto:not([hidden])) {
+      flex-wrap: nowrap;
+    }
+    .mesa .enemigo .e-ataque .e-neto:not([hidden]) {
+      flex-basis: auto;
+    }
+  }
+}
+@media (max-width: 700px) {
+  @container escena (max-height: 176px) {
+    .mesa .enemigo .e-ataque .e-golpe {
+      flex-direction: row;
+      align-items: center;
+      gap: 3px;
+    }
+    .mesa .enemigo .e-ataque .e-neto,
+    .mesa .enemigo .e-ataque .e-neto[hidden] {
+      min-height: 0;
+    }
+    .mesa .enemigo .e-ataque .e-neto[hidden] {
+      display: none;
+    }
+  }
+}
+@media (max-width: 700px) {
+  @container escena (max-height: 176px) {
+    .mesa .enemigo .e-ataque .e-golpe {
+      display: inline-flex;
+    }
+  }
+}
+@media (max-width: 700px) {
+  @container escena (max-height: 176px) {
+    /* (sin el emblema ni el chip de la Furia —ya va sumada en la cifra—: la cifra roja y lo que frena tu Escudo) */
+    .mesa .enemigo .e-ataque > .icono,
+    .mesa .enemigo .e-ataque .e-furia {
+      display: none;
+    }
+  }
+}
+@media (max-width: 700px) {
+  @container escena (max-height: 176px) {
+    .mesa .enemigo .e-ataque,
+    .mesa:has(.corte .corte-carta) .enemigo .e-ataque {
+      height: 28px;
+      padding: 0 4px;
+    }
+    .mesa .enemigo .e-ataque .e-neto .neto-corto .px,
+    .mesa .enemigo .e-ataque .e-neto .neto-corto .icono {
+      margin-top: -6px;
+      margin-bottom: -6px;
+    }
+  }
+}
+@media (max-width: 700px) {
+  /* (y con la escena a media altura —la mano de 8 en reposo—, la placa en columna también arranca pasada la cara) */
+  @container escena (min-height: 177px) and (max-height: 250px) {
+    .mesa .enemigo .e-ataque,
+    .mesa:has(.corte .corte-carta) .enemigo .e-ataque {
+      justify-self: start;
+      translate: calc(70px * var(--k-enemigo)) 0;
+    }
+  }
+}
