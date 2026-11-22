@@ -4448,3 +4448,37 @@ button.visor-carta:disabled {
     filter: hue-rotate(220deg) saturate(1.4);
   }
 }
+/* (en inglés los nombres son más largos: en 1366 y en 1080p los naipes se ensanchan un poco más, y ELEGÍ UNA no baja al HUD) */
+@media (min-width: 1360px) and (max-height: 820px) {
+  .velo.sobre-hud .opciones > .opcion {
+    width: 372px;
+  }
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  .velo.sobre-hud .opciones > .opcion {
+    width: 440px;
+  }
+}
+/* (y en las ventanas bajas, el rótulo «EL CAUDAL · NIVEL 1» y el nombre van un punto más chicos: un renglón cada uno) */
+@media (min-width: 1100px) and (max-height: 820px) {
+  .velo.sobre-hud .opcion .op-clase {
+    font-size: 18px;
+  }
+  .velo.sobre-hud .opcion .op-nombre {
+    font-size: 20px;
+  }
+}
+/* (en inglés la regla de la mutación es más larga: en el teléfono las dos tarjetas se aprietan un poco y SEGUIR no baja
+   hasta el pozo del HUD) */
+@media (max-width: 700px) {
+  .forja-elige {
+    row-gap: 8px;
+  }
+  .opcion.forja-mut {
+    padding: 6px 8px;
+    row-gap: 2px;
+  }
+  .forja-mut .fm-desc {
+    padding-block: 2px;
+  }
+}
