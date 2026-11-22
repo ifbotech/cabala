@@ -4612,3 +4612,29 @@ button.chiche:focus-visible {
   left: calc(2px * var(--k-naipe, 1));
   transform: none;
 }
+/* (0.23) el Tajo de revés cuando pega: el 48 se dice una vez. La fórmula («24 ×2 = 48») la dice el rótulo, bajo la
+   barra de Vida del Rey (nunca sobre su cara); la placa TE PEGA solo late, sin su causa; la causa del chip de la
+   cuenta se va; en el teléfono la placa entera cede su lugar al rótulo */
+.mesa.tajo-cae .e-ataque.tajo .e-tajo,
+.mesa.tajo-cae .e-ataque.tajo .e-base,
+.mesa.tajo-cae .cuenta .chip.c-tajo .c-tajo-x {
+  display: none;
+}
+.rey-rotulo.rr-bajo {
+  position: fixed;
+  translate: -50% 0;
+  z-index: 60;
+}
+@media (max-width: 700px) {
+  .mesa.tajo-cae .e-ataque {
+    visibility: hidden;
+  }
+}
+/* (0.23) un naipe sale del paño a otra Posta: la cuenta del acomodo de antes («Medio +6») queda en suspenso hasta
+   soltarlo (el desglose se calla y la fórmula se apaga a gris) */
+body.mueve-pano [data-cuenta] .cuenta.previa .c-desglose {
+  visibility: hidden;
+}
+body.mueve-pano [data-cuenta] .cuenta.previa {
+  filter: grayscale(0.8);
+}

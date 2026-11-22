@@ -34,7 +34,7 @@ import type { AumentoId } from '../../rules/aumentos';
 import type { BendicionId } from '../../rules/reyes';
 import { CHICHE_CORTO, JUGADA_NOMBRE, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_AYUDA, PASO_NOMBRE, RANGO_NOMBRE, RASGO_CORTA, SEGUNDA_BURLA, SEGUNDA_CORTA, TRAMO_NOMBRE } from '../textos';
 import { ENSENANZA, GRITO, VOZ } from '../voces';
-import { $, bufonHtml, esc, fichaDe, gestoBufon, reyHtml, tip, type Pantalla } from '../ui';
+import { $, bufonHtml, esc, fichaDe, gestoBufon, ocultarTip, reyHtml, tip, type Pantalla } from '../ui';
 import { glifo, porTeclado } from '../nav';
 import { pausa, quieto } from '../ritmo';
 import { accionesComunes, calentarOfertas, modalJugadas, textoGlosario } from './camino';
@@ -1123,17 +1123,30 @@ export function pantallaMesa(p: Partida): Pantalla {
    * Un rótulo corto sobre el naipe del Rey cuando hace lo suyo («FORTÍN +78», «REMATE −12 de oro», «ÚLTIMA RONDA
    * +30»): el nombre de lo que disparó y su cifra. Con «Reducir movimiento» aparece quieto y se va igual.
    */
-  function rotuloRey(nombre: string, valor: string, tono: 'azul' | 'verde' | 'oro' | 'roja', extra = '', antes = ''): void {
+  function rotuloRey(nombre: string, valor: string, tono: 'azul' | 'verde' | 'oro' | 'roja', extra = '', antes = '', bajo = false): void {
     if (enFoto()) return;
     const zona = $('[data-enemigo] .e-centro');
     if (!zona) return;
     zona.querySelector('.rey-rotulo')?.remove();
     const r = document.createElement('div');
-    r.className = `rey-rotulo rr-${tono}`;
+    r.className = `rey-rotulo rr-${tono}${bajo ? ' rr-bajo' : ''}`;
     r.setAttribute('role', 'status');
     r.innerHTML = `<b class="rotulo">${esc(nombre)}</b><span class="rr-valor">${antes ? `<span class="rr-extra rr-antes">${esc(antes)}</span>` : ''}${valor ? cifra(valor, tono, 'grande') : ''}${extra ? `<span class="rr-extra">${esc(extra)}</span>` : ''}</span>`;
     zona.append(r);
     const ms = quieto() ? 1800 : 1500;
+    // (0.23) el del Tajo va por debajo de la barra de Vida del Rey: nunca sobre su cara
+    // (va en la capa de arriba: dentro del naipe, la cuenta de abajo lo tapaba)
+    if (bajo) {
+      const barras = $('[data-enemigo] .e-barras')?.getBoundingClientRect();
+      const capa = $('#capa');
+      if (barras && barras.height > 0 && capa) {
+        capa.append(r);
+        r.style.left = `${Math.round(barras.left + barras.width / 2)}px`;
+        r.style.top = `${Math.round(barras.bottom + 6)}px`;
+      }
+      window.setTimeout(() => r.remove(), ms);
+      return;
+    }
     // en su lugar de siempre (bajo la cara); si ahí vuela el número de tu golpe, más arriba o al pie
     // (y si es más ancho que el naipe y pisa los sellos de la izquierda, corrido hacia la derecha)
     const alts: (() => void)[] = [];
@@ -1237,20 +1250,35 @@ export function pantallaMesa(p: Partida): Pantalla {
       () => v.remove(),
     );
   }
+  /**
+   * (0.23) Adónde va el Dado: al canto de arriba de la cuenta, a la izquierda (su estallido no tapa la pista «LB RB
+   * corre de Posta» que está en el medio de la cuenta en reposo).
+   */
+  function bordeCuenta(): { x: number; y: number } {
+    const r = ($('[data-cuenta] .cuenta') ?? $('[data-cuenta]'))?.getBoundingClientRect();
+    if (!r || !r.width) return centro($('[data-cuenta]'));
+    return { x: r.left + Math.min(60, r.width * 0.15), y: r.top };
+  }
   /** Usa el Chiche del hueco `i`: no gasta el turno. Lo que no se puede usar ahora (la Ginebra con la Vida llena) se niega. */
   async function usarChiche(i: number): Promise<void> {
     if (ocupado || !p.combate) return;
     const boton = $<HTMLElement>(`[data-chiches] button.chiche[data-i="${i}"]`);
     const id = huecosChiche(p.chiches)[i];
     if (!id) return;
-    const evs = juego.usarChiche(p, i);
+    // (0.23) el Fósforo sin naipes del palo Inmune en la mano no quemaría nada: se niega, como la Ginebra con la Vida
+    // llena, y el Bufón dice por qué (el Chiche se guarda)
+    const enVano = id === 'fosforo' && !!enemigo && !c().mano.some((k) => k.palo === enemigo!.palo);
+    const evs = enVano ? [] : juego.usarChiche(p, i);
     if (!evs.length) {
       sonar('error');
       boton?.classList.remove('niega');
       void boton?.offsetWidth;
       boton?.classList.add('niega');
+      if (enVano) decir(t('fosforoNada'), 'burla');
       return;
     }
+    // (la ayuda del Chiche no se queda abierta durante lo que hace)
+    ocultarTip();
     ocupado = true;
     mano?.bloquear(true);
     // (cada Chiche con su sonido)
@@ -1259,7 +1287,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     boton?.classList.add('usado');
     // cada uno va a lo suyo: la Ginebra a tu Vida, el Dado y el Fósforo al enemigo, la Tiza y el Poroto a la mano
     // (el Dado, a la cuenta: ahí se lee «MULTI +3»)
-    const a = id === 'ginebra' ? centro($('[data-hud-vida]')) : id === 'dado' ? centro($('[data-cuenta]')) : id === 'fosforo' ? centro($('[data-carta]')) : centro($('[data-mano]'));
+    const a = id === 'ginebra' ? centro($('[data-hud-vida]')) : id === 'dado' ? bordeCuenta() : id === 'fosforo' ? centro($('[data-carta]')) : centro($('[data-mano]'));
     await volarChiche(id, de, a);
     if (id === 'dado') dadoArmado = true;
     if (!quieto() && (id === 'fosforo' || id === 'dado')) {
@@ -1431,7 +1459,13 @@ export function pantallaMesa(p: Partida): Pantalla {
       // (el cartel pide su turno al director de escena: el número que está en el aire no se apaga)
       sonar('deguello');
       const k = B.reyes.S.deguello;
-      rotuloRey(tx(REY_DEF.S.segunda), String(n), 'roja', '', `${Math.round(n / k)} ×${k} =`);
+      // (0.23) el golpe es del Rey: el número de tu golpe se apaga (como en la segunda cara), la placa TE PEGA solo late
+      // (no repite la fórmula, que dice el rótulo) y en el teléfono el rótulo la reemplaza; el chip de la cuenta, igual
+      limpiarNumeros(true);
+      const m = $('.mesa');
+      m?.classList.add('tajo-cae');
+      window.setTimeout(() => m?.classList.remove('tajo-cae'), quieto() ? 1800 : 1500);
+      rotuloRey(tx(REY_DEF.S.segunda), String(n), 'roja', '', `${Math.round(n / k)} ×${k} =`, true);
       if (!quieto()) {
         tajoDeReves(en.x, en.y, w * 0.75);
         fogonazo('palo', '#ff1453');
@@ -1883,6 +1917,8 @@ export function pantallaMesa(p: Partida): Pantalla {
       return;
     }
     if (q.dano === 0 && enemigo && sel.every((k) => k.palo === enemigo!.palo || k.palo === 'X')) voz(VOZ.inmune, 'burla');
+    // (0.23) la ayuda abierta (de un Chiche, del rasgo del Rey) se cierra: el golpe se ve limpio
+    ocultarTip();
     ocupado = true;
     $('.mesa')?.classList.add('ocupada');
     mano?.bloquear(true);

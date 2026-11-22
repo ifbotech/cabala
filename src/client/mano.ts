@@ -687,7 +687,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     const { zona, ids, tactil, previa, lejos, origen, posta } = arrastre;
     arrastre = null;
     raiz.classList.remove('arrastrando');
-    document.body.classList.remove('arrastrando');
+    document.body.classList.remove('arrastrando', 'mueve-pano');
     oye.alApuntar(null, ids);
     // a otra Posta del paño: la carta tomada cambia de lugar (si venía de la mano, se suma a lo que ya estaba elegido)
     if (jugar && !zona && posta >= 0 && !bloqueada) {
@@ -716,6 +716,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       // sin captura: los eventos siguen llegando a la mano mientras el puntero esté encima
     }
   };
+  let desdePano = false;
   const mueve = (ev: PointerEvent) => {
     cursor = { x: ev.clientX, y: ev.clientY };
     if (!presion || ev.pointerId !== presion.puntero) return;
@@ -735,6 +736,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       arrastre = { ids: elegidas(), dx: presion.x - caja.left - c.x, dy: presion.y - caja.top - c.y, x: ev.clientX, y: ev.clientY, zona: null, tactil: ev.pointerType === 'touch', alza: 0, previa, lejos: 0, origen: c.carta.id, posta: -1 };
       raiz.classList.add('arrastrando');
       document.body.classList.add('arrastrando');
+      desdePano = previa.includes(c.carta.id);
     }
     arrastre.x = ev.clientX;
     arrastre.y = ev.clientY;
@@ -748,6 +750,9 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       arrastre.posta = posta;
       if (posta >= 0 && arrastre.tactil) vibrar();
     }
+    // (0.23) lo que sale del paño sin apuntar al enemigo deja la cuenta (que dice el acomodo de antes, «Medio +6») en
+    // suspenso hasta soltarlo
+    document.body.classList.toggle('mueve-pano', desdePano && !zona);
     if (zona !== arrastre.zona) {
       arrastre.zona = zona;
       oye.alApuntar(zona, arrastre.ids);
@@ -931,13 +936,14 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     },
     arrastrarA(id, posta) {
       haciaPosta = { id, posta };
+      document.body.classList.add('mueve-pano');
       const el = slots[posta];
       el?.classList.add('apunta');
       pano.classList.add('activo');
     },
     destruir() {
       viva = false;
-      document.body.classList.remove('arrastrando');
+      document.body.classList.remove('arrastrando', 'mueve-pano');
       raiz.removeEventListener('pointerdown', abajo);
       raiz.removeEventListener('pointermove', mueve);
       raiz.removeEventListener('pointerup', arriba);

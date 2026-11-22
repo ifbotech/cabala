@@ -345,6 +345,12 @@ export function montarQa(estado: string): void {
       // mejor jugada elegida; y la Prenda: un Dado Cargado que vuela del caído a su hueco
       const p = partida(mazo, (x) => enCombate(x));
       p.chiches = estado === 'mesa-prenda' ? ['ginebra', 'dado', null] : ['ginebra', 'dado', 'fosforo'];
+      // (0.23) el Fósforo sin naipes del palo Inmune se niega: la foto le da uno (en lugar del último de la mano)
+      if (estado === 'mesa-chiche-usa') {
+        const c = p.combate!;
+        const palo = c.fila[0].palo;
+        if (!c.mano.some((k) => k.palo === palo)) c.mano[c.mano.length - 1] = { id: 'qa-inmune', palo, n: 5 };
+      }
       montar(p);
       const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void }; usarChiche(i: number): Promise<void>; prenda(id: string): Promise<void> } }).__mesa;
       if (!mesa) break;

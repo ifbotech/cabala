@@ -393,7 +393,9 @@ function ubicarGrito(b: HTMLElement): void {
   const enAire = tomadas(turnoGrito).map((c) => ({ c: { left: c.x, top: c.y, right: c.x + c.w, bottom: c.y + c.h } as DOMRect, peso: 1e4 }));
   // (0.20) en el Botín del teléfono, una pieza por elegir es tan intocable como un botón: el grito no la tapa nunca
   const botinTel = innerWidth <= 700 && !!document.querySelector('#app main.botin:not(.directo)');
-  const prohibidas = [...cajas(ZONAS_SIN_GRITO, 1e6), ...(botinTel ? cajas('#app .botin-fila.pendiente', 1e6) : []), ...enAire, ...cajas(ZONAS_MEJOR_NO, 1)];
+  // (0.23) en el teléfono, GOLPEAR y DESCARTAR son la barra del pulgar: ni apagados se tapan («STR…» se leía a medias)
+  const pulgar = innerWidth <= 700 ? cajas('#app [data-accion="golpear"], #app [data-accion="descartar"]', 1e6) : [];
+  const prohibidas = [...cajas(ZONAS_SIN_GRITO, 1e6), ...pulgar, ...(botinTel ? cajas('#app .botin-fila.pendiente', 1e6) : []), ...enAire, ...cajas(ZONAS_MEJOR_NO, 1)];
   // (corta apenas supera lo que tapa el mejor hueco hallado: la búsqueda entera cabe en un par de milisegundos)
   const tapa = (x: number, y: number, tope: number): number => {
     let a = 0;
