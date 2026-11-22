@@ -10,6 +10,7 @@ import type { Partida, TipoOferta } from '../rules/estado';
 import { BENDICION, REY_DEF } from '../rules/reyes';
 import type { BendicionId } from '../rules/reyes';
 import { sinergia } from '../rules/notas';
+import { EVOLUCION, despierta } from '../rules/evoluciones';
 import { ajustes, t, tx } from './almacen';
 import { bufonCapas, type Expresion } from './pixel/bufon';
 import { REY_PX, reyFondo, reyMapa, type Animo } from './pixel/reyes';
@@ -308,6 +309,12 @@ export function fichaDe(tipo: TipoOferta, id: string, p?: Partida): FichaPieza {
 
 /** La etiqueta «★ SINERGIA» de una pieza, con su micro-línea, si potencia tu Mazo o lo que ya llevás (si no, nada). */
 export function sinergiaHtml(tipo: TipoOferta, id: string, p?: Partida): string {
+  // (0.22) lo que despierta una Evolución lleva el sello «★ EVOLUCIONA» (manda sobre la sinergia: es más que eso)
+  const de = p ? despierta(p, tipo, id) : null;
+  if (de) {
+    const nombre = tx(EVOLUCION[de].nombre);
+    return `<span class="sinergia-caja evoluciona" ${tip(`${t('evolucionTitulo')}: ${nombre}`, tx(EVOLUCION[de].desc), t('evolucionaTip', { e: nombre }))}><span class="chip sello-evo">${pxEstrella()} ${t('evoluciona')}</span><span class="micro">${esc(nombre)}</span></span>`;
+  }
   const s = p ? sinergia(p, tipo, id) : null;
   return s ? `<span class="sinergia-caja"><span class="chip sinergia">${pxEstrella()} ${t('sinergia')}</span><span class="micro">${esc(tx(s))}</span></span>` : '';
 }

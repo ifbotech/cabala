@@ -15,6 +15,7 @@ import { B } from '../rules/balance';
 import { BENDICION, REY_DEF } from '../rules/reyes';
 import type { BendicionId } from '../rules/reyes';
 import { ajustes, t, tx } from './almacen';
+import { EVOLUCION, esEvolucionable, evoluciono } from '../rules/evoluciones';
 import { enFoto } from './fx/motor';
 import { cajaDe, reservar, soltar, tomadas } from './fx/director';
 import type { Cuadro, Gesto, Herida, Mirada } from './pixel/personajes';
@@ -49,6 +50,11 @@ function tiras(p: Partida): string {
   // solo lo que llevás (los huecos libres se cuentan en «LO QUE LLEVÁS»: un cuadro vacío parecía un error de carga)
   const amuletos = p.amuletos.map((id) => {
     const d = AMULETO[id];
+    // (0.22) el Amuleto que evolucionó va prismático y su ayuda dice en qué se volvió
+    if (esEvolucionable(id) && evoluciono(p, id)) {
+      const ev = EVOLUCION[id];
+      return `<span class="ficha evolucion" data-pieza="a:${id}" ${tip(tx(ev.nombre), tx(ev.desc), `${t('evolucionTitulo')} · ${tx(d.nombre)}`)}>${pxAmuleto(id, 'prisma')}</span>`;
+    }
     return `<span class="ficha" data-pieza="a:${id}" ${tip(tx(d.nombre), tx(d.desc), tx(RAREZA_NOMBRE[d.rareza]))}>${pxAmuleto(id)}</span>`;
   }).join('');
   const aumentos = p.aumentos

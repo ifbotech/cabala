@@ -29,6 +29,7 @@ import { CHICHE, huecosChiche } from '../../rules/chiches';
 import { lienzoNaipe, cifra, pxChiche, pxAmuleto, pxAumento, pxBendicion, pxHud, pxInmune, pxMitades, pxNaipe, pxNaipeSegunda, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
 import { naipeMapa } from '../pixel/naipes';
 import { personajeMapa } from '../pixel/personajes';
+import { vigilarEvoluciones } from '../evolucion';
 import { JUGADA_COMO, JUGADA_NOMBRE, NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_AYUDA, PASO_NOMBRE, TRAMO_NOMBRE } from '../textos';
 import { VOZ } from '../voces';
 import { bufonDice } from '../bufon-vivo';
@@ -443,11 +444,14 @@ function modalOferta(p: Partida, indice: number, alTerminar: () => void): void {
       elegir: (el) => {
         const id = el.dataset.id!;
         const tomar = (reemplaza?: AmuletoId) => {
+          // (0.22) si la pieza despierta una Evolución, salta el jackpot (cualquier entrada lo corta)
+          const fiesta = vigilarEvoluciones(p);
           if (!juego.elegirOferta(p, indice, id, reemplaza)) return;
           sonar(oferta.tipo === 'bendicion' ? 'canto' : 'oro');
           cerrarModal();
           alTerminar();
           bufonDice(tx(alAzar(VOZ.elige)));
+          void fiesta();
         };
         if (oferta.tipo === 'amuleto' && p.amuletos.length >= p.huecos) modalReemplazo(p, id as AmuletoId, tomar, () => modalOferta(p, indice, alTerminar));
         else tomar();
@@ -700,7 +704,9 @@ export function pantallaPulperia(p: Partida): Pantalla {
           return;
         }
         const hacer = (reemplaza?: AmuletoId) => {
+          const fiesta = vigilarEvoluciones(p);
           if (!juego.comprar(p, i, reemplaza)) return;
+          void fiesta();
           ver(perfil, clavePieza('amuleto', a.id));
           decir(VOZ.compra, 'risa');
           sonar('oro');
