@@ -1,5 +1,5 @@
 # CÁBALA — Reglas
-> Versión 0.23.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
+> Versión 0.24.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
 
 *Todo es cuestión de cábala.* Roguelike de baraja española para un jugador. Elegís un Mazo, el Bufón te lleva por tres tramos de caminos y al fondo de cada uno te espera un Rey. Tu mano contra la Corte: cada golpe es **DAÑO × MULTI**.
 
@@ -210,7 +210,7 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 
 | Mazo | Personaje | Vida · mano | Regla estrella | Se abre con |
 |---|---|---|---|---|
-| **Escoba** · Escoba del 15 | La Barrendera | 72 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×3 y más Daño para siempre. | abierto desde el principio |
+| **Escoba** · Escoba del 15 | La Barrendera | 74 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×3 y más Daño para siempre. | abierto desde el principio |
 | **Truco** · Envido y Bravas | El Paisano Bravo | 61 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
 | **Chinchón** · Pierna y Escalera | La Timbera del Club | 27 · 7 | Piernas y Escaleras de palo crecen siempre y te cubren. | Vencé a un Rey. |
 | **El Mentiroso** · Cara de Piedra | El Chamuyero | 17 · 8 | Comodines, Escudo de entrada y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
