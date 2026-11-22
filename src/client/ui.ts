@@ -15,7 +15,8 @@ import { ajustes, t, tx } from './almacen';
 import { bufonCapas, type Expresion } from './pixel/bufon';
 import { REY_PX, reyFondo, reyMapa, type Animo } from './pixel/reyes';
 import { avivar, esfumar } from './bufon-vivo';
-import { px, pxEstrella, pxInmune } from './sprites';
+import { px, pxEstrella, pxEvolucion, pxInmune } from './sprites';
+import { EVO_GANA } from './textos';
 
 export type Accion = (el: HTMLElement, ev: Event) => void;
 
@@ -313,7 +314,7 @@ export function sinergiaHtml(tipo: TipoOferta, id: string, p?: Partida): string 
   const de = p ? despierta(p, tipo, id) : null;
   if (de) {
     const nombre = tx(EVOLUCION[de].nombre);
-    return `<span class="sinergia-caja evoluciona" ${tip(`${t('evolucionTitulo')}: ${nombre}`, tx(EVOLUCION[de].desc), t('evolucionaTip', { e: nombre }))}><span class="chip sello-evo">${pxEstrella()} ${t('evoluciona')}</span><span class="micro">${esc(nombre)}</span></span>`;
+    return `<span class="sinergia-caja evoluciona" ${tip(`${t('evolucionTitulo')}: ${nombre}`, tx(EVOLUCION[de].desc), t('evolucionaTip', { e: nombre }))}><span class="chip sello-evo">${pxEstrella()} ${t('evoluciona')}</span><span class="micro">${pxEvolucion(de, 'evo-mini')}${esc(nombre)}</span><b class="micro evo-gana">+ ${esc(tx(EVO_GANA[de]))}</b></span>`;
   }
   const s = p ? sinergia(p, tipo, id) : null;
   return s ? `<span class="sinergia-caja"><span class="chip sinergia">${pxEstrella()} ${t('sinergia')}</span><span class="micro">${esc(tx(s))}</span></span>` : '';

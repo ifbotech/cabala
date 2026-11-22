@@ -3338,44 +3338,21 @@ button.visor-carta:disabled {
 
 /* ───────────── 0.22: las Evoluciones (jackpot, ficha prismática y sello «★ EVOLUCIONA») ───────────── */
 
-/* el aro prismático: cuatro tintas de palo alrededor del icono (quieto: nada de filtros) */
-.px.prisma {
-  box-shadow:
-    0 calc(-2px * var(--k)) 0 var(--oro),
-    calc(2px * var(--k)) 0 0 var(--cian),
-    0 calc(2px * var(--k)) 0 var(--carmesi),
-    calc(-2px * var(--k)) 0 0 var(--lima);
-}
-.d-i.prisma {
-  box-shadow:
-    0 -1px 0 var(--oro),
-    1px 0 0 var(--cian),
-    0 1px 0 var(--carmesi),
-    -1px 0 0 var(--lima);
-}
+/* (0.23) la ficha despierta: su propio dibujo dentro del marco prismático de 9 trozos (el de la Cábala de oro), a media
+   escala para que entre en la ficha de 32 */
 .ficha.evolucion {
-  box-shadow:
-    inset 0 calc(2px * var(--k)) 0 var(--oro),
-    inset calc(-2px * var(--k)) 0 0 var(--cian),
-    inset 0 calc(-2px * var(--k)) 0 var(--carmesi),
-    inset calc(2px * var(--k)) 0 0 var(--lima);
-  background: #24112b;
-}
-.ficha.evolucion .px.prisma {
+  border-image: var(--m-prisma) 8 fill / calc(4px * var(--k)) / 0 repeat;
+  image-rendering: pixelated;
   box-shadow: none;
+  background: none;
 }
 .chip.sello-evo {
-  --mi: var(--m-prisma);
   font-family: var(--rot);
   font-size: var(--fr);
   color: var(--oro);
-  background: var(--abismo);
-  box-shadow:
-    inset 0 2px 0 var(--oro),
-    inset -2px 0 0 var(--cian),
-    inset 0 -2px 0 var(--carmesi),
-    inset 2px 0 0 var(--lima);
-  padding: 2px 8px;
+  border-image: var(--m-prisma) 8 fill / calc(4px * var(--k)) / 0 repeat;
+  image-rendering: pixelated;
+  padding: calc(3px * var(--k)) calc(8px * var(--k));
   white-space: nowrap;
 }
 .sinergia-caja.evoluciona .micro {
@@ -3412,10 +3389,86 @@ button.visor-carta:disabled {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+/* «antes → después»: el Amuleto de siempre tiembla y se apaga; su forma despierta entra al doble y se queda */
+.evo-cambio {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.75);
+}
+.evo-antes {
+  --k: var(--k2);
+  line-height: 0;
+  animation: evo-apaga 0.3s steps(3) forwards;
+}
+.evo-flecha {
+  font-style: normal;
+  font-size: var(--fs-l);
+  color: var(--oro);
+}
 .evo-icono {
   --k: var(--kd);
   line-height: 0;
-  padding: calc(4px * var(--kd));
+  padding: calc(2px * var(--kd));
+  animation: evo-brota 0.24s steps(3) 0.22s backwards;
+}
+.evo-jackpot.quieto .evo-antes,
+.evo-jackpot.quieto .evo-icono {
+  animation: none;
+}
+.evo-jackpot.quieto .evo-antes {
+  opacity: 0.45;
+}
+@keyframes evo-apaga {
+  0% {
+    transform: translateX(calc(-2px * var(--k)));
+  }
+  33% {
+    transform: translateX(calc(2px * var(--k)));
+  }
+  66% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.45;
+  }
+}
+@keyframes evo-brota {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+/* la ficha que vuela al HUD al cerrarse el jackpot */
+.evo-vuela {
+  --k: var(--kd);
+  position: fixed;
+  z-index: 61;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  pointer-events: none;
+}
+/* el iconito despierto en la micro-línea del sello «★ EVOLUCIONA», y lo que gana, en hueso */
+.sinergia-caja.evoluciona .micro {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.px.evo-mini {
+  --k: 1;
+  flex: none;
+}
+.sinergia-caja .micro.evo-gana {
+  font-family: var(--cuerpo);
+  font-weight: 700;
+  color: var(--hueso);
+  text-transform: none;
 }
 .evo-nombre {
   font-family: var(--rot);
@@ -3423,10 +3476,12 @@ button.visor-carta:disabled {
   color: var(--hueso);
   text-transform: uppercase;
 }
+/* la regla nueva, en grande: es lo que hay que leer */
 .evo-desc {
   font-family: var(--cuerpo);
-  font-size: var(--fs);
-  color: var(--hueso-2);
+  font-size: var(--fs-l);
+  font-weight: 700;
+  color: var(--hueso);
   line-height: 1.25;
 }
 @keyframes evo-entra {
@@ -3710,5 +3765,165 @@ button.visor-carta:disabled {
     --k: 2;
     right: -14px;
     top: -12px;
+  }
+}
+
+/* ───────────── 0.23: el Altar devuelve ───────────── */
+.al-botones {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+.al-devolver {
+  min-height: 44px;
+  justify-content: center;
+}
+.al-devolver .cifra {
+  margin-left: 4px;
+}
+/* en el teléfono, uno arriba del otro y a lo ancho (lado a lado no entraban con su cifra) */
+@media (max-width: 700px) {
+  .al-botones > .btn {
+    min-height: 48px;
+  }
+}
+/* ───────────── 0.23: el resumen de la partida en dos capas (dentro del panel del final) ───────────── */
+.fin-capa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 0.5);
+  min-width: 0;
+}
+.fin-capa-tit {
+  font-size: var(--fr);
+  color: var(--oro);
+  letter-spacing: 0.04em;
+}
+.fin-build {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 0.4);
+}
+.fin-piezas {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(4px * var(--k));
+}
+.fin-pieza {
+  cursor: help;
+}
+.fin-nivel {
+  font-family: var(--cuerpo);
+  font-size: var(--fs-s);
+  color: var(--oro);
+  margin-left: calc(-2px * var(--k));
+}
+.fin-evo-nombre {
+  font-family: var(--rot);
+  font-size: var(--fs);
+  color: var(--oro);
+  text-transform: uppercase;
+}
+.fin-jugada {
+  display: inline-flex;
+  align-items: baseline;
+  gap: calc(var(--u) * 0.5);
+}
+.fin-jugada b {
+  font-size: var(--fs);
+  color: var(--hueso);
+}
+.fin-golpe {
+  display: flex;
+  align-items: center;
+  gap: var(--u);
+}
+.fin-dos {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: calc(var(--u) * 2);
+}
+.fin-freno,
+.fin-record {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 0.4);
+}
+.fin-rec-tipo {
+  flex-direction: column;
+}
+.fin-freno-quien,
+.fin-rec-tipo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: calc(4px * var(--k)) calc(var(--u) * 0.5);
+  margin: 0;
+  font-size: var(--fs);
+  color: var(--hueso);
+}
+.fin-freno-quien .pinta {
+  --k: 1;
+}
+.fin-freno-vida,
+.fin-rec-cifras {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: var(--u);
+  margin: 0;
+}
+.fin-freno-vida {
+  align-items: center;
+}
+.fin-rec-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.fin-dos .cifra.grande {
+  --kc: var(--k2);
+}
+.fin-rec-nuevo {
+  color: var(--oro);
+}
+.fin-otra .px {
+  --k: 1;
+}
+@media (min-width: 701px) {
+  /* lo que ganaste y lo que se abrió, en su propio renglón al pie del panel: las dos capas, lado a lado arriba */
+  .fin-cuadro > .fin-panel > .fin-porotos,
+  .fin-cuadro > .fin-panel > .chip {
+    flex-basis: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+  .fin-cuadro > .fin-panel > .chip {
+    flex-basis: auto;
+  }
+  .fin-cuadro > .fin-panel .fin-estrella {
+    padding-right: calc(var(--u) * 2);
+    border-right: 2px solid rgba(201, 162, 0, 0.35);
+  }
+}
+@media (max-width: 700px) {
+  .fin-cuadro > .fin-panel {
+    gap: calc(var(--u) * 0.75);
+  }
+  .fin-dos {
+    gap: var(--u);
+  }
+  .fin-dos .cifra.grande {
+    --kc: 2;
+  }
+  .fin-golpe .cifra.grande {
+    --kc: 3;
   }
 }

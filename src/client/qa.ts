@@ -38,6 +38,7 @@ export const ESTADOS = [
   'mesa-grito', 'botin-grito', 'mesa-segunda-cambia', 'botin-rey', 'mesa-conteo', 'mesa-escudo',
   'mesa-chispa', 'mesa-escalon', 'mesa-postas-arrastre', 'mesa-chiches', 'mesa-chiche-usa', 'mesa-prenda', 'pulperia-chiches', 'rey-mascara', 'mesa-escudo-mando',
   'evolucion-jackpot', 'hud-evolucion', 'oferta-evoluciona', 'forja-brava', 'cabala-negra', 'mapa-tesoro', 'botin-tesoro',
+  'altar-devolver', 'resumen-victoria', 'resumen-derrota', 'mesa-exacto', 'fogon-mutaciones', 'hud-evolucion-foco',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
 /** Estados que solo tienen sentido en vivo (`&vivo`, para las secuencias del Jurado): no entran en la QA visual. */
@@ -105,6 +106,12 @@ export function montarQa(estado: string): void {
       break;
     case 'altar':
       irAltar();
+      break;
+    case 'altar-devolver':
+      // (0.23) el Altar con una mejora comprada elegida: MEJORAR y DEVOLVER, con lo que vuelve
+      irAltar();
+      $<HTMLElement>('[data-accion="ofrenda"][data-id="vida"]')?.click();
+      $<HTMLElement>('[data-accion="devolver"]')?.focus();
       break;
     case 'coleccion':
       irColeccion();
@@ -362,12 +369,15 @@ export function montarQa(estado: string): void {
       void jackpotEvolucion('poncho');
       break;
     }
+    case 'hud-evolucion-foco':
     case 'hud-evolucion': {
       // la mesa con el Poncho ya despierto: su ficha prismática en el HUD
       const p = partida(mazo, (x) => enCombate(x));
       darAmuleto(p, 'poncho');
       darDon(p, 'C');
       montar(p);
+      // (0.23) con el foco en la bandeja (adonde llegan el mando y el teclado), su ayuda dice en qué se volvió
+      if (estado === 'hud-evolucion-foco') $<HTMLElement>('[data-tiras]')?.focus();
       break;
     }
     case 'oferta-evoluciona': {
@@ -433,12 +443,14 @@ export function montarQa(estado: string): void {
       $<HTMLElement>('[data-accion="ver-mazo"]')?.click();
       break;
     }
+    case 'resumen-victoria':
     case 'fin-victoria': {
       let p: Partida | null = null;
       for (let i = 0; i < 40 && !p?.fin?.victoria; i++) p = partida(mazo, (x) => x.fase === 'fin', `QA${i}`, altarLleno());
       montar(p!);
       break;
     }
+    case 'resumen-derrota':
     case 'fin-derrota': {
       let p: Partida | null = null;
       for (let i = 0; i < 40 && (!p || p.fin?.victoria); i++) p = partida('truco', (x) => x.fase === 'fin', `QA${i}`, {});

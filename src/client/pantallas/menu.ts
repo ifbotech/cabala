@@ -7,7 +7,7 @@ import { PALOS } from '../../rules/cartas';
 import { MAZO, MAZOS } from '../../rules/mazos';
 import { vidaInicial } from '../../rules/partida';
 import type { MazoId } from '../../rules/mazos';
-import { MEJORAS, avanceMazo, costeMejora, mazoAbierto, mejorar, reinadoMax } from '../../rules/perfil';
+import { MEJORAS, avanceMazo, costeMejora, devolver, mazoAbierto, mejorar, reembolso, reinadoMax } from '../../rules/perfil';
 import type { MejoraId } from '../../rules/perfil';
 import { REINADOS } from '../../rules/reinados';
 import { BENDICION, BENDICIONES, REY_DEF } from '../../rules/reyes';
@@ -16,13 +16,15 @@ import { ajustes, alAzar, borrarTodo, fijarIdioma, guardarAjustes, guardarPartid
 import { refrescarSonido, sonar } from '../audio';
 import { refrescarMusica } from '../musica';
 import { enFoto } from '../fx/motor';
+import { numero } from '../fx/efectos';
+import { glifo } from '../nav';
 import { continuar, empezar, hayPartida, irAjustes, irAltar, irColeccion, irCronica, irMazo, irPortada, sesion } from '../juego';
 import { CUADRO0 } from '../pixel/personajes';
 import { cifra, pxAmuleto, pxAumento, pxBendicion, pxDorso, pxHud, pxLogo, pxPalo, urlRetrato } from '../sprites';
 import { TRAMO_NOMBRE } from '../textos';
 import { VOZ } from '../voces';
 import { bufonDice } from '../bufon-vivo';
-import { abrirModal, anfitrion, cerrarModal, esc, miniAnfitrion, repintar, reyHtml, tip, type Pantalla } from '../ui';
+import { $, abrirModal, anfitrion, cerrarModal, esc, miniAnfitrion, repintar, reyHtml, tip, type Pantalla } from '../ui';
 
 // ───────────────────────── portada ─────────────────────────
 
@@ -217,8 +219,14 @@ export function pantallaAltar(): Pantalla {
     const nivel = perfil.altar[id];
     const coste = costeMejora(id, nivel);
     const puede = coste !== null && perfil.porotos >= coste;
+    // (0.23) Devolver: el último nivel vuelve entero (probar no castiga). Y (o D) lo pulsa; la ayuda dice cuánto vuelve
+    const vuelve = reembolso(id, nivel);
+    const devolverHtml = `<button class="btn marco hierro al-devolver" data-accion="devolver" data-id="${id}" data-foco="devolver" data-tecla="d" ${vuelve === null ? 'disabled' : ''} ${tip(t('devolver'), vuelve === null ? t('devolverNada') : t('devolverTip', { n: vuelve }))}>${glifo('Y', 'D')}${t('devolver')}${vuelve === null ? '' : ` ${pxHud('poroto')}${cifra(`+${vuelve}`, 'hueso')}`}</button>`;
     return `<div class="al-texto"><b class="al-titulo">${esc(tx(m.nombre))}</b><span class="sub">${esc(tx(m.desc))}</span><span class="al-nivel">${cifra(`${nivel}/${m.max}`, 'hueso')}</span></div>
-      <button class="btn marco ${puede ? 'oro' : ''} mj-boton" data-accion="mejorar" data-id="${id}" data-foco="mejorar" ${puede ? '' : 'disabled'}>${coste === null ? t('alMaximo') : `${t('mejorar')} ${pxHud('poroto')}${cifra(coste, puede ? 'purpura' : 'hueso')}`}</button>`;
+      <div class="al-botones">
+      <button class="btn marco ${puede ? 'oro' : ''} mj-boton" data-accion="mejorar" data-id="${id}" data-foco="mejorar" ${puede ? '' : 'disabled'}>${coste === null ? t('alMaximo') : `${t('mejorar')} ${pxHud('poroto')}${cifra(coste, puede ? 'purpura' : 'hueso')}`}</button>
+      ${devolverHtml}
+      </div>`;
   };
   return {
     nombre: 'altar',
@@ -256,6 +264,19 @@ export function pantallaAltar(): Pantalla {
           repintar();
           bufonDice(tx(alAzar(VOZ.altarCompra)));
         }
+      },
+      devolver: (el) => {
+        const id = el.dataset.id as MejoraId;
+        const vuelve = reembolso(id, perfil.altar[id]);
+        if (vuelve === null || !devolver(perfil, id)) return;
+        sonar('oro');
+        guardarPerfil();
+        repintar();
+        // (si la vela apagada dejó al botón sin nivel, el foco cae en MEJORAR)
+        if (!$<HTMLButtonElement>('[data-foco="devolver"]:not(:disabled)')) $<HTMLElement>('[data-foco="mejorar"]')?.focus();
+        const r = $('.lado.porotos')?.getBoundingClientRect();
+        if (r && !enFoto()) numero(`+${vuelve}`, r.left + r.width / 2, r.bottom + 12, 'oro', 2);
+        bufonDice(tx(alAzar(VOZ.altarDevuelve)));
       },
     },
   };

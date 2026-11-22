@@ -15,11 +15,11 @@ import { B } from '../rules/balance';
 import { BENDICION, REY_DEF } from '../rules/reyes';
 import type { BendicionId } from '../rules/reyes';
 import { ajustes, t, tx } from './almacen';
-import { EVOLUCION, esEvolucionable, evoluciono } from '../rules/evoluciones';
+import { EVOLUCION, esEvolucionable, evoluciones, evoluciono } from '../rules/evoluciones';
 import { enFoto } from './fx/motor';
 import { cajaDe, reservar, soltar, tomadas } from './fx/director';
 import type { Cuadro, Gesto, Herida, Mirada } from './pixel/personajes';
-import { cifra, pxAmuleto, pxAumento, pxBendicion, pxHud, pxPalo, urlRetrato } from './sprites';
+import { cifra, pxAmuleto, pxAumento, pxBendicion, pxEvolucion, pxHud, pxPalo, urlRetrato } from './sprites';
 import { PALO_NOMBRE } from './textos';
 import { $, esc, hayModal, tip } from './ui';
 
@@ -50,10 +50,10 @@ function tiras(p: Partida): string {
   // solo lo que llevás (los huecos libres se cuentan en «LO QUE LLEVÁS»: un cuadro vacío parecía un error de carga)
   const amuletos = p.amuletos.map((id) => {
     const d = AMULETO[id];
-    // (0.22) el Amuleto que evolucionó va prismático y su ayuda dice en qué se volvió
+    // (0.22) el Amuleto que evolucionó va en su forma despierta, con marco prismático, y su ayuda dice en qué se volvió
     if (esEvolucionable(id) && evoluciono(p, id)) {
       const ev = EVOLUCION[id];
-      return `<span class="ficha evolucion" data-pieza="a:${id}" ${tip(tx(ev.nombre), tx(ev.desc), `${t('evolucionTitulo')} · ${tx(d.nombre)}`)}>${pxAmuleto(id, 'prisma')}</span>`;
+      return `<span class="ficha evolucion" data-pieza="a:${id}" ${tip(tx(ev.nombre), tx(ev.desc), `${t('evolucionTitulo')} · ${tx(d.nombre)}`)}>${pxEvolucion(id)}</span>`;
     }
     return `<span class="ficha" data-pieza="a:${id}" ${tip(tx(d.nombre), tx(d.desc), tx(RAREZA_NOMBRE[d.rareza]))}>${pxAmuleto(id)}</span>`;
   }).join('');
@@ -111,10 +111,21 @@ export function hudHtml(p: Partida, v: VistaHud = vistaDe(p)): string {
         <span class="rotulo">${t('mazo')}</span>
         <span class="valor">${pxHud('mazo')}<span data-n="mazo">${cifra(v.mazo, 'hueso', 'grande')}</span></span>
       </button>
-      <button class="hud-tiras" data-tiras data-accion="ver-piezas" data-foco="hud-piezas" aria-label="${t('verLlevas')}" ${tip(t('llevas'), t('llevasTip'), PALOS.filter((s) => sirveA(p, s)).map((s) => cargaQue(p, s)).join('\n'))}>${tiras(p)}</button>
+      <button class="hud-tiras" data-tiras data-accion="ver-piezas" data-foco="hud-piezas" aria-label="${t('verLlevas')}" ${tirasTip(p)}>${tiras(p)}</button>
       <kbd class="glifo g-mando g-rt hud-glifo" aria-hidden="true">RT</kbd>
     </div>
   </footer>`;
+}
+
+/**
+ * La ayuda de la bandeja de piezas (un botón: lo que lleva adentro no toma el foco). (0.23) Si despertó una Evolución,
+ * su nombre y su regla van primero: el mando y el teclado llegan a la bandeja y leen en qué se volvió el Amuleto.
+ */
+function tirasTip(p: Partida): string {
+  const evos = evoluciones(p).map((de) => `★ ${tx(EVOLUCION[de].nombre)}: ${tx(EVOLUCION[de].desc)}`);
+  const cargas = PALOS.filter((s) => sirveA(p, s)).map((s) => cargaQue(p, s));
+  // (cada Evolución en su renglón, arriba de las cargas: el cuerpo de la ayuda corre de corrido)
+  return tip(evos.length ? `★ ${t('evolucionTitulo')}` : t('llevas'), evos.length ? evos[0] : t('llevasTip'), [...evos.slice(1), ...(evos.length ? [t('llevasTip')] : []), ...cargas].join('\n'));
 }
 
 /** Repinta las tiras (Amuletos, Cábalas, cargas y Bendiciones) y marca la carga que acaba de subir. */
@@ -122,6 +133,14 @@ export function actualizarTiras(p: Partida, sube?: Palo): void {
   const el = $('[data-tiras]');
   if (!el) return;
   el.innerHTML = tiras(p);
+  const ayuda = document.createElement('i');
+  ayuda.innerHTML = `<i ${tirasTip(p)}></i>`;
+  const nueva = ayuda.firstElementChild as HTMLElement;
+  for (const a of ['data-tip-t', 'data-tip', 'data-tip-pie']) {
+    const v = nueva.getAttribute(a);
+    if (v === null) el.removeAttribute(a);
+    else el.setAttribute(a, v);
+  }
   if (sube) $(`[data-carga="${sube}"]`, el)?.classList.add('sube');
   ajustarBandeja();
 }

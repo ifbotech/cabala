@@ -8,7 +8,7 @@ import type { TipoOferta } from '../rules/estado';
 import type { MazoId } from '../rules/mazos';
 import type { BendicionId } from '../rules/reyes';
 import { cifraMapa, type TonoCifra } from './pixel/cifras';
-import { amuletoMapa, aumentoMapa, bendicionMapa, chicheMapa, hudMapa, inmuneMapa, nodoMapa, paloMapa, estrellaMapa, type HudPx, type NodoPx } from './pixel/iconos';
+import { amuletoMapa, aumentoMapa, bendicionMapa, chicheMapa, evolucionMapa, hudMapa, inmuneMapa, nodoMapa, paloMapa, estrellaMapa, type HudPx, type NodoPx } from './pixel/iconos';
 import { logoMapa } from './pixel/logo';
 import { BARRAS, barraMapa, marcoMapa, panoMapa, type Estilo } from './pixel/marcos';
 import { comodinMapa, dorsoNaipe, naipeMapa, naipeSegundaMapa } from './pixel/naipes';
@@ -65,6 +65,8 @@ export const pxNaipeSegunda = (palo: Palo, cls = '') => px(`naipe:${palo}seg`, (
 export const lienzoNaipeSegunda = (palo: Palo) => lienzo(`naipe:${palo}seg`, () => naipeSegundaMapa(palo));
 export const pxDorso = (mazo: MazoId, cls = '') => px(`dorso:${mazo}`, () => dorsoNaipe(mazo), `naipe ${cls}`);
 export const pxAmuleto = (id: AmuletoId, cls = '') => px(`a:${id}`, () => amuletoMapa(id)!, `icono ${cls}`);
+/** (0.23) La forma despierta de un Amuleto Épico (su Evolución): otro dibujo, el mismo Amuleto. */
+export const pxEvolucion = (id: string, cls = '') => px(`ev:${id}`, () => evolucionMapa(id)!, `icono ${cls}`);
 export const pxAumento = (id: AumentoId, cls = '') => px(`u:${id}`, () => aumentoMapa(id)!, `icono ${cls}`);
 export const pxBendicion = (id: BendicionId, cls = '') => px(`b:${id}`, () => bendicionMapa(id)!, `icono ${cls}`);
 export const pxPieza = (tipo: TipoOferta, id: string, cls = '') => (tipo === 'amuleto' ? pxAmuleto(id as AmuletoId, cls) : tipo === 'aumento' ? pxAumento(id as AumentoId, cls) : pxBendicion(id as BendicionId, cls));

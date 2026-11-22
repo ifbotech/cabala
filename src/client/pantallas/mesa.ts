@@ -28,7 +28,7 @@ import { actualizarTiras, avivarRetrato, cargaQue, dispararFicha, gestoFijo, ges
 import { guardar, pintarFase } from '../juego';
 import { crearMano, type Mano, type Zona } from '../mano';
 import type { Expresion } from '../pixel/bufon';
-import { cifra, pxChiche, lienzoNaipe, lienzoNaipeSegunda, pxMascara, pxNaipeSegunda, pxAmuleto, pxAumento, pxBendicion, pxEstrella, pxHud, pxInmune, pxNaipe, pxNodo, pxPalo } from '../sprites';
+import { cifra, pxChiche, lienzoNaipe, lienzoNaipeSegunda, pxMascara, pxNaipeSegunda, pxAmuleto, pxAumento, pxBendicion, pxEstrella, pxEvolucion, pxHud, pxInmune, pxNaipe, pxNodo, pxPalo } from '../sprites';
 import type { AmuletoId } from '../../rules/amuletos';
 import type { AumentoId } from '../../rules/aumentos';
 import type { BendicionId } from '../../rules/reyes';
@@ -264,7 +264,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     const [clase, id0] = de.split(':');
     // (la Evolución lleva el icono de su Amuleto, prismático; el Cascabel sin canto, el del Cascabel)
     const id = id0?.replace(/-sin$/, '');
-    if (clase === 'ev') return pxAmuleto(id as AmuletoId, 'd-i prisma');
+    if (clase === 'ev') return pxEvolucion(id, 'd-i');
     if (de === 'mut:doblefilo') return pxHud('doblefilo', 'd-i');
     if (clase === 'a') return pxAmuleto(id as AmuletoId, 'd-i');
     if (clase === 'u') return pxAumento(id as AumentoId, 'd-i');

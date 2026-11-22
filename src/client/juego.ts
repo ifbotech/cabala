@@ -4,6 +4,7 @@ import type { Partida } from '../rules/estado';
 import type { MazoId } from '../rules/mazos';
 import { nuevaPartida } from '../rules/partida';
 import { anotar, reinadoMax } from '../rules/perfil';
+import { resumenDe, type ResumenPartida } from '../rules/resumen';
 import { semillaNueva } from '../rules/rng';
 import { cargarPartida, guardarPartida, guardarPerfil, perfil } from './almacen';
 import { ponerEscena, type Escena } from './fx/motor';
@@ -21,9 +22,11 @@ export const sesion: {
   abiertos: MazoId[];
   reinadoAbierto: number;
   anotada: boolean;
+  /** (0.23) El resumen en dos capas de la partida que terminó (se calcula antes de anotarla en el perfil). */
+  resumen: ResumenPartida | null;
   /** Modo QA: nada se guarda en el navegador. */
   qa: boolean;
-} = { partida: null, abiertos: [], reinadoAbierto: 0, anotada: false, qa: false };
+} = { partida: null, abiertos: [], reinadoAbierto: 0, anotada: false, resumen: null, qa: false };
 
 /** Monta una pantalla con su escena y su música. `seguido`: sin corte (el Bufón no se esfuma ni la pantalla entra). */
 function ir(p: Pantalla, escena: Escena, pista: PistaId = 'portada', seguido = false): void {
@@ -74,6 +77,8 @@ export const hayPartida = (): boolean => !!(sesion.partida ?? (sesion.qa ? null 
 function anotarFin(p: Partida): void {
   if (sesion.anotada) return;
   sesion.anotada = true;
+  // (el resumen va ANTES de anotar: si no, el récord se compararía consigo mismo)
+  sesion.resumen = resumenDe(p, perfil);
   const antes = reinadoMax(perfil);
   sesion.abiertos = anotar(perfil, p, Date.now());
   const ahora = reinadoMax(perfil);

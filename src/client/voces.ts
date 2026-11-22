@@ -52,6 +52,14 @@ export const VOZ = {
   fogon: [P('Sentate. El fuego no cobra. Yo tampoco… hoy.', 'Sit. The fire does not charge. Neither do I… tonight.')],
   altar: [P('Dejá tus porotos acá. Vuelven en suerte.', 'Leave your beans here. They come back as luck.')],
   altarCompra: [P('Bien invertido. Creo.', 'Money well spent. I think.'), P('Eso vuelve. Tarde, pero vuelve.', 'That comes back. Late, but it does.')],
+  altarDevuelve: [P('Tomá, enteritos. Probar no cuesta.', 'Here, every bean. Trying is free.'), P('Te los devuelvo. Esta vez.', 'I give them back. This once.')],
+  // (0.23) una línea por Evolución, cuando despierta
+  evoluciona: {
+    lanza: P('Uy. Esa hoja ya no corta: muerde.', 'Ooh. That blade no longer cuts: it bites.'),
+    poncho: P('Con ese garrote, el poncho es lo de menos.', 'With that club, the poncho is the least of it.'),
+    cofre: P('Salió el sol de la timba. Pagan todos.', 'The gambling sun is up. Everyone pays.'),
+    caliz: P('Salud. Con la sangre de ellos, eso sí.', 'Cheers. With their blood, mind you.'),
+  },
   coleccion: [P('Mirá, mirá. Todo esto pasó por mis manos.', 'Look, look. All of this went through my hands.')],
   cronica: [P('Acá queda todo anotado. Hasta las que perdiste.', 'It is all written down here. Even the ones you lost.')],
   ajustes: [P('Tocá lo que quieras. Menos mi sueldo.', 'Touch whatever you like. Except my wages.')],

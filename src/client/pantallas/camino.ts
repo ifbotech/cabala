@@ -16,6 +16,7 @@ import { ver } from '../../rules/perfil';
 import { BENDICION, BENDICIONES, REY_DEF } from '../../rules/reyes';
 import type { BendicionId } from '../../rules/reyes';
 import { clavePieza } from '../../rules/notas';
+import { EVOLUCION, esEvolucionable, evoluciono } from '../../rules/evoluciones';
 import { alAzar, idioma, perfil, t, tx } from '../almacen';
 import { sonar } from '../audio';
 import { chispas, destello, haloRey, humo, lluviaDeMonedas, monedas, numero, partirNaipe } from '../fx/efectos';
@@ -26,12 +27,13 @@ import { avivarRetrato, cargaQue, hudHtml, reubicarGrito } from '../hud';
 import { avanzar, guardar, irPortada, sesion, soltarPartida } from '../juego';
 import type { Expresion } from '../pixel/bufon';
 import { CHICHE, huecosChiche } from '../../rules/chiches';
-import { lienzoNaipe, cifra, pxChiche, pxAmuleto, pxAumento, pxBendicion, pxHud, pxInmune, pxMitades, pxNaipe, pxNaipeSegunda, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
+import { lienzoNaipe, cifra, pxChiche, pxAmuleto, pxAumento, pxEvolucion, pxBendicion, pxHud, pxInmune, pxMitades, pxNaipe, pxNaipeSegunda, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
 import { naipeMapa } from '../pixel/naipes';
 import { personajeMapa } from '../pixel/personajes';
 import { vigilarEvoluciones } from '../evolucion';
 import { MUTACION_PX } from '../mano';
-import { JUGADA_COMO, JUGADA_NOMBRE, MUTACION_DESC, MUTACION_NOMBRE, NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_AYUDA, PASO_NOMBRE, TRAMO_NOMBRE } from '../textos';
+import { JUGADA_COMO, JUGADA_NOMBRE, MUTACION_DESC, MUTACION_NOMBRE, NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_AYUDA, PASO_NOMBRE, RANGO_NOMBRE, TRAMO_NOMBRE } from '../textos';
+import { resumenDe, type ResumenPartida } from '../../rules/resumen';
 import { VOZ } from '../voces';
 import { bufonDice } from '../bufon-vivo';
 import { $, abrirModal, anfitrion, bufonHtml, cerrarModal, esc, fichaDe, irASalida, repintar, reyHtml, sinergiaHtml, tip, type Accion, type Pantalla } from '../ui';
@@ -74,7 +76,12 @@ export function modalPiezas(p: Partida): void {
   const fila = (icono: string, nombre: string, clase: string, desc: string, marco = ''): string =>
     `<li class="pieza-fila" tabindex="0"><span class="pieza-icono${marco ? ` marco ${marco}` : ''}">${icono}</span><div class="pieza-texto"><b>${esc(nombre)}</b><span class="sub">${esc(clase)}</span><p>${esc(desc)}</p></div></li>`;
   const vacio = `<li class="pieza-fila vacia"><p class="sub">${t('nada')}</p></li>`;
-  const amuletos = p.amuletos.map((id) => fila(pxAmuleto(id), tx(AMULETO[id].nombre), tx(RAREZA_NOMBRE[AMULETO[id].rareza]), tx(AMULETO[id].desc)));
+  // (0.23) el Amuleto que evolucionó se lee como lo que es ahora: su forma despierta, su nombre y su regla nueva
+  const amuletos = p.amuletos.map((id) =>
+    esEvolucionable(id) && evoluciono(p, id)
+      ? fila(pxEvolucion(id), tx(EVOLUCION[id].nombre), t('evolucionDe', { a: tx(AMULETO[id].nombre) }), tx(EVOLUCION[id].desc), 'prisma')
+      : fila(pxAmuleto(id), tx(AMULETO[id].nombre), tx(RAREZA_NOMBRE[AMULETO[id].rareza]), tx(AMULETO[id].desc)),
+  );
   const aumentos = p.aumentos.map((id) => fila(pxAumento(id), tx(AUMENTO[id].nombre), AUMENTO[id].maldicion ? t('maldicion') : t('unaCabala'), tx(AUMENTO[id].desc), fichaDe('aumento', id).marco));
   const cargas = PALOS.filter((s) => sirveA(p, s)).map((s) => fila(pxPalo(s), cargaQue(p, s), tx(REY_DEF[s].apodo), tx(REY_DEF[s].cargaDa)));
   const bendiciones = (Object.keys(p.bendiciones) as BendicionId[]).map((id) => {
@@ -1085,10 +1092,50 @@ export function pantallaCabala(p: Partida): Pantalla {
  * Corte»: la vela de la mesa que se apaga, tu retrato partido en dos y, enfrente, entero, el Rey que te ganó (en su
  * segunda cara), con los que habías vencido tirados a sus pies. Los números van en una tabla al costado del cuadro.
  */
+/**
+ * (0.23) El resumen en dos capas, dentro del panel del final (sin pantalla nueva). Arriba, la BUILD ESTRELLA: las
+ * Evoluciones con su dibujo despierto, hasta tres Amuletos, la Bendición más alta, tu jugada y el mejor golpe en cifras
+ * grandes. Abajo, QUÉ TE FRENÓ (quién y cuánto le quedaba) y PRÓXIMO RÉCORD (esta contra tu mejor).
+ */
+function resumenHtml(p: Partida, r: ResumenPartida): string {
+  const e = r.estrella;
+  const ficha = (icono: string, nombre: string, desc: string, cls = ''): string => `<span class="ficha fin-pieza ${cls}" ${tip(nombre, desc)}>${icono}</span>`;
+  const piezas = [
+    ...e.amuletos.map((id) =>
+      esEvolucionable(id) && e.evoluciones.includes(id) ? ficha(pxEvolucion(id), tx(EVOLUCION[id].nombre), tx(EVOLUCION[id].desc), 'evolucion') : ficha(pxAmuleto(id), tx(AMULETO[id].nombre), tx(AMULETO[id].desc)),
+    ),
+    ...(e.bendicion ? [ficha(pxBendicion(e.bendicion.id), tx(BENDICION[e.bendicion.id].nombre), tx(BENDICION[e.bendicion.id].desc(e.bendicion.nivel))) + (e.bendicion.nivel > 1 ? `<b class="fin-nivel">${'I'.repeat(Math.min(3, e.bendicion.nivel))}</b>` : '')] : []),
+  ];
+  // la Evolución, con su nombre a la vista (es lo primero que se lee de la build)
+  const evo = e.evoluciones[0];
+  const evoNombre = evo ? `<b class="fin-evo-nombre">${esc(tx(EVOLUCION[evo].nombre))}</b>` : '';
+  const jugada = e.jugada ? `<span class="fin-jugada"><span class="rotulo">${t('jugadaFavorita')}</span><b>${esc(tx(JUGADA_NOMBRE[e.jugada]))}</b></span>` : '';
+  const capa1 = `<div class="fin-capa fin-estrella">
+      <h2 class="rotulo fin-capa-tit">${t('buildEstrella')}</h2>
+      <div class="fin-build">${piezas.length ? `<span class="fin-piezas">${piezas.join('')}</span>` : ''}${evoNombre}${jugada}</div>
+      <div class="fin-golpe"><span class="rotulo">${t('mejorGolpe')}</span>${cifra(e.mejorGolpe, 'oro', 'grande fin-golpe-n')}</div>
+    </div>`;
+  let freno: string;
+  if (r.freno) {
+    const por = r.freno.por;
+    const quien = por.jefe ? tx(REY_DEF[por.palo].apodo) : idioma() === 'en' ? `${tx(RANGO_NOMBRE[por.rango])} of ${tx(PALO_NOMBRE[por.palo])}` : `${tx(RANGO_NOMBRE[por.rango])} de ${tx(PALO_NOMBRE[por.palo])}`;
+    freno = `<p class="fin-freno-quien">${pxPalo(por.palo)}<b>${esc(quien)}${por.elite ? ` · ${t('elite')}` : ''}</b><span class="sub">${t('frenoTramo', { n: por.acto + 1 })}</span></p>
+      <p class="fin-freno-vida"><span class="sub">${t('leQuedaba')}</span>${cifra(`${r.freno.leQuedaba}%`, 'roja', 'grande')}</p>`;
+  } else freno = `<p class="fin-freno-quien"><b>${t(r.victoria ? 'sinFreno' : 'nada')}</b></p>`;
+  const rec = r.record;
+  const tipoRec = t(rec.tipo === 'golpe' ? 'recordGolpe' : rec.tipo === 'tramo' ? 'recordTramo' : 'recordVictoria');
+  const record = `<p class="fin-rec-tipo"><b>${tipoRec}</b>${rec.nuevo ? `<span class="chip sinergia fin-rec-nuevo">${t('recordNuevo')}</span>` : ''}</p>
+      <p class="fin-rec-cifras"><span class="fin-rec-col"><span class="sub">${t('recordEsta')}</span>${cifra(rec.actual, rec.nuevo ? 'oro' : 'hueso', 'grande')}</span><span class="fin-rec-col"><span class="sub">${t('recordMejor')}</span>${cifra(rec.mejor, 'hueso', 'grande')}</span></p>`;
+  const capa2 = `<div class="fin-capa fin-dos">
+      <div class="fin-freno"><h3 class="rotulo fin-capa-tit">${t('queTeFreno')}</h3>${freno}</div>
+      <div class="fin-record"><h3 class="rotulo fin-capa-tit">${t('proximoRecord')}</h3>${record}</div>
+    </div>`;
+  void p;
+  return capa1 + capa2;
+}
 export function pantallaFin(p: Partida): Pantalla {
   const gano = !!p.fin?.victoria;
   const s = p.stats;
-  const dato = (rotulo: string, valor: number) => `<div class="fin-dato"><span class="rotulo">${rotulo}</span>${cifra(valor, 'hueso', 'grande')}</div>`;
   const reyes = p.tramos.map((tr, i) => ({ palo: tr.rey as Palo, vencido: i < s.reyes }));
   void PALOS;
   const cuadro = { mirada: 0, gesto: gano ? 'feroz' : 'caido', herida: gano ? 0 : 2 } as const;
@@ -1113,7 +1160,7 @@ export function pantallaFin(p: Partida): Pantalla {
           ${anfitrion(tx(alAzar(gano ? VOZ.gano : VOZ.perdio, fijo())), gano ? 'risa' : 'sombria', 'fin-bufon')}
           ${heroe}
           <section class="panel fin-panel">
-            <div class="fin-datos">${dato(t('reyesVencidos'), s.reyes)}${dato(t('abatidos'), s.abatidos)}${dato(t('mejorGolpe'), s.mejorGolpe)}${dato(t('exactos'), s.exactos)}${dato(t('cantos'), s.cantos)}${dato(t('turnos'), s.turnos + s.combates)}</div>
+            ${resumenHtml(p, sesion.resumen ?? resumenDe(p, perfil))}
             <p class="fin-porotos dorado">${pxHud('poroto')} ${t('ganaste', { n: p.fin?.porotos ?? 0 })}</p>
             ${sesion.abiertos.map((m) => `<p class="chip sinergia">${t('seAbrio', { m: tx(MAZO[m].nombre) })}</p>`).join('')}
             ${sesion.reinadoAbierto ? `<p class="chip sinergia">${t('reinadoAbierto', { n: sesion.reinadoAbierto })}</p>` : ''}
@@ -1121,7 +1168,7 @@ export function pantallaFin(p: Partida): Pantalla {
           <div class="fin-corte">${reyes.map((r, i) => naipeRey(r.palo, i)).join('')}</div>
         </div>
         <div class="fila fin-botones">
-          <button class="btn marco oro grande" data-accion="otra" data-foco="otra" data-inicio>${t('otraVez')}</button>
+          <button class="btn marco oro grande fin-otra" data-accion="otra" data-foco="otra" data-inicio aria-label="${esc(t('otraManoTip', { m: tx(MAZO[p.mazoId].nombre) }))}">${pxHud('mazo')} ${t('otraManoYa')}</button>
           <button class="btn marco" data-accion="altar" data-foco="altar">${t('altar')}</button>
           <button class="btn marco" data-accion="portada" data-foco="portada">${t('portada')}</button>
         </div>
@@ -1132,9 +1179,11 @@ export function pantallaFin(p: Partida): Pantalla {
       if (gano && !enFoto()) lluviaDeMonedas(0, innerWidth, -10, 60);
     },
     acciones: {
+      // OTRA MANO YA: otra partida con el mismo Mazo y el mismo Reinado, sin pasar por la elección
       otra: () => {
+        const { mazoId, reinado } = p;
         sesion.partida = null;
-        void import('../juego').then((j) => j.irMazo());
+        void import('../juego').then((j) => j.empezar(mazoId, reinado));
       },
       altar: () => {
         sesion.partida = null;

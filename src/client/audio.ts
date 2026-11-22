@@ -44,6 +44,10 @@ const SONIDO = {
   // grave y la chispa que salta
   evolucion: [[392, 0.06, 'square', 0.14], [523, 0.06, 'square', 0.14], [659, 0.06, 'square', 0.14], [784, 0.06, 'square', 0.14], [1047, 0.06, 'square', 0.15], [1319, 0.08, 'square', 0.15], [1568, 0.3, 'triangle', 0.18]],
   forja: [[98, 0.06, 'sawtooth', 0.26, 49], [1568, 0.03, 'square', 0.1], [2093, 0.05, 'triangle', 0.1], [131, 0.1, 'square', 0.2, 65], [1760, 0.12, 'triangle', 0.12]],
+  // (0.23) el Tesoro: el candado que cede (dos clacs de hierro), la tapa que cruje y el brillo que sube de adentro;
+  // la Cábala Negra cose: tres puntadas cortas y el nudo que tira
+  tesoro: [[180, 0.03, 'square', 0.18, 120], [140, 0.04, 'square', 0.18, 90], [220, 0.1, 'sawtooth', 0.1, 330], [784, 0.05, 'square', 0.12], [1175, 0.05, 'square', 0.12], [1568, 0.05, 'square', 0.13], [2093, 0.24, 'triangle', 0.16]],
+  coser: [[1760, 0.02, 'square', 0.07], [1397, 0.02, 'square', 0.07], [1760, 0.02, 'square', 0.07], [1397, 0.02, 'square', 0.07], [1760, 0.02, 'square', 0.07], [330, 0.08, 'triangle', 0.16, 494], [494, 0.18, 'triangle', 0.16]],
   prenda: [[784, 0.04, 'square', 0.1], [1047, 0.04, 'square', 0.1], [1568, 0.1, 'triangle', 0.12]],
   ficha: [[1175, 0.03, 'square', 0.08], [880, 0.05, 'triangle', 0.1]],
   carta: [[320, 0.03, 'triangle', 0.2], [480, 0.03, 'triangle', 0.14]],

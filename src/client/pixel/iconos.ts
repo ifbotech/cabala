@@ -256,6 +256,68 @@ const AMULETO: Record<string, Dibujo> = {
   },
 };
 
+// ───────────────────────── Evoluciones (0.23) ─────────────────────────
+// Las formas despiertas de los cuatro Épicos de palo: el MISMO Amuleto (siguen siendo 15), dibujado maldito. Cada una
+// conserva la silueta de su base, corre la rampa al índigo y suma algo que se lee a 1×: la hoja negra con su gota, el
+// garrote con el poncho atado, el sol que rompe el cofre, la copa que rebosa sangre. Destellos tramados de los cuatro
+// colores de palo (el prisma) en las esquinas.
+
+/** Los destellos prismáticos de una pieza despierta: chispas de los cuatro palos, a celda entera y marcadas. */
+function prismas(l: Lienzo, puntos: readonly [number, number, string][]): void {
+  for (const [x, y, k] of puntos) {
+    l.set(x, y, k).set(x - 1, y, k).set(x + 1, y, k).set(x, y - 1, k).set(x, y + 1, k);
+    for (const [dx, dy] of [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1]]) l.marcar(x + dx, y + dy);
+  }
+}
+
+const EVOLUCION_DIBUJO: Record<string, Dibujo> = {
+  // el Facón Maldito: la lanza de siempre con la hoja ennegrecida (filo violeta) y una gota de sangre en la punta
+  lanza: (l) => {
+    l.trazo(3, 26, 17, 11, 1, '¤');
+    vol(l, '9Nnd', { base: 0.6 });
+    hoja(l, 16, 12, 25, 2, 3.4, '09fFq');
+    l.poli([[13, 13], [8, 10], [9, 15], [5, 14], [10, 18]], '¤');
+    vol(l, '9vR', { base: 0.6 });
+    l.rect(15, 11, 3, 3, 'r').set(15, 11, 'e');
+    gota(l, 23, 9, 1.6);
+    prismas(l, [[4, 4, 'C'], [22, 22, 'y']]);
+  },
+  // el Garrote del Cacique: un basto nudoso con el poncho atado al mango (sus franjas carmesí y oro)
+  poncho: (l) => {
+    garrote(l, 5, 25, 20, 7, 1.8, 5.2);
+    l.poli([[5, 15], [13, 13], [15, 21], [7, 24]], '¤');
+    vol(l, '9GglL', { borde: 1, fuerzaBorde: 0.4, base: 0.5 });
+    for (let x = 6; x <= 13; x++) if (l.lleno(x, 18)) l.set(x, 18, x % 2 ? 'r' : 'y');
+    for (let x = 7; x <= 14; x++) if (l.lleno(x, 21)) l.set(x, 21, x % 2 ? 'y' : 'r');
+    l.set(17, 5, 'K').set(16, 6, 'K');
+    prismas(l, [[24, 22, 'r'], [3, 4, 'y']]);
+  },
+  // el Sol de la Timba: el cofre con la tapa volada y un sol que le rompe el marco por arriba
+  cofre: (l) => {
+    for (let i = 0; i < 8; i++) {
+      const a = Math.PI + (i / 7) * Math.PI;
+      l.trazo(14, 12, 14 + Math.cos(a) * 13, 12 + Math.sin(a) * 11, 0.7, i % 2 ? 'O' : 'y');
+    }
+    l.elipse(14, 12, 6, 5, '¤');
+    vol(l, ORO, { borde: 1, fuerzaBorde: 0.3, base: 0.8 });
+    l.rect(4, 15, 20, 10, '¤');
+    vol(l, '9Nnd', { borde: 2 });
+    for (const x of [7, 19]) l.rect(x, 15, 2, 10, 'o').rect(x, 15, 1, 10, 'y');
+    l.rect(4, 14, 20, 2, 'Y').rect(4, 15, 20, 1, 'o');
+    l.rect(12, 17, 4, 4, 'Y').rect(13, 19, 2, 2, '0');
+    prismas(l, [[24, 3, 'C'], [3, 24, 'r']]);
+  },
+  // el Brindis de Sangre: el cáliz rebosando, la sangre que cae por los dos lados y una gota al pie
+  caliz: (l) => {
+    copa(l, 14, 5, 8, 20);
+    l.rect(6, 4, 17, 2, 'R').rect(7, 3, 14, 1, 'r').set(10, 3, 'e').set(16, 3, 'e');
+    l.rect(6, 6, 1, 5, 'R').rect(21, 6, 1, 7, 'R').rect(21, 13, 1, 1, 'r');
+    gota(l, 6, 14, 1.5);
+    l.rect(13, 14, 3, 2, 'r').set(13, 14, 'e');
+    prismas(l, [[24, 22, 'C'], [3, 24, 'y']]);
+  },
+};
+
 // ───────────────────────── Aumentos del Bufón ─────────────────────────
 
 const AUMENTO: Record<string, Dibujo> = {
@@ -603,7 +665,7 @@ const NODO: Record<NodoPx, Dibujo> = {
 
 // ───────────────────────── HUD y emblemas ─────────────────────────
 
-export type HudPx = 'vida' | 'vidamax' | 'escudo' | 'oro' | 'mazo' | 'descarte' | 'poroto' | 'furia' | 'ataque' | 'aturdido' | 'candado' | 'engano' | 'pasar' | 'dado1' | 'dado2' | 'dado3' | 'dado4' | 'dado5' | 'dado6' | 'vela' | 'velaApagada' | 'medio' | 'escalon' | 'chispa' | 'doblefilo' | 'roba' | 'chispaOro' | 'cofre';
+export type HudPx = 'vida' | 'vidamax' | 'escudo' | 'oro' | 'mazo' | 'descarte' | 'poroto' | 'furia' | 'ataque' | 'aturdido' | 'candado' | 'engano' | 'pasar' | 'dado1' | 'dado2' | 'dado3' | 'dado4' | 'dado5' | 'dado6' | 'vela' | 'velaApagada' | 'medio' | 'escalon' | 'chispa' | 'doblefilo' | 'roba' | 'chispaOro' | 'cofre' | 'cofreAbierto' | 'aguja';
 
 const HUD: Record<HudPx, Dibujo> = {
   vida: (l) => {
@@ -738,16 +800,18 @@ const HUD: Record<HudPx, Dibujo> = {
     destello(l, 23, 6, 4, 'Y');
     l.set(23, 6, 'w');
   },
-  // el cofre del Tesoro (0.22): madera con flejes de oro y su candado al frente
-  cofre: (l) => {
-    l.rect(3, 8, 22, 6, '¤').elipse(14, 8, 11, 3.4, '¤');
-    vol(l, MADERA, { base: 0.75, borde: 2, fuerzaBorde: 0.45 });
-    l.rect(3, 14, 22, 11, '¤');
-    vol(l, MADERA, { base: 0.5, borde: 2, fuerzaBorde: 0.45 });
-    l.rect(3, 13, 22, 2, 'o').rect(3, 13, 22, 1, 'Y');
-    l.rect(7, 5, 2, 20, 'o').rect(19, 5, 2, 20, 'o').rect(7, 5, 1, 20, 'y').rect(19, 5, 1, 20, 'y');
-    l.rect(12, 12, 4, 6, 'y').rect(12, 12, 4, 1, 'Y').rect(13, 15, 2, 2, '0');
-    l.rect(3, 25, 22, 1, '9');
+  // el cofre del Tesoro (0.23): un baúl de HIERRO remachado, de tapa abovedada y un candado de oro grande al frente
+  // (el Amuleto Cofre es de madera con flejes: este no se le parece)
+  cofre: (l) => baul(l, false),
+  // y abierto: la tapa volcada atrás, el oro que asoma y el candado colgando suelto
+  cofreAbierto: (l) => baul(l, true),
+  // la aguja de la Cábala Negra (0.23): de plata, en diagonal, con el ojo arriba y el hilo negro que se enrosca
+  aguja: (l) => {
+    l.trazo(5, 25, 22, 5, 1.1, '¤');
+    vol(l, PLATA, { base: 0.75 });
+    l.set(5, 25, 'J').set(21, 6, '0').set(22, 5, '0');
+    l.linea(22, 6, 25, 10, 'f').linea(25, 10, 20, 15, 'f').linea(20, 15, 24, 20, 'q').linea(24, 20, 18, 24, 'f');
+    destello(l, 7, 7, 2, 'u');
   },
 };
 
@@ -799,6 +863,46 @@ const CHICHE: Record<string, Dibujo> = {
   },
 };
 
+/**
+ * El baúl del Tesoro: cuerpo de hierro con dos zunchos remachados, tapa abovedada y, al frente, el candado de oro
+ * grande (cerrado) o la tapa volcada con el oro que asoma (abierto).
+ */
+function baul(l: Lienzo, abierto: boolean): void {
+  if (abierto) {
+    // la tapa volcada hacia atrás (se ve su panza oscura) y el oro que asoma
+    l.poli([[3, 9], [25, 9], [23, 3], [5, 3]], '¤');
+    vol(l, '9ijJ', { base: 0.4, borde: 1 });
+    l.elipse(14, 12, 9, 3, '¤');
+    vol(l, ORO, { base: 0.85, borde: 1 });
+    destello(l, 10, 9, 1);
+    destello(l, 19, 8, 2, 'w');
+  } else {
+    l.rect(3, 9, 22, 6, '¤').elipse(14, 9, 11, 4, '¤');
+    vol(l, '9ijJu', { base: 0.75, borde: 2, fuerzaBorde: 0.45 });
+  }
+  l.rect(3, 14, 22, 12, '¤');
+  vol(l, '9ijJ', { base: 0.5, borde: 2, fuerzaBorde: 0.45 });
+  // el canto de la tapa y los dos zunchos, con sus remaches
+  l.rect(3, 14, 22, 1, 'u').rect(3, 15, 22, 1, 'i');
+  for (const x of [6, 20]) {
+    l.rect(x, abierto ? 14 : 5, 2, abierto ? 12 : 21, 'J').rect(x, abierto ? 14 : 5, 1, abierto ? 12 : 21, 'u');
+    for (const y of abierto ? [17, 23] : [8, 17, 23]) l.set(x + 1, y, 'w');
+  }
+  if (abierto) {
+    // el candado, suelto y colgando de costado
+    l.rect(12, 18, 5, 5, '¤');
+    vol(l, ORO, { borde: 1, base: 0.55 });
+    l.rect(13, 15, 1, 3, 'J').rect(16, 16, 1, 2, 'J');
+  } else {
+    // el candado de oro, grande, con su arco de hierro y el ojo de la llave
+    l.rect(11, 12, 1, 4, 'J').rect(16, 12, 1, 4, 'J').rect(12, 11, 4, 1, 'u');
+    l.rect(10, 16, 8, 8, '¤');
+    vol(l, ORO, { borde: 2, base: 0.55 });
+    l.rect(13, 18, 2, 2, '0').rect(13, 20, 2, 2, '0');
+  }
+  l.rect(3, 26, 22, 1, '9');
+}
+
 /** Una vela de sebo en su platito: el cuerpo hueso (claro arriba a la izquierda), el chorreo y, si está prendida, la llama. */
 function velaPx(l: Lienzo, prendida: boolean): void {
   // el platito de peltre
@@ -831,6 +935,9 @@ function hacer(clave: string, d: Dibujo | undefined, w = N, h = N): string[] | n
 }
 
 export const AMULETOS_PX = Object.keys(AMULETO);
+/** Los Amuletos que tienen forma despierta (las Evoluciones). */
+export const EVOLUCIONES_PX = Object.keys(EVOLUCION_DIBUJO);
+export const evolucionMapa = (id: string): Mapa | null => hacer(`ev:${id}`, EVOLUCION_DIBUJO[id]);
 export const AUMENTOS_PX = Object.keys(AUMENTO);
 export const BENDICIONES_PX = Object.keys(BENDICION);
 export const NODOS_PX = Object.keys(NODO) as NodoPx[];
