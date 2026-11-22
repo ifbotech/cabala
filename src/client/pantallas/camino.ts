@@ -619,7 +619,7 @@ export function pantallaBotin(p: Partida, desdeMesa = false): Pantalla {
         <section class="panel botin-panel">
           <h1 class="titulo">${t('botin')}</h1>
           <div class="botin-lista">${botin.items.map(fila).join('')}</div>
-          <button class="btn marco ${pendiente() < 0 ? 'oro' : 'hierro'} grande" data-accion="seguir" data-foco="seguir" ${pendiente() < 0 ? 'data-inicio' : ''}>${t('seguir')}</button>
+          <button class="btn marco ${pendiente() < 0 ? 'oro' : 'hierro'} grande" data-accion="seguir" data-foco="seguir" ${pendiente() < 0 ? 'data-inicio' : ''}>${t(pendiente() < 0 ? 'seguir' : 'seguirSinElegir')}</button>
         </section>
       </div>
       ${hudHtml(p)}
@@ -1055,7 +1055,7 @@ export function pantallaFogon(p: Partida): Pantalla {
           // (0.24) con la tercera pasada por elegir, SEGUIR es secundario (hierro y chico): lo que se lee son las dos mutaciones
           p.fogonHecho && juego.puedeArrimar(p) && (p.fogonPasadas ?? 0) >= 2
             ? `<button class="btn marco hierro chico fogon-seguir" data-accion="seguir" data-foco="seguir">${t('seguir')}</button>`
-            : `<button class="btn marco ${p.fogonHecho ? 'oro' : 'hierro'} grande" data-accion="seguir" data-foco="seguir" ${p.fogonHecho && !juego.puedeArrimar(p) ? 'data-inicio' : ''}>${t('seguir')}</button>`
+            : `<button class="btn marco ${p.fogonHecho ? 'oro' : 'hierro'} grande" data-accion="seguir" data-foco="seguir" ${p.fogonHecho && !juego.puedeArrimar(p) ? 'data-inicio' : ''}>${t(p.fogonHecho ? 'seguir' : 'seguirSinFogon')}</button>`
         }
       </div>
       ${hudHtml(p)}

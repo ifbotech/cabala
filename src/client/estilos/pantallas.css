@@ -5106,3 +5106,19 @@ main.fogon.forjando [data-accion='seguir'] {
     font-size: var(--fs-m, 20px);
   }
 }
+
+/* ───────────── 0.28 · el Botín ─────────────
+   SEGUIR dice lo que hace (si queda algo por elegir, «SEGUIR SIN ELEGIR») y va separado de la última fila; en el
+   teléfono alto, el Bufón al doble y todo al centro de la escena (arriba no quedan 300 px de tablas vacías) */
+.botin .botin-panel > [data-accion='seguir'] {
+  margin-top: calc(var(--u) * 1.25);
+}
+@media (max-width: 700px) and (min-height: 780px) {
+  .botin:not(.directo) .cuerpo {
+    justify-content: center;
+    gap: calc(var(--u) * 2);
+  }
+  .botin:not(.directo) .anfitrion {
+    --k-bufon: 2;
+  }
+}
