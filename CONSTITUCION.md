@@ -103,6 +103,25 @@ certificar (la huella del informe tiene que coincidir).
   Cargado, Fósforo de Fogón, Polvo de Tiza y Poroto de Yapa. Son de un solo uso, no gastan el turno y se usan con un
   clic o arrastrándolos al enemigo. Se compran en La Pulpería o se le roban a la Corte como **Prenda** al abatir con
   Golpe exacto, al pelo o cantando.
+
+### 1.10 Evoluciones, Forja Brava, Cábala Negra y Tesoros (0.22.0)
+
+- **Evoluciones.** Siguen siendo exactamente 15 Amuletos: los cuatro Épicos de palo evolucionan solos cuando además
+  llevás un don del Rey de su palo. La Lanza se vuelve el **Facón Maldito** (Espadas), el Poncho el **Garrote del
+  Cacique** (Bastos), el Cofre el **Sol de la Timba** (Oros) y el Cáliz el **Brindis de Sangre** (Copas). Suman, no
+  duplican. Al despertar hay un jackpot de 1,2 s que se salta con cualquier input; en el HUD llevan un ícono prismático
+  y en «ELEGÍ UNA» y La Pulpería la pieza que despierta una lleva el sello **«★ EVOLUCIONA»**.
+- **Forja Brava.** El Fogón tiene tres pasadas: +Daño, Templada (+Multi al jugarla) y **¡FORJA BRAVA!**, que duplica el
+  número del naipe y le deja una mutación al azar: **Doble Filo** (+Multi, pero te corta Vida), **Roba Carta** (robás
+  una al jugarla) o **Chispa de Oro** (paga oro al jugarla). Cada pasada arriesga más: el Fogón es apuesta.
+- **Cábala Negra.** Una vez por partida, desde el segundo tramo, el Bufón cose naipes en la trastienda: **coser dos
+  iguales** (dos del mismo número se vuelven uno que junta lo suyo y pega más) o **trasplantar** (el primero se
+  sacrifica y el segundo toma su palo y lo que le dejó el fuego). Se elige en la misma escena, sin pantalla nueva.
+- **Tesoros a la Vista.** El mapa muestra de antemano algunos nodos con cofre: tras la Élite se abre solo; tras la
+  Guardia, con candado de oro. Adentro hay dos Amuletos de los buenos para elegir uno.
+- **Contrapesos.** Los Legendarios y Prismáticos tienen poder de verdad y un costo picante y claro, escrito en su
+  propia ficha (110 caracteres como máximo).
+- **TURBO.** Ninguna animación bloquea el input: el siguiente toque la corta.
 ## 2 · Dirección de arte: «Dark Dithered Lithography»
 
 **La vara es la de los 5 Dorsos.** Vale para todas las pantallas y componentes.

@@ -120,6 +120,7 @@ const FUNCIONES = {
   postasDelPano: true,
   /** 0.21.0: tres huecos de Chiches de un solo uso en la mesa, a la venta en La Pulpería y como Prenda de la Corte. */
   chichesDeMesa: true,
+  evoluciones: true,
 };
 
 const c = (palo: PaloCarta, n: number): Carta => ({ id: `${palo}${n}`, palo, n });
