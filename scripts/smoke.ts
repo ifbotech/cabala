@@ -314,7 +314,8 @@ await conServidor(5192, async (url) => {
     await pf.click('[data-accion="templar"]');
     await pf.locator('.visor button.visor-carta').first().click();
     await pf.waitForSelector('.opcion.fuego .c-temple');
-    exigir((await pf.locator('.opcion.fuego .c-temple').textContent())?.trim() === '+4', 'la primera pasada por el fuego no dejó el naipe al rojo (+4)');
+    // la placa lo dice en palabras desde la 0.25 («+4 de Daño» / «+4 Damage»): basta con que arranque en +4
+    exigir(/^\+4(?!\d)/.test((await pf.locator('.opcion.fuego .c-temple').textContent())?.trim() ?? ''), 'la primera pasada por el fuego no dejó el naipe al rojo (+4)');
     let pasadas = 1;
     while ((await pf.locator('[data-accion="arrimar"]').count()) > 0 && pasadas < 6) {
       await pf.click('[data-accion="arrimar"]');
