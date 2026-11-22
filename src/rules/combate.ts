@@ -549,11 +549,29 @@ function abatir(p: Partida, evs: Ev[], o: { exacto: boolean; alPelo?: boolean; e
     evs.push({ t: 'aturde', turnos: sig.aturdido });
   }
   if (o.sobra > 0) {
-    evs.push({ t: 'perfora', n: o.sobra });
-    const resto = o.sobra - sig.vida;
-    sig.vida = Math.max(0, sig.vida - o.sobra);
-    evs.push({ t: 'dano', n: o.sobra, aEscudo: 0, vida: sig.vida, escudo: sig.escudo });
+    // lo que Perfora también respeta al Rey en su primera cara (0.24.0): se planta en la mitad y muestra la segunda
+    const mitad = sig.jefe && !sig.segunda && sig.vida * 2 > sig.vidaMax ? sig.vida - Math.floor(sig.vidaMax / 2) : Infinity;
+    const entra = Math.min(o.sobra, mitad);
+    evs.push({ t: 'perfora', n: entra });
+    const resto = entra - sig.vida;
+    sig.vida = Math.max(0, sig.vida - entra);
+    evs.push({ t: 'dano', n: entra, aEscudo: 0, vida: sig.vida, escudo: sig.escudo });
     if (sig.vida <= 0) abatir(p, evs, { exacto: false, ejecutado: false, palos: o.palos, sobra: Math.max(0, resto), deUnSaque: false });
+    else segundaCara(sig, evs);
+  }
+}
+
+/** A media Vida, el Rey muestra su segunda cara (y el Cacique levanta su Empalizada). */
+function segundaCara(e: Enemigo, evs: Ev[]): void {
+  if (!e.jefe || e.segunda || e.vida * 2 > e.vidaMax) return;
+  e.segunda = true;
+  evs.push({ t: 'segunda', palo: e.palo });
+  // la Empalizada del Cacique: un Escudo a la medida de su Vida (las Espadas lo atraviesan)
+  if (e.palo === 'C') {
+    e.escudoMax = Math.max(e.escudoMax, Math.round(e.vidaMax * B.reyes.C.empalizada));
+    const n = e.escudoMax - e.escudo;
+    e.escudo = e.escudoMax;
+    if (n > 0) evs.push({ t: 'rey', que: 'escudo', n });
   }
 }
 
@@ -749,18 +767,7 @@ export function golpear(p: Partida, ids: readonly string[], postas?: readonly nu
     if (q.ejecuta) e.vida = 0;
     abatir(p, evs, { exacto: q.exacto, alPelo: q.alPelo, ejecutado: q.ejecuta, palos, sobra: q.sobra, deUnSaque: deUnSaque && q.abate, canto: q.canto });
   } else {
-    // a media Vida, el Rey muestra su segunda cara
-    if (e.jefe && !e.segunda && e.vida * 2 <= e.vidaMax) {
-      e.segunda = true;
-      evs.push({ t: 'segunda', palo: e.palo });
-      // la Empalizada del Cacique: un Escudo a la medida de su Vida (las Espadas lo atraviesan)
-      if (e.palo === 'C') {
-        e.escudoMax = Math.max(e.escudoMax, Math.round(e.vidaMax * B.reyes.C.empalizada));
-        const n = e.escudoMax - e.escudo;
-        e.escudo = e.escudoMax;
-        if (n > 0) evs.push({ t: 'rey', que: 'escudo', n });
-      }
-    }
+    segundaCara(e, evs);
     if (q.aturde) {
       e.aturdido = Math.max(e.aturdido, q.aturde);
       if (p.mazoId !== 'chancho' || !q.canto) e.boleado = true;

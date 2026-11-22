@@ -836,6 +836,22 @@ describe('0.23.0: la Forja Brava a la vista y el acomodo EXACTO', () => {
   });
 });
 
+describe('0.24.0: lo que Perfora respeta las dos caras del Rey', () => {
+  it('la sobra que entra en un Rey en su primera cara lo deja en la mitad y le muestra la segunda', () => {
+    const mano = [c('S', 9), c('S', 9), c('S', 9), c('S', 8), c('S', 8)];
+    const p = mesa('escoba', mano, { vida: 1, vidaMax: 100, palo: 'D' });
+    p.amuletos.push('lanza');
+    const rey = { ...crearEnemigo(p, 'C', 12), jefe: true, vida: 400, vidaMax: 400, escudo: 0, escudoMax: 0 } as Enemigo;
+    p.combate!.fila[1] = rey;
+    const q = cuenta(p, mano);
+    expect(q.perfora && q.sobra).toBeGreaterThan(200);
+    const evs = golpear(p, mano.map((k) => k.id));
+    expect(rey.vida).toBe(200);
+    expect(rey.segunda).toBe(true);
+    expect(evs.some((x) => x.t === 'segunda')).toBe(true);
+  });
+});
+
 describe('0.23.0: el Altar devuelve y el resumen de la partida', () => {
   it('Devolver un nivel del Altar reintegra todo lo que costó', () => {
     const perfil = perfilNuevo();
