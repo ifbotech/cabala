@@ -3927,3 +3927,126 @@ button.visor-carta:disabled {
     --kc: 3;
   }
 }
+/* ───────────── 0.23: el Fogón elige la mutación, la placa bajo el naipe y nada de cajas vacías ───────────── */
+.fuego-naipe {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(4px * var(--k));
+}
+.c-temple.f-temple {
+  position: static;
+  line-height: 1.2;
+}
+.fuego .fuego-estado {
+  font-size: var(--fs);
+  line-height: 1.2;
+  text-align: center;
+}
+.opcion-renglon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 0.5);
+  margin: 0;
+  padding: calc(var(--u) * 0.5) var(--u);
+  font-size: var(--fs);
+  color: var(--hueso-2);
+  align-self: center;
+}
+.opcion-renglon b {
+  font-family: var(--rot);
+  font-weight: 400;
+  text-transform: uppercase;
+  color: var(--hueso);
+}
+.opcion-renglon .px {
+  --k: 1;
+}
+.forja-elige {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: 10px 12px;
+  width: 100%;
+}
+.forja-elige > .forja-elige-tit,
+.forja-elige > .forja-riesgo {
+  grid-column: 1 / -1;
+}
+/* la tercera pasada a elegir: el naipe a un lado; su estado, las dos mutaciones y el riesgo, al otro */
+.fogon .opcion.fuego:has(.forja-elige) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    'naipe estado'
+    'naipe elige';
+  align-items: center;
+  column-gap: var(--u);
+  row-gap: calc(var(--u) * 0.5);
+}
+.fuego:has(.forja-elige) .fuego-naipe {
+  grid-area: naipe;
+}
+.fuego:has(.forja-elige) .fuego-estado {
+  grid-area: estado;
+}
+.fuego:has(.forja-elige) .forja-elige {
+  grid-area: elige;
+}.btn.forja-mut {
+  --kf: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: calc(var(--u) * 0.5);
+  min-height: 48px;
+  text-align: left;
+  white-space: normal;
+}
+.forja-mut .fm-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.forja-mut .fm-nombre {
+  font-family: var(--rot);
+  font-weight: 400;
+  text-transform: uppercase;
+}
+.forja-mut .fm-desc {
+  font-family: var(--cuerpo);
+  font-size: var(--fs-s);
+  text-transform: none;
+  line-height: 1.2;
+}
+.forja-riesgo {
+  text-align: center;
+}
+.forja-riesgo.corto {
+  display: none;
+}
+@media (min-width: 701px) {
+  .fogon .opcion.fuego:has(.forja-elige) {
+    width: min(calc(200px + 300px * var(--k)), 62vw);
+  }
+}
+@media (max-width: 700px) {
+  .fogon .opcion.fuego {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .fogon .opcion.fuego:has(.forja-elige) {
+    grid-template-areas:
+      'naipe estado'
+      'elige elige';
+  }
+  .forja-mut .fm-desc {
+    font-size: 14px;
+  }
+  .forja-elige .forja-riesgo.largo {
+    display: none;
+  }
+  .forja-elige .forja-riesgo.corto {
+    display: block;
+  }
+}

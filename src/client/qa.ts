@@ -429,6 +429,19 @@ export function montarQa(estado: string): void {
       $<HTMLElement>(`[data-accion="abrir"][data-i="${p.botin!.items.indexOf(it!)}"]`)?.click();
       break;
     }
+    case 'fogon-mutaciones': {
+      // (0.23) el naipe Templado (dos pasadas) y la tercera a elegir: las dos mutaciones a la vista, con efecto y costo
+      const p = partida(mazo, (x) => x.fase === 'fogon', 'QA', undefined, 'fogon');
+      const c = p.mazo.find((k) => k.palo !== 'X')!;
+      c.temple = 8;
+      c.templada = true;
+      p.fogonCarta = c.id;
+      p.fogonPasadas = 2;
+      p.fogonHecho = true;
+      p.fogonMutaciones = ['doblefilo', 'oro'];
+      montar(p);
+      break;
+    }
     case 'forja-brava': {
       // la tercera pasada recién salida del fuego: «¡FORJA BRAVA!» sobre el naipe y su mutación (Doble Filo)
       const p = partida(mazo, (x) => x.fase === 'fogon', 'QA', undefined, 'fogon');

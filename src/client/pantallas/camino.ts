@@ -6,7 +6,7 @@ import type { AmuletoId } from '../../rules/amuletos';
 import { B } from '../../rules/balance';
 import { CABALA, HUMOR_NOMBRE, detalleDe, humorDe, suerte, type OpcionCabala } from '../../rules/bufon';
 import { JUGADAS, PALOS, esComodin, ordenar } from '../../rules/cartas';
-import type { Carta, Jugada, Palo } from '../../rules/cartas';
+import type { Carta, Jugada, Mutacion, Palo } from '../../rules/cartas';
 import { carga, sirveA, tieneAumento } from '../../rules/estado';
 import type { ItemBotin, Nodo, Oferta, Partida } from '../../rules/estado';
 import { COLUMNAS, PISOS } from '../../rules/mapa';
@@ -826,32 +826,55 @@ export function pantallaFogon(p: Partida): Pantalla {
   const fuegoHtml = (): string => {
     const enFuego = p.fogonCarta ? p.mazo.find((k) => k.id === p.fogonCarta) : null;
     if (seQuemo) return `<div class="opcion marco hierro fuego"><span class="op-icono grande">${pxNodo('fogon')}</span><b class="op-nombre">${t('quemada')}</b></div>`;
-    if (enFuego)
+    if (enFuego) {
+      const pasadas = p.fogonPasadas ?? 0;
+      const puede = juego.puedeArrimar(p);
+      // (0.23) la tercera pasada se elige: las dos mutaciones que ofrece el fuego, a la vista con lo que hacen y lo que
+      // cuestan (sin pasar el puntero), y cada una es su propio botón de FORJA BRAVA
+      const muts = pasadas >= 2 && puede ? (p.fogonMutaciones ?? []) : [];
+      const arrimar = !puede
+        ? ''
+        : muts.length
+          ? `<div class="forja-elige"><b class="forja-elige-tit rotulo">${t('forjaElegi')}</b>
+              ${muts.map((m, i) => `<button class="btn marco oro forja-mut" data-accion="arrimar" data-mut="${m}" data-foco="mut-${i}" ${i === 0 ? 'data-inicio' : ''}>${pxHud(MUTACION_PX[m])}<span class="fm-txt"><b class="fm-nombre">${esc(tx(MUTACION_NOMBRE[m]))}</b><small class="fm-desc">${esc(tx(MUTACION_DESC[m]))}</small></span></button>`).join('')}
+              <span class="op-desc forja-riesgo largo">${t('riesgoBrava', { p: Math.round(B.fogon.riesgos[2] * 100) })}</span><span class="op-desc forja-riesgo corto">${t('forjaQuema', { p: Math.round(B.fogon.riesgos[2] * 100) })}</span></div>`
+          : `<button class="btn marco ${pasadas >= 2 ? 'oro' : 'prisma'} chico" data-accion="arrimar" data-foco="arrimar" data-inicio>${pasadas >= 2 ? t('forjaBrava') : t('arrimar')}</button><span class="op-desc">${pasadas >= 2 ? t('riesgoBrava', { p: Math.round(B.fogon.riesgos[2] * 100) }) : t('riesgo', { n: B.fogon.temple, m: B.fogon.multiTemplada, p: Math.round(B.fogon.riesgos[1] * 100) })}</span>`;
+      // (la placa del temple va DEBAJO del naipe, no encima: tapaba media carta en el teléfono)
       return `<div class="opcion marco hierro fuego">
-        <span class="fuego-carta">${pxNaipe(enFuego)}${`<span class="c-temple">+${enFuego.temple}${enFuego.templada ? '★' : ''}${enFuego.brava ? ' ×2' : ''}</span>`}</span>
+        <span class="fuego-naipe"><span class="fuego-carta">${pxNaipe(enFuego)}</span><span class="c-temple f-temple">+${enFuego.temple}${enFuego.templada ? '★' : ''}${enFuego.brava ? ' ×2' : ''}</span></span>
         ${recienBrava ? `<b class="forja-grito rotulo" role="status">${t('forjaBrava')}</b>` : ''}
         ${enFuego.mutacion ? `<span class="chip mutacion-chip" data-mut ${tip(tx(MUTACION_NOMBRE[enFuego.mutacion]), tx(MUTACION_DESC[enFuego.mutacion]), t('forjaBrava'))}>${pxHud(MUTACION_PX[enFuego.mutacion])} ${esc(tx(MUTACION_NOMBRE[enFuego.mutacion]))}</span>` : ''}
-        <b class="op-nombre">${enFuego.brava ? t('forjada') : enFuego.templada ? t('templadaMulti', { n: enFuego.temple ?? 0, m: B.fogon.multiTemplada }) : t('templada', { n: enFuego.temple ?? 0 })}</b>
-        ${juego.puedeArrimar(p) ? `<button class="btn marco ${(p.fogonPasadas ?? 0) >= 2 ? 'oro' : 'prisma'} chico" data-accion="arrimar" data-foco="arrimar">${(p.fogonPasadas ?? 0) >= 2 ? t('forjaBrava') : t('arrimar')}</button><span class="op-desc">${(p.fogonPasadas ?? 0) >= 2 ? t('riesgoBrava', { p: Math.round(B.fogon.riesgos[2] * 100) }) : t('riesgo', { n: B.fogon.temple, m: B.fogon.multiTemplada, p: Math.round(B.fogon.riesgos[1] * 100) })}</span>` : ''}
+        <b class="op-nombre fuego-estado">${enFuego.brava ? t('forjada') : enFuego.templada ? t('templadaMulti', { n: enFuego.temple ?? 0, m: B.fogon.multiTemplada }) : t('templada', { n: enFuego.temple ?? 0 })}</b>
+        ${arrimar}
       </div>`;
+    }    // (ya descansaste: TEMPLAR queda en un renglón apagado, no en una caja vacía)
+    if (p.fogonHecho) return `<p class="opcion-renglon apagado">${pxHud('furia')}<b>${t('templar')}</b><span>${t('fogonUsado')}</span></p>`;
     // (con la Vida llena, DESCANSAR está apagado: el foco inicial pasa a TEMPLAR)
-    return `<button class="opcion marco hierro" data-accion="templar" data-foco="templar" ${!p.fogonHecho && p.vida >= p.vidaMax ? 'data-inicio' : ''} ${p.fogonHecho ? 'disabled' : ''}>
+    return `<button class="opcion marco hierro" data-accion="templar" data-foco="templar" ${p.vida >= p.vidaMax ? 'data-inicio' : ''}>
       <span class="op-icono grande">${pxHud('furia')}</span><b class="op-nombre">${t('templar')}</b><span class="op-desc">${t('templarDesc', { n: B.fogon.temple })}</span>
     </button>`;
   };
-  return {
+  /**
+   * DESCANSAR: con la Vida llena o el Fogón ya usado no queda una caja grande y vacía. Usado, no se dibuja; con la Vida
+   * llena, un renglón apagado («DESCANSAR · Vida llena»).
+   */
+  const descansoHtml = (): string => {
+    if (p.fogonHecho) return '';
+    if (p.vida >= p.vidaMax) return `<p class="opcion-renglon apagado">${pxNodo('fogon')}<b>${t('descansar')}</b><span>${t('vidaLlena')}</span></p>`;
+    return `<button class="opcion marco paloH" data-accion="descansar" data-foco="descansar" data-inicio>
+            <span class="op-icono grande">${pxNodo('fogon')}</span><b class="op-nombre">${t('descansar')}</b><span class="op-desc">${t('descansarDesc', { n: cura })}</span>
+          </button>`;
+  };  return {
     nombre: 'fogon',
     html: () => `<main class="pantalla en-partida fogon">
       <header class="cabecera"><h1 class="titulo">${t('fogon')}</h1><div class="lado">${botonMenu()}</div></header>
       <div class="cuerpo">
         ${anfitrion(tx(alAzar(VOZ.fogon, fijo())), 'reposo')}
         <div class="opciones">
-          <button class="opcion marco paloH" data-accion="descansar" data-foco="descansar" ${p.vida >= p.vidaMax ? '' : 'data-inicio'} ${p.fogonHecho || p.vida >= p.vidaMax ? 'disabled' : ''}>
-            <span class="op-icono grande">${pxNodo('fogon')}</span><b class="op-nombre">${t('descansar')}</b><span class="op-desc">${p.vida >= p.vidaMax ? t('vidaLlena') : t('descansarDesc', { n: cura })}</span>
-          </button>
+          ${descansoHtml()}
           ${fuegoHtml()}
         </div>
-        <button class="btn marco ${p.fogonHecho ? 'oro' : 'hierro'} grande" data-accion="seguir" data-foco="seguir">${t('seguir')}</button>
+        <button class="btn marco ${p.fogonHecho ? 'oro' : 'hierro'} grande" data-accion="seguir" data-foco="seguir" ${p.fogonHecho && !juego.puedeArrimar(p) ? 'data-inicio' : ''}>${t('seguir')}</button>
       </div>
       ${hudHtml(p)}
     </main>`,
@@ -895,19 +918,20 @@ export function pantallaFogon(p: Partida): Pantalla {
           p.mazo.filter((k) => k.palo !== 'X'),
           true,
         ),
-      arrimar: async () => {
+      arrimar: async (boton) => {
         const carta = p.fogonCarta ? p.mazo.find((k) => k.id === p.fogonCarta) : null;
+        const mut = boton?.dataset.mut as Mutacion | undefined;
         if (ocupado || !carta) return;
         ocupado = true;
         // el suspenso: el naipe tiembla sobre las llamas mientras sube el chisporroteo
         const el = $('.fuego-carta');
         el?.classList.add('al-fuego');
-        $<HTMLButtonElement>('[data-accion="arrimar"]')?.setAttribute('disabled', '');
+        for (const b of document.querySelectorAll<HTMLButtonElement>('[data-accion="arrimar"]')) b.setAttribute('disabled', '');
         sonar('suspenso');
         await pausa(820);
         const rect = el?.getBoundingClientRect();
         const brava = (p.fogonPasadas ?? 0) >= 2;
-        const r = juego.templar(p, carta.id);
+        const r = juego.templar(p, carta.id, mut);
         recienBrava = brava && r === 'templada';
         if (r === 'quemada') {
           seQuemo = true;
