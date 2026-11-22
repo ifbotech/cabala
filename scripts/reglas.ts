@@ -5,6 +5,7 @@ import { AMULETO, AMULETOS, RAREZA_NOMBRE, precioBase } from '../src/rules/amule
 import { AUMENTO, AUMENTOS, NIVEL_NOMBRE } from '../src/rules/aumentos';
 import { B } from '../src/rules/balance';
 import { CABALAS } from '../src/rules/bufon';
+import { CHICHE, CHICHES } from '../src/rules/chiches';
 import { JUGADAS, PALOS } from '../src/rules/cartas';
 import type { Jugada } from '../src/rules/cartas';
 import { COLUMNAS, PISOS, REGLAS_MAPA } from '../src/rules/mapa';
@@ -42,6 +43,20 @@ p('## Daño × Multi');
 p('> **TOTAL = DAÑO × MULTI** (los dos, siempre enteros). La mesa te muestra la cuenta mientras elegís o arrastrás.');
 p(`**Daño**: la base de la jugada más el número de cada carta, más lo que sumen tu Mazo, tus Amuletos y tus Bendiciones. **Multi**: el de la jugada más lo que sume, y al final lo que multiplique (×2, ×3…).`);
 tabla(['Jugada', 'Cartas', 'Daño base', 'Multi'], [...JUGADAS, 'quince' as Jugada, 'envido' as Jugada].map((j) => [`**${JUGADA_NOMBRE[j].es}**`, JUGADA_COMO[j].es, `+${B.jugadas[j].d}`, `×${B.jugadas[j].m}`]));
+
+p('### El paño: las Postas');
+p(
+  `Las cartas del golpe se apoyan en las **Postas del paño**, tantas como tu mano (de 3 a 5). Al elegirlas, **la mesa las acomoda sola en la mejor disposición**; podés reordenarlas arrastrando o con LB/RB y la cuenta cambia al instante.`,
+  '',
+  `- **Posta del Medio** (rombo de oro): el naipe que cae ahí pega **×${B.postas.medio} su número** de Daño.`,
+  `- **Chispa**: el naipe a la **derecha de un Comodín** pega **×${B.postas.chispa} su número** de Daño.`,
+  `- **Escalón**: tres o más naipes en orden estrictamente creciente de izquierda a derecha, **+${B.postas.escalon} de Multi**.`,
+);
+p('### Los Chiches');
+p(
+  `Consumibles de un solo uso que se apoyan **sobre la madera, a la derecha de la mesa** (nunca en la mano). Entran **${B.chiches.huecos}**. Usarlos no gasta el turno: un clic, o arrastralos al enemigo. Se compran en La Pulpería (${B.chiches.precio} de oro) y, al abatir con Golpe exacto, al pelo o cantando, la Corte a veces suelta uno como **Prenda** (${Math.round(B.chiches.prenda * 100)} %).`,
+);
+tabla(['Chiche', 'Efecto'], CHICHES.map((id) => [`**${CHICHE[id].nombre.es}**`, CHICHE[id].desc.es]));
 
 p('### Inmune');
 p('Una sola regla: **cada enemigo es Inmune a su propio palo**: las cartas de ese palo no le hacen Daño. En tu mano se ven oscurecidas mientras ese enemigo está activo, y el Mapa te muestra de antemano los palos que te esperan.');

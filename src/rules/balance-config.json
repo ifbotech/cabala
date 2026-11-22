@@ -169,16 +169,16 @@
       "multiMano": 4
     },
     "chinchon": {
-      "vida": 27,
+      "vida": 26,
       "mano": 7,
       "hasta": 9,
       "comodines": 2,
       "cargaDano": 2,
       "mitiga": 0.3,
-      "multiMano": 2
+      "multiMano": 3
     },
     "mentiroso": {
-      "vida": 16,
+      "vida": 19,
       "mano": 8,
       "hasta": 7,
       "comodines": 3,
@@ -188,13 +188,13 @@
       "multiMano": 0
     },
     "chancho": {
-      "vida": 49,
+      "vida": 47,
       "mano": 4,
       "hasta": 9,
       "comodines": 2,
       "multi": 2,
       "aturde": 2,
-      "multiMano": 5
+      "multiMano": 6
     }
   },
   "botin": {
@@ -246,7 +246,7 @@
   },
   "postas": {
     "medio": 2,
-    "escalon": 1,
+    "escalon": 2,
     "chispa": 2
   },
   "chiches": {

@@ -639,7 +639,7 @@ export const PASO_AYUDA: Record<string, Par> = {
   dado: P('El Dado Cargado: +3 de Multi a este golpe.', 'The Loaded Die: +3 Mult on this hit.'),
   'posta:medio': P('El naipe en la Posta del Medio pega doble su número.', 'The card on the Middle spot hits double its number.'),
   'posta:chispa': P('El naipe a la derecha de un Comodín recibe su número otra vez.', 'The card right of a Joker gets its number again.'),
-  'posta:escalon': P('Tres o más naipes en orden creciente: +1 de Multi por naipe.', 'Three or more cards in rising order: +1 Mult per card.'),
+  'posta:escalon': P('Tres o más naipes en orden creciente: +2 de Multi.', 'Three or more cards in rising order: +2 Mult.'),
   j: P('La jugada que arman tus naipes: su Daño y su Multi de base.', 'The play your cards make: its base Damage and Mult.'),
   c: P('El número de cada naipe es su Daño (0 si el enemigo es Inmune a su palo).', 'Each card number is its Damage (0 if the enemy is Immune to its suit).'),
 };

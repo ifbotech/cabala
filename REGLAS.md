@@ -46,6 +46,26 @@ Además tenés **3 descartes por combate**: descartar no gasta el turno. Solo se
 | **Quince** | Suman 15 (Escoba) | +0 | ×1 |
 | **Envido** | 2 del mismo palo (Truco) | +0 | ×2 |
 
+### El paño: las Postas
+
+Las cartas del golpe se apoyan en las **Postas del paño**, tantas como tu mano (de 3 a 5). Al elegirlas, **la mesa las acomoda sola en la mejor disposición**; podés reordenarlas arrastrando o con LB/RB y la cuenta cambia al instante.
+
+- **Posta del Medio** (rombo de oro): el naipe que cae ahí pega **×2 su número** de Daño.
+- **Chispa**: el naipe a la **derecha de un Comodín** pega **×2 su número** de Daño.
+- **Escalón**: tres o más naipes en orden estrictamente creciente de izquierda a derecha, **+2 de Multi**.
+
+### Los Chiches
+
+Consumibles de un solo uso que se apoyan **sobre la madera, a la derecha de la mesa** (nunca en la mano). Entran **3**. Usarlos no gasta el turno: un clic, o arrastralos al enemigo. Se compran en La Pulpería (9 de oro) y, al abatir con Golpe exacto, al pelo o cantando, la Corte a veces suelta uno como **Prenda** (35 %).
+
+| Chiche | Efecto |
+|---|---|
+| **Vaso de Ginebra** | Curás 10 de Vida (×tramo). |
+| **Dado Cargado** | +3 de Multi en este golpe. |
+| **Fósforo de Fogón** | Quema el Inmune en este golpe. |
+| **Polvo de Tiza** | Tu carta más baja se vuelve Comodín. |
+| **Poroto de Yapa** | Robás 2 cartas de más. |
+
 ### Inmune
 
 Una sola regla: **cada enemigo es Inmune a su propio palo**: las cartas de ese palo no le hacen Daño. En tu mano se ven oscurecidas mientras ese enemigo está activo, y el Mapa te muestra de antemano los palos que te esperan.
@@ -177,9 +197,9 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 |---|---|---|---|---|
 | **Escoba** · Escoba del 15 | La Barrendera | 74 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×3 y más Daño para siempre. | abierto desde el principio |
 | **Truco** · Envido y Bravas | El Paisano Bravo | 62 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
-| **Chinchón** · Pierna y Escalera | La Timbera del Club | 27 · 7 | Piernas y Escaleras de palo crecen siempre y te cubren. | Vencé a un Rey. |
-| **El Mentiroso** · Cara de Piedra | El Chamuyero | 16 · 8 | Comodines, Escudo de entrada y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
-| **Chancho Va** · Mano al Centro | El Manotazo | 49 · 4 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
+| **Chinchón** · Pierna y Escalera | La Timbera del Club | 26 · 7 | Piernas y Escaleras de palo crecen siempre y te cubren. | Vencé a un Rey. |
+| **El Mentiroso** · Cara de Piedra | El Chamuyero | 19 · 8 | Comodines, Escudo de entrada y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
+| **Chancho Va** · Mano al Centro | El Manotazo | 47 · 4 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
 
 **Escoba** (¡ESCOBA!)
 - Mano de 3 cartas, como en la mesa: tus golpes llevan +3 de Multi.
@@ -206,7 +226,7 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 - Si el Engaño no abate al enemigo, su Furia sube 3.
 
 **Chancho Va** (¡CHANCHO!)
-- Mano de 4 cartas, como en la mesa: tus golpes llevan +5 de Multi.
+- Mano de 4 cartas, como en la mesa: tus golpes llevan +6 de Multi.
 - Cada turno, descartar 1 sola carta es gratis: robás otra en el acto.
 - Póker (4 iguales): ¡CHANCHO!, ×2 de Multi y el enemigo queda Aturdido 2 turnos.
 - De un saque: si abatís a un enemigo de un solo golpe, el siguiente entra Aturdido.

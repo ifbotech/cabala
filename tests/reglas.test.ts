@@ -505,7 +505,8 @@ describe('0.21.0: las Postas del paño', () => {
     const baja = cuenta(p, mano, [2, 1, 0]);
     expect(sube.escalon).toBe(true);
     expect(baja.escalon).toBe(false);
-    expect(sube.multi - baja.multi).toBe(3 * B.postas.escalon);
+    expect(sube.multi - baja.multi).toBe(B.postas.escalon);
+    expect(B.postas.escalon).toBe(2);
   });
   it('el naipe a la derecha de un Comodín recibe su Chispa', () => {
     const mano = [{ id: 'X1', palo: 'X' as const, n: 0 }, c('S', 6)];

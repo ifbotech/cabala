@@ -86,6 +86,21 @@ export function acomodos(p: Partida, sel: readonly Carta[]): number[][] {
   return out;
 }
 
+/**
+ * La mesa acomoda sola: de las maneras de apoyar esas cartas en el paño, la que más pega (a igual total, la de por
+ * defecto). El jugador puede reordenar después; esto es lo que ve al elegir las cartas.
+ */
+export function mejorAcomodo(p: Partida, sel: readonly Carta[]): number[] {
+  const todas = acomodos(p, sel);
+  let mejor = todas[0];
+  let total = cuenta(p, sel, mejor).total;
+  for (const pos of todas.slice(1)) {
+    const q = cuenta(p, sel, pos);
+    if (q.ok && q.total > total) (mejor = pos), (total = q.total);
+  }
+  return mejor;
+}
+
 /** La mejor jugada de la mano según el bot (o null si no hay combate). */
 export function mejorGolpe(p: Partida): { ids: string[]; q: Cuenta; v: number; engano: boolean; postas?: number[] } | null {
   const c = p.combate;

@@ -273,7 +273,7 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
   const perfora = cuantas('S') > 0 || tieneAmuleto(p, 'lanza');
 
   // ── Multi: primero lo que suma…
-  if (escalon) m('posta:escalon', porPosta.length * B.postas.escalon);
+  if (escalon) m('posta:escalon', B.postas.escalon);
   m('combate', c.multiCombate);
   m('prox', c.proxMulti);
   m('a:cascabel', c.cascabel ?? 0);
