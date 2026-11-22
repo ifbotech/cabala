@@ -5122,3 +5122,17 @@ main.fogon.forjando [data-accion='seguir'] {
     --k-bufon: 2;
   }
 }
+/* (0.28) la Cábala: el chip «A la suerte: 60 %» le deja su esquina al glifo A (le tapaba el «%») */
+@media (min-width: 701px) {
+  .cabala .opcion > .chip.canto {
+    margin-right: calc(26px * var(--k));
+    margin-left: calc(26px * var(--k));
+  }
+}
+@media (min-width: 701px) {
+  .cabala .opcion > .chip.canto {
+    margin-left: 0;
+    margin-right: 0;
+    padding-right: calc(24px * var(--k));
+  }
+}

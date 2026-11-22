@@ -641,7 +641,12 @@ export function pantallaMesa(p: Partida): Pantalla {
     const sc = sobraCifras(q);
     const sobranTxt = q.perfora && q.sobra > 0 && hayDetras() ? (sc.m > 1 ? t(innerWidth > 700 ? 'sobranPasan' : 'sobranPasanCorto', { n: sc.base, m: sc.m, s: sc.s }) : t('sobranPasan1', { n: sc.base })) : t('sobranPierden', { n: q.aVida - vidaE });
     const revela = q.abate ? (q.exacto ? '' : sobranTxt) : !q.ejecuta && enemigo ? t('leQuedan', { n: Math.max(0, vidaE - q.aVida) }) : '';
-    const queda = revela ? `<span class="chip c-queda c-revela">${esc(revela)}</span>` : '';
+    // (0.28) el «×3» de lo que pasa dice de quién es: el icono de la pieza que lo multiplica (el Facón Maldito o la Lanza)
+    // pegado a la cifra, y su nombre y su regla al mirarlo
+    const multiplica = q.perfora && q.sobra > 0 && hayDetras() && sc.m > 1;
+    const deQuien = multiplica ? (evoluciono(p, 'lanza') ? { icono: pxEvolucion('lanza', 'd-i'), nombre: tx(EVOLUCION.lanza.nombre), desc: tx(EVOLUCION.lanza.desc) } : { icono: pxAmuleto('lanza' as AmuletoId, 'd-i'), nombre: fichaDe('amuleto', 'lanza').nombre, desc: fichaDe('amuleto', 'lanza').desc }) : null;
+    const revelaHtml = deQuien ? esc(revela).replace(`×${sc.m}`, `${deQuien.icono}×${sc.m}`) : esc(revela);
+    const queda = revela ? `<span class="chip c-queda c-revela${deQuien ? ' mirable' : ''}" ${deQuien ? `tabindex="0" ${tip(deQuien.nombre, deQuien.desc)}` : ''}>${revelaHtml}</span>` : '';
     // con el Tajo de revés armado, un solo chip y una sola fórmula, igual que en la placa del Rey: «TE PEGA 42 (21 ×2)»
     const tajo = tajoAhora(q);
     const k = B.reyes.S.deguello;
