@@ -18,6 +18,7 @@
     "qa:visual": "tsx scripts/visual-qa.ts",
     "qa:smoke": "tsx scripts/smoke.ts",
     "qa:fps": "tsx scripts/fps.ts",
+    "qa:audio": "tsx scripts/audio-render.ts",
     "puertas": "node scripts/puertas.mjs"
   },
   "devDependencies": {

@@ -27,8 +27,8 @@ export interface Salidas {
 export const ADELANTO = 0.14;
 export const INTERVALO = 0.03;
 /** El volumen de la música entera y el nivel de cada capa. */
-export const VOLUMEN = 0.9;
-export const NIVEL: Record<T.CapaId, number> = { bajo: 0.34, guitarra: 0.15, rasgueo: 0.07, pad: 0.05, cuerdas: 0.035, bandoneon: 0.075, motivo: 0.1, bombo: 0.55, madera: 0.2, escobillas: 0.09, brasas: 0.1, latido: 0.5 };
+export const VOLUMEN = 0.6;
+export const NIVEL: Record<T.CapaId, number> = { bajo: 0.2, guitarra: 0.2, rasgueo: 0.12, pad: 0.07, cuerdas: 0.05, bandoneon: 0.11, motivo: 0.13, bombo: 0.24, madera: 0.22, escobillas: 0.12, brasas: 0.1, latido: 0.22 };
 /** La melodía se agacha 3 dB mientras alguien canta o suena un stinger. */
 export const AGACHE = 10 ** (-3 / 20);
 export const NIVEL_VOZ = 0.42;
@@ -90,6 +90,8 @@ export class Motor {
   /** Cuántas semicorcheas con música se llevan programadas (para la QA, que no oye). */
   pasosDados = 0;
   private frases: Frase[] = [];
+  /** La última frase de cada personaje (para callarla si empieza otra antes de terminar). */
+  private voces = new Map<T.VozId, { cantor: Cantor; fin: number }>();
   /** La partitura de lo que se programó (si se pide) y las últimas frases cantadas. */
   registro: T.Compas[] | null = null;
   readonly cantadas: { quien: T.VozId; texto: string; notas: T.NotaCantada[] }[] = [];
@@ -116,10 +118,10 @@ export class Motor {
     };
     this.ondas = {
       // nylon: armónicos que caen rápido (y cada tercero, más todavía: la cuerda pulsada a un tercio)
-      guitarra: onda(16, (k) => (k % 3 === 0 ? 0.4 : 1) / k ** 1.7),
+      guitarra: onda(16, (k) => (k % 3 === 0 ? 0.4 : 1) / k ** 1.35),
       // el fuelle: lengüeta rica en los diez primeros
       fuelle: onda(10, (k) => (k % 2 ? 1 : 0.7) / k ** 0.95),
-      cuerda: onda(12, (k) => 1 / k ** 1.35),
+      cuerda: onda(12, (k) => 1 / k ** 1.2),
       grave: onda(5, (k) => [1, 0.5, 0.22, 0.1, 0.04][k - 1]),
       campana: onda(6, (k) => [1, 0.3, 0.16, 0.05, 0.08, 0.02][k - 1]),
       // la glotis: un tren de armónicos que cae 7 dB por octava
@@ -475,7 +477,7 @@ export class Motor {
         this.tono(a, t, x.midi, vel * 0.4, w.fuelle, { ataque: 0.012, dura: dur * 0.6, suelta: 0.05 }, { desafina: -8 });
         break;
       case 'C':
-        this.tono(a, t, x.midi, vel * 1.1, w.grave, { ataque: 0.03, dura: dur * 0.95, suelta: 0.2 });
+        this.tono(a, t, x.midi, vel * 0.7, w.grave, { ataque: 0.03, dura: dur * 0.95, suelta: 0.2 });
         this.tono(a, t, x.midi + 12, vel * 0.3, w.fuelle, { ataque: 0.05, dura: dur * 0.9, suelta: 0.2 });
         break;
       case 'D':
@@ -563,9 +565,14 @@ export class Motor {
     if (inicio < 0 || this.tiempoDe(inicio) < ahora) inicio = this.paso;
     const largo = T.largoPlan(plan) * T.SEG_PASO;
     const t0 = this.tiempoDe(inicio);
+    // nadie canta dos frases a la vez: si este personaje todavía estaba cantando, se calla y empieza la nueva
+    const previa = this.voces.get(quien);
+    if (previa && previa.fin > t0) previa.cantor.callar(t0);
+    this.frases = this.frases.filter((x) => x.quien !== quien);
     const v = T.VOCES[quien];
     const cantor = crearCantor(this.ctx, v, this.ondas.voz, NIVEL_VOZ, this.sal.efectos, this.sal.sala, t0, t0 + largo);
     const f: Frase = { quien, texto, plan, inicio, sig: 0, cantor, anterior: null, primera: null, notas: [] };
+    this.voces.set(quien, { cantor, fin: t0 + largo });
     this.cantadas.push({ quien, texto, notas: f.notas });
     if (this.cantadas.length > 24) this.cantadas.shift();
     this.agachar(t0, largo);
@@ -614,7 +621,7 @@ export class Motor {
           this.tono(a, t, n.midi, n.vel, w.campana, { ataque: 0.002, cae: Math.max(0.4, dur * 1.8) });
           break;
         case 'grave':
-          this.tono(a, t, n.midi, n.vel * 1.5, w.grave, { ataque: 0.01, dura: dur * 0.8, suelta: 0.12 });
+          this.tono(a, t, n.midi, n.vel * 1.1, w.grave, { ataque: 0.01, dura: dur * 0.8, suelta: 0.12 });
           this.tono(a, t, n.midi + 12, n.vel * 0.5, w.fuelle, { ataque: 0.01, dura: dur * 0.8, suelta: 0.1 });
           break;
         default: {

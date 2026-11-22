@@ -18,9 +18,11 @@ export interface Bus {
 
 /** Los números del bus maestro (los lee el juez). */
 export const BUS = {
-  compresor: { umbral: -18, rodilla: 12, razon: 3, ataque: 0.012, relajo: 0.25 },
-  limitador: { umbral: -6, rodilla: 0, razon: 20, ataque: 0.002, relajo: 0.12 },
-  maestro: 0.62,
+  // (el compresor de Web Audio suma solo su ganancia de compensación: con estos números, unos +5 dB el compresor y
+  // +1,7 dB el limitador; el maestro devuelve 2,6 dB: lo que no llega al umbral sale unos 4 dB arriba, como antes de la 0.28)
+  compresor: { umbral: -14, rodilla: 10, razon: 2.5, ataque: 0.012, relajo: 0.25 },
+  limitador: { umbral: -3, rodilla: 0, razon: 20, ataque: 0.002, relajo: 0.12 },
+  maestro: 0.74,
   /** El techo: por debajo de −4,4 dBFS no toca la señal; por encima la dobla sin recortar y nunca pasa de −1,2 dBFS. */
   techo: { rodilla: 0.6, tope: 0.87 },
   sala: { segundos: 1.7, predelay: 0.012, corte: 3200, retorno: 0.5 },

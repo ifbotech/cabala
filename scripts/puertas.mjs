@@ -15,6 +15,7 @@ const PUERTAS = [
   ['QA visual (en)', 290, 'npm run qa:visual -- --lang=en'],
   ['QA de humo (es)', 290, 'npm run qa:smoke'],
   ['QA de humo (en, truco)', 290, 'npm run qa:smoke -- --lang=en --mazo=truco'],
+  ['QA de audio', 200, 'npm run qa:audio'],
   ['FPS', 200, 'npm run qa:fps'],
   ['construcción', 200, 'npm run build:web'],
 ];

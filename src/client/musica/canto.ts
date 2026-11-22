@@ -11,6 +11,8 @@ export interface Cantor {
    * `trino` / `melisma`: las notas del adorno (ya afinadas al acorde).
    */
   nota(t: number, dur: number, midi: number, vocal: Vocal, o: { entra: boolean; ultima: boolean; trino?: number; melisma?: number[] }): void;
+  /** Se calla ya (el mismo personaje empezó otra frase): un fundido de 20 ms. */
+  callar(t: number): void;
 }
 
 /** La ganancia y la agudeza de cada formante: el tercero (2,2–3 kHz, la banda que cansa) va 15 dB abajo del primero. */
@@ -64,6 +66,10 @@ export function crearCantor(ctx: BaseAudioContext, v: PerfilVoz, onda: PeriodicW
   };
 
   return {
+    callar(t) {
+      amp.gain.cancelScheduledValues(t);
+      amp.gain.setTargetAtTime(0, t, 0.02);
+    },
     nota(t, dur, midi, vocal, o) {
       const f = hz(midi);
       if (o.entra) osc.frequency.setValueAtTime(f, t);
