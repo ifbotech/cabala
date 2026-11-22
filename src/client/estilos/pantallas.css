@@ -3450,9 +3450,9 @@ button.visor-carta:disabled {
 .forja-grito {
   position: absolute;
   left: 50%;
-  top: calc(var(--u) * -1.5);
+  top: 0;
   z-index: 3;
-  translate: -50% 0;
+  translate: -50% -75%;
   padding: 4px 12px;
   font-family: var(--rot);
   font-size: var(--fr-l);
@@ -3483,4 +3483,202 @@ button.visor-carta:disabled {
   font-family: var(--rot);
   font-size: var(--fr);
   white-space: nowrap;
+}
+
+/* ───────────── 0.22: la Cábala Negra (bandeja de naipes del Mazo, en la misma escena) ───────────── */
+.cabala.negra .cuerpo {
+  gap: var(--u);
+  min-height: 0;
+}
+.negra-bandeja {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: min(96vw, 1180px);
+  min-height: 0;
+  max-height: calc(100dvh - 300px);
+}
+.negra-bandeja .rotulo {
+  font-size: var(--fr);
+  color: var(--purpura);
+}
+.negra-pista {
+  margin: 0;
+  font-family: var(--cuerpo);
+  font-size: var(--fs);
+  color: var(--hueso);
+  text-align: center;
+}
+.negra-bandeja .visor-cartas {
+  align-self: stretch;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+.negra-bandeja .visor-fila {
+  justify-content: center;
+}
+.negra-naipe {
+  position: relative;
+  min-width: 44px;
+  min-height: 44px;
+}
+.negra-naipe.elegida {
+  transform: translateY(calc(-6px * var(--k)));
+  outline: calc(2px * var(--k)) solid var(--purpura);
+  outline-offset: 2px;
+}
+.negra-orden {
+  position: absolute;
+  left: -6px;
+  bottom: -6px;
+  z-index: 1;
+  min-width: 32px;
+  padding: 4px 6px;
+  font-family: var(--cuerpo);
+  font-size: var(--fs-l);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--hueso);
+  background: var(--abismo);
+  box-shadow: inset 0 0 0 2px var(--purpura);
+  text-align: center;
+}
+.negra-pie {
+  display: flex;
+  gap: var(--u);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.negra-pie .btn {
+  min-height: 44px;
+}
+.cabala.negra .cabala-bufon .bocadillo {
+  font-size: var(--fs);
+}
+@media (max-width: 700px) {
+  .negra-bandeja {
+    max-height: calc(100dvh - 250px);
+  }
+  .negra-bandeja .visor-carta .px {
+    width: calc(var(--w) * 0.6px);
+    height: calc(var(--h) * 0.6px);
+  }
+  .negra-pie .btn {
+    min-height: 48px;
+  }
+}
+@media (max-height: 820px) and (min-width: 701px) {
+  .negra-bandeja .visor-carta .px {
+    width: calc(var(--w) * 0.7px);
+    height: calc(var(--h) * 0.7px);
+  }
+}
+
+/* ───────────── 0.22: los Tesoros (cofre en el Mapa, candado en el Botín y en ELEGÍ UNA) ───────────── */
+.nodo-tesoro {
+  position: absolute;
+  right: calc(-8px * var(--k));
+  top: calc(-6px * var(--k));
+  z-index: 1;
+  --k: var(--kp, 1);
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  line-height: 0;
+  padding: 2px;
+  background: var(--abismo);
+  box-shadow: inset 0 0 0 2px var(--oro);
+  pointer-events: none;
+}
+.nodo-tesoro .px + .px {
+  margin-left: -4px;
+}
+.nodo.hecho .nodo-tesoro,
+.nodo.lejos .nodo-tesoro {
+  opacity: 0.85;
+}
+.oferta-tesoro {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto;
+  padding: 4px 12px;
+  font-family: var(--rot);
+  font-size: var(--fr);
+  color: var(--oro);
+  background: var(--abismo);
+  box-shadow: inset 0 0 0 2px var(--oro);
+}
+.oferta-tesoro .sub {
+  font-family: var(--cuerpo);
+  font-size: var(--fs);
+  color: var(--hueso);
+}
+.op-candado {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.op-candado.falta,
+.bp-precio.falta {
+  opacity: 0.6;
+}
+.op-falta {
+  font-family: var(--cuerpo);
+  font-size: var(--fs);
+  color: var(--carmesi);
+  background: var(--abismo);
+  padding: 2px 6px;
+}
+.o-tesoro .opcion:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.o-tesoro .opcion:disabled .op-falta {
+  opacity: 1;
+}
+.bp-precio {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 0;
+}
+/* en escritorio, el Bufón al costado de la bandeja: los naipes toman todo el alto que deja el HUD */
+@media (min-width: 701px) {
+  .cabala.negra .cuerpo {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--u) * 2);
+  }
+  .cabala.negra .cabala-bufon {
+    flex: 0 1 auto;
+    max-width: 26vw;
+  }
+  .negra-bandeja {
+    width: min(68vw, 1180px);
+    max-height: calc(100dvh - 230px);
+  }
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  .negra-bandeja {
+    max-height: calc(100dvh - 330px);
+  }
+}
+
+.negra-bandeja .visor-cartas {
+  gap: 16px;
+  padding-top: 14px;
+}
+.negra-bandeja .visor-fila {
+  gap: 8px;
+}
+
+.op-cerrojo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 8px;
 }

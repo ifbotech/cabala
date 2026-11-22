@@ -4,10 +4,10 @@ import { AMULETO, AMULETOS, RAREZA_NOMBRE } from '../../rules/amuletos';
 import { AUMENTO, AUMENTOS } from '../../rules/aumentos';
 import type { AmuletoId } from '../../rules/amuletos';
 import { B } from '../../rules/balance';
-import { CABALA, HUMOR_NOMBRE, detalleDe, humorDe, suerte } from '../../rules/bufon';
-import { JUGADAS, PALOS, ordenar } from '../../rules/cartas';
+import { CABALA, HUMOR_NOMBRE, detalleDe, humorDe, suerte, type OpcionCabala } from '../../rules/bufon';
+import { JUGADAS, PALOS, esComodin, ordenar } from '../../rules/cartas';
 import type { Carta, Jugada, Palo } from '../../rules/cartas';
-import { carga, sirveA } from '../../rules/estado';
+import { carga, sirveA, tieneAumento } from '../../rules/estado';
 import type { ItemBotin, Nodo, Oferta, Partida } from '../../rules/estado';
 import { COLUMNAS, PISOS } from '../../rules/mapa';
 import { MAZO } from '../../rules/mazos';
@@ -42,6 +42,9 @@ const expresionDe = (p: Partida): Expresion => (p.afinidad <= -2 ? 'sombria' : p
 // ───────────────────────── lo común de la partida ─────────────────────────
 
 /** El visor del Mazo: las cartas por palo. Con `elegir`, cada carta es un botón (purgar, templar). */
+/** El candado de un Tesoro (lo mismo que cobra el Botín: el precio de la balanza con los descuentos del Altar y el Chamuyo). */
+const precioTesoro = (p: Partida): number => Math.max(1, Math.round(B.tesoros.precio * (1 - (p.altar.descuento ?? 0) * B.altar.descuento) * (tieneAumento(p, 'chamuyo') ? 1 - B.aumentos.chamuyo : 1)));
+
 export function modalMazo(p: Partida, titulo: string, elegir?: (id: string) => void, cartas: readonly Carta[] = p.mazo, cualquiera = false): void {
   const cara = (c: Carta): string => pxNaipe(c) + (c.temple ? `<span class="c-temple">+${c.temple}${c.templada ? '★' : ''}${c.brava ? ' ×2' : ''}</span>` : '');
   const grupos = (['S', 'C', 'D', 'H', 'X'] as const).map((s) => ordenar(cartas.filter((c) => c.palo === s))).filter((g) => g.length);
@@ -305,10 +308,14 @@ export function pantallaMapa(p: Partida): Pantalla {
     const inmune = n.palos?.length ? t('inmuneA', { palo: n.palos.map((s) => tx(PALO_NOMBRE[s])).join(', ') }) : '';
     const nombre = n.tipo === 'rey' ? `${tx(rey.nombre)} · ${tx(rey.apodo)}` : tx(NODO_NOMBRE[n.tipo]);
     const desc = n.tipo === 'rey' ? `${tx(rey.rasgo)}: ${tx(rey.rasgoDesc)}` : tx(NODO_DESC[n.tipo]);
-    return `<button class="nodo n-${n.tipo} ${estado}" style="left:${(nx * 100).toFixed(2)}%;top:${(ny * 100).toFixed(2)}%" data-accion="nodo" data-id="${n.id}" data-foco="nodo-${n.id}" ${estado === 'abierto' ? '' : 'aria-disabled="true"'} ${abiertos[0] === n.id ? 'data-inicio' : ''} aria-label="${esc(nombre)}" ${tip(nombre, desc, inmune)}${n.palos?.length ? ` data-tip-palos="${n.palos.join('')}"` : ''}>
+    // (0.22) el Tesoro a la vista: un cofre sobre el nodo, con su candado (o la Élite que lo cuida) en la ayuda
+    const tesoro = n.tesoro ? `${t('tesoro')}: ${n.tesoro === 'oro' ? t('tesoroCandado', { n: precioTesoro(p) }) : t('tesoroElite')}` : '';
+    const pie = [inmune, tesoro].filter(Boolean).join(' · ');
+    return `<button class="nodo n-${n.tipo} ${estado} ${n.tesoro ? 'con-tesoro' : ''}" style="left:${(nx * 100).toFixed(2)}%;top:${(ny * 100).toFixed(2)}%" data-accion="nodo" data-id="${n.id}" data-foco="nodo-${n.id}" ${estado === 'abierto' ? '' : 'aria-disabled="true"'} ${abiertos[0] === n.id ? 'data-inicio' : ''} aria-label="${esc(tesoro ? `${nombre} · ${tesoro}` : nombre)}" ${tip(nombre, desc, pie)}${n.palos?.length ? ` data-tip-palos="${n.palos.join('')}"` : ''}>
       ${pxNodo(n.tipo)}
       ${n.palos?.length ? `<span class="nodo-palos">${n.palos.map((s) => pxInmune(s)).join('')}</span>` : ''}
       ${estado === 'actual' ? `<span class="nodo-aca chip">${t('vosAca')}</span>` : ''}
+      ${n.tesoro && estado !== 'hecho' ? `<span class="nodo-tesoro t-${n.tesoro}" aria-hidden="true">${pxHud('cofre')}${n.tesoro === 'oro' ? pxHud('candado') : ''}</span>` : ''}
     </button>`;
   };
   // los caminos: de cada nodo a los que siguen, piso arriba
@@ -381,22 +388,28 @@ function ofertaHtml(p: Partida, oferta: Oferta, fraseRey: string): string {
       : oferta.tipo === 'aumento'
         ? `<div class="oferta-bufon" data-anfitrion>${bufonHtml('brillo')}<p class="bocadillo" data-voz>${esc(tx(alAzar(VOZ.cabala, fijo())))}</p></div>`
         : '';
+  // (0.22) el Tesoro: un cofre con candado de oro (si no te alcanza, sus opciones quedan apagadas y lo dice)
+  const precio = oferta.precio ?? 0;
+  const alcanza = p.oro >= precio;
+  const candado = precio ? `<span class="op-cerrojo"><span class="precio op-candado ${alcanza ? '' : 'falta'}">${pxHud('candado')}${cifra(precio, alcanza ? 'oro' : 'roja', 'grande')}</span></span>` : '';
   const opcion = (id: string, i: number): string => {
     const f = fichaDe(oferta.tipo, id, p);
     const rey = oferta.tipo === 'bendicion' ? BENDICION[id as BendicionId].rey : null;
-    return `<button class="opcion marco ${f.marco}" data-accion="elegir" data-id="${id}" data-foco="op-${i}" ${i === 0 ? 'data-inicio' : ''}>
+    return `<button class="opcion marco ${f.marco}" data-accion="elegir" data-id="${id}" data-foco="op-${i}" ${i === 0 && alcanza ? 'data-inicio' : ''} ${alcanza ? '' : 'disabled'}>
       <span class="op-arte">${rey ? reyHtml(rey, 'calma') : ''}<span class="op-icono">${pxPieza(oferta.tipo, id)}</span></span>
       <span class="op-clase rotulo">${esc(f.clase)}</span>
       <b class="op-nombre">${esc(f.nombre)}</b>
       <span class="op-desc">${esc(f.desc)}</span>
       <span class="op-sinergia">${sinergiaHtml(oferta.tipo, id, p)}</span>
+      ${candado}
     </button>`;
   };
-  return `<div class="oferta o-${oferta.tipo}" data-oferta="${oferta.tipo}">
+  return `<div class="oferta o-${oferta.tipo} ${oferta.tesoro ? 'o-tesoro' : ''}" data-oferta="${oferta.tipo}">
       <h2 class="titulo oferta-titulo">${t(TITULO_OFERTA[oferta.tipo])}</h2>
+      ${oferta.tesoro ? `<p class="oferta-tesoro" ${tip(t('tesoro'), t('tesoroTip'), precio ? t('tesoroCandado', { n: precio }) : t('tesoroElite'))}>${pxHud('cofre')}<b>${t('tesoro')}</b>${precio ? `<span class="sub">${t('tesoroCandado', { n: precio })}</span>` : ''}${alcanza ? '' : `<span class="op-falta">${t('tesoroFalta', { n: precio - p.oro })}</span>`}</p>` : ''}
       ${cabeza}
       <div class="opciones">${oferta.opciones.map(opcion).join('')}</div>
-      <button class="btn marco chico" data-accion="saltar" data-foco="saltar">${t('saltar', { n: B.botin.saltar })}</button>
+      <button class="btn marco chico" data-accion="saltar" data-foco="saltar" ${alcanza ? '' : 'data-inicio'}>${precio ? t('saltarCofre') : t('saltar', { n: B.botin.saltar })}</button>
     </div>`;
 }
 
@@ -543,12 +556,14 @@ export function pantallaBotin(p: Partida, desdeMesa = false): Pantalla {
     // la Vida máxima que da el Rey vencido: su propio corazón (engastado en oro, con la flecha que sube) y, debajo,
     // chico, por qué
     if (it.t === 'vidamax') return pieza(pxHud('vidamax'), t('vidaMaxMas', { n: it.n }), `<span class="bp-pie">${t('vidaMaxPie')}</span>${cobrado}`, 'hecho cura vidamax');
-    const icono = it.oferta.tipo === 'bendicion' ? pxNodo('rey') : it.oferta.tipo === 'amuleto' ? pxHud('candado') : pxNodo('cabala');
+    const icono = it.oferta.tesoro ? pxHud('cofre') : it.oferta.tipo === 'bendicion' ? pxNodo('rey') : it.oferta.tipo === 'amuleto' ? pxHud('candado') : pxNodo('cabala');
+    const precio = it.oferta.precio ?? 0;
+    const llave = precio && !it.hecho ? `<span class="bp-precio ${p.oro >= precio ? '' : 'falta'}" ${tip(t('tesoro'), t('tesoroTip'), t('tesoroCandado', { n: precio }))}>${pxHud('candado')}${cifra(precio, p.oro >= precio ? 'oro' : 'roja', 'grande')}</span>` : '';
     return pieza(
       icono,
-      t(NOMBRE_OFERTA[it.oferta.tipo]),
-      it.hecho ? cobrado : `<button class="btn marco" data-accion="abrir" data-i="${i}" data-foco="botin-${i}" data-inicio>${t('elegir')}</button>`,
-      `${it.hecho ? 'hecho' : 'pendiente'} ${it.oferta.tipo}`,
+      it.oferta.tesoro ? t('tesoro') : t(NOMBRE_OFERTA[it.oferta.tipo]),
+      it.hecho ? cobrado : `${llave}<button class="btn marco" data-accion="abrir" data-i="${i}" data-foco="botin-${i}" data-inicio>${t('elegir')}</button>`,
+      `${it.hecho ? 'hecho' : 'pendiente'} ${it.oferta.tipo} ${it.oferta.tesoro ? 'tesoro' : ''}`,
     );
   };
   return {
@@ -924,10 +939,62 @@ export function pantallaFogon(p: Partida): Pantalla {
 export function pantallaCabala(p: Partida): Pantalla {
   const def = CABALA[p.cabala!.id];
   const pct = Math.round(suerte(p) * (def.humor === 'garca' ? 0.5 : 1) * 100);
+  // (0.22) la Cábala Negra pide naipes del Mazo: elegida la opción, la bandeja de naipes se abre en la misma escena
+  let elegida: OpcionCabala | null = null;
+  let ids: string[] = [];
+  const cerrarBandeja = (): void => {
+    elegida = null;
+    ids = [];
+    sonar('carta');
+    repintar();
+    $<HTMLElement>('[data-foco^="cab-"]:not(:disabled)')?.focus();
+  };
+  const bandejaHtml = (o: OpcionCabala): string => {
+    const n = o.cartas ?? 2;
+    const tocables = p.mazo.filter((c) => !esComodin(c) && !c.marcada);
+    const grupos = (['S', 'C', 'D', 'H'] as const).map((s) => ordenar(tocables.filter((c) => c.palo === s))).filter((g) => g.length);
+    const primero = ids[0] ? p.mazo.find((c) => c.id === ids[0]) : undefined;
+    const pista = o.id === 'trasplantar' ? t('negraPrimero') : o.id === 'coser' ? t('negraIguales') : '';
+    const listo = ids.length === n && (!o.validas || o.validas(p, ids));
+    const cara = (c: Carta): string => pxNaipe(c) + (c.temple ? `<span class="c-temple">+${c.temple}${c.templada ? '★' : ''}${c.brava ? ' ×2' : ''}</span>` : '');
+    let inicio = !ids.length;
+    const filas = grupos
+      .map(
+        (g) =>
+          `<div class="visor-fila">${g
+            .map((c) => {
+              const k = ids.indexOf(c.id);
+              const apagada = k < 0 && (ids.length >= n || (o.id === 'coser' && !!primero && c.n !== primero.n));
+              const marca = inicio && !apagada;
+              if (marca) inicio = false;
+              return `<button class="visor-carta negra-naipe ${k >= 0 ? 'elegida' : ''}" data-accion="naipe" data-id="${c.id}" data-foco="negra-${c.id}" aria-pressed="${k >= 0}" ${apagada ? 'disabled' : ''} ${marca ? 'data-inicio' : ''}>${cara(c)}${k >= 0 ? `<b class="negra-orden">${k + 1}</b>` : ''}</button>`;
+            })
+            .join('')}</div>`,
+      )
+      .join('');
+    return `<section class="panel marco hierro negra-bandeja">
+          <h2 class="rotulo">${esc(tx(o.texto))}</h2>
+          <p class="negra-pista">${esc(t('negraElegi', { n }))}${pista ? ` · ${esc(pista)}` : ''}</p>
+          <div class="visor-cartas rollo">${filas}</div>
+          <div class="negra-pie">
+            <button class="btn marco hierro" data-accion="volver" data-foco="negra-volver">${t('negraVolver')}</button>
+            <button class="btn marco ${listo ? 'oro' : 'hierro'}" data-accion="coser" data-foco="negra-coser" ${listo ? 'data-inicio' : 'disabled'}>${o.id === 'coser' ? t('negraCoser') : esc(tx(o.texto).toUpperCase())}</button>
+          </div>
+        </section>`;
+  };
   return {
     nombre: 'cabala',
     html: () => {
       const r = p.cabala?.resultado;
+      if (!r && elegida)
+        return `<main class="pantalla en-partida cabala negra">
+      <header class="cabecera"><div class="lado"><h1 class="titulo">${esc(tx(def.titulo))}</h1></div></header>
+      <div class="cuerpo">
+        ${anfitrion(tx(elegida.detalle), 'brillo', 'cabala-bufon')}
+        ${bandejaHtml(elegida)}
+      </div>
+      ${hudHtml(p)}
+    </main>`;
       return `<main class="pantalla en-partida cabala">
       <header class="cabecera"><div class="lado"><h1 class="titulo">${esc(tx(def.titulo))}</h1></div><div class="lado"><span class="chip">${t('humor', { h: tx(HUMOR_NOMBRE[humorDe(p.afinidad)]) })}</span></div></header>
       <div class="cuerpo">
@@ -948,15 +1015,52 @@ export function pantallaCabala(p: Partida): Pantalla {
       ${hudHtml(p)}
     </main>`;
     },
-    alMontar: () => avivarRetrato(p),
+    alMontar: (app) => {
+      avivarRetrato(p);
+      if (elegida) avisarRollo(app);
+    },
+    atras: () => (elegida ? cerrarBandeja() : void irASalida($('#app'))),
     acciones: {
       ...accionesComunes(p),
       opcion: (el) => {
+        const o = def.opciones.find((x) => x.id === el.dataset.id);
+        if (o?.cartas) {
+          // la opción pide naipes: se abre la bandeja del Mazo (todavía no se responde nada)
+          elegida = o;
+          ids = [];
+          sonar('carta');
+          repintar();
+          $<HTMLElement>('.negra-bandeja [data-inicio]')?.focus();
+          return;
+        }
         if (juego.responderCabala(p, el.dataset.id!)) {
           sonar(p.cabala?.resultado?.bueno ? 'oro' : 'error');
           guardar();
           repintar();
         }
+      },
+      naipe: (el) => {
+        if (!elegida) return;
+        const id = el.dataset.id!;
+        const k = ids.indexOf(id);
+        if (k >= 0) ids.splice(k, 1);
+        else if (ids.length < (elegida.cartas ?? 2)) ids.push(id);
+        sonar('carta');
+        repintar();
+        if (ids.length === (elegida.cartas ?? 2)) $<HTMLElement>('[data-foco="negra-coser"]:not(:disabled)')?.focus();
+        else $<HTMLElement>(`[data-foco="negra-${id}"]`)?.focus();
+      },
+      volver: () => cerrarBandeja(),
+      coser: () => {
+        if (!elegida || !juego.responderCabala(p, elegida.id, ids)) {
+          sonar('error');
+          return;
+        }
+        elegida = null;
+        ids = [];
+        sonar('oro');
+        guardar();
+        repintar();
       },
       seguir: () => {
         juego.salir(p);

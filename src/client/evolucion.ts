@@ -59,7 +59,8 @@ export function jackpotEvolucion(de: EvolucionDe): Promise<void> {
       ok();
     };
     const saltar = (ev: Event): void => {
-      if (ev.type === 'keydown') ev.preventDefault();
+      // (la entrada que lo corta no hace nada más: ni la tecla, ni el toque, ni el botón del mando)
+      ev.preventDefault();
       ev.stopPropagation();
       fin();
     };

@@ -210,10 +210,19 @@ export function iniciarNav(): void {
         }
       } else repite = 0;
       // cualquier botón del mando cuenta como «se juega con mando»: los glifos aparecen al primer toque
+      let comido = false;
       if (b.some((x, i) => x && !antes[i])) {
         ponerEntrada('mando');
-        // (las micro-escenas se saltan con cualquier botón)
-        dispatchEvent(new Event('cabala:pulso'));
+        // (las micro-escenas se saltan con cualquier botón; la que se lo come —el jackpot de una Evolución— lo cancela
+        // y ese botón no hace nada más)
+        const pulso = new Event('cabala:pulso', { cancelable: true });
+        dispatchEvent(pulso);
+        comido = pulso.defaultPrevented;
+      }
+      if (comido) {
+        for (let i = 0; i < b.length; i++) antes[i] = b[i];
+        requestAnimationFrame(leer);
+        return;
       }
       if (recien(0)) activar();
       if (recien(1)) atras();

@@ -15,12 +15,29 @@ import { modoFoto } from './fx/motor';
 import { irAjustes, irAltar, irColeccion, irCronica, irMazo, irPortada, pintarFase, sesion } from './juego';
 import { $ } from './ui';
 import { mascaraHtml } from './pantallas/mesa';
+import { BENDICION, BENDICIONES, type BendicionId } from '../rules/reyes';
+import type { Palo } from '../rules/cartas';
+import { jackpotEvolucion } from './evolucion';
+import { t } from './almacen';
+
+/** (0.22) Un don del Rey de ese palo, para despertar su Evolución en las fotos. */
+function darDon(p: Partida, palo: Palo): void {
+  const id = BENDICIONES.find((b) => BENDICION[b as BendicionId].rey === palo) as BendicionId | undefined;
+  if (id) p.bendiciones[id] = 1;
+}
+/** Y el Amuleto Épico (dejando lugar si hace falta). */
+function darAmuleto(p: Partida, id: Partida['amuletos'][number]): void {
+  if (p.amuletos.includes(id)) return;
+  if (p.amuletos.length >= p.huecos) p.amuletos.pop();
+  p.amuletos.push(id);
+}
 
 export const ESTADOS = [
   'portada', 'elegir-mazo', 'elegi-una', 'mapa', 'mesa', 'mesa-seleccion', 'mesa-arrastrando', 'mesa-rey', 'mesa-segunda', 'mesa-mentiroso', 'botin', 'elegi-bendicion', 'elegi-amuleto',
   'pulperia', 'fogon', 'cabala', 'mazo', 'jugadas', 'piezas', 'mesa-mando', 'mapa-mando', 'altar', 'coleccion', 'coleccion-reyes', 'coleccion-amuletos', 'cronica', 'ajustes', 'fin-victoria', 'fin-derrota',
   'mesa-grito', 'botin-grito', 'mesa-segunda-cambia', 'botin-rey', 'mesa-conteo', 'mesa-escudo',
   'mesa-chispa', 'mesa-escalon', 'mesa-postas-arrastre', 'mesa-chiches', 'mesa-chiche-usa', 'mesa-prenda', 'pulperia-chiches', 'rey-mascara', 'mesa-escudo-mando',
+  'evolucion-jackpot', 'hud-evolucion', 'oferta-evoluciona', 'forja-brava', 'cabala-negra', 'mapa-tesoro', 'botin-tesoro',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
 /** Estados que solo tienen sentido en vivo (`&vivo`, para las secuencias del Jurado): no entran en la QA visual. */
@@ -335,6 +352,79 @@ export function montarQa(estado: string): void {
     case 'fogon':
       montar(partida(mazo, (p) => p.fase === 'fogon', 'QA', undefined, 'fogon'));
       break;
+    case 'evolucion-jackpot': {
+      // (0.22) el jackpot de la Evolución, quieto en el medio de su 1,2 s, sobre el Botín donde se tomó la pieza: el Poncho
+      // que despierta Garrote del Cacique
+      const p = partida(mazo, (x) => x.fase === 'botin' && x.botin!.de === 'guardia' && x.acto >= 1);
+      darAmuleto(p, 'poncho');
+      darDon(p, 'C');
+      montar(p);
+      void jackpotEvolucion('poncho');
+      break;
+    }
+    case 'hud-evolucion': {
+      // la mesa con el Poncho ya despierto: su ficha prismática en el HUD
+      const p = partida(mazo, (x) => enCombate(x));
+      darAmuleto(p, 'poncho');
+      darDon(p, 'C');
+      montar(p);
+      break;
+    }
+    case 'oferta-evoluciona': {
+      // «ELEGÍ UNA» tras la Élite con el Cáliz en la oferta y un don de Copas en el bolsillo: «★ EVOLUCIONA»
+      const p = partida(mazo, (x) => x.fase === 'botin' && x.botin!.de === 'elite', 'QA', undefined, 'elite');
+      darDon(p, 'H');
+      p.amuletos = p.amuletos.filter((a) => a !== 'caliz');
+      const it = p.botin!.items.find((i) => i.t === 'oferta' && i.oferta.tipo === 'amuleto');
+      if (it && it.t === 'oferta' && !it.oferta.opciones.includes('caliz')) it.oferta.opciones[0] = 'caliz';
+      montar(p);
+      $<HTMLElement>(`[data-accion="abrir"][data-i="${p.botin!.items.indexOf(it!)}"]`)?.click();
+      break;
+    }
+    case 'forja-brava': {
+      // la tercera pasada recién salida del fuego: «¡FORJA BRAVA!» sobre el naipe y su mutación (Doble Filo)
+      const p = partida(mazo, (x) => x.fase === 'fogon', 'QA', undefined, 'fogon');
+      const c = p.mazo.find((k) => k.palo !== 'X')!;
+      c.temple = 12;
+      c.templada = true;
+      c.brava = true;
+      c.mutacion = 'doblefilo';
+      p.fogonCarta = c.id;
+      p.fogonPasadas = 3;
+      p.fogonHecho = true;
+      montar(p);
+      $('.opcion.fuego')?.insertAdjacentHTML('afterbegin', `<b class="forja-grito rotulo" role="status" style="animation: none">${t('forjaBrava')}</b>`);
+      break;
+    }
+    case 'cabala-negra': {
+      // la Cábala Negra con «Coser dos iguales» abierta: un naipe ya elegido y los de otro número apagados
+      const p = partida(mazo, (x) => x.fase === 'cabala', 'QA', undefined, 'cabala');
+      p.cabala = { id: 'negra' };
+      montar(p);
+      $<HTMLElement>('[data-accion="opcion"][data-id="coser"]')?.click();
+      $<HTMLElement>('.negra-naipe:not(:disabled)')?.click();
+      break;
+    }
+    case 'mapa-tesoro': {
+      // el Mapa con el cofre de un Tesoro a la vista (con su candado de oro)
+      const p = partida(mazo, (x) => x.fase === 'mapa' && x.camino.length >= 1);
+      const tramo = p.tramos[p.acto];
+      if (!tramo.nodos.some((n) => n.tesoro)) {
+        const libre = tramo.nodos.find((n) => n.tipo === 'guardia' && !p.camino.includes(n.id) && n.piso > 1);
+        if (libre) libre.tesoro = 'oro';
+      }
+      montar(p);
+      break;
+    }
+    case 'botin-tesoro': {
+      // el Botín de una Guardia con el cofre del Tesoro: candado de oro que no alcanza (las dos opciones apagadas)
+      const p = partida(mazo, (x) => x.fase === 'botin' && x.botin!.de === 'guardia' && x.acto >= 1);
+      p.oro = 7;
+      p.botin!.items.push({ t: 'oferta', oferta: { tipo: 'amuleto', opciones: ['caliz', 'mate'], tesoro: true, precio: 27 } });
+      montar(p);
+      $<HTMLElement>(`[data-accion="abrir"][data-i="${p.botin!.items.length - 1}"]`)?.click();
+      break;
+    }
     case 'cabala':
       montar(partida(mazo, (p) => p.fase === 'cabala', 'QA', undefined, 'cabala'));
       break;
