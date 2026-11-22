@@ -1,5 +1,5 @@
 # CÁBALA — Reglas
-> Versión 0.27.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
+> Versión 0.28.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
 
 *Todo es cuestión de cábala.* Roguelike de baraja española para un jugador. Elegís un Mazo, el Bufón te lleva por tres tramos de caminos y al fondo de cada uno te espera un Rey. Tu mano contra la Corte: cada golpe es **DAÑO × MULTI**.
 
@@ -211,7 +211,7 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 | Mazo | Personaje | Vida · mano | Regla estrella | Se abre con |
 |---|---|---|---|---|
 | **Escoba** · Escoba del 15 | La Barrendera | 72 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×3 y más Daño para siempre. | abierto desde el principio |
-| **Truco** · Envido y Bravas | El Paisano Bravo | 54 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
+| **Truco** · Envido y Bravas | El Paisano Bravo | 53 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
 | **Chinchón** · Pierna y Escalera | La Timbera del Club | 26 · 7 | Pierna o Escalera de palo: ¡CHINCHÓN! Cortás y tu mano es Escudo. | Vencé a un Rey. |
 | **El Mentiroso** · Cara de Piedra | El Chamuyero | 25 · 8 | Comodines, Escudo de entrada y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
 | **Chancho Va** · Mano al Centro | El Manotazo | 47 · 4 | Pasá una carta gratis por turno. Tres o cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
@@ -224,10 +224,10 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 - Mesa limpia: en el primer tramo arrancás cada combate con 10 de Escudo.
 
 **Truco** (¡ENVIDO!)
-- Mano de 3 cartas, como en la mesa: tus golpes llevan +5 de Multi.
+- Mano de 3 cartas, como en la mesa: tus golpes llevan +7 de Multi.
 - Tu Mazo va del 1 al 7, y barajarlo no sube la Furia.
 - Las 4 Bravas pegan de más: 1 de Espadas +32, 1 de Bastos +28, 7 de Espadas +24, 7 de Oros +20.
-- Dos cartas del mismo palo: ¡ENVIDO!, Multi 2 y +45 de Daño, más +1 por cada Envido ya cantado.
+- Dos cartas del mismo palo: ¡ENVIDO!, Multi 2 y +11 de Daño (×2 y ×3 en los tramos 2 y 3), más +1 por cada Envido ya cantado.
 
 **Chinchón** (¡CHINCHÓN!)
 - Mano de 7 cartas: tus golpes llevan +1 de Multi.
