@@ -203,7 +203,13 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     const s = getComputedStyle(raiz);
     const k = Number(s.getPropertyValue('--k-naipe')) || 1;
     // el paño va a escala entera más chica que la mano (a 2×, los naipes apoyados van a 1×): así entra arriba de ella
-    const kp = k >= 2 ? Math.floor(k / 2) : 1;
+    let kp = k >= 2 ? Math.floor(k / 2) : 1;
+    // (0.23) en el teléfono, si las Postas no entran lado a lado, el paño achica sus naipes hasta que entren: ninguno
+    // se monta sobre su vecino ni queda cortado
+    if (innerWidth <= 700 && nPostas > 1 && raiz.clientWidth > 0) {
+      const cabe = (raiz.clientWidth - 8 - 6 * (nPostas - 1)) / (100 * nPostas);
+      if (cabe < kp) kp = Math.max(0.5, Math.floor(cabe * 20) / 20);
+    }
     raiz.style.setProperty('--k-pano', String(kp));
     // lo que tapa la barra del pulgar al pie de la mano (el margen negativo del teléfono)
     const tapa = Math.max(0, -parseFloat(s.marginBottom) || 0);
@@ -257,17 +263,19 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     let peldano = 0;
     const nEsc = enPosta.filter(Boolean).length;
     const escalon = nEsc > 1 ? Math.min(lp.subida / 2, lp.subida / (nEsc - 1)) : 0;
-    enPosta.forEach((id, i) => {
-      if (!id) return;
-      const sube = marcas.escalon ? Math.round(peldano++ * escalon) : 0;
-      out.set(id, { x: lp.xs[i], y: lp.y - sube });
-    });
+    const ponerPostas = (): void =>
+      enPosta.forEach((id, i) => {
+        if (!id) return;
+        const sube = marcas.escalon ? Math.round(peldano++ * escalon) : 0;
+        out.set(id, { x: lp.xs[i], y: lp.y - sube });
+      });
     const enMano = naipes.filter((c) => !c.elegida);
     const n = enMano.length;
     const hueco = Math.round(6 * k);
     const paso = n > 1 ? Math.min(w + hueco, (ancho - w) / (n - 1)) : 0;
     // con algo apoyado, la fila de la mano baja bajo el paño (su pie queda tras el HUD o la barra del pulgar)
-    const conPano = enPosta.some(Boolean);
+    // (0.23) en el teléfono el paño ocupa siempre su lugar (apagado si está vacío): la mano no salta bajo el pulgar
+    const conPano = reservaPano();
     const base = conPano ? Math.max(alto - h, lp.manoY) : alto - h;
     const foco = document.activeElement;
     /**
@@ -304,12 +312,24 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       const atras = Math.ceil(n / 2);
       fila(enMano.slice(0, atras), base - DIANA + 2);
       fila(enMano.slice(atras), base);
+      ponerPostas();
       return out;
     }
     // (con algo apoyado, la mano va en UNA fila a todo el ancho, debajo del paño: nadie queda reducido a una pestaña)
-    fila(enMano, base);
+    // (0.23) la fila cuenta también los naipes que subieron al paño: cada uno deja su hueco hasta el golpe y las demás
+    // no se corren bajo el dedo
+    fila(entraEnFila(naipes.length) ? naipes : enMano, base);
+    ponerPostas();
     return out;
   }
+  /** (0.23) ¿El paño ocupa su lugar? Con algo apoyado, siempre; en el teléfono, también vacío (la mano no salta). */
+  const reservaPano = (): boolean => enPosta.some(Boolean) || (innerWidth <= 700 && entraEnFila(naipes.length));
+  /** ¿Entran 
+ naipes en una fila dejando a cada uno al menos 44 px tocables? (la mano de 8 del teléfono, no) */
+  const entraEnFila = (n: number): boolean => {
+    const { w } = medidas();
+    return n <= 1 || (raiz.clientWidth - w) / (n - 1) >= 44;
+  };
   /** ¿Se juega con el dedo? (el teléfono o una pantalla táctil sin ratón) */
   const dedo = (): boolean => matchMedia('(pointer: coarse)').matches;
 
@@ -370,9 +390,11 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       el.classList.toggle('llena', !!enPosta[i]);
       el.classList.toggle('apunta', (!!arrastre && arrastre.posta === i) || haciaPosta?.posta === i);
     });
-    const conPano = enPosta.some(Boolean);
+    const conPano = reservaPano();
+    const lleno = enPosta.some(Boolean);
     // (un arrastre desde la mano lo enciende solo cuando pasa por encima del paño: la mano en reposo no queda «adentro»)
-    pano.classList.toggle('activo', conPano || (!!arrastre && arrastre.posta >= 0) || !!haciaPosta);
+    pano.classList.toggle('activo', lleno || (!!arrastre && arrastre.posta >= 0) || !!haciaPosta);
+    pano.classList.toggle('reservado', conPano && !pano.classList.contains('activo'));
     raiz.classList.toggle('con-pano', conPano);
     // el renglón de la regla: en reposo, en el aire de arriba de la mano; con algo apoyado, al costado del paño si
     // entra (si no, se calla: el desglose ya nombra el Medio, la Chispa y el Escalón)
@@ -401,7 +423,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
         marcaMedio.classList.toggle('corta', marcaMedio.offsetWidth > libre);
         anchoMarca = { visible: libre, w: marcaMedio.offsetWidth };
       }
-      ponerEn(marcaMedio, nm.x + Math.round(visible) - anchoMarca.w - 2 * kp, nm.y + 3 * kp, Z.marca);
+      // (0.23) montada en el borde de arriba del naipe, no sobre su primera pinta
+      ponerEn(marcaMedio, nm.x + Math.round(visible) - anchoMarca.w - 2 * kp, nm.y - Math.round(marcaMedio.offsetHeight * 0.6), Z.marca);
     }
     // la Chispa: entre la Posta del Comodín y la de su derecha
     chispas.forEach((el, i) => {
@@ -441,7 +464,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     const foco = document.activeElement;
     const lp = lugaresPosta();
     const alto = raiz.clientHeight;
-    const conPano = enPosta.some(Boolean);
+    const conPano = reservaPano();
     const { h } = medidas();
     naipes.forEach((c, i) => {
       // el naipe apoyado va a la escala del paño (a 2×, a 1×): una clase le cambia la escala entera de su dibujo

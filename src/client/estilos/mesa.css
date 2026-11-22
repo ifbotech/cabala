@@ -479,9 +479,17 @@
   visibility: visible;
   transition: opacity 120ms steps(3);
 }
+/* (0.23) en el teléfono el paño vacío no se va: queda apagado en su lugar (la mano no salta al elegir) */
+.pano-postas.reservado {
+  opacity: 0.5;
+  visibility: visible;
+  transition: opacity 120ms steps(3);
+}
 /* (el enemigo cae o la mesa cobra: el paño se va con lo suyo; vuelve con el reparto) */
 .mesa.cobra .pano-postas,
-.mesa.cae .pano-postas {
+.mesa.cae .pano-postas,
+.mesa.cobra .pano-regla,
+.mesa.cae .pano-regla {
   opacity: 0;
   visibility: hidden;
 }
@@ -534,8 +542,8 @@
   gap: 6px;
   white-space: nowrap;
   font-family: var(--cuerpo);
-  font-size: 15px;
-  line-height: 18px;
+  font-size: 16px;
+  line-height: 20px;
   color: #c9e6d2;
   text-shadow: 1px 1px 0 #09070f;
   opacity: 0.8;
