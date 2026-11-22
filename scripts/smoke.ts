@@ -290,6 +290,8 @@ await conServidor(5192, async (url) => {
     const antes = (await estado(m))!;
     const c = (await consejo(m))!;
     const ids = c.t === 'golpe' ? c.ids : [antes.mano[0]];
+    // (0.26) si el consejo cuenta con el Engaño, se lo prende antes (sin él la jugada puede no ser jugada)
+    if (c.t === 'golpe' && c.engano) await m.locator('[data-accion="engano"]').tap();
     // se toca cada carta donde se ve: en la mano de dos filas, lo que asoma de las de atrás (y la elegida se va al paño)
     for (const id of ids) {
       const pt = await puntoDe(m, id);
