@@ -6,6 +6,7 @@ import { AUMENTO, AUMENTOS, NIVEL_NOMBRE } from '../src/rules/aumentos';
 import { B } from '../src/rules/balance';
 import { CABALAS } from '../src/rules/bufon';
 import { CHICHE, CHICHES } from '../src/rules/chiches';
+import { EVOLUCION, EVOLUCIONES } from '../src/rules/evoluciones';
 import { JUGADAS, PALOS } from '../src/rules/cartas';
 import type { Jugada } from '../src/rules/cartas';
 import { COLUMNAS, PISOS, REGLAS_MAPA } from '../src/rules/mapa';
@@ -57,6 +58,17 @@ p(
   `Consumibles de un solo uso que se apoyan **sobre la madera, a la derecha de la mesa** (nunca en la mano). Entran **${B.chiches.huecos}**. Usarlos no gasta el turno: un clic, o arrastralos al enemigo. Se compran en La Pulpería (${B.chiches.precio} de oro) y, al abatir con Golpe exacto, al pelo o cantando, la Corte a veces suelta uno como **Prenda** (${Math.round(B.chiches.prenda * 100)} %).`,
 );
 tabla(['Chiche', 'Efecto'], CHICHES.map((id) => [`**${CHICHE[id].nombre.es}**`, CHICHE[id].desc.es]));
+
+p('### Evoluciones, Forja Brava, Cábala Negra y Tesoros');
+p(
+  `- **Evoluciones.** Si llevás uno de los cuatro Amuletos de palo de rareza épica y además un don del Rey de su palo, el Amuleto evoluciona solo (siguen siendo 15 Amuletos). La pieza que despierta una lleva el sello **★ EVOLUCIONA**.`,
+);
+tabla(['Amuleto', 'Evoluciona en', 'Qué hace'], EVOLUCIONES.map((de) => [`**${AMULETO[de].nombre.es}**`, `**${EVOLUCION[de].nombre.es}**`, EVOLUCION[de].desc.es]));
+p(
+  `- **Forja Brava.** El Fogón tiene ${B.fogon.pasadas} pasadas sobre un naipe: +${B.fogon.temple} de Daño, Templada (+${B.fogon.multiTemplada} de Multi al jugarla) y **¡FORJA BRAVA!**, que duplica su número y le deja una mutación al azar: **Doble Filo** (+${B.fogon.dobleFilo.multi} de Multi, te corta ${B.fogon.dobleFilo.vida} de Vida), **Roba Carta** (robás ${B.fogon.robaCarta}) o **Chispa de Oro** (+${B.fogon.chispaOro} de oro). La segunda pasada arriesga quemar el naipe un ${Math.round(B.fogon.riesgos[1] * 100)} % y la tercera un ${Math.round(B.fogon.riesgos[2] * 100)} %.`,
+  `- **Cábala Negra.** Una vez por partida, desde el segundo tramo, el Bufón cose naipes: **coser dos iguales** (dos del mismo número se vuelven uno que junta lo suyo y pega de más) o **trasplantar** (el primero se sacrifica y el segundo toma su palo y lo que le dejó el fuego).`,
+  `- **Tesoros a la Vista.** El Mapa muestra algunos nodos con cofre: tras la Élite se abre solo; tras la Guardia, con candado de ${B.tesoros.precio} de oro. Adentro hay dos Amuletos para elegir uno.`,
+);
 
 p('### Inmune');
 p('Una sola regla: **cada enemigo es Inmune a su propio palo**: las cartas de ese palo no le hacen Daño. En tu mano se ven oscurecidas mientras ese enemigo está activo, y el Mapa te muestra de antemano los palos que te esperan.');

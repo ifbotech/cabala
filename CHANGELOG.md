@@ -3,6 +3,33 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.22.0 · Lo que despierta en la trastienda (2026-11-22)
+
+Segundo Salto: las piezas se transforman, el Fogón se vuelve apuesta de verdad y el mapa muestra lo que hay que ganar.
+
+**Reglas**
+- **Evoluciones**: los cuatro Amuletos de palo de rareza épica evolucionan solos cuando además llevás un don del Rey de su
+  palo: el Facón Maldito, el Garrote del Cacique, el Sol de la Timba y el Brindis de Sangre. Siguen siendo 15 Amuletos.
+- **¡FORJA BRAVA!**: la tercera pasada del Fogón duplica el número del naipe y le deja una mutación (Doble Filo, Roba
+  Carta o Chispa de Oro).
+- **La Cábala Negra**: una vez por partida, desde el segundo tramo, el Bufón cose dos naipes iguales en uno o le
+  trasplanta a uno el palo de otro.
+- **Tesoros a la Vista**: cofres en el mapa; tras la Élite se abren solos, tras la Guardia con candado de oro.
+- Legendarios y Prismáticos con poder de verdad y un costo picante escrito en su ficha; la mesa prueba todas las maneras
+  de apoyar el golpe en el paño.
+
+**La mesa**
+- El paño tiene **fila propia** de fieltro forjado, con un solo renglón de ayuda; la mano baja entera debajo y en el
+  teléfono cada naipe es una diana de 44 px o más.
+- El «−N» que te pegan nace junto a VIDA (y el que frena el Escudo, junto a ESCUDO); cada Chiche suena distinto.
+- Jackpot de 1,2 s con fanfarria al despertar una Evolución, ficha prismática en el HUD y sello **★ EVOLUCIONA** en las
+  ofertas. **TURBO**: cualquier toque corta la espera en curso.
+
+**Medición** · Laboratorio (3000 partidas por celda, sin avisos) · Altar vacío / lleno: Escoba 29,2 / 45,1 · Truco
+28,8 / 46,3 · Chinchón 31,3 / 45,8 · Mentiroso 30,0 / 48,4 · Chancho 30,9 / 46,5 %. Jurado: Claridad 7,6 · Diversión 7,9 ·
+Estética 8,1 · Veredicto 7,7. Panel **simulado** (n = 60, ruido ±10): 73,3 % (IC95 61–83 %); Deck 67 % (n = 9),
+Móvil 80 % (n = 15).
+
 ## 0.21.0 · La mesa de paño (2026-11-21)
 
 Primer Salto para despegar de los juegos de cartas con puntaje: el golpe se apoya en un paño con lugares que importan, y

@@ -66,6 +66,21 @@ Consumibles de un solo uso que se apoyan **sobre la madera, a la derecha de la m
 | **Polvo de Tiza** | Tu carta más baja se vuelve Comodín. |
 | **Poroto de Yapa** | Robás 2 cartas de más. |
 
+### Evoluciones, Forja Brava, Cábala Negra y Tesoros
+
+- **Evoluciones.** Si llevás uno de los cuatro Amuletos de palo de rareza épica y además un don del Rey de su palo, el Amuleto evoluciona solo (siguen siendo 15 Amuletos). La pieza que despierta una lleva el sello **★ EVOLUCIONA**.
+
+| Amuleto | Evoluciona en | Qué hace |
+|---|---|---|
+| **Lanza del Caudillo** | **EL FACÓN MALDITO** | Todo golpe Perfora y lo que sobra pasa ×2. Cada abatido: +1 de Multi en el combate. |
+| **Poncho del Cacique** | **GARROTE DEL CACIQUE** | Con 6 o más de Escudo: +2 de Multi. Tu Escudo entero se suma al Daño. |
+| **Cofre del Caudal** | **SOL DE LA TIMBA** | +1 de Multi por cada 30 de oro (tope +3). Cada abatido te paga 2 de oro. |
+| **Cáliz del Bacanal** | **BRINDIS DE SANGRE** | +2 de Multi siempre, y con 80 % de Vida o más, +1 más. |
+
+- **Forja Brava.** El Fogón tiene 3 pasadas sobre un naipe: +4 de Daño, Templada (+1 de Multi al jugarla) y **¡FORJA BRAVA!**, que duplica su número y le deja una mutación al azar: **Doble Filo** (+2 de Multi, te corta 2 de Vida), **Roba Carta** (robás 1) o **Chispa de Oro** (+3 de oro). La segunda pasada arriesga quemar el naipe un 35 % y la tercera un 50 %.
+- **Cábala Negra.** Una vez por partida, desde el segundo tramo, el Bufón cose naipes: **coser dos iguales** (dos del mismo número se vuelven uno que junta lo suyo y pega de más) o **trasplantar** (el primero se sacrifica y el segundo toma su palo y lo que le dejó el fuego).
+- **Tesoros a la Vista.** El Mapa muestra algunos nodos con cofre: tras la Élite se abre solo; tras la Guardia, con candado de 30 de oro. Adentro hay dos Amuletos para elegir uno.
+
 ### Inmune
 
 Una sola regla: **cada enemigo es Inmune a su propio palo**: las cartas de ese palo no le hacen Daño. En tu mano se ven oscurecidas mientras ese enemigo está activo, y el Mapa te muestra de antemano los palos que te esperan.

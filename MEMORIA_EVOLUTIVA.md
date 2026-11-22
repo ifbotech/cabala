@@ -487,6 +487,22 @@ piezas con icono de Vida máxima, grito junto al retrato; Vida máxima por Rey p
 
 **Medición.** Jurado 7,6 · 7,5 · 8,0 · 7,6. Panel 70,0 % (IC95 57–80 %); Deck 33 % (n = 9), Móvil 93 % (n = 15).
 
+## 0.22.0 · Lo que despierta en la trastienda (publicada)
+
+**Qué se buscó.** El Salto 2: Evoluciones, Forja Brava con mutación, Cábala Negra, Tesoros a la vista, contrapesos y
+TURBO; además, los P0 de la 0.21 (el paño en fila propia, el «−N» junto a VIDA, dianas de 44 px en el teléfono).
+
+**Lecciones.**
+- Las Evoluciones como ×2 subían 20 puntos: se rehicieron como sumas chicas. El jurado ahora dice lo contrario, que son
+  retoques que no cambian la manera de jugar (el Facón es casi la Lanza). El punto medio es una regla nueva con costo.
+- Un jackpot sin arte propio no es jackpot: tres jurados pidieron sprites malditos, una transformación que no se corte en
+  sus primeros 400 ms y «antes → después». Y «Lo que llevás» seguía mostrando el Amuleto viejo.
+- La Forja Brava pide pasar un 35 % y un 50 % de riesgo para ganar poco; el bot nunca la toma, así que el laboratorio no
+  la mide.
+- La guardia de honestidad del panel frena palabras de venta: «Épico» (el nombre de la rareza) cuenta como tal.
+
+**Medición.** Jurado 7,6 · 7,9 · 8,1 · 7,7. Panel simulado 73,3 % (IC95 61–83 %, n = 60); Deck 67 % (n = 9), Móvil 80 %
+(n = 15). Claridad del panel 6,12.
 ## 0.21.0 · La mesa de paño (publicada)
 
 **Qué se buscó.** El Salto 1 del mandato para despegar de Balatro: Postas del paño con Medio, Chispa y Escalón, y Chiches
