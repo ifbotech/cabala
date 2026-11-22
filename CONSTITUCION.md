@@ -92,6 +92,17 @@ botón grande **MEJORAR**. Sin árbol, sin zoom, sin desplazamiento, sin paredes
 **45–49 %** con el Altar lleno (Reinado 1, bot del laboratorio). Si cambian las reglas, las pruebas exigen volver a
 certificar (la huella del informe tiene que coincidir).
 
+### 1.9 La mesa: Postas del paño y Chiches (0.21.0)
+
+- **Postas del paño.** Los naipes elegidos se apoyan en **3 a 5 Postas** (tantas como entran en un golpe). La **Posta
+  del Medio** pega doble el número de su naipe; el naipe a la **derecha de un Comodín** recibe su número otra vez (la
+  **Chispa**); tres o más naipes en orden estrictamente creciente de izquierda a derecha arman **Escalón** (+1 de Multi
+  por naipe). Se reordenan arrastrando o con LB/RB y DAÑO × MULTI se actualiza al instante. Cada Posta lleva su símbolo
+  y una ayuda de 3–4 palabras.
+- **Chiches.** Tres huecos sobre la madera, en el borde de la mesa y **nunca en la mano**: Vaso de Ginebra, Dado
+  Cargado, Fósforo de Fogón, Polvo de Tiza y Poroto de Yapa. Son de un solo uso, no gastan el turno y se usan con un
+  clic o arrastrándolos al enemigo. Se compran en La Pulpería o se le roban a la Corte como **Prenda** al abatir con
+  Golpe exacto, al pelo o cantando.
 ## 2 · Dirección de arte: «Dark Dithered Lithography»
 
 **La vara es la de los 5 Dorsos.** Vale para todas las pantallas y componentes.

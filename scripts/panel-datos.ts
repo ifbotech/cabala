@@ -116,6 +116,10 @@ const FUNCIONES = {
   mesaLimpia: true,
   /** 0.20.0: el Rey en su primera cara se planta en la mitad y el sobrante se pierde: cada Rey muestra sus dos caras. */
   reyesDosCaras: true,
+  /** 0.21.0: las Postas del paño (Medio doble, Chispa del Comodín, Escalón) que se reordenan arrastrando o con LB/RB. */
+  postasDelPano: true,
+  /** 0.21.0: tres huecos de Chiches de un solo uso en la mesa, a la venta en La Pulpería y como Prenda de la Corte. */
+  chichesDeMesa: true,
 };
 
 const c = (palo: PaloCarta, n: number): Carta => ({ id: `${palo}${n}`, palo, n });
