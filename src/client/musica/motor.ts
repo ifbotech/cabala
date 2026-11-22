@@ -27,16 +27,21 @@ export interface Salidas {
 export const ADELANTO = 0.14;
 export const INTERVALO = 0.03;
 /** El volumen de la música entera y el nivel de cada capa. */
-export const VOLUMEN = 0.6;
-export const NIVEL: Record<T.CapaId, number> = { bajo: 0.2, guitarra: 0.2, rasgueo: 0.12, pad: 0.07, cuerdas: 0.05, bandoneon: 0.11, motivo: 0.13, bombo: 0.24, madera: 0.22, escobillas: 0.12, brasas: 0.1, latido: 0.22 };
+export const VOLUMEN = 0.62;
+export const NIVEL: Record<T.CapaId, number> = { bajo: 0.125, guitarra: 0.31, rasgueo: 0.16, pad: 0.07, cuerdas: 0.06, bandoneon: 0.16, motivo: 0.16, bombo: 0.15, madera: 0.3, escobillas: 0.26, brasas: 0.14, latido: 0.18 };
 /** La melodía se agacha 3 dB mientras alguien canta o suena un stinger. */
 export const AGACHE = 10 ** (-3 / 20);
 export const NIVEL_VOZ = 0.42;
 export const NIVEL_STINGER = 0.17;
 /** El pasabajos cálido se mece ±1,5 semitonos cada 14 segundos; la campana de la banda que cansa. */
 export const LFO = { hz: 0.07, cents: 150 };
-export const CAMPANA = { hz: 3500, q: 0.9, db: -4 };
+export const CAMPANA = { hz: 3500, q: 0.9, db: -3 };
 const ENVIO_MELODIA = 0.3;
+/** Las rampas: lo que cambia en el límite del compás entra despacio; lo que el combate mueve en vivo, en menos de 300 ms. */
+const RAMPA_COMPAS = 0.3;
+export const RAMPA_VIVA = 0.08;
+/** El remate (la caída de un Rey): la dominante dura una negra y la tónica queda sonando; mientras, la música baja 16 dB. */
+export const REMATE = { pasosV: 4, pasosI: 12, agache: 0.16, nivel: 0.5 };
 
 interface Frase {
   quien: T.VozId;
@@ -68,6 +73,7 @@ export class Motor {
   private salaBateria!: GainNode;
   private bateria!: GainNode;
   private stingers!: GainNode;
+  private remates!: GainNode;
   private ondas!: Record<'guitarra' | 'fuelle' | 'cuerda' | 'grave' | 'campana' | 'voz', PeriodicWave>;
   private ruido: AudioBuffer;
   private vivas: AudioScheduledSourceNode[] = [];
@@ -90,6 +96,11 @@ export class Motor {
   /** Cuántas semicorcheas con música se llevan programadas (para la QA, que no oye). */
   pasosDados = 0;
   private frases: Frase[] = [];
+  /** Los acordes del remate: mandan sobre los de la sección mientras dura. */
+  private forzados: { desde: number; hasta: number; acorde: T.Acorde }[] = [];
+  /** Para la QA, que no oye: los stingers que sonaron y cuántas veces arrancó el reloj de la música. */
+  readonly stingersSonados: T.StingerId[] = [];
+  arranques = 0;
   /** La última frase de cada personaje (para callarla si empieza otra antes de terminar). */
   private voces = new Map<T.VozId, { cantor: Cantor; fin: number }>();
   /** La partitura de lo que se programó (si se pide) y las últimas frases cantadas. */
@@ -118,9 +129,9 @@ export class Motor {
     };
     this.ondas = {
       // nylon: armónicos que caen rápido (y cada tercero, más todavía: la cuerda pulsada a un tercio)
-      guitarra: onda(16, (k) => (k % 3 === 0 ? 0.4 : 1) / k ** 1.35),
+      guitarra: onda(32, (k) => (k % 3 === 0 ? 0.5 : 1) / k),
       // el fuelle: lengüeta rica en los diez primeros
-      fuelle: onda(10, (k) => (k % 2 ? 1 : 0.7) / k ** 0.95),
+      fuelle: onda(16, (k) => (k % 2 ? 1 : 0.7) / k ** 0.9),
       cuerda: onda(12, (k) => 1 / k ** 1.2),
       grave: onda(5, (k) => [1, 0.5, 0.22, 0.1, 0.04][k - 1]),
       campana: onda(6, (k) => [1, 0.3, 0.16, 0.05, 0.08, 0.02][k - 1]),
@@ -176,6 +187,13 @@ export class Motor {
     const envioSt = c.createGain();
     envioSt.gain.value = 0.35;
     this.stingers.connect(envioSt).connect(this.sal.sala);
+    // el remate va derecho al bus de la música (no pasa por el volumen, que se agacha mientras suena)
+    this.remates = c.createGain();
+    this.remates.gain.value = REMATE.nivel;
+    this.remates.connect(this.sal.musica);
+    const envioRe = c.createGain();
+    envioRe.gain.value = 0.4;
+    this.remates.connect(envioRe).connect(this.sal.sala);
   }
 
   /** Las fuentes que viven mientras hay música: el LFO del filtro, el vibrato común y los canales de la batería. */
@@ -231,7 +249,7 @@ export class Motor {
       maderaAire: aire('bandpass', 1700, 1.4, this.capas.madera, 0.13),
       tom: tono('sine', 150, this.capas.madera),
       // escobillas (un roce ancho en 1,9 kHz) y shaker (por encima de 6,5 kHz: fuera de la banda que cansa)
-      escobilla: aire('bandpass', 1900, 0.5, this.capas.escobillas, 0.31),
+      escobilla: aire('bandpass', 2600, 0.6, this.capas.escobillas, 0.31),
       shaker: aire('highpass', 6500, 0.7, this.capas.escobillas, 0.47),
       brasa: aire('bandpass', 1500, 2.2, this.capas.brasas, 0.61),
       latido: tono('sine', 52, this.capas.latido),
@@ -253,12 +271,39 @@ export class Motor {
   // ───────────── el estado ─────────────
 
   /** Pide un estado: se aplica en el próximo límite de compás (nunca corta lo que suena). */
-  pedir(e: Partial<T.EstadoMusical>): void {
+  pedir(e: Partial<T.EstadoMusical>, ahora = this.ctx.currentTime): void {
     Object.assign(this.pedido, e);
+    // la intensidad y la poca Vida NO esperan al compás: si la escena, el Rey y la tonalidad son los mismos, las capas
+    // y el filtro se mueven ya, con una rampa de menos de 300 ms, y lo que queda del compás se toca con la mezcla nueva
+    const c = this.compasActual;
+    const a = this.aplicado;
+    const p = this.pedido;
+    if (!this.activa || !c || p.escena !== a.escena || p.rey !== a.rey || p.segunda !== a.segunda) return;
+    if (p.nivel === a.nivel && p.vidaBaja === a.vidaBaja) return;
+    this.aplicado = { ...p };
+    this.compasActual = T.partitura(this.aplicado, c.compas, this.semilla);
+    this.mezclar(this.compasActual.mezcla, ahora, RAMPA_VIVA);
   }
-  /** Los parámetros continuos del combate (no esperan al compás: mueven filtros y ganancias con rampa). */
-  rtpc(o: { furia?: number }): void {
-    if (o.furia !== undefined) this.furia = Math.max(0, Math.min(12, o.furia));
+  /** Los parámetros continuos del combate: la Furia abre el filtro y empuja la batería ya, sin esperar al compás. */
+  rtpc(o: { furia?: number }, ahora = this.ctx.currentTime): void {
+    if (o.furia === undefined) return;
+    const f = Math.max(0, Math.min(12, o.furia));
+    if (f === this.furia) return;
+    this.furia = f;
+    if (this.activa && this.compasActual) this.mezclar(this.compasActual.mezcla, ahora, RAMPA_VIVA);
+  }
+  /** Lleva las capas, el filtro y los envíos a una mezcla, con rampa (nunca un salto). */
+  private mezclar(m: T.Mezcla, t: number, rampa: number): void {
+    for (const id of T.CAPAS) {
+      const obj = (m.capas[id] ?? 0) * NIVEL[id];
+      this.capas[id].gain.setTargetAtTime(obj, t, obj > 0 ? rampa : rampa * 0.75);
+    }
+    // el filtro cálido: la Furia lo abre hasta un 20 % más; la poca Vida lo cierra y le da resonancia
+    const abre = this.aplicado.vidaBaja ? 1 : 1 + (this.furia / 12) * 0.2;
+    this.filtro.frequency.setTargetAtTime(m.corte * abre, t, rampa);
+    this.filtro.Q.setTargetAtTime(m.q, t, rampa);
+    this.salaBateria.gain.setTargetAtTime(m.sala, t, rampa);
+    this.bateria.gain.setTargetAtTime(1 + (this.furia / 12) * 0.25, t, rampa);
   }
   /** Prende o apaga la música: con ella apagada el reloj sigue (las voces lo necesitan) pero no se programa nada. */
   activar(si: boolean, ahora = this.ctx.currentTime): void {
@@ -272,6 +317,7 @@ export class Motor {
         this.t0 = ahora + 0.03;
       }
       this.encender(ahora);
+      this.arranques++;
     } else {
       this.abrir(false, ahora);
       this.apagar(ahora);
@@ -320,11 +366,13 @@ export class Motor {
   /** El acorde y la escala del compás que suena en el instante `ahora` (lo leen las voces y los stingers). */
   armonia(ahora = this.ctx.currentTime): { acorde: T.Acorde; compas: number; paso: number } {
     const p = Math.max(0, Math.min(this.paso - 1, this.pasoAncla + Math.floor((ahora - this.t0) / T.SEG_PASO)));
-    const compas = Math.floor(p / T.PASOS);
-    return { acorde: this.acordeDelCompas(compas), compas, paso: p % T.PASOS };
+    return { acorde: this.acordeDelPaso(p), compas: Math.floor(p / T.PASOS), paso: p % T.PASOS };
   }
-  private acordeDelCompas(compas: number): T.Acorde {
-    return this.acordes.get(compas) ?? T.acordeDelEstado(this.aplicado, compas);
+  /** El acorde de una semicorchea: el del remate si cae adentro; si no, el del compás (el pedido, si todavía no llegó). */
+  private acordeDelPaso(p: number): T.Acorde {
+    for (const f of this.forzados) if (p >= f.desde && p < f.hasta) return f.acorde;
+    const compas = Math.floor(p / T.PASOS);
+    return this.acordes.get(compas) ?? T.acordeDelEstado(p >= this.paso ? this.pedido : this.aplicado, compas);
   }
 
   // ───────────── programar una semicorchea ─────────────
@@ -378,18 +426,8 @@ export class Motor {
     const c = T.partitura(this.aplicado, compas, this.semilla);
     this.compasActual = c;
     this.registro?.push(c);
-    const m = c.mezcla;
-    // las capas, con rampa (nunca un salto): entran en ~1 s, salen en ~0,7 s
-    for (const id of T.CAPAS) {
-      const obj = (m.capas[id] ?? 0) * NIVEL[id];
-      this.capas[id].gain.setTargetAtTime(obj, t, obj > 0 ? 0.3 : 0.22);
-    }
-    // el filtro cálido: la Furia lo abre hasta un 20 % más; la poca Vida lo cierra y le da resonancia
-    const abre = this.aplicado.vidaBaja ? 1 : 1 + (this.furia / 12) * 0.2;
-    this.filtro.frequency.setTargetAtTime(m.corte * abre, t, 0.35);
-    this.filtro.Q.setTargetAtTime(m.q, t, 0.35);
-    this.salaBateria.gain.setTargetAtTime(m.sala, t, 0.3);
-    this.bateria.gain.setTargetAtTime(1 + (this.furia / 12) * 0.25, t, 0.3);
+    // las capas de la escena nueva, con rampa (nunca un salto): entran en ~1 s, salen en ~0,7 s
+    this.mezclar(c.mezcla, t, RAMPA_COMPAS);
     if (primera || antes !== this.aplicado.escena) this.alCambiar?.(this.aplicado.escena);
   }
 
@@ -477,8 +515,8 @@ export class Motor {
         this.tono(a, t, x.midi, vel * 0.4, w.fuelle, { ataque: 0.012, dura: dur * 0.6, suelta: 0.05 }, { desafina: -8 });
         break;
       case 'C':
-        this.tono(a, t, x.midi, vel * 0.7, w.grave, { ataque: 0.03, dura: dur * 0.95, suelta: 0.2 });
-        this.tono(a, t, x.midi + 12, vel * 0.3, w.fuelle, { ataque: 0.05, dura: dur * 0.9, suelta: 0.2 });
+        this.tono(a, t, x.midi, vel * 0.55, w.grave, { ataque: 0.03, dura: dur * 0.95, suelta: 0.2 });
+        this.tono(a, t, x.midi + 12, vel * 0.65, w.fuelle, { ataque: 0.05, dura: dur * 0.9, suelta: 0.2 });
         break;
       case 'D':
         this.tono(a, t, x.midi, vel, w.campana, { ataque: 0.003, cae: 0.6 });
@@ -521,7 +559,7 @@ export class Motor {
         }
         break;
       case 'escobillas':
-        if (g.tipo === 'shaker') pega(k.shaker, vel * 0.5, 0.004, 0.03);
+        if (g.tipo === 'shaker') pega(k.shaker, vel * 0.8, 0.004, 0.03);
         else pega(k.escobilla, vel, 0.03, 0.09);
         break;
       case 'brasas': {
@@ -585,7 +623,7 @@ export class Motor {
     while (f.sig < f.plan.length && f.inicio + f.plan[f.sig].paso <= paso) {
       const n = f.plan[f.sig];
       const p = f.inicio + n.paso;
-      const a = this.acordeDelCompas(Math.floor(p / T.PASOS));
+      const a = this.acordeDelPaso(p);
       if (n.entra) f.primera = null;
       const midi = T.notaCantada(f.quien, n, a, n.entra ? null : f.anterior, f.primera);
       f.primera ??= midi;
@@ -600,12 +638,16 @@ export class Motor {
   /** Un stinger: breve, afinado al acorde que suena en este instante. Devuelve sus notas (para la partitura). */
   stinger(id: T.StingerId, ahora = this.ctx.currentTime): T.Nota[] {
     this.tic(ahora);
-    const { acorde } = this.armonia(ahora);
+    // entra en la próxima semicorchea del reloj (a lo sumo 144 ms) y con el acorde de ESA semicorchea
+    const p0 = this.proximoPaso(ahora, 1);
+    const acorde = this.acordeDelPaso(p0);
     const s = T.STINGERS[id];
     const notas = T.notasStinger(id, acorde);
     const medio = T.SEG_PASO / 2;
     const w = this.ondas;
-    const t0 = ahora + 0.008;
+    const t0 = this.tiempoDe(p0);
+    this.stingersSonados.push(id);
+    if (this.stingersSonados.length > 40) this.stingersSonados.shift();
     let largo = 0;
     notas.forEach((n, k) => {
       const t = t0 + n.paso * medio;
@@ -633,5 +675,56 @@ export class Motor {
     });
     this.agachar(t0, largo);
     return notas;
+  }
+  /** La primera semicorchea que todavía no pasó y es múltiplo de `cada` (1: cualquiera; 4: la próxima negra). */
+  proximoPaso(ahora: number, cada: number): number {
+    let p = this.pasoAncla + Math.ceil((ahora + 0.004 - this.t0) / T.SEG_PASO);
+    if (this.tiempoDe(p) < ahora) p++;
+    return Math.ceil(p / cada) * cada;
+  }
+
+  /**
+   * El remate de la caída de un Rey: en vez de un silencio, una cadencia cuantizada a la próxima negra. La dominante
+   * (La7 con su novena menor) golpea una negra y cae en la tónica (Re menor; `mayor`: Re mayor, la tercera de
+   * Picardía de la victoria final), que queda sonando tres negras mientras la música de abajo se agacha 16 dB y vuelve
+   * sola. Lo que se cante mientras tanto (las últimas palabras del Rey) se afina a estos dos acordes.
+   * Devuelve cuántos segundos faltan para que termine.
+   */
+  rematar(mayor = false, ahora = this.ctx.currentTime): number {
+    this.tic(ahora);
+    const pV = this.proximoPaso(ahora, 4);
+    const pI = pV + REMATE.pasosV;
+    const fin = pI + REMATE.pasosI;
+    const tonica = T.tonicaDe(this.aplicado);
+    const V = T.acordeDeGrado('V', tonica);
+    const I = T.acordeDeGrado(mayor ? 'I' : 'i', tonica);
+    this.forzados = [...this.forzados.filter((f) => f.hasta > this.paso - T.PASOS), { desde: pV, hasta: pI, acorde: V }, { desde: pI, hasta: fin, acorde: I }];
+    const tV = this.tiempoDe(pV);
+    const tI = this.tiempoDe(pI);
+    const a = this.remates;
+    const w = this.ondas;
+    // la dominante: el bajo en La, el parche, el acorde rasgueado hacia arriba y la sensible en el fuelle
+    this.tono(a, tV, T.desde(V.raiz, 33), 0.9, w.grave, { ataque: 0.008, cae: 0.5 });
+    this.tono(a, tV, 31, 0.8, w.grave, { ataque: 0.004, cae: 0.22 });
+    [0, 1, 2, 3, 4].forEach((g, k) => this.tono(a, tV + k * 0.018, T.desde(V.tonos[g], 57 + (k > 2 ? 7 : 0)), 0.5, w.guitarra, { ataque: 0.004, cae: 0.55 }));
+    this.tono(a, tV, T.desde(V.tonos[1], 69), 0.3, w.fuelle, { ataque: 0.02, dura: (REMATE.pasosV - 0.5) * T.SEG_PASO, suelta: 0.06 });
+    // la tónica: el bajo una octava abajo, el parche, el acorde sostenido y la campana arriba
+    const durI = REMATE.pasosI * T.SEG_PASO;
+    this.tono(a, tI, T.desde(I.raiz, 26), 1, w.grave, { ataque: 0.008, cae: durI * 1.1 });
+    this.tono(a, tI, 28, 0.9, w.grave, { ataque: 0.004, cae: 0.3 });
+    for (const g of [0, 1, 2]) {
+      this.tono(a, tI, T.desde(I.tonos[g], 57), 0.3, w.cuerda, { ataque: 0.03, dura: durI * 0.8, suelta: 0.9 }, { desafina: g * 4 - 4 });
+      this.tono(a, tI + g * 0.02, T.desde(I.tonos[g], 62), 0.45, w.guitarra, { ataque: 0.004, cae: 1.1 });
+    }
+    this.tono(a, tI, T.desde(I.raiz, 74), 0.35, w.campana, { ataque: 0.003, cae: 1.4 });
+    // la música de abajo se agacha y vuelve cuando la tónica ya se va
+    if (this.abierta) {
+      const g = this.volumen.gain;
+      const t = Math.max(ahora, tV - 0.03);
+      g.cancelScheduledValues(t);
+      g.setTargetAtTime(VOLUMEN * REMATE.agache, t, 0.03);
+      g.setTargetAtTime(VOLUMEN, tI + durI * 0.6, 0.3);
+    }
+    return this.tiempoDe(fin) - ahora;
   }
 }

@@ -20,7 +20,7 @@ export const TRES_TRES_DOS = [0, 6, 12] as const;
 /** Las semicorcheas impares llegan tarde esta parte de un paso (el swing de las escobillas y el shaker). */
 export const SWING = 0.16;
 
-export type EscenaId = 'portada' | 'mapa' | 'mesa' | 'rey' | 'pulperia' | 'fogon' | 'cabala' | 'derrota' | 'victoria';
+export type EscenaId = 'portada' | 'coleccion' | 'mapa' | 'mesa' | 'rey' | 'pulperia' | 'fogon' | 'cabala' | 'derrota' | 'victoria';
 export type SeccionId = 'base' | 'rey' | 'cabala' | 'derrota' | 'victoria';
 export type PaloRey = 'S' | 'C' | 'D' | 'H';
 export type VozId = 'bufon' | PaloRey | 'escoba' | 'truco' | 'chinchon' | 'mentiroso' | 'chancho';
@@ -109,7 +109,7 @@ export const SECCIONES: Record<SeccionId, Grado[]> = {
   // la victoria: el relativo mayor y la tercera de Picardía (VI – VII – I)
   victoria: ['III', 'VII', 'VI', 'V', 'VI', 'VII', 'I', 'I'],
 };
-export const SECCION_DE: Record<EscenaId, SeccionId> = { portada: 'base', mapa: 'base', mesa: 'base', pulperia: 'base', fogon: 'base', rey: 'rey', cabala: 'cabala', derrota: 'derrota', victoria: 'victoria' };
+export const SECCION_DE: Record<EscenaId, SeccionId> = { portada: 'base', coleccion: 'base', mapa: 'base', mesa: 'base', pulperia: 'base', fogon: 'base', rey: 'rey', cabala: 'cabala', derrota: 'derrota', victoria: 'victoria' };
 
 const NOMBRES = ['Do', 'Do#', 'Re', 'Mib', 'Mi', 'Fa', 'Fa#', 'Sol', 'Sol#', 'La', 'Sib', 'Si'];
 const mod12 = (n: number): number => ((n % 12) + 12) % 12;
@@ -213,19 +213,23 @@ export function mezclaDe(e: EstadoMusical): Mezcla {
   switch (e.escena) {
     case 'portada':
       // contrabajo cálido + arpegio íntimo de guitarra + atmósfera
-      m = { capas: { bajo: 0.8, guitarra: 1, pad: 0.45 }, corte: 2200, q: 0.6, sala: 0.2, bajo: 'calmo', guitarra: 'intimo', rasgueo: 'relajado', bateria: 1 };
+      m = { capas: { bajo: 0.8, guitarra: 1, pad: 0.45 }, corte: 3000, q: 0.6, sala: 0.2, bajo: 'calmo', guitarra: 'intimo', rasgueo: 'relajado', bateria: 1 };
+      break;
+    case 'coleccion':
+      // Colección, Crónica y Ajustes: la portada desde la pieza de al lado (más cerrada, más pad, la guitarra lejos)
+      m = { capas: { bajo: 0.6, guitarra: 0.55, pad: 0.75, cuerdas: 0.25 }, corte: 1500, q: 0.8, sala: 0.3, bajo: 'calmo', guitarra: 'intimo', rasgueo: 'relajado', bateria: 1 };
       break;
     case 'mapa':
       // el mismo pulso + madera y bombo lejanos + pad misterioso
-      m = { capas: { bajo: 0.75, pad: 0.8, cuerdas: 0.3, bombo: 0.45, madera: 0.6 }, corte: 1700, q: 0.8, sala: 0.6, bajo: 'milonga', guitarra: 'intimo', rasgueo: 'relajado', bateria: 0 };
+      m = { capas: { bajo: 0.95, pad: 1.1, cuerdas: 0.55, bombo: 0.55, madera: 0.85 }, corte: 2300, q: 0.8, sala: 0.6, bajo: 'milonga', guitarra: 'intimo', rasgueo: 'relajado', bateria: 0 };
       break;
     case 'pulperia':
       // la misma armonía tras el pasabajos de la Pulpería, con rasgueo relajado
-      m = { capas: { bajo: 0.8, rasgueo: 1, pad: 0.35, bombo: 0.4, madera: 0.35 }, corte: 1300, q: 0.9, sala: 0.25, bajo: 'milonga', guitarra: 'intimo', rasgueo: 'relajado', bateria: 0 };
+      m = { capas: { bajo: 1, rasgueo: 1.45, pad: 0.5, bombo: 0.45, madera: 0.45 }, corte: 1700, q: 0.9, sala: 0.25, bajo: 'milonga', guitarra: 'intimo', rasgueo: 'relajado', bateria: 0 };
       break;
     case 'fogon':
       // más cerrada todavía, rasgueo lento y la textura de las brasas
-      m = { capas: { bajo: 0.6, rasgueo: 0.8, pad: 0.5, brasas: 1 }, corte: 1100, q: 0.9, sala: 0.3, bajo: 'calmo', guitarra: 'intimo', rasgueo: 'lento', bateria: 1 };
+      m = { capas: { bajo: 0.85, rasgueo: 1.4, pad: 0.75, brasas: 1 }, corte: 1500, q: 0.9, sala: 0.3, bajo: 'calmo', guitarra: 'intimo', rasgueo: 'lento', bateria: 1 };
       break;
     case 'cabala':
       m = { capas: { bajo: 0.5, guitarra: 0.6, pad: 0.9, cuerdas: 0.45 }, corte: 1800, q: 1.2, sala: 0.3, bajo: 'calmo', guitarra: 'intimo', rasgueo: 'lento', bateria: 1 };
@@ -240,13 +244,13 @@ export function mezclaDe(e: EstadoMusical): Mezcla {
     case 'rey': {
       const rey = e.escena === 'rey';
       const n = rey ? (Math.max(2, e.segunda ? 3 : e.nivel) as 2 | 3) : e.nivel;
-      // tramo 1: contrabajo + guitarra + batería base
-      const capas: Partial<Record<CapaId, number>> = { bajo: 1, guitarra: 1, bombo: 1, madera: 0.7 };
+      // tramo 1: contrabajo + guitarra + batería base (bombo, rimshot y un roce de escobillas a contratiempo)
+      const capas: Partial<Record<CapaId, number>> = { bajo: 1, guitarra: 1, bombo: 1, madera: 0.8, escobillas: 1 };
       if (n >= 2) Object.assign(capas, { bandoneon: 0.9, cuerdas: 0.6, pad: 0.4, escobillas: 0.8, madera: 0.85 });
-      if (n >= 3) Object.assign(capas, { bandoneon: 1, cuerdas: 0.8, pad: 0.5, escobillas: 1, madera: 1, rasgueo: 0.5 });
+      if (n >= 3) Object.assign(capas, { bajo: 0.85, bombo: 0.9, bandoneon: 1.15, cuerdas: 0.9, pad: 0.5, escobillas: 1.45, madera: 1.1, rasgueo: 0.7 });
       // contra un Rey la melodía es SU motivo: el bandoneón le deja el lugar
       if (rey) Object.assign(capas, { motivo: e.rey ? 1 : 0, bandoneon: e.rey ? 0 : capas.bandoneon });
-      m = { capas, corte: [2000, 3000, 3800][n - 1], q: 0.6, sala: 0.18, bajo: n >= 2 ? 'vivo' : 'milonga', guitarra: n >= 3 ? 'doble' : 'milonga', rasgueo: 'firme', bateria: n };
+      m = { capas, corte: [3900, 4700, 5800][n - 1], q: 0.6, sala: 0.18, bajo: n >= 2 ? 'vivo' : 'milonga', guitarra: n >= 3 ? 'doble' : 'milonga', rasgueo: 'firme', bateria: n };
       break;
     }
   }
@@ -471,7 +475,8 @@ export function bateria(compas: number, nivel: 0 | 1 | 2 | 3, semilla: number): 
   let madera = golpesDe(nivel === 0 ? '......x.........' : nivel === 1 ? '..........x.....' : nivel === 2 ? '....x.....x.....' : '....x.....x....o', 0.9);
   // lejana: el bombo marca solo el 1 y el último golpe del 3-3-2; la madera pone el del medio
   if (nivel === 0) bombo = golpesDe('x...........x...', 0.8);
-  let escobillas: Golpe[] = [];
+  // base: solo el roce a contratiempo; rica: el dibujo entero
+  let escobillas: Golpe[] = nivel === 1 ? golpesDe('..x...x...x...x.', 0.6, 'escobilla') : [];
   if (nivel >= 2) escobillas = golpesDe('x.o.o.x.o.o.x.o.', 0.8, 'escobilla');
   if (nivel >= 3) escobillas.push(...golpesDe('xoooooxoooooxooo', 0.6, 'shaker'));
   if (fill) {

@@ -96,7 +96,7 @@ await conServidor(5197, async (url) => {
       if (solo && !solo.some((x) => p.id.startsWith(x))) continue;
       const m = (await pagina.evaluate(`import('/src/client/musica/medir.ts').then((x) => x.medir(${JSON.stringify(p)}))`)) as Medida;
       medidas.push(m);
-      console.log(`${m.id.padEnd(18)} pico ${m.pico.toFixed(2).padStart(7)} dBFS · recortes ${m.recortes} · RMS ${m.rms.toFixed(1)} · ${m.lufs.toFixed(1)} LUFS · 2,5–5 kHz ${(m.banda * 100).toFixed(2)} % · bandas ${m.bandas.map((b) => (b * 100).toFixed(1)).join('/')}${m.fuera ? ` · ${m.fuera} NOTAS FUERA` : ''}`);
+      console.log(`${m.id.padEnd(18)} pico ${m.pico.toFixed(2).padStart(7)} dBFS · recortes ${m.recortes} · RMS ${m.rms.toFixed(1)} · ${m.lufs.toFixed(1)} LUFS · > 500 Hz ${((m.bandas[2] + m.bandas[3] + m.bandas[4]) * 100).toFixed(1)} % · 2,5–5 kHz ${(m.banda * 100).toFixed(2)} %${m.fuera ? ` · ${m.fuera} NOTAS FUERA` : ''}`);
     }
     if (errores.length) throw new Error(`errores en la página: ${errores.join(' | ')}`);
   } finally {

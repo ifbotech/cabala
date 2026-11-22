@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import * as T from '../src/client/musica/teoria';
 import { VOZ, GRITO } from '../src/client/voces';
 
-const ESCENAS: T.EscenaId[] = ['portada', 'mapa', 'mesa', 'rey', 'pulperia', 'fogon', 'cabala', 'derrota', 'victoria'];
+const ESCENAS: T.EscenaId[] = ['portada', 'coleccion', 'mapa', 'mesa', 'rey', 'pulperia', 'fogon', 'cabala', 'derrota', 'victoria'];
 const REYES: T.PaloRey[] = ['S', 'C', 'D', 'H'];
 const VOCES = Object.keys(T.VOCES) as T.VozId[];
 const SEMILLA = 2028;
@@ -118,7 +118,10 @@ describe('la partitura', () => {
     expect(capas({ escena: 'mapa' })).toEqual(['bajo', 'bombo', 'cuerdas', 'madera', 'pad']);
     expect(capas({ escena: 'fogon' })).toContain('brasas');
     expect(capas({ escena: 'pulperia' })).toContain('rasgueo');
-    expect(capas({ escena: 'mesa', nivel: 1 })).toEqual(['bajo', 'bombo', 'guitarra', 'madera']);
+    expect(capas({ escena: 'mesa', nivel: 1 })).toEqual(['bajo', 'bombo', 'escobillas', 'guitarra', 'madera']);
+    // Colección, Crónica y Ajustes: la portada, más cerrada
+    expect(capas({ escena: 'coleccion' })).toEqual(expect.arrayContaining(['bajo', 'guitarra', 'pad']));
+    expect(T.mezclaDe({ ...T.ESTADO_INICIAL, escena: 'coleccion' }).corte).toBeLessThan(T.mezclaDe(T.ESTADO_INICIAL).corte);
     expect(capas({ escena: 'mesa', nivel: 2 })).toEqual(expect.arrayContaining(['bandoneon', 'cuerdas', 'escobillas']));
     expect(capas({ escena: 'mesa', nivel: 1, vidaBaja: true })).toContain('latido');
     expect(capas({ escena: 'rey', rey: 'S' })).toContain('motivo');
