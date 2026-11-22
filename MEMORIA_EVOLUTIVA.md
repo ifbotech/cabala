@@ -487,6 +487,29 @@ piezas con icono de Vida máxima, grito junto al retrato; Vida máxima por Rey p
 
 **Medición.** Jurado 7,6 · 7,5 · 8,0 · 7,6. Panel 70,0 % (IC95 57–80 %); Deck 33 % (n = 9), Móvil 93 % (n = 15).
 
+## 0.26.0 · Que cambie cómo se juega (publicada)
+
+**Qué se buscó.** Que el Sol y el Brindis dejen de leerse como números y el Garrote no apague las Copas; que la Pierna
+del Chancho cante; que el ¡CHINCHÓN! proteja de verdad; y los P0/P1 de la 0.25 (la mano del teléfono que se movía al
+elegir, la Forja Brava sin cumbre, la sobra con dos cifras, la maldición cobrada en medio del golpe).
+
+**Lecciones.**
+- Cuarta subida seguida: media 8,3 en las cuatro columnas; el novato llega a 8,6 de Claridad y 8,5 de Veredicto, ux-deck
+  a 8,6 de Estética. Nadie marcó P0 salvo ux-móvil (la mano todavía cede con la Escalera de 3 y en 390×664).
+- Rehacer las Evoluciones las dejó mucho más flojas que las de la 0.25 y hundió cuatro Mazos (Mentiroso al 4 %): no
+  eran las notas internas ni la configuración. Se recuperó con Garrote ×2 y gasto sólo en el golpe que no abate, Sol con
+  tope 3 y un Brindis proporcional; después, Mazo por Mazo.
+- En `mitiga` menos es más protección: lo tuve al revés un rato.
+- Diseño marca que el bot no juega los descartes pagados del Sol: la recertificación no mide la regla más fuerte de la
+  versión. Y que Pierna de Chancho (Aturde) y ¡CHINCHÓN! dan el mismo premio (no te pegan).
+- Juice: el contragolpe tras el Garrote muestra el efecto antes que la causa (`ponerHud` antes de la espera); el golpe
+  chico no tiene respiro.
+- El panel simulado bajó a 61,7 % (−8,3, dentro del ruido) con el jurado en alza; Claridad del panel 5,75. Tercera vez
+  que panel y jurado van en direcciones opuestas.
+
+**Medición.** Jurado 8,3 · 8,3 · 8,3 · 8,3. Panel simulado 61,7 % (n = 60, IC95 49–73 %); Deck 56 % (n = 9), Móvil 67 %
+(n = 15). Laboratorio sin avisos en los cinco Mazos (vacío 28,2–30,3, lleno 45,8–48,3).
+
 ## 0.25.0 · Lo que se paga (publicada)
 
 **Qué se buscó.** El P1 que el jurado de diseño repetía por quinta vez (Evoluciones que eran números) con una maldición
@@ -506,7 +529,9 @@ del teléfono, ayudas que tapaban al enemigo, Forja Brava).
   por qué.
 
 **Medición.** Jurado 8,2 · 8,2 · 8,3 · 8,2. Panel simulado 70,0 % (n = 60, dentro del ruido); Deck 78 % (n = 9), Móvil 80 %
-(n = 15); Claridad del panel 6,0.## 0.24.0 · Que se entienda a la primera (publicada)
+(n = 15); Claridad del panel 6,0.
+
+## 0.24.0 · Que se entienda a la primera (publicada)
 
 **Qué se buscó.** Los P0 y P1 de la 0.23: ayudas que se abrían solas, el chip EXACTO que se leía como estado, la
 Evolución sin causa, el resumen tapado en el teléfono y la Forja Brava sin suspenso; en reglas, que Perfora respete la

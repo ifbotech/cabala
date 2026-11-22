@@ -3,6 +3,33 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.26.0 · Que cambie cómo se juega (2026-11-22)
+
+Las Evoluciones que el jurado leía como números (Garrote, Sol, Brindis) cambian una regla, y dos Mazos cantan más.
+
+**Reglas**
+- **Garrote del Cacique**: tu Escudo suma ×2 al Daño; el golpe que no abate gasta la mitad de tu Escudo. Las Copas
+  vuelven a curar.
+- **Sol de la Timba**: Oros dobles, +1 Multi cada tanto de oro (tope +3) y **descartes sin fin** mientras tengas oro:
+  cada uno cuesta 3.
+- **Brindis de Sangre**: +1 de Multi por cada 10 % de Vida que te falta; cada golpe te bebe 1 de Vida (ya no cura doble).
+- **Chancho Va**: la Pierna (3 iguales) también canta ¡CHANCHO! (Aturde 1); el Póker sigue con ×2 y Aturde 2.
+- **Chinchón**: el turno del ¡CHINCHÓN! el enemigo no te pega; su Mazo va del 1 al 8.
+- Mazos reajustados (Vida, Multi de mano, Cara de Piedra) y balance recertificado.
+
+**La mesa y las pantallas**
+- En el teléfono la mano no se mueve al elegir uno o dos naipes; la mano de 8 conserva sus dos filas.
+- **Forja Brava** como cumbre: el panel se pliega, el naipe entero baja a la fogata y, si sale, un ×2 grande.
+- El Garrote avisa «−N de Escudo» y lo cobra en tu ESCUDO; DESCARTAR con el Sol dice «−3 oro» y «∞»; placa
+  NO TE PEGA · ¡CHINCHÓN! y NO TE PEGA · LO ABATÍS.
+- La maldición espera el respiro del número; lo que sobra con Perfora sale en púrpura antes de que hable el Rey.
+- La oferta de una Evolución pone la regla arriba y la MALDICIÓN debajo; la Pulpería del teléfono avisa «hay más ↓».
+
+**Medición** · Laboratorio (3000 partidas por celda, sin avisos) · Altar vacío / lleno: Escoba 30,3 / 45,8 · Truco
+28,8 / 48,2 · Chinchón 28,2 / 47,8 · Mentiroso 28,9 / 48,3 · Chancho 30,2 / 46,2 %. Jurado: Claridad 8,3 · Diversión 8,3 ·
+Estética 8,3 · Veredicto 8,3. Panel **simulado** (n = 60, ruido ±10): 61,7 % (−8,3, dentro del ruido); Deck 56 % (n = 9),
+Móvil 67 % (n = 15); Claridad del panel 5,75.
+
 ## 0.25.0 · Lo que se paga (2026-11-22)
 
 Las Evoluciones dejan de ser retoques de número: cada una cambia una regla y cobra su precio.
@@ -34,6 +61,7 @@ Las Evoluciones dejan de ser retoques de número: cada una cambia una regla y co
 28,2 / 48,1 · Chinchón 29,1 / 47,6 · Mentiroso 29,1 / 47,3 · Chancho 29,7 / 49,0 %. Jurado: Claridad 8,2 · Diversión 8,2 ·
 Estética 8,3 · Veredicto 8,2. Panel **simulado** (n = 60, ruido ±10): 70,0 %, dentro del ruido; Deck 78 % (n = 9),
 Móvil 80 % (n = 15); Claridad del panel 6,0.
+
 ## 0.24.0 · Que se entienda a la primera (2026-11-22)
 
 Ronda de claridad guiada por los P0 y P1 del jurado de la 0.23.
