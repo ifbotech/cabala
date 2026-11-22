@@ -4183,6 +4183,9 @@ button.visor-carta:disabled {
 }
 .fin-nivel {
   margin-left: 0;
+  align-self: center;
+  white-space: nowrap;
+  font-size: 18px;
 }
 .fin-jugada {
   flex-wrap: wrap;
@@ -4677,4 +4680,56 @@ button.visor-carta:disabled {
   .fogon .opcion.fuego.forjado .c-temple.f-placa {
     font-size: 22px;
   }
+}
+
+/* ───────────── 0.25: el final en el teléfono avisa que sigue ───────────── */
+.fin-hay-mas {
+  display: none;
+}
+@media (max-width: 700px) {
+  /* el cuadro que se desliza lleva la flecha de «hay más» encima de los botones, y su pie se esfuma */
+  .fin-escena.hay-mas .fin-cuadro {
+    -webkit-mask-image: linear-gradient(#000 calc(100% - 40px), transparent);
+    mask-image: linear-gradient(#000 calc(100% - 40px), transparent);
+  }
+  .fin-escena.hay-mas .fin-hay-mas {
+    display: block;
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    translate: -50% -2px;
+    padding: 2px 10px;
+    font-family: var(--rot);
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 20px;
+    letter-spacing: 0.04em;
+    color: var(--oro);
+    background: var(--abismo);
+    box-shadow: inset 0 0 0 2px var(--oro-2);
+    white-space: nowrap;
+    pointer-events: none;
+    animation: hay-mas 0.7s steps(2) infinite alternate;
+  }
+  /* los Porotos que ganaste van arriba del panel, a la vista sin deslizar; el retrato partido, un punto más chico */
+  .fin-cuadro > .fin-panel > .fin-porotos {
+    order: -1;
+  }
+  .fin-heroe {
+    --k: 1;
+  }
+}
+/* (0.25) «Multi ×3 al cantar ¡ESCOBA!» en JUGADAS: «Multi ×3» y «al cantar» enteros (dos renglones; en el teléfono,
+   tres como mucho) */
+.j-canto .jc-par {
+  white-space: nowrap;
+}
+@media (max-width: 700px) {
+  .j-canto .jc-par + .jc-par {
+    white-space: normal;
+  }
+}
+/* (0.25) DEVOLVER del Altar, con su diana de 48 px como las demás */
+.al-devolver {
+  min-height: 48px;
 }

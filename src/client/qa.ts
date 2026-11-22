@@ -561,6 +561,8 @@ export function montarQa(estado: string): void {
       if (estado === 'resumen-derrota-movil') {
         const cuadro = $<HTMLElement>('.fin-cuadro');
         if (cuadro) cuadro.scrollTop = cuadro.scrollHeight;
+        // (0.25: y otra vez cuando terminan de pintarse las cifras, que lo alargan)
+        if (cuadro) new ResizeObserver(() => (cuadro.scrollTop = cuadro.scrollHeight)).observe(cuadro.querySelector('.fin-panel') ?? cuadro);
       }
       break;
     }

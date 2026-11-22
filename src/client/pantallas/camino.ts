@@ -201,7 +201,7 @@ export function modalJugadas(p: Partida, actual?: Jugada | null): void {
     const extra = !c.x && c.d ? t('danoAlCantar', { d: c.d, c: canto }) : '';
     // si el canto multiplica (Escoba, Chancho), las columnas de Daño y Multi dicen eso en vez de un «+0 ×1» que confunde
     const cifras = c.x
-      ? `<td class="n j-canto-celda" colspan="2"><span class="j-canto">${esc(t('alCantar', { x: c.x, c: canto }))}</span></td>`
+      ? `<td class="n j-canto-celda" colspan="2"><span class="j-canto" aria-label="${esc(t('alCantar', { x: c.x, c: canto }))}"><span class="jc-par">${esc(t('alCantarX', { x: c.x }))}</span> <span class="jc-par">${esc(t('alCantarC', { c: canto }))}</span></span></td>`
       : `<td class="n">${cifra(`+${B.jugadas[j].d}`, 'roja')}</td><td class="n">${cifra(`x${B.jugadas[j].m}`, 'azul')}</td>`;
     return `<tr class="${j === actual ? 'actual' : ''} ${propias.includes(j) ? 'propia' : ''}"><th scope="row">${esc(tx(JUGADA_NOMBRE[j]))}</th><td>${esc(tx(JUGADA_COMO[j]))}${extra ? `<span class="j-canto">${esc(extra)}</span>` : ''}</td>${cifras}</tr>`;
   };
@@ -1285,7 +1285,7 @@ function resumenHtml(p: Partida, r: ResumenPartida): string {
     ...e.amuletos.map((id) =>
       esEvolucionable(id) && e.evoluciones.includes(id) ? ficha(pxEvolucion(id), tx(EVOLUCION[id].nombre), tx(EVOLUCION[id].desc), 'evolucion') : ficha(pxAmuleto(id), tx(AMULETO[id].nombre), tx(AMULETO[id].desc)),
     ),
-    ...(e.bendicion ? [ficha(pxBendicion(e.bendicion.id), tx(BENDICION[e.bendicion.id].nombre), tx(BENDICION[e.bendicion.id].desc(e.bendicion.nivel))) + (e.bendicion.nivel > 1 ? `<b class="fin-nivel">${'I'.repeat(Math.min(3, e.bendicion.nivel))}</b>` : '')] : []),
+    ...(e.bendicion ? [ficha(pxBendicion(e.bendicion.id), tx(BENDICION[e.bendicion.id].nombre), tx(BENDICION[e.bendicion.id].desc(e.bendicion.nivel))) + (e.bendicion.nivel > 1 ? `<b class="fin-nivel">${t('nivelN', { n: e.bendicion.nivel })}</b>` : '')] : []),
   ];
   // la Evolución, con su nombre a la vista (es lo primero que se lee de la build)
   const evo = e.evoluciones[0];
@@ -1381,6 +1381,7 @@ export function pantallaFin(p: Partida): Pantalla {
           <div class="fin-corte">${reyes.map((r, i) => naipeRey(r.palo, i)).join('')}</div>
         </div>
         <div class="fila fin-botones">
+          <b class="fin-hay-mas" aria-hidden="true">${t('hayMas')}</b>
           <button class="btn marco oro grande fin-otra" data-accion="otra" data-foco="otra" data-inicio aria-label="${esc(t('otraManoTip', { m: tx(MAZO[p.mazoId].nombre) }))}">${pxHud('mazo')} ${t('otraManoYa')}</button>
           <button class="btn marco" data-accion="altar" data-foco="altar" data-tecla="d">${glifo('Y', 'D')}${t('altar')}</button>
           <button class="btn marco" data-accion="portada" data-foco="portada">${t('portada')}</button>
@@ -1391,6 +1392,18 @@ export function pantallaFin(p: Partida): Pantalla {
       sonar(gano ? 'victoria' : 'derrota');
       if (gano && !enFoto()) lluviaDeMonedas(0, innerWidth, -10, 60);
       contarRecord();
+      // (0.25) en el teléfono el cuadro se desliza: mientras quede algo abajo, la flecha de «hay más» sobre los botones
+      const cuadro = $('.fin-cuadro');
+      const escena = $('.fin-escena');
+      if (cuadro && escena) {
+        const mirar = (): void => void escena.classList.toggle('hay-mas', cuadro.scrollHeight - cuadro.scrollTop - cuadro.clientHeight > 8);
+        cuadro.addEventListener('scroll', mirar, { passive: true });
+        // (las cifras y los naipes se pintan un poco después: el alto cambia y se vuelve a mirar)
+        const panel = cuadro.querySelector('.fin-panel');
+        if (panel) new ResizeObserver(mirar).observe(panel);
+        mirar();
+        requestAnimationFrame(mirar);
+      }
     },
     acciones: {
       // OTRA MANO YA: otra partida con el mismo Mazo y el mismo Reinado, sin pasar por la elección
