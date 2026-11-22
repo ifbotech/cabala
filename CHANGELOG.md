@@ -3,6 +3,39 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.28.0 · La milonga de la Corte (2026-11-22)
+
+La música y las voces se rehacen enteras, y la mesa cierra los tres P1 del jurado de la 0.27.
+
+**Música y voces**
+- **Un solo reloj** para todo el juego (104 negras por minuto, Re menor, síncopa 3-3-2 de milonga): ninguna pantalla
+  corta la música; cada una suma o quita capas al límite del compás.
+- **La mesa suena a lo que pasa**: capas por tramo, y la Furia, la racha y la poca Vida mueven el filtro y las capas en
+  menos de 300 ms; con menos del 30 % de Vida entra un latido.
+- **Un motivo para cada Rey**, la segunda cara sube a Mi menor y la caída remata con una cadencia en vez de un silencio.
+- **Los cantos son remates afinados** al acorde del momento, y los efectos melódicos también.
+- **Los personajes cantan**: cada sílaba es una nota del acorde del compás, con formantes por vocal, vibrato y una
+  tesitura propia (Bufón tenor, Espadas barítono, Bastos bajo, Oros tenor lírico, Copas mezzo).
+- Bus maestro con compresor, techo, sala y agache automático; la música suena aunque los efectos estén apagados.
+- La mezcla se afinó con mediciones (`npm run qa:audio`, 47 renders sin recortes): todavía no pasó por un oído humano.
+
+**Reglas**
+- **Truco**: el Daño del ¡ENVIDO! crece con el tramo (base 11, ×2 y ×3; antes 45 fijo); 53 de Vida y +7 de Multi de mano.
+- El informe del laboratorio cuenta Evoluciones despiertas y oro pagado al Sol.
+
+**La mesa y las pantallas**
+- Escritorio: la mano no se mueve al elegir ni al golpear y descansa entera sobre el HUD; el desglose va a su izquierda.
+- Teléfono: la cuenta plegada dice jugada, fórmula, efectos y desenlace, y un toque abre el desglose sin mover la mano.
+- El sello SE PLANTA se ve, en lugar fijo junto a la barra del Rey.
+- Cada término del desglose con su nombre; ENGAÑO y PASAR dicen qué hacen; raya bajo el 6 y el 9; las placas «−N» no se
+  pisan; el Bufón reacciona al resultado de la Forja Brava; «SEGUIR SIN ELEGIR».
+
+**Jurado** (siete) · Claridad 8,7 · Diversión 8,6 · Estética 8,4 · Veredicto 8,6. 0 P0; 1 P1 (arte: la mesa a
+1920×1080, con el bocadillo que tapa al Bufón). Audio pasó de 5,1 a 7,6.
+
+**Medición** · Laboratorio (3000 partidas por celda, sin avisos) · Altar vacío / lleno: Escoba 29,4 / 45,6 · Truco
+28,9 / 48,1 · Chinchón 28,3 / 45,1 · Mentiroso 28,0 / 48,6 · Chancho 31,4 / 46,6 %.
+
 ## 0.27.0 · Cero P0 (2026-11-22)
 
 Cierre quirúrgico de la 0.26: el único P0 vivo, un premio propio para el Chinchón y un laboratorio que juega el Sol.

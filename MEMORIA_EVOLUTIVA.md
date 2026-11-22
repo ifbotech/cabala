@@ -487,6 +487,31 @@ piezas con icono de Vida máxima, grito junto al retrato; Vida máxima por Rey p
 
 **Medición.** Jurado 7,6 · 7,5 · 8,0 · 7,6. Panel 70,0 % (IC95 57–80 %); Deck 33 % (n = 9), Móvil 93 % (n = 15).
 
+## 0.28.0 · La milonga de la Corte (publicada)
+
+**Qué se buscó.** Segundo salto del mandato de obra maestra: música adaptativa sobre un reloj único y personajes que
+cantan en armonía; y cerrar los tres P1 de la 0.27 (escritorio con algo apoyado, cuenta plegada, sello SE PLANTA).
+
+**Lecciones.**
+- Sexta subida seguida. Los seis jurados visuales dan 8,8 · 8,65 · 8,6 · 8,75 y el de audio pasa de 5,1 a 7,6; la
+  media de siete queda en 8,7 · 8,6 · 8,4 · 8,6. El novato llega a 9,1 de Claridad: primera columna en la meta.
+- Los tres P1 de la 0.27 quedaron cerrados y vistos cuadro por cuadro. Queda uno nuevo: al rehacer el reparto del
+  escritorio, a 1920 el bocadillo tapa al Bufón y el paño sigue a 1×. Arreglar tres ventanas rompió la cuarta.
+- La música se compuso y mezcló sin que nadie la oyera: el render fuera de línea da picos, sonoridad y brillo, y prueba
+  que cada nota cantada cae en el acorde, pero no dice si suena bien. El juez de audio pide una escucha humana como
+  puerta; es el mayor riesgo de la versión.
+- Lo que el juez de audio ve flojo: los ~60 efectos siguen siendo ondas cuadradas contra una música acústica; la voz
+  no tiene consonantes y canta a la misma sonoridad que la música; los remates de premio heredan la tensión del acorde
+  (un tritono como recompensa en 1 de cada 8 compases); seis pantallas comparten los mismos 8 compases.
+- Escalar el Envido por tramo abre la brecha vacío/lleno del Truco; la cierra el Multi de mano (5 → 7), no la Vida.
+- El contador nuevo lo confirma: 85–94 % de las partidas terminan con una Evolución despierta. No es un premio.
+- Diseño repite tres P2: el Envido canta casi siempre (21 por partida), las maldiciones del Facón y el Garrote cobran
+  por lo mismo, y el Golpe exacto ocurre menos de dos veces por partida. Y un error: el «de un saque» del Chancho no
+  cuenta el Degüello.
+- El desglose con nombres, apretado, baja a 14 px y corta palabras: lo marcan tres jurados.
+
+**Medición.** Jurado de siete 8,7 · 8,6 · 8,4 · 8,6 (0 P0, 1 P1). Laboratorio sin avisos.
+
 ## 0.27.0 · Cero P0 (publicada)
 
 **Qué se buscó.** Primer salto del mandato de obra maestra (meta nueva: Jurado ≥ 9,1 con 0 P0 y 0 P1, sin panel
