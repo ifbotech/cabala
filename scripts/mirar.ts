@@ -94,13 +94,46 @@ await conServidor(5197, async (url) => {
       await p.waitForSelector('.forja-mut');
       await p.waitForTimeout(900);
       await foto('forja-brava-elegir');
+      // (0.26) el azar de la tercera pasada se fija para fotografiar los dos finales: primero sale (el «×2» sobre la
+      // fogata, con el naipe entero todavía ahí) y después se quema
+      const fijarAzar = (sale: boolean) =>
+        p.evaluate((quiere) => {
+          const g = window as unknown as { __cabala: { sesion: { partida: { rng: number } } } };
+          const x = g.__cabala.sesion.partida;
+          const azar = (r0: number): number => {
+            let t = (r0 + 0x6d2b79f5) >>> 0;
+            t = Math.imul(t ^ (t >>> 15), t | 1);
+            t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+          };
+          for (let r = 1; r < 5000; r++)
+            if ((azar(r) >= 0.5) === quiere) {
+              x.rng = r;
+              return;
+            }
+        }, sale);
+      await fijarAzar(true);
       await p.click('.forja-mut');
       await p.waitForTimeout(500);
       await foto('fogon-suspenso-brava');
       await p.waitForTimeout(900);
       await foto('fogon-suspenso-brava-llama');
-      await p.waitForTimeout(700);
+      await p.waitForTimeout(260);
+      await foto('forja-brava-x2');
+      await p.waitForTimeout(1300);
       await foto('forja-brava-despues');
+      // y la que se quema
+      await p.goto(`${url}/?qa=forja-brava-eleccion&vivo&lang=es`);
+      await p.waitForSelector('.forja-mut');
+      await p.waitForTimeout(900);
+      await fijarAzar(false);
+      await p.click('.forja-mut');
+      await p.waitForTimeout(1400);
+      await foto('forja-brava-quema-llama');
+      await p.waitForTimeout(450);
+      await foto('forja-brava-quema');
+      await p.waitForTimeout(1400);
+      await foto('forja-brava-quemada-despues');
       await ctx.close();
     }
   } finally {

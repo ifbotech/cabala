@@ -1289,7 +1289,8 @@ function fogon(W: number, H: number, kit: Kit): Escenario {
   const yH = Math.round(H * (vert ? 0.2 : 0.3));
   // el fuego, donde la pantalla deja un claro: bajo los paneles en apaisado, entre «Seguir» y el HUD en móvil
   const fx = Math.round(W * (vert ? 0.5 : 0.52));
-  const fy = Math.round(H * (vert ? 0.795 : 0.725));
+  // (0.26: en el teléfono, un poco más arriba: SEGUIR ya no le corta la base a la fogata)
+  const fy = Math.round(H * (vert ? 0.735 : 0.725));
   // (0.25: en el teléfono la fogata ya no es de 20 px: casi el doble)
   const s = vert ? 1.9 : 2.1;
   const q = (v: number): number => Math.round(v * s);

@@ -851,6 +851,34 @@ export function pantallaFogon(p: Partida): Pantalla {
   let recienBrava = false;
   let relojBrava = 0;
   let brasas = 0;
+  /** (0.26) La capa del momento cumbre de la Forja Brava: el naipe entero sobre la fogata, fuera del panel. */
+  let forja: HTMLElement | null = null;
+  /**
+   * (0.26) El naipe sale del panel (que se pliega) en su propia capa y baja, a escala entera y ENTERO, hasta pararse
+   * sobre la fogata del tercio de abajo; una llama de pixel-art le sube por el pie mientras dura el suspenso.
+   */
+  const bajarAlFuego = (carta: Carta, r0: DOMRect, f: { x: number; y: number }): HTMLElement => {
+    const kRaiz = Number(getComputedStyle(document.documentElement).getPropertyValue('--k')) || 1;
+    const capa = document.createElement('div');
+    capa.className = 'forja-capa';
+    capa.setAttribute('aria-hidden', 'true');
+    capa.style.setProperty('--k', String(Math.max(1, Math.round(kRaiz))));
+    capa.innerHTML = `<span class="fuego-carta al-fuego bravo">${pxNaipe(carta)}</span><i class="forja-llama"></i>`;
+    document.body.append(capa);
+    const w = capa.offsetWidth;
+    const h = capa.offsetHeight;
+    // (el pie del naipe, metido en las llamas; nunca debajo del HUD)
+    const techoHud = document.querySelector('.hud')?.getBoundingClientRect().top ?? innerHeight;
+    const top = Math.max(8, Math.min(f.y + Math.round(h * 0.12), techoHud - 6) - h);
+    const left = Math.round(f.x - w / 2);
+    capa.style.left = `${left}px`;
+    capa.style.top = `${Math.round(top)}px`;
+    // sale de donde estaba en el panel, a su tamaño de ahí
+    capa.style.setProperty('--dx0', `${Math.round(r0.left + r0.width / 2 - (left + w / 2))}px`);
+    capa.style.setProperty('--dy0', `${Math.round(r0.top + r0.height / 2 - (top + h / 2))}px`);
+    capa.style.setProperty('--s0', (r0.width / Math.max(1, w)).toFixed(3));
+    return capa;
+  };
   const FUEGO = ['#ffffff', '#ffd500', '#ff7b00', '#7a0026'];
   const centroDe = (sel: string): { x: number; y: number; r: DOMRect } | null => {
     const r = $(sel)?.getBoundingClientRect();
@@ -965,6 +993,8 @@ export function pantallaFogon(p: Partida): Pantalla {
       clearInterval(brasas);
       clearTimeout(relojBrava);
       avivarFuego(0);
+      forja?.remove();
+      forja = null;
     },
     acciones: {
       ...accionesComunes(p),
@@ -1007,14 +1037,12 @@ export function pantallaFogon(p: Partida): Pantalla {
           // los primeros 400 ms no se cortan (TURBO corta el resto)
           el?.classList.add('bravo');
           $('.fogon .opcion.fuego')?.classList.add('forjando');
-          // (0.25) el naipe baja hasta la fogata de verdad y la fogata crece mientras dura el suspenso
+          // (0.26) la escena manda sobre el panel: el panel de la apuesta y SEGUIR se pliegan y salen, y el naipe, entero y
+          // a escala entera más grande, baja en su propia capa hasta la fogata del tercio de abajo, que crece
           const f = fuegoEnPantalla();
           const r0 = el?.getBoundingClientRect();
-          if (el && f && r0 && !quieto()) {
-            el.style.setProperty('--bx', `${Math.round(f.x - (r0.left + r0.width / 2))}px`);
-            el.style.setProperty('--by', `${Math.round(f.y - (r0.top + r0.height / 2))}px`);
-            el.classList.add('baja');
-          }
+          $('main.fogon')?.classList.add('forjando');
+          if (el && f && r0 && r0.width > 0 && !quieto()) forja = bajarAlFuego(carta, r0, f);
           avivarFuego(1);
           sonar('forjaSube');
           if (!quieto()) await new Promise((ok) => setTimeout(ok, 400));
@@ -1023,34 +1051,49 @@ export function pantallaFogon(p: Partida): Pantalla {
           sonar('suspenso');
           await pausa(820);
         }
-        const rect = el?.getBoundingClientRect();
+        const capa = forja;
+        const rect = (capa?.querySelector('.fuego-carta') ?? el)?.getBoundingClientRect();
         const r = juego.templar(p, carta.id, mut);
         avivarFuego(0);
         recienBrava = brava && r === 'templada';
         // al salir del fuego bravo: el golpe se congela un instante (hitstop) y la mesa se sacude
         if (recienBrava && !quieto()) {
           congelar(110);
-          el?.classList.add('congela');
+          (capa?.querySelector('.fuego-carta') ?? el)?.classList.add('congela');
           await new Promise((ok) => setTimeout(ok, 110));
         }
         if (r === 'quemada') {
           seQuemo = true;
           sonar('ceniza');
           if (rect && !quieto()) {
-            // el naipe se parte en brasas y se va en humo
+            // el naipe se parte en brasas y se va en humo (sobre la fogata, donde está)
             partirNaipe(lienzoNaipe(carta.palo as Exclude<typeof carta.palo, 'X'>, carta.n), rect, FUEGO);
             humo(rect.left + rect.width / 2, rect.top + rect.height / 2, rect.width * 0.7);
-            el?.classList.add('ceniza');
-            await pausa(520);
+            (capa?.querySelector('.fuego-carta') ?? el)?.classList.add('ceniza');
+            await pausa(capa ? 900 : 520);
           }
         } else if (r === 'templada') sonar(recienBrava ? 'forja' : 'canto');
+        // (0.26) el «×2» de la Forja Brava estalla sobre la fogata, con el naipe entero todavía ahí; recién después
+        // vuelve el panel (y SEGUIR)
+        if (recienBrava && capa && rect && !quieto()) {
+          capa.classList.add('sale');
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          destello(cx, cy, FUEGO, 34);
+          chispas(cx, cy, ['#ffd500', '#ff7b00', '#00c8ff', '#ff1453'], 26, 140, -30);
+          numero('×2', cx, rect.top + rect.height * 0.35, 'oro', 3);
+          sacudir($('main.fogon'), 3);
+          await pausa(900);
+        }
+        forja?.remove();
+        forja = null;
         guardar();
         repintar();
         ocupado = false;
-        if (r === 'templada') fogonazo(recienBrava);
+        if (r === 'templada' && !(recienBrava && capa)) fogonazo(recienBrava);
         if (recienBrava) {
           // ¡FORJA BRAVA!: el grito sobre el naipe, un estallido de oro y la mutación con la que salió del fuego
-          const c = centroDe('.fuego-carta');
+          const c = capa ? null : centroDe('.fuego-carta');
           if (c && !quieto()) {
             destello(c.x, c.y, FUEGO, 34);
             chispas(c.x, c.y, ['#ffd500', '#ff7b00', '#00c8ff', '#ff1453'], 26, 140, -30);

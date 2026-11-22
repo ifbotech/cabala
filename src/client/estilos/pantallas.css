@@ -4617,17 +4617,74 @@ button.visor-carta:disabled {
   color: #ffc2cf;
   white-space: nowrap;
 }
-/* el naipe baja hasta la fogata de verdad mientras dura el suspenso (y se achica, como si entrara en las llamas) */
-.fuego-carta.al-fuego.bravo.baja {
-  z-index: 6;
-  animation:
-    fuego-late 0.14s steps(2) infinite alternate,
-    tiembla-sube 1.5s steps(15) both,
-    baja-al-fuego 1.5s steps(12) both;
+/* ── 0.26 · el momento cumbre de la Forja Brava: la escena manda sobre el panel. El panel de la apuesta y SEGUIR se
+   pliegan hacia arriba en cuatro pasos y salen; el naipe, entero y a escala entera, baja en su propia capa hasta la
+   fogata del tercio de abajo y una llama de pixel-art le sube por el pie; el «×2» o la ceniza, sobre la fogata ── */
+main.fogon.forjando .opciones,
+main.fogon.forjando [data-accion='seguir'] {
+  transform-origin: 50% 0;
+  animation: forja-pliega 0.24s steps(4) forwards;
+  pointer-events: none;
 }
-@keyframes baja-al-fuego {
+@keyframes forja-pliega {
   to {
-    transform: translate(calc(var(--bx, 0px) * 0.9), calc(var(--by, 0px) * 0.9)) scale(0.7);
+    opacity: 0;
+    transform: scaleY(0.15);
+    visibility: hidden;
+  }
+}
+.forja-capa {
+  position: fixed;
+  z-index: 40;
+  line-height: 0;
+  pointer-events: none;
+  animation: forja-baja 0.6s steps(8) both;
+}
+.forja-capa .fuego-carta {
+  display: block;
+}
+@keyframes forja-baja {
+  from {
+    transform: translate(var(--dx0, 0px), var(--dy0, 0px)) scale(var(--s0, 1));
+  }
+}
+/* la llama que sube por el pie del naipe (bandas duras, de a pasos: crece mientras dura el suspenso) */
+.forja-llama {
+  position: absolute;
+  left: -14%;
+  right: -14%;
+  bottom: -4%;
+  height: 0;
+  background: linear-gradient(to top, #7a0026 0 18%, #ff7b00 18% 52%, #ffd500 52% 84%, #fff799 84%);
+  clip-path: polygon(0 100%, 0 40%, 8% 62%, 16% 18%, 26% 50%, 36% 4%, 46% 44%, 54% 0, 64% 40%, 74% 10%, 84% 52%, 92% 26%, 100% 58%, 100% 100%);
+  animation:
+    forja-llama-sube 1.5s steps(6) forwards,
+    forja-llama-late 0.16s steps(2) infinite alternate;
+}
+@keyframes forja-llama-sube {
+  to {
+    height: 34%;
+  }
+}
+@keyframes forja-llama-late {
+  to {
+    clip-path: polygon(0 100%, 0 52%, 10% 20%, 18% 58%, 28% 8%, 38% 46%, 48% 2%, 56% 50%, 66% 14%, 76% 48%, 86% 6%, 94% 44%, 100% 30%, 100% 100%);
+  }
+}
+/* sale: el naipe entero se enciende en blanco y oro un instante (el «×2» estalla encima) */
+.forja-capa.sale .fuego-carta {
+  animation: forja-sale 0.3s steps(3) forwards;
+}
+.forja-capa.sale .forja-llama {
+  animation: none;
+  height: 0;
+}
+@keyframes forja-sale {
+  0% {
+    filter: brightness(2.4) saturate(0.4);
+  }
+  100% {
+    filter: none;
   }
 }
 @media (min-width: 701px) {
