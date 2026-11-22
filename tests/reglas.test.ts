@@ -392,7 +392,7 @@ describe('una partida entera', () => {
   it('los 15 Amuletos se pueden colgar y entran en la cuenta sin romperla', () => {
     for (const id of AMULETOS) {
       const mano = [c('S', 7), c('C', 7), c('D', 7), c('H', 7)];
-      const p = mesa('escoba', mano, { palo: 'S' }, (x) => x.amuletos.push(id));
+      const p = mesa('mentiroso', mano, { palo: 'S' }, (x) => x.amuletos.push(id));
       p.oro = 60;
       p.combate!.escudo = 10;
       const q = cuenta(p, mano);
@@ -400,6 +400,18 @@ describe('una partida entera', () => {
       expect(Number.isInteger(q.total), id).toBe(true);
       expect(q.total, id).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('0.27.0: un golpe no lleva más cartas que Postas tiene el paño', () => {
+  it('con una mano de más (Dar de Abajo, Roba Carta), la Escoba sigue golpeando con 3 como mucho', () => {
+    const mano = [c('S', 2), c('C', 3), c('D', 4), c('H', 6)];
+    const p = mesa('escoba', mano);
+    expect(cuenta(p, mano).ok).toBe(false);
+    expect(cuenta(p, mano).motivo).toBe('muchas');
+    expect(cuenta(p, mano.slice(0, 3)).ok).toBe(true);
+    const m = mejorGolpe(p)!;
+    expect(m.ids.length).toBeLessThanOrEqual(3);
   });
 });
 
@@ -842,7 +854,7 @@ describe('0.23.0: la Forja Brava a la vista y el acomodo EXACTO', () => {
 describe('0.24.0: lo que Perfora respeta las dos caras del Rey', () => {
   it('la sobra que entra en un Rey en su primera cara lo deja en la mitad y le muestra la segunda', () => {
     const mano = [c('S', 9), c('S', 9), c('S', 9), c('S', 8), c('S', 8)];
-    const p = mesa('escoba', mano, { vida: 1, vidaMax: 100, palo: 'D' });
+    const p = mesa('mentiroso', mano, { vida: 1, vidaMax: 100, palo: 'D' });
     p.amuletos.push('lanza');
     const rey = { ...crearEnemigo(p, 'C', 12), jefe: true, vida: 400, vidaMax: 400, escudo: 0, escudoMax: 0 } as Enemigo;
     p.combate!.fila[1] = rey;

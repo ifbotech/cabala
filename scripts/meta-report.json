@@ -1,6 +1,6 @@
 {
   "fecha": "2026-11-22",
-  "huella": "63bac1511835cd3d",
+  "huella": "54fa4420bad2e933",
   "rapido": false,
   "partidasPorCelda": 3000,
   "objetivos": {
@@ -45,48 +45,48 @@
   "mazos": [
     {
       "mazo": "escoba",
-      "vacio": 31.3,
-      "lleno": 47.6,
-      "reinado8": 28.3,
+      "vacio": 29.4,
+      "lleno": 45.6,
+      "reinado8": 25.9,
       "caidas": [
-        244,
-        882,
-        935
+        253,
+        921,
+        945
       ],
-      "caidaTramo1": 8.1,
-      "golpesGuardia": 2.8,
+      "caidaTramo1": 8.4,
+      "golpesGuardia": 2.9,
       "golpesRey": 4.8,
       "golpeMedio": [
-        193,
-        596,
-        2049
+        190,
+        583,
+        2020
       ],
       "exactos": 0.6,
-      "cantos": 9.8,
-      "mejorGolpe": 54720,
-      "porotos": 79,
-      "minutos": 15.4
+      "cantos": 9.4,
+      "mejorGolpe": 44496,
+      "porotos": 77,
+      "minutos": 15.5
     },
     {
       "mazo": "truco",
-      "vacio": 29.2,
-      "lleno": 48.4,
-      "reinado8": 27,
+      "vacio": 29.4,
+      "lleno": 48.2,
+      "reinado8": 26.6,
       "caidas": [
-        79,
+        76,
         301,
-        1744
+        1741
       ],
-      "caidaTramo1": 2.6,
+      "caidaTramo1": 2.5,
       "golpesGuardia": 2.3,
       "golpesRey": 3.8,
       "golpeMedio": [
         423,
-        831,
-        1735
+        832,
+        1739
       ],
       "exactos": 0.1,
-      "cantos": 21.8,
+      "cantos": 21.9,
       "mejorGolpe": 25110,
       "porotos": 88,
       "minutos": 14.2
@@ -141,26 +141,26 @@
     },
     {
       "mazo": "chancho",
-      "vacio": 31,
-      "lleno": 46.7,
-      "reinado8": 27.6,
+      "vacio": 31.4,
+      "lleno": 46.6,
+      "reinado8": 27.8,
       "caidas": [
-        126,
-        661,
-        1284
+        125,
+        656,
+        1276
       ],
       "caidaTramo1": 4.2,
       "golpesGuardia": 2.7,
       "golpesRey": 4.5,
       "golpeMedio": [
-        204,
-        501,
-        1471
+        203,
+        500,
+        1453
       ],
       "exactos": 1,
-      "cantos": 6.7,
+      "cantos": 6.9,
       "mejorGolpe": 32760,
-      "porotos": 84,
+      "porotos": 85,
       "minutos": 15.2
     }
   ],

@@ -155,7 +155,7 @@ export function mejorGolpe(p: Partida): { ids: string[]; q: Cuenta; v: number; e
       if (!mejor || v > mejor.v) mejor = { ids: sel.map((k) => k.id), q, v, engano, postas: q.postas };
       return v;
     };
-    for (const sel of combinaciones(c.mano)) {
+    for (const sel of combinaciones(c.mano, postasDe(p))) {
       const v = pesar(sel);
       if (v !== null) vistos.push({ sel, v });
     }

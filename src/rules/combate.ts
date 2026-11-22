@@ -188,7 +188,8 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
   const e = c?.fila[0];
   if (!c || !e) return { ...NULA, motivo: 'vacio' };
   if (!sel.length) return { ...NULA, motivo: 'vacio' };
-  if (sel.length > MAX_GOLPE) return { ...NULA, motivo: 'muchas' };
+  // (0.27.0) un golpe lleva, como mucho, tantas cartas como Postas tiene el paño (aunque la mano traiga cartas de más)
+  if (sel.length > postasDe(p)) return { ...NULA, motivo: 'muchas' };
   const engano = c.engano && c.enganos > 0;
   const sinInmune = engano || tieneAmuleto(p, 'doscaras') || !!c.fosforo;
   const ef = resolver(sel, sinInmune ? undefined : e.palo, engano);
