@@ -6381,3 +6381,36 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
     }
   }
 }
+@media (min-width: 701px) {
+  .mesa .botones .btn.con-regla,
+  .mesa .botones .btn[data-accion='engano'] {
+    padding-left: 6px;
+    padding-right: 6px;
+    column-gap: 6px;
+  }
+  .mesa .botones .btn.con-regla .b-nombre,
+  .mesa .botones .btn[data-accion='engano'] .b-nombre {
+    min-width: 0;
+    letter-spacing: 0.04em;
+  }
+}
+@media (min-width: 701px) {
+  /* (cada cosa en su celda, haya glifo a la vista o no: el nombre arriba y su regla debajo) */
+  .mesa .botones .btn.con-regla > .glifo,
+  .mesa .botones .btn[data-accion='engano'] > .glifo {
+    grid-column: 1;
+    grid-row: 1 / 3;
+  }
+  .mesa .botones .btn.con-regla .b-nombre,
+  .mesa .botones .btn[data-accion='engano'] .b-nombre {
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: center;
+  }
+  .mesa .botones .btn.con-regla .b-regla,
+  .mesa .botones .btn[data-accion='engano'] .b-regla {
+    grid-column: 2;
+    grid-row: 2;
+    text-align: center;
+  }
+}
