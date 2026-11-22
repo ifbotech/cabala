@@ -3682,3 +3682,25 @@ button.visor-carta:disabled {
   justify-content: center;
   gap: 4px 8px;
 }
+
+/* (0.22) la Cábala Negra trae opciones con más texto: en el portátil bajo, un poco más anchas y la escena más junta
+   (no rozan el HUD) */
+@media (min-width: 1100px) and (max-width: 1699px) and (max-height: 820px) {
+  .cabala:not(.negra) .cuerpo {
+    gap: var(--u);
+  }
+  .cabala .opcion {
+    width: 310px;
+  }
+  .cabala-bufon .bocadillo {
+    font-size: var(--fs);
+    max-width: min(30em, 60vw);
+  }
+  .cabala:not(.negra) .cabala-bufon {
+    flex-direction: row;
+    align-items: center;
+  }
+  .cabala:not(.negra) .cabala-bufon .bocadillo {
+    margin-bottom: 0;
+  }
+}

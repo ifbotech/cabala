@@ -447,6 +447,9 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       // el naipe apoyado va a la escala del paño (a 2×, a 1×): una clase le cambia la escala entera de su dibujo
       const enPano = c.elegida && !c.vuela && !(arrastre && arrastre.ids.includes(c.carta.id)) && !(posado && posado.ids.includes(c.carta.id));
       if (c.el.classList.contains('en-pano') !== enPano) c.el.classList.toggle('en-pano', enPano);
+      // (la que va bajo el dedo, de la mano a la mesa o de una Posta a otra: puede pasar por encima de las demás)
+      const enTransito = !!(arrastre && arrastre.ids.includes(c.carta.id)) || !!(posado && posado.ids.includes(c.carta.id)) || haciaPosta?.id === c.carta.id;
+      if (c.el.classList.contains('en-transito') !== enTransito) c.el.classList.toggle('en-transito', enTransito);
       if (c.espera > 0) {
         c.espera -= dt * 1000;
         aplicar(c, Z.mano + i);

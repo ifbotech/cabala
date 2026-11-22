@@ -217,7 +217,12 @@ function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[
       // (0.22: el índice es el del dibujo, sin placas de texto encima)
       const arriba = { x: r.left + r.width * 0.09, y: r.top + r.height * 0.1 };
       const abajo = { x: r.right - r.width * 0.09, y: r.bottom - r.height * 0.1 };
-      const seVe = (pt: { x: number; y: number }): boolean => pt.x >= 0 && pt.y >= 0 && pt.x < W && pt.y < H && document.elementFromPoint(pt.x, pt.y)?.closest('.carta') === el;
+      // (la carta que va bajo el dedo —arrastrada de la mano o de una Posta a otra— puede pasar por encima: no cuenta)
+      const seVe = (pt: { x: number; y: number }): boolean => {
+        if (pt.x < 0 || pt.y < 0 || pt.x >= W || pt.y >= H) return false;
+        const sobre = document.elementFromPoint(pt.x, pt.y)?.closest<HTMLElement>('.carta');
+        return sobre === el || (!!sobre && sobre.classList.contains('en-transito') && !el.classList.contains('en-transito'));
+      };
       if (!seVe(arriba) && !seVe(abajo)) {
         const encima = document.elementFromPoint(arriba.x, arriba.y);
         fallos.push({ regla: 'indice-tapado', detalle: `el naipe ${el.dataset.id} no deja ver ningún índice (arriba lo tapa ${encima ? nombre(encima) : 'el borde'})` });
