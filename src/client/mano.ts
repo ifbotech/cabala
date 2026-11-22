@@ -13,6 +13,7 @@ import { quieto as todoQuieto } from './ritmo';
 import { cifra, pxHud, pxNaipe } from './sprites';
 import { MUTACION_DESC, MUTACION_NOMBRE, PASO_NOMBRE } from './textos';
 import { esc, tip } from './ui';
+import { glifo } from './nav';
 import { B } from '../rules/balance';
 import type { HudPx } from './pixel/iconos';
 
@@ -163,7 +164,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
   raiz.append(pano);
   const regla = document.createElement('span');
   regla.className = 'pano-regla';
-  regla.innerHTML = `<span class="p-linea">${pxHud('medio', 'p-icono')}<b>${esc(t('postaMedioAyuda'))}</b></span><i class="p-sep">·</i><span class="p-linea p-esc">${pxHud('escalon', 'p-icono')}<b class="p-largo">${esc(t('panoEscalon', { n: B.postas.escalon }))}</b><b class="p-corto">${esc(`${tx(PASO_NOMBRE['posta:escalon'])} +${B.postas.escalon}`)}</b></span>`;
+  regla.innerHTML = `<span class="p-linea">${pxHud('medio', 'p-icono')}<b>${esc(t('postaMedioAyuda'))}</b></span><i class="p-sep">·</i><span class="p-linea p-esc">${pxHud('escalon', 'p-icono')}<b class="p-largo">${esc(t('panoEscalon', { n: B.postas.escalon }))}</b><b class="p-corto">${esc(`${tx(PASO_NOMBRE['posta:escalon'])} +${B.postas.escalon}`)}</b></span><span class="p-linea p-mando">${glifo('LB', 'Q')}${glifo('RB', 'W')}<b>${esc(t('pistaCorre'))}</b></span>`;
   raiz.append(regla);
   const slots = enPosta.map((_, i) => {
     const el = document.createElement('div');

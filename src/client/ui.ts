@@ -156,7 +156,8 @@ function mostrarTip(el: HTMLElement): void {
   ocultarTip();
   const titulo = el.dataset.tipT ?? '';
   const cuerpo = el.dataset.tip ?? '';
-  const pie = el.dataset.tipPie ?? '';
+  // (0.22: una ayuda puede decir otra cosa con el mando —«Pulsá A»— que con el ratón o el dedo)
+  const pie = (document.documentElement.dataset.entrada === 'mando' ? el.dataset.tipPieMando : undefined) ?? el.dataset.tipPie ?? '';
   if (!titulo && !cuerpo) return;
   tipEl = document.createElement('div');
   tipEl.className = 'tip';

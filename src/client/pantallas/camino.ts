@@ -107,7 +107,7 @@ function avisarRollo(velo: HTMLElement): void {
 }
 
 /** Las palabras del juego, en una línea cada una (el glosario de JUGADAS y la ayuda de la mesa). Los números salen del motor. */
-export type EntradaGlosario = 'multi' | 'furia' | 'escudo' | 'exacto' | 'alpelo' | 'racha' | 'segunda' | 'engano' | 'medio' | 'chispa' | 'escalon';
+export type EntradaGlosario = 'multi' | 'furia' | 'escudo' | 'exacto' | 'alpelo' | 'racha' | 'segunda' | 'engano' | 'medio' | 'chispa' | 'escalon' | 'chiches' | 'mano' | 'cantos' | 'paloypalo' | 'filodorado' | 'taba';
 export function textoGlosario(e: EntradaGlosario): string {
   switch (e) {
     case 'multi':
@@ -131,6 +131,17 @@ export function textoGlosario(e: EntradaGlosario): string {
     case 'chispa':
     case 'escalon':
       return tx(PASO_AYUDA[`posta:${e}`]);
+    // (0.22) los Chiches y las palabras del desglose que no se entienden solas (también con el mando: JUGADAS las trae)
+    case 'chiches':
+      return t('gChiches');
+    case 'mano':
+    case 'cantos':
+      return tx(PASO_AYUDA[e]);
+    case 'paloypalo':
+    case 'filodorado':
+      return fichaDe('bendicion', e).desc;
+    case 'taba':
+      return fichaDe('amuleto', e).desc;
   }
 }
 const GLOSARIO: readonly { e: EntradaGlosario; nombre: () => string }[] = [
@@ -145,6 +156,12 @@ const GLOSARIO: readonly { e: EntradaGlosario; nombre: () => string }[] = [
   { e: 'medio', nombre: () => tx(PASO_NOMBRE['posta:medio']) },
   { e: 'chispa', nombre: () => tx(PASO_NOMBRE['posta:chispa']) },
   { e: 'escalon', nombre: () => tx(PASO_NOMBRE['posta:escalon']) },
+  { e: 'chiches', nombre: () => t('chiches') },
+  { e: 'mano', nombre: () => tx(PASO_NOMBRE.mano) },
+  { e: 'cantos', nombre: () => tx(PASO_NOMBRE.cantos) },
+  { e: 'paloypalo', nombre: () => fichaDe('bendicion', 'paloypalo').nombre },
+  { e: 'filodorado', nombre: () => fichaDe('bendicion', 'filodorado').nombre },
+  { e: 'taba', nombre: () => fichaDe('amuleto', 'taba').nombre },
 ];
 
 /**

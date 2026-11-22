@@ -33,6 +33,17 @@ const SONIDO = {
   chispa: [[2349, 0.03, 'square', 0.07], [3136, 0.05, 'triangle', 0.07], [2637, 0.04, 'square', 0.05]],
   escalon: [[392, 0.05, 'square', 0.1], [523, 0.05, 'square', 0.1], [659, 0.05, 'square', 0.1], [784, 0.09, 'triangle', 0.12]],
   chiche: [[880, 0.03, 'triangle', 0.16], [330, 0.06, 'square', 0.12, 180]],
+  // (0.22) cada Chiche suena a lo suyo: la Ginebra, el vidrio y el trago que baja; el Dado, el traqueteo en el cubilete;
+  // el Fósforo, el raspón (en RUIDO) y la llama que sube; la Tiza, un roce sordo; el Poroto, un salto de suerte
+  'ch-ginebra': [[1976, 0.03, 'triangle', 0.14], [2637, 0.05, 'triangle', 0.1], [392, 0.06, 'triangle', 0.14, 294], [330, 0.08, 'triangle', 0.12, 220]],
+  'ch-dado': [[1200, 0.02, 'square', 0.08], [900, 0.02, 'square', 0.08], [1400, 0.02, 'square', 0.08], [700, 0.02, 'square', 0.08], [1100, 0.03, 'square', 0.1], [523, 0.08, 'triangle', 0.14]],
+  'ch-fosforo': [[220, 0.04, 'sawtooth', 0.1, 440], [440, 0.08, 'triangle', 0.12, 880], [660, 0.1, 'triangle', 0.08]],
+  'ch-tiza': [[260, 0.05, 'triangle', 0.12, 200], [196, 0.07, 'triangle', 0.1]],
+  'ch-poroto': [[392, 0.04, 'square', 0.1, 784], [784, 0.04, 'square', 0.1], [1175, 0.09, 'triangle', 0.12]],
+  // la Evolución: el Amuleto despierta (un arpegio que sube y se queda vibrando arriba); la Forja Brava: martillazo
+  // grave y la chispa que salta
+  evolucion: [[392, 0.06, 'square', 0.14], [523, 0.06, 'square', 0.14], [659, 0.06, 'square', 0.14], [784, 0.06, 'square', 0.14], [1047, 0.06, 'square', 0.15], [1319, 0.08, 'square', 0.15], [1568, 0.3, 'triangle', 0.18]],
+  forja: [[98, 0.06, 'sawtooth', 0.26, 49], [1568, 0.03, 'square', 0.1], [2093, 0.05, 'triangle', 0.1], [131, 0.1, 'square', 0.2, 65], [1760, 0.12, 'triangle', 0.12]],
   prenda: [[784, 0.04, 'square', 0.1], [1047, 0.04, 'square', 0.1], [1568, 0.1, 'triangle', 0.12]],
   ficha: [[1175, 0.03, 'square', 0.08], [880, 0.05, 'triangle', 0.1]],
   carta: [[320, 0.03, 'triangle', 0.2], [480, 0.03, 'triangle', 0.14]],
@@ -93,6 +104,10 @@ const SONIDO = {
 
 /** Las capas de ruido: el transitorio que hace que un golpe pegue y no suene a pitido. */
 const RUIDO: Partial<Record<keyof typeof SONIDO | 'segunda', Ruido[]>> = {
+  'ch-fosforo': [{ dur: 0.07, vol: 0.22, filtro: 'highpass', corte: 3000, hasta: 1200 }],
+  'ch-tiza': [{ dur: 0.08, vol: 0.14, filtro: 'bandpass', corte: 2200, q: 0.6 }],
+  'ch-dado': [{ dur: 0.1, vol: 0.12, filtro: 'bandpass', corte: 1600, q: 1.2 }],
+  forja: [{ dur: 0.05, vol: 0.4, filtro: 'bandpass', corte: 1200, q: 0.7 }],
   golpe: [{ dur: 0.03, vol: 0.42, filtro: 'bandpass', corte: 1800, q: 0.7 }, { dur: 0.09, vol: 0.28, filtro: 'lowpass', corte: 700 }],
   fuerte: [{ dur: 0.04, vol: 0.5, filtro: 'bandpass', corte: 1400, q: 0.6 }, { dur: 0.2, vol: 0.34, filtro: 'lowpass', corte: 500, hasta: 120 }],
   contra: [{ dur: 0.05, vol: 0.36, filtro: 'bandpass', corte: 900, q: 0.8 }, { dur: 0.16, vol: 0.2, filtro: 'lowpass', corte: 400 }],

@@ -112,6 +112,8 @@ export function pantallaMesa(p: Partida): Pantalla {
   const cuentaDe = (sel: Carta[] = seleccion()): Cuenta => cuenta(p, sel, postasDeSel(sel));
   /** El Dado Cargado de esta mano (su +Multi entra por «golpe anterior»: el desglose lo nombra por lo que es). */
   let dadoArmado = false;
+  /** El naipe que tenía el foco antes de pasar a la bandeja de Chiches (para devolvérselo). */
+  let cartaAntesDeChiches: string | null = null;
   /** El Chiche que el primer toque dejó listo (el segundo lo usa) y con qué se tocó la mesa por última vez. */
   let chicheListo: number | null = null;
   let ultimoPuntero = '';
@@ -355,7 +357,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     // la pieza); el conteo lo enciende con su propio golpe. Nada de chip aparte ni de ×2 estampado sobre el total
     const esCritico = (x: Paso): boolean => q.critico && x.tipo === 'x' && x.de === 'b:puntahacha';
     const termino = (x: Paso, valor: string): string =>
-      `<span class="d-t d-${x.tipo}${/^[aubr]:/.test(x.de) ? ' d-pieza' : x.de.startsWith('j:') || x.de === 'canto' || (x.de === 'prox' && dadoArmado) ? ' d-nombre' : ''}${x.de.startsWith('posta:') ? ' d-posta' : ''}${esCritico(x) ? ' d-critico' : ''}" data-paso="${clave(x)}" ${tip(pasoNombre(x.de), pasoAyuda(x.de))}>${pasoIcono(x.de)}<span class="d-n">${esc(pasoNombre(x.de))}</span>${esCritico(x) ? `<b class="d-crit">${t('critico')}</b>` : ''}<b class="d-v">${valor}</b></span>`;
+      `<span class="d-t d-${x.tipo}${/^[aubr]:/.test(x.de) ? ' d-pieza' : x.de.startsWith('j:') || x.de === 'canto' || x.de.startsWith('posta:') || (x.de === 'prox' && dadoArmado) ? ' d-nombre' : ''}${x.de.startsWith('posta:') ? ' d-posta' : ''}${esCritico(x) ? ' d-critico' : ''}" data-paso="${clave(x)}" ${tip(pasoNombre(x.de), pasoAyuda(x.de))}>${pasoIcono(x.de)}<span class="d-n">${esc(pasoNombre(x.de))}</span>${esCritico(x) ? `<b class="d-crit">${t('critico')}</b>` : ''}<b class="d-v">${valor}</b></span>`;
     const cartasD = q.pasos.filter(esCarta);
     const piezasD = q.pasos.filter((x) => x.tipo === 'd' && !esCarta(x) && x.v !== 0);
     const sumanM = q.pasos.filter((x) => x.tipo === 'm' && x.v !== 0);
@@ -606,7 +608,7 @@ export function pantallaMesa(p: Partida): Pantalla {
   }
   function pintarArriba(): void {
     const el = $('[data-turno]');
-    const racha = (p.racha ?? 0) > 0 ? ` <span class="chip canto" ${tip(t('racha', { n: p.racha }), idioma() === 'en' ? `Exact hits in a row. Your next exact hit gives +${Math.min(B.exacto.rachaTope, p.racha + 1)} Mult.` : `Golpes exactos seguidos. Tu próximo exacto da +${Math.min(B.exacto.rachaTope, p.racha + 1)} de Multi.`)}>${t('racha', { n: p.racha })}</span>` : '';
+    const racha = (p.racha ?? 0) > 0 ? ` <span class="chip canto t-racha" ${tip(t('racha', { n: p.racha }), idioma() === 'en' ? `Exact hits in a row. Your next exact hit gives +${Math.min(B.exacto.rachaTope, p.racha + 1)} Mult.` : `Golpes exactos seguidos. Tu próximo exacto da +${Math.min(B.exacto.rachaTope, p.racha + 1)} de Multi.`)}>${t('racha', { n: p.racha })}</span>` : '';
     const enRacha = (p.racha ?? 0) >= 2;
     $('.mesa')?.classList.toggle('racha', enRacha);
     ponerFuego(enRacha);
@@ -1121,13 +1123,21 @@ export function pantallaMesa(p: Partida): Pantalla {
   function pintarChiches(): void {
     const el = $<HTMLElement>('[data-chiches]');
     if (!el) return;
+    // (el naipe que tenía el foco antes de pasar a la bandeja: ahí vuelve si se usó el último Chiche)
+    if (!el.dataset.oyeFoco) {
+      el.dataset.oyeFoco = '1';
+      el.addEventListener('focusin', (ev) => {
+        const de = (ev as FocusEvent).relatedTarget as HTMLElement | null;
+        if (de?.classList.contains('carta') && de.dataset.id) cartaAntesDeChiches = de.dataset.id;
+      });
+    }
     const h = huecosChiche(p.chiches);
     el.innerHTML =
       `<b class="rotulo ch-rot">${glifo('L3', 'C')}${esc(t('chiches'))}</b><span class="ch-huecos">` +
       h
         .map((id, i) =>
           id
-            ? `<button class="chiche" data-accion="chiche" data-i="${i}" data-chiche="${id}" data-foco="chiche-${i}" aria-label="${esc(tx(CHICHE[id].nombre))}" ${tip(tx(CHICHE[id].nombre), tx(CHICHE[id].desc), t(matchMedia('(pointer: coarse)').matches ? 'chicheUsaTel' : 'chicheUsa'))}>${pxChiche(id)}<span class="ch-nombre">${esc(tx(CHICHE_CORTO[id] ?? CHICHE[id].nombre))}</span></button>`
+            ? `<button class="chiche" data-accion="chiche" data-i="${i}" data-chiche="${id}" data-foco="chiche-${i}" aria-label="${esc(tx(CHICHE[id].nombre))}" ${tip(tx(CHICHE[id].nombre), tx(CHICHE[id].desc), t(matchMedia('(pointer: coarse)').matches ? 'chicheUsaTel' : 'chicheUsa'))} data-tip-pie-mando="${esc(t('chicheUsaMando'))}">${pxChiche(id)}<span class="ch-nombre">${esc(tx(CHICHE_CORTO[id] ?? CHICHE[id].nombre))}</span></button>`
             : `<span class="chiche vacio" data-i="${i}" ${tip(t('chiches'), t('chicheVacio'))}></span>`,
         )
         .join('') +
@@ -1161,7 +1171,8 @@ export function pantallaMesa(p: Partida): Pantalla {
     const dy = Math.round(a.y - de.y);
     // (la foto de la QA lo deja quieto a mitad de camino, en lo alto de su arco)
     if (enFoto()) {
-      v.style.transform = `translate(calc(-50% + ${Math.round(dx * 0.8)}px), calc(-50% + ${Math.round(dy * 0.8) - 30}px)) scale(1.4)`;
+      // (0.22: casi llegando, sobre lo suyo: a mitad de camino caía sobre la cuenta)
+      v.style.transform = `translate(calc(-50% + ${Math.round(dx * 0.92)}px), calc(-50% + ${Math.round(dy * 0.92) - 20}px)) scale(1.4)`;
       return Promise.resolve();
     }
     const anim = v.animate(
@@ -1193,7 +1204,8 @@ export function pantallaMesa(p: Partida): Pantalla {
     }
     ocupado = true;
     mano?.bloquear(true);
-    sonar('chiche');
+    // (cada Chiche con su sonido)
+    sonar(`ch-${id}` as Parameters<typeof sonar>[0]);
     const de = centro(boton);
     boton?.classList.add('usado');
     // cada uno va a lo suyo: la Ginebra a tu Vida, el Dado y el Fósforo al enemigo, la Tiza y el Poroto a la mano
@@ -1211,9 +1223,14 @@ export function pantallaMesa(p: Partida): Pantalla {
     sincronizar();
     pintarChiches();
     guardar();
-    // (con mando, el foco vuelve a la mano: la ficha del Chiche con foco taparía el desglose de la jugada que sigue, y
-    // L3/C trae la bandeja de nuevo)
-    if (porTeclado()) $<HTMLElement>('[data-mano] .carta')?.focus();
+    // (0.22: con mando o teclado el foco no salta: se queda en la bandeja, en el Chiche que quedó más cerca del usado;
+    // si no queda ninguno, vuelve al naipe que tenía antes de ir a la bandeja)
+    if (porTeclado()) {
+      const quedan = [...document.querySelectorAll<HTMLElement>('[data-chiches] button.chiche')];
+      const cerca = quedan.sort((x, y) => Math.abs(Number(x.dataset.i) - i) - Math.abs(Number(y.dataset.i) - i))[0];
+      const naipe = cartaAntesDeChiches ? $<HTMLElement>(`[data-mano] .carta[data-id="${cartaAntesDeChiches}"]`) : null;
+      (cerca ?? naipe ?? $<HTMLElement>('[data-mano] .carta'))?.focus();
+    }
   }
   /** Arrastrar un Chiche al enemigo también lo usa (como soltar naipes sobre él). */
   function arrastreChiches(raiz: HTMLElement): void {

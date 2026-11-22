@@ -3192,8 +3192,9 @@ button.visor-carta:disabled {
     padding-bottom: 2px;
     gap: 2px;
   }
+  /* (0.22: el Chiche a 2×, como los Amuletos de al lado: a 1× parecía una miga) */
   .pulperia .bandejas-pie:has(.b-chiches) .venta.hierro > .op-icono .px {
-    --k: 1;
+    --k: 2;
   }
   .pulperia .bandejas:has(.b-chiches) {
     gap: 4px;

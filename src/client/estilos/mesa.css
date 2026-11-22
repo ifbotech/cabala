@@ -582,6 +582,19 @@
 .pano-regla .p-corto {
   display: none;
 }
+/* (0.22) con el mando o el teclado y algo apoyado, la regla del costado también dice cómo se corre de Posta (LB / RB) */
+.pano-regla .p-mando,
+.pano-regla .p-mando .glifo {
+  display: none;
+}
+html[data-entrada='mando'] .pano-regla.costado .p-mando,
+html[data-entrada='teclado'] .pano-regla.costado .p-mando {
+  display: inline-flex;
+}
+html[data-entrada='mando'] .pano-regla .p-mando .g-mando,
+html[data-entrada='teclado'] .pano-regla .p-mando .g-tecla {
+  display: inline-flex;
+}
 @media (max-width: 700px) {
   .pano-regla .p-largo {
     display: none;
@@ -1433,8 +1446,15 @@
     filter: sepia(1) saturate(4) brightness(2.2);
   }
 }
-.carta:has(.c-espectro) .c-copia,
+/* (0.22) el Comodín espectral conserva su nombre: corrido a la esquina de arriba a la derecha, lejos del índice de lo
+   que copia (el de arriba a la izquierda) */
 .carta:has(.c-espectro) .c-rotulo {
+  left: auto;
+  right: calc(3px * var(--k-naipe, 1));
+  transform: none;
+  z-index: 2;
+}
+.carta:has(.c-espectro) .c-copia {
   display: none;
 }
 /* la Furia arde detrás del emblema del Ataque: una, dos o tres llamas, cada vez más altas */
@@ -4201,7 +4221,7 @@ html[data-entrada='mando'] :is(.opcion, button):focus-visible > .op-glifo {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--hueso-2);
   white-space: nowrap;
 }
@@ -4244,7 +4264,7 @@ button.chiche {
 }
 .chiche .ch-nombre {
   font-family: var(--cuerpo);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 16px;
   color: var(--hueso);
   white-space: nowrap;
@@ -4601,4 +4621,34 @@ button.chiche:focus-visible {
 }
 .carta .c-mutacion .px {
   --k: 1;
+}
+/* (0.22) la causa del TE PEGA neto va separada de su cifra: «TE PEGA 1 (23 − 22 ESCUDO)» */
+.c-frena {
+  margin-left: 0.35em;
+}
+/* (0.22) en el portátil y la Deck, el bocadillo del Bufón se corre a la izquierda de su cabeza: con la escena baja
+   (1366×768) su pie caía sobre el gorro y la cara */
+@media (min-width: 1100px) and (max-width: 1699px) {
+  .mesa .esc-bufon .bocadillo {
+    right: calc(20px * var(--k-bufon) + 64px);
+    max-width: min(13em, 24vw);
+  }
+}
+/* (0.22) el chip de la racha va bajo el turno, no a su lado: a su lado llegaba al índice del naipe del Rey */
+@media (min-width: 1100px) {
+  .mesa [data-turno] {
+    position: relative;
+  }
+  .mesa [data-turno] .t-racha {
+    position: absolute;
+    left: 0;
+    top: calc(100% + 4px);
+    white-space: nowrap;
+  }
+}
+/* (0.22) en el teléfono, con el Dado Cargado tirado, su «MULTI +3» manda sobre el bocadillo del Bufón (iba debajo) */
+@media (max-width: 700px) {
+  .mesa:has(.cuenta.reposo .d-dado) .esc-bufon .bocadillo {
+    visibility: hidden;
+  }
 }
