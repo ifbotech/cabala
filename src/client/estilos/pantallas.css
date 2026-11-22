@@ -3704,3 +3704,11 @@ button.visor-carta:disabled {
     margin-bottom: 0;
   }
 }
+
+@media (min-width: 1700px) and (min-height: 950px) {
+  .nodo-tesoro {
+    --k: 2;
+    right: -14px;
+    top: -12px;
+  }
+}
