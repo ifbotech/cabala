@@ -30,7 +30,8 @@ import { lienzoNaipe, cifra, pxChiche, pxAmuleto, pxAumento, pxBendicion, pxHud,
 import { naipeMapa } from '../pixel/naipes';
 import { personajeMapa } from '../pixel/personajes';
 import { vigilarEvoluciones } from '../evolucion';
-import { JUGADA_COMO, JUGADA_NOMBRE, NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_AYUDA, PASO_NOMBRE, TRAMO_NOMBRE } from '../textos';
+import { MUTACION_PX } from '../mano';
+import { JUGADA_COMO, JUGADA_NOMBRE, MUTACION_DESC, MUTACION_NOMBRE, NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_AYUDA, PASO_NOMBRE, TRAMO_NOMBRE } from '../textos';
 import { VOZ } from '../voces';
 import { bufonDice } from '../bufon-vivo';
 import { $, abrirModal, anfitrion, bufonHtml, cerrarModal, esc, fichaDe, irASalida, repintar, reyHtml, sinergiaHtml, tip, type Accion, type Pantalla } from '../ui';
@@ -775,6 +776,9 @@ export function pantallaFogon(p: Partida): Pantalla {
   const cura = Math.min(Math.round(p.vidaMax * B.fogon.curaPct), p.vidaMax - p.vida);
   let seQuemo = false;
   let ocupado = false;
+  /** (0.22) recién salió de la tercera pasada: el grito «¡FORJA BRAVA!» queda sobre el naipe un rato. */
+  let recienBrava = false;
+  let relojBrava = 0;
   let brasas = 0;
   const FUEGO = ['#ffffff', '#ffd500', '#ff7b00', '#7a0026'];
   const centroDe = (sel: string): { x: number; y: number; r: DOMRect } | null => {
@@ -796,6 +800,8 @@ export function pantallaFogon(p: Partida): Pantalla {
     if (enFuego)
       return `<div class="opcion marco hierro fuego">
         <span class="fuego-carta">${pxNaipe(enFuego)}${`<span class="c-temple">+${enFuego.temple}${enFuego.templada ? '★' : ''}${enFuego.brava ? ' ×2' : ''}</span>`}</span>
+        ${recienBrava ? `<b class="forja-grito rotulo" role="status">${t('forjaBrava')}</b>` : ''}
+        ${enFuego.mutacion ? `<span class="chip mutacion-chip" data-mut ${tip(tx(MUTACION_NOMBRE[enFuego.mutacion]), tx(MUTACION_DESC[enFuego.mutacion]), t('forjaBrava'))}>${pxHud(MUTACION_PX[enFuego.mutacion])} ${esc(tx(MUTACION_NOMBRE[enFuego.mutacion]))}</span>` : ''}
         <b class="op-nombre">${enFuego.brava ? t('forjada') : enFuego.templada ? t('templadaMulti', { n: enFuego.temple ?? 0, m: B.fogon.multiTemplada }) : t('templada', { n: enFuego.temple ?? 0 })}</b>
         ${juego.puedeArrimar(p) ? `<button class="btn marco ${(p.fogonPasadas ?? 0) >= 2 ? 'oro' : 'prisma'} chico" data-accion="arrimar" data-foco="arrimar">${(p.fogonPasadas ?? 0) >= 2 ? t('forjaBrava') : t('arrimar')}</button><span class="op-desc">${(p.fogonPasadas ?? 0) >= 2 ? t('riesgoBrava', { p: Math.round(B.fogon.riesgos[2] * 100) }) : t('riesgo', { n: B.fogon.temple, m: B.fogon.multiTemplada, p: Math.round(B.fogon.riesgos[1] * 100) })}</span>` : ''}
       </div>`;
@@ -830,7 +836,10 @@ export function pantallaFogon(p: Partida): Pantalla {
           if (c && !document.hidden) chispas(c.x + (Math.random() - 0.5) * c.r.width * 0.6, c.y + c.r.height * 0.3, FUEGO, 1, 26, -70);
         }, 260);
     },
-    alSalir: () => clearInterval(brasas),
+    alSalir: () => {
+      clearInterval(brasas);
+      clearTimeout(relojBrava);
+    },
     acciones: {
       ...accionesComunes(p),
       descansar: () => {
@@ -868,7 +877,9 @@ export function pantallaFogon(p: Partida): Pantalla {
         sonar('suspenso');
         await pausa(820);
         const rect = el?.getBoundingClientRect();
+        const brava = (p.fogonPasadas ?? 0) >= 2;
         const r = juego.templar(p, carta.id);
+        recienBrava = brava && r === 'templada';
         if (r === 'quemada') {
           seQuemo = true;
           sonar('ceniza');
@@ -879,12 +890,26 @@ export function pantallaFogon(p: Partida): Pantalla {
             el?.classList.add('ceniza');
             await pausa(520);
           }
-        } else if (r === 'templada') sonar('canto');
+        } else if (r === 'templada') sonar(recienBrava ? 'forja' : 'canto');
         guardar();
         repintar();
         ocupado = false;
         if (r === 'templada') fogonazo();
-        if (r) bufonDice(tx(alAzar(r === 'quemada' ? VOZ.quema : VOZ.templa)));
+        if (recienBrava) {
+          // ¡FORJA BRAVA!: el grito sobre el naipe, un estallido de oro y la mutación con la que salió del fuego
+          const c = centroDe('.fuego-carta');
+          if (c && !quieto()) {
+            destello(c.x, c.y, FUEGO, 34);
+            chispas(c.x, c.y, ['#ffd500', '#ff7b00', '#00c8ff', '#ff1453'], 26, 140, -30);
+          }
+          clearTimeout(relojBrava);
+          relojBrava = window.setTimeout(() => {
+            recienBrava = false;
+            $('.forja-grito')?.remove();
+          }, quieto() ? 2200 : 1600);
+        }
+        if (r && !recienBrava) bufonDice(tx(alAzar(r === 'quemada' ? VOZ.quema : VOZ.templa)));
+        if (recienBrava && carta.mutacion) bufonDice(`${t('forjaBrava')} ${tx(MUTACION_NOMBRE[carta.mutacion])}.`);
       },
       seguir: () => {
         juego.salir(p);

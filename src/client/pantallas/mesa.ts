@@ -16,6 +16,7 @@ import { ver } from '../../rules/perfil';
 import { REY_DEF } from '../../rules/reyes';
 import { mejorAcomodo } from '../../rules/bot';
 import { CHICHE, huecosChiche, type ChicheId } from '../../rules/chiches';
+import { EVOLUCION, type EvolucionDe } from '../../rules/evoluciones';
 import { ajustes, alAzar, guardarPerfil, idioma, perfil, t, tx } from '../almacen';
 import { agacharMusica, nota, sonar, vozBufon } from '../audio';
 import { estadoMusica, ponerFuego, ponerMusica } from '../musica';
@@ -227,7 +228,10 @@ export function pantallaMesa(p: Partida): Pantalla {
       <b class="rotulo corte-quedan">${t(resto.length === 1 ? 'queda' : 'quedan', { n: resto.length })}</b><span class="corte-n">${cifra(resto.length, 'hueso', 'grande')}</span>`;
   }
   function pasoNombre(de: string): string {
+    if ((de.startsWith('mut:') || de.endsWith('-sin')) && PASO_NOMBRE[de]) return tx(PASO_NOMBRE[de]);
     const [clase, id] = de.split(':');
+    // (0.22) la Evolución se nombra por lo que despertó
+    if (clase === 'ev') return tx(EVOLUCION[id as EvolucionDe].nombre);
     if (clase === 'j') return tx(JUGADA_NOMBRE[id as keyof typeof JUGADA_NOMBRE]);
     if (clase === 'c') {
       const k = c().mano.find((x) => x.id === id);
@@ -244,7 +248,9 @@ export function pantallaMesa(p: Partida): Pantalla {
   }
   /** La ayuda corta de cada término del desglose: la de su pieza o la del glosario. */
   function pasoAyuda(de: string): string {
+    if ((de.startsWith('mut:') || de.endsWith('-sin')) && PASO_AYUDA[de]) return tx(PASO_AYUDA[de]);
     const [clase, id] = de.split(':');
+    if (clase === 'ev') return tx(EVOLUCION[id as EvolucionDe].desc);
     if (clase === 'a') return fichaDe('amuleto', id).desc;
     if (clase === 'u') return fichaDe('aumento', id).desc;
     if (clase === 'b') return fichaDe('bendicion', id).desc;
@@ -255,7 +261,11 @@ export function pantallaMesa(p: Partida): Pantalla {
   }
   /** El icono chico de cada término del desglose: el de su pieza en la bandeja del HUD o, si no es una pieza, un glifo de su tipo. */
   function pasoIcono(de: string): string {
-    const [clase, id] = de.split(':');
+    const [clase, id0] = de.split(':');
+    // (la Evolución lleva el icono de su Amuleto, prismático; el Cascabel sin canto, el del Cascabel)
+    const id = id0?.replace(/-sin$/, '');
+    if (clase === 'ev') return pxAmuleto(id as AmuletoId, 'd-i prisma');
+    if (de === 'mut:doblefilo') return pxHud('doblefilo', 'd-i');
     if (clase === 'a') return pxAmuleto(id as AmuletoId, 'd-i');
     if (clase === 'u') return pxAumento(id as AumentoId, 'd-i');
     if (clase === 'b') return pxBendicion(id as BendicionId, 'd-i');
@@ -911,6 +921,24 @@ export function pantallaMesa(p: Partida): Pantalla {
           ponerHud(hud);
           mano?.poner(c().mano, de);
           sonar('carta');
+          break;
+        }
+        // (0.22) el Doble Filo de la Forja Brava te corta y el Cetro del Bufón cobra su precio: el «−N» va pegado a tu
+        // VIDA, como lo que te pega el enemigo; Roba Carta avisa con un «+N» sobre la mano que llega
+        case 'mutacion':
+        case 'cobra': {
+          const rv = $('[data-hud-vida]')?.getBoundingClientRect();
+          if (ev.t === 'cobra' || ev.que === 'doblefilo') {
+            if (ev.n <= 0) break;
+            hud.vida = Math.max(1, hud.vida - ev.n);
+            ponerHud(hud);
+            if (rv) numero(`-${ev.n}`, rv.left + rv.width / 2, rv.top - medidaNumero(`-${ev.n}`, 1).h - 12, 'roja', 1, { ancla: { caja: { x: rv.left, y: rv.top, w: rv.width, h: rv.height }, max: 40, que: 'tu VIDA' } });
+            sonar('frena');
+          } else if (ev.que === 'roba') {
+            const m = $('[data-mano]')?.getBoundingClientRect();
+            if (m) numero(`+${ev.n}`, m.left + m.width / 2, m.top, 'hueso', 1);
+            sonar('carta');
+          }
           break;
         }
         case 'baraja':

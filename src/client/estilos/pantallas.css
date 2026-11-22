@@ -3386,7 +3386,7 @@ button.visor-carta:disabled {
 .evo-jackpot {
   position: fixed;
   inset: 0;
-  z-index: 5;
+  z-index: 60;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3441,4 +3441,46 @@ button.visor-carta:disabled {
   50% {
     transform: scale(1.06);
   }
+}
+
+/* ───────────── 0.22: la Forja Brava (tercera pasada del Fogón) ───────────── */
+.opcion.fuego {
+  position: relative;
+}
+.forja-grito {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--u) * -1.5);
+  z-index: 3;
+  translate: -50% 0;
+  padding: 4px 12px;
+  font-family: var(--rot);
+  font-size: var(--fr-l);
+  color: var(--oro);
+  white-space: nowrap;
+  background: var(--abismo);
+  box-shadow:
+    inset 0 0 0 2px var(--oro),
+    0 0 0 2px var(--oro-2);
+  pointer-events: none;
+  animation: forja-grita 0.36s steps(3);
+}
+@keyframes forja-grita {
+  0% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.chip.mutacion-chip {
+  color: var(--oro);
+  background: var(--abismo);
+  box-shadow: inset 0 0 0 2px var(--oro-2);
+  padding: 2px 8px;
+  font-family: var(--rot);
+  font-size: var(--fr);
+  white-space: nowrap;
 }
