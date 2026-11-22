@@ -4130,7 +4130,7 @@ html[data-entrada='mando'] :is(.opcion, button):focus-visible > .op-glifo {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 15px;
+  font-size: 16px;
   color: var(--hueso-2);
   white-space: nowrap;
 }
@@ -4706,5 +4706,19 @@ body.mueve-pano [data-cuenta] .cuenta.previa {
   .mesa .botones {
     max-height: none;
     align-self: end;
+  }
+}
+/* ── 0.24: la entrada del Rey. La cuenta del golpe anterior se apaga antes de la irrupción (vuelve, ya contra él) ── */
+.mesa [data-cuenta].se-apaga {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.16s linear, visibility 0s linear 0.16s;
+}
+
+/* ── 0.24: el chip del Tajo en el teléfono dice «TE PEGA 48 (×2)» (la base, en el rótulo del Rey): comparte renglón
+   con «LE QUEDAN» y el desglose gana aire ── */
+@media (max-width: 700px) {
+  .mesa .cuenta .c-tajo .c-tajo-base {
+    display: none;
   }
 }

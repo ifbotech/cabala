@@ -110,6 +110,14 @@ export function pantallaMesa(p: Partida): Pantalla {
     const ids = mano?.seleccion() ?? [];
     return c().mano.filter((k) => ids.includes(k.id));
   };
+  /**
+   * (0.24) Dónde nace el número con dueño (el «−N» de tu VIDA, el «+N» de tu ORO): apoyado sobre su caja del HUD; en el
+   * teléfono, arriba del HUD está la barra del pulgar, así que nace adentro de su caja, centrado (no cae sobre GOLPEAR).
+   */
+  const nacerEnDueno = (r: DOMRect, txt: string, esc: number): number => {
+    const h = medidaNumero(txt, esc).h;
+    return innerWidth <= 700 ? r.top + Math.max(2, (r.height - h) / 2) : r.top - h - 12;
+  };
   /** En qué Posta del paño va cada carta de `sel` (mismo orden). */
   const postasDeSel = (sel: readonly Carta[]): number[] | undefined => (mano ? sel.map((k) => mano!.postaDe(k.id)) : undefined);
   /** La cuenta de lo elegido, con cada carta en su Posta. */
@@ -432,7 +440,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     const tajo = tajoAhora(q);
     const k = B.reyes.S.deguello;
     const pega = tajo
-      ? `<span class="chip rojo c-tajo" ${tip(t('tajoAviso', { nombre: tx(REY_DEF.S.segunda) }), tx(REY_DEF.S.segundaDesc))}>${pxHud('ataque')}${t('tePega', { n: q.contra ?? 0 })}<b class="c-tajo-x">(${Math.round((q.contra ?? 0) / k)} ×${k})</b></span>`
+      ? `<span class="chip rojo c-tajo" ${tip(t('tajoAviso', { nombre: tx(REY_DEF.S.segunda) }), tx(REY_DEF.S.segundaDesc))}>${pxHud('ataque')}${t('tePega', { n: q.contra ?? 0 })}<b class="c-tajo-x">(<span class="c-tajo-base">${Math.round((q.contra ?? 0) / k)} </span>×${k})</b></span>`
       : (() => {
           const f = frenaEscudo(q);
           return `<span class="chip rojo${f.ayuda ? ' mirable' : ''}" ${f.ayuda}>${t('tePega', { n: q.contra ?? 0 })}${f.html}</span>`;
@@ -736,16 +744,23 @@ export function pantallaMesa(p: Partida): Pantalla {
           // queda— y debajo, en el mismo carril, su sello: «SE PLANTA · 279 SE PIERDEN»)
           const planta = !!q?.frenaEnMitad && !q.abate && !q.ejecuta && enemigo.jefe && !enemigo.segunda && ev.n === q.total;
           const entra = planta ? Math.max(0, enemigo.vida - ev.vida) + ev.aEscudo : ev.n;
+          // (0.24) lo que Perfora le sobra al que cayó también respeta al Rey en su primera cara: entra hasta la mitad,
+          // el resto se pierde (su sello lo dice) y enseguida se da vuelta (el suceso `segunda` que sigue)
+          const iEv = evs.indexOf(ev);
+          const sigueSegunda = evs[iEv + 1]?.t === 'segunda';
+          const plantaPerfora = evs[iEv - 1]?.t === 'perfora' && sigueSegunda && enemigo.jefe && !!q?.sobra && q.sobra > ev.n;
+          const pierde = plantaPerfora ? q!.sobra - ev.n : ev.n - entra;
           const grande = entra >= enemigo.vidaMax * 0.5;
-          const caja = numero(entra, cs[0].x, cs[0].y, ev.aEscudo >= ev.n ? 'azul' : planta ? 'azul' : 'roja', grande ? 2 : 1, { carriles: cs, vx: cs[0].alinear === 'izquierda' ? 14 : cs[0].alinear === 'derecha' ? -14 : 0, vidaMin: grande ? 0.6 : 0 });
-          if (planta && caja) selloPlanta(caja, ev.n - entra);
+          const caja = numero(entra, cs[0].x, cs[0].y, ev.aEscudo >= ev.n ? 'azul' : planta || plantaPerfora ? 'azul' : 'roja', grande ? 2 : 1, { carriles: cs, vx: cs[0].alinear === 'izquierda' ? 14 : cs[0].alinear === 'derecha' ? -14 : 0, vidaMin: grande ? 0.6 : 0 });
+          if ((planta || plantaPerfora) && caja && pierde > 0) selloPlanta(caja, pierde);
           if (cantoPendiente) cantoGrande();
           enemigo.vida = ev.vida;
           enemigo.escudo = ev.escudo;
           pintarEnemigo();
           $('[data-carta]')?.classList.add('herido');
           if (ev.n >= enemigo.vidaMax * 0.75) voz(VOZ.fuerte, 'risa');
-          if (enemigo.jefe && ev.vida > 0 && ev.n >= enemigo.vidaMax * 0.3) reyDice(tx(REY_DEF[enemigo.palo].voz.duele));
+          // (si enseguida se da vuelta, calla: habla su segunda cara)
+          if (enemigo.jefe && ev.vida > 0 && !sigueSegunda && ev.n >= enemigo.vidaMax * 0.3) reyDice(tx(REY_DEF[enemigo.palo].voz.duele));
           await pausa(160);
           break;
         }
@@ -877,7 +892,13 @@ export function pantallaMesa(p: Partida): Pantalla {
             sonar('rey');
             const en = centro(carta());
             haloRey(en.x, en.y, AURA[ev.palo], 200);
+            // (0.24) la cuenta del golpe anterior (al que ya cayó) se apaga antes de la irrupción: el Rey entra a una
+            // mesa limpia, y recién después la cuenta vuelve a pintarse contra él
+            const cz = $('[data-cuenta]');
+            cz?.classList.add('se-apaga');
             await irrupcion(ev.palo);
+            pintarCuenta();
+            cz?.classList.remove('se-apaga');
             voz(VOZ.entraRey, 'sombria');
             gritar(p.mazoId, tx(GRITO[p.mazoId].rey));
           } else voz(VOZ.entra, 'reposo');
@@ -919,10 +940,12 @@ export function pantallaMesa(p: Partida): Pantalla {
           if (ev.frenado > 0) {
             const r = re && re.width > 0 ? re : rv;
             // (nace apoyado sobre la caja, con el aire de la cifra que protege el director: 12 px)
-            numero(`-${ev.frenado}`, r ? r.left + r.width / 2 : en.x, r ? r.top - medidaNumero(`-${ev.frenado}`, 1).h - 12 : en.y, 'azul', 1, { ancla: r ? { caja: caja(r), max: 40, que: 'tu ESCUDO' } : undefined });
+            numero(`-${ev.frenado}`, r ? r.left + r.width / 2 : en.x, r ? nacerEnDueno(r, `-${ev.frenado}`, 1) : en.y, 'azul', 1, { ancla: r ? { caja: caja(r), max: 40, que: 'tu ESCUDO' } : undefined });
           }
           if (pierde > 0) {
-            numero(`-${pierde}`, rv ? rv.left + rv.width / 2 : en.x, rv ? rv.top - medidaNumero(`-${pierde}`, 2).h - 12 : en.y, 'roja', 2, { ancla: rv ? { caja: caja(rv), max: 40, que: 'tu VIDA' } : undefined });
+            // (en el teléfono, a escala 1: nace adentro de su caja)
+            const esc = innerWidth <= 700 ? 1 : 2;
+            numero(`-${pierde}`, rv ? rv.left + rv.width / 2 : en.x, rv ? nacerEnDueno(rv, `-${pierde}`, esc) : en.y, 'roja', esc, { ancla: rv ? { caja: caja(rv), max: 40, que: 'tu VIDA' } : undefined });
             chispas(en.x, en.y, RAMPA_GOLPE, 10, 80);
             sonar('contra');
             gestoRetrato('mueca', 900);
@@ -982,7 +1005,7 @@ export function pantallaMesa(p: Partida): Pantalla {
             if (ev.n <= 0) break;
             hud.vida = Math.max(1, hud.vida - ev.n);
             ponerHud(hud);
-            if (rv) numero(`-${ev.n}`, rv.left + rv.width / 2, rv.top - medidaNumero(`-${ev.n}`, 1).h - 12, 'roja', 1, { ancla: { caja: { x: rv.left, y: rv.top, w: rv.width, h: rv.height }, max: 40, que: 'tu VIDA' } });
+            if (rv) numero(`-${ev.n}`, rv.left + rv.width / 2, nacerEnDueno(rv, `-${ev.n}`, 1), 'roja', 1, { ancla: { caja: { x: rv.left, y: rv.top, w: rv.width, h: rv.height }, max: 40, que: 'tu VIDA' } });
             sonar('frena');
           } else if (ev.que === 'roba') {
             const m = $('[data-mano]')?.getBoundingClientRect();
@@ -1650,7 +1673,10 @@ export function pantallaMesa(p: Partida): Pantalla {
       const cuantas = Math.min(14, 4 + Math.round((oroFinal - desde) / 3));
       monedas(de.x, de.y, ca.x, ca.y, cuantas);
       await pausa(tipo === 'rey' ? 380 : 300);
-      numero(`+${oroFinal - desde}`, ca.x, ra.top - 34 * S, 'oro', 2);
+      // (0.24) en el teléfono el «+N» del oro nace adentro de su caja del HUD (arriba está la barra del pulgar: no queda
+      // suelto sobre DESCARTAR)
+      if (innerWidth <= 700) numero(`+${oroFinal - desde}`, ca.x, nacerEnDueno(ra, `+${oroFinal - desde}`, 1), 'oro', 1, { ancla: { caja: { x: ra.left, y: ra.top, w: ra.width, h: ra.height }, max: 40, que: 'tu ORO' } });
+      else numero(`+${oroFinal - desde}`, ca.x, ra.top - 34 * S, 'oro', 2);
       const pasos = Math.min(12, oroFinal - desde);
       for (let i = 1; i <= pasos; i++) {
         hud.oro = Math.round(desde + ((oroFinal - desde) * i) / pasos);
