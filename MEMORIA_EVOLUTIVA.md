@@ -487,7 +487,24 @@ piezas con icono de Vida máxima, grito junto al retrato; Vida máxima por Rey p
 
 **Medición.** Jurado 7,6 · 7,5 · 8,0 · 7,6. Panel 70,0 % (IC95 57–80 %); Deck 33 % (n = 9), Móvil 93 % (n = 15).
 
-## 0.23.0 · Otra mano ya (publicada)
+## 0.24.0 · Que se entienda a la primera (publicada)
+
+**Qué se buscó.** Los P0 y P1 de la 0.23: ayudas que se abrían solas, el chip EXACTO que se leía como estado, la
+Evolución sin causa, el resumen tapado en el teléfono y la Forja Brava sin suspenso; en reglas, que Perfora respete la
+segunda cara del Rey.
+
+**Lecciones.**
+- Segunda ronda seguida de subida (+0,2 en Claridad, Veredicto y en la media), otra vez sin reglas grandes: el jurado
+  premia que cada acción tenga verbo, premio y lugar propio.
+- Que la oferta diga por qué evoluciona deja a la vista lo chico del premio: el jurado de diseño pide por quinta vez
+  Evoluciones con regla nueva y maldición.
+- DEJALO JUSTO casi siempre conviene: sin Perfora no es una decisión. O la mesa acomoda sola en exacto, o el dial tiene
+  que decir qué se pierde.
+- La regla `tip-tapa` protege botones y HUD, pero no al enemigo, TE PEGA ni la cuenta: la ayuda de la bandeja los tapa.
+- Que el bot busque el exacto no subió los exactos y sumó 50 s al laboratorio: revertido.
+- Escoba sigue con 17,9 % de caídas en el tramo 1 (Chancho 2,3 %): pide una red de primer tramo, no más Vida.
+
+**Medición.** Jurado 8,1 · 8,1 · 8,2 · 8,1. Panel simulado 71,7 % (IC95 59–82 %, n = 60, plano); Claridad del panel 6,08.## 0.23.0 · Otra mano ya (publicada)
 
 **Qué se buscó.** El Salto 3 (Altar que devuelve, resumen en dos capas con OTRA MANO YA) y los P0 de la 0.22: dibujo
 propio de las Evoluciones, el baúl del Tesoro, la Cábala Negra en el teléfono; además, una Forja Brava que valga la

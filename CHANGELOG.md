@@ -3,6 +3,34 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.24.0 · Que se entienda a la primera (2026-11-22)
+
+Ronda de claridad guiada por los P0 y P1 del jurado de la 0.23.
+
+**Reglas**
+- **Lo que Perfora respeta las dos caras del Rey**: la sobra lo planta en la mitad, dice cuánto se pierde
+  («SE PLANTA EN LA MITAD · N SE PIERDEN») y muestra su segunda cara.
+- La Escoba trae 74 de Vida.
+
+**La mesa y las pantallas**
+- **Ninguna ayuda se abre sola** ni tapa botones, títulos o cifras del HUD; la QA lo vigila (reglas `tip-tapa` y
+  `oferta-hud`). ELEGÍ UNA y el Tesoro quedan sobre el HUD, nunca encima.
+- **DEJALO JUSTO**: el viejo chip EXACTO es una acción con su premio (+3 de oro y Multi al próximo, o PEGÁ CON TODO),
+  al costado de lo apoyado, con la Y del mando; el Bufón la presenta una vez por partida.
+- La oferta que **Evoluciona** dice por qué («con tu don de Copas») y su regla entera; la carga de Copas se llama
+  **TRAGO**.
+- **El resumen del final**: TU MANO ESTRELLA con piezas que el mando enfoca, tu jugada con cómo se arma, ESTA PARTIDA y
+  TU MEJOR separadas, el récord nuevo que sube contando; en el teléfono el cuadro se desliza.
+- **Forja Brava**: las dos mutaciones como cartas de elección grandes y una tercera pasada de 1,5 s que sale con hitstop
+  y sacudida (o ceniza si se quema).
+- La entrada del Rey apaga la cuenta del golpe anterior; la Cábala Negra con aro celeste de mando.
+- En el teléfono, la mano de 8 no cambia de filas al elegir, el «−N» y el «+N» nacen en su caja del HUD y el chip del
+  Tajo cabe en un renglón.
+
+**Medición** · Laboratorio (3000 partidas por celda, sin avisos) · Altar vacío / lleno: Escoba 30,4 / 47,3 · Truco
+28,4 / 46,6 · Chinchón 30,0 / 46,9 · Mentiroso 30,4 / 46,8 · Chancho 28,6 / 45,4 %. Jurado: Claridad 8,1 · Diversión 8,1 ·
+Estética 8,2 · Veredicto 8,1. Panel **simulado** (n = 60, ruido ±10): 71,7 % (IC95 59–82 %), igual que la 0.23; Claridad
+del panel 6,08.
 ## 0.23.0 · Otra mano ya (2026-11-22)
 
 Tercer Salto: probar no castiga, el final te deja con ganas de volver y el Fogón se vuelve una apuesta que vale.
