@@ -38,7 +38,7 @@ export function catalogo(): Pieza[] {
   for (const id of HUD_PX) out.push({ grupo: 'interfaz', id: `hud-${id}`, m: hudMapa(id), k: 4 });
   for (const s of PALOS) out.push({ grupo: 'interfaz', id: `inmune-${s}`, m: inmuneMapa(s), k: 4 });
   out.push({ grupo: 'interfaz', id: 'estrella', m: estrellaMapa(), k: 4 });
-  for (const e of ['madera', 'hierro', 'oro', 'dorado', 'hueso', 'hundido', 'plata', 'prisma', 'tinta', 'paloS', 'paloC', 'paloD', 'paloH'] as Estilo[]) {
+  for (const e of ['madera', 'hierro', 'oro', 'dorado', 'hueso', 'hundido', 'plata', 'prisma', 'tinta', 'fieltro', 'posta', 'postaMedio', 'paloS', 'paloC', 'paloD', 'paloH'] as Estilo[]) {
     out.push({ grupo: 'marcos', id: e, m: marcoMapa(e), k: 6 });
     if (e === 'madera' || e === 'hierro' || e === 'oro') out.push({ grupo: 'marcos', id: `${e}-viva`, m: marcoMapa(e, true), k: 6 });
   }

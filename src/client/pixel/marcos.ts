@@ -11,7 +11,7 @@ import type { Mapa } from './rejilla';
 export const MARCO = 24;
 export const CANTO = 8;
 
-export type Estilo = 'madera' | 'hierro' | 'oro' | 'dorado' | 'hueso' | 'hundido' | 'plata' | 'prisma' | 'tinta' | `palo${Palo}`;
+export type Estilo = 'madera' | 'hierro' | 'oro' | 'dorado' | 'hueso' | 'hundido' | 'plata' | 'prisma' | 'tinta' | 'fieltro' | 'posta' | 'postaMedio' | `palo${Palo}`;
 
 interface Receta {
   /** Rampa del canto, de la sombra a la luz (4 tonos). */
@@ -48,6 +48,8 @@ export function marcoMapa(estilo: Estilo, viva = false): Mapa {
   if (estilo === 'hueso') hueso(l);
   else if (estilo === 'hundido') hundido(l);
   else if (estilo === 'tinta') tinta(l);
+  else if (estilo === 'fieltro') fieltro(l);
+  else if (estilo === 'posta' || estilo === 'postaMedio') posta(l, estilo === 'postaMedio', viva);
   else forjado(l, RECETA[estilo], viva, estilo === 'prisma');
   const m = l.mapa();
   cache.set(clave, m);
@@ -155,6 +157,44 @@ function tinta(l: Lienzo): void {
       else k = umbral(x, y, 4) < 0.5 ? '9' : '0';
       l.set(x, y, k);
       if (d >= 3) l.marcar(x, y);
+    }
+}
+
+/**
+ * El fieltro del paño de las Postas (0.22): verde de mesa de juego, hundido en la madera (el canto oscuro arriba y a la
+ * izquierda, la luz de la vela en el canto de abajo y de la derecha) y su pelo tramado en Bayer.
+ */
+function fieltro(l: Lienzo): void {
+  const N = MARCO;
+  for (let y = 0; y < N; y++)
+    for (let x = 0; x < N; x++) {
+      const d = Math.min(x, y, N - 1 - x, N - 1 - y);
+      const luz = Math.min(x, y) <= Math.min(N - 1 - x, N - 1 - y);
+      const u = umbral(x, y, 4);
+      let k: string;
+      if (d === 0) k = luz ? '0' : 'n';
+      else if (d === 1) k = luz ? '0' : 'g';
+      else if (d === 2) k = luz ? '9' : u < 0.5 ? 'l' : 'g';
+      else if (d === 3) k = luz ? (u < 0.5 ? '9' : 'G') : 'g';
+      else k = u < 0.3 ? 'g' : 'G';
+      l.set(x, y, k);
+      if (d >= 2) l.marcar(x, y);
+    }
+}
+
+/**
+ * El hueco de una Posta sobre el fieltro: un ribete de puntos cosidos (cada dos celdas) con su sombra hundida por
+ * dentro; el centro, vacío (se ve el fieltro). La del Medio, en hilo de oro. `viva`: la Posta a la que se apunta.
+ */
+function posta(l: Lienzo, medio: boolean, viva: boolean): void {
+  const N = MARCO;
+  const [claro, oscuro] = viva ? ['Y', 'y'] : medio ? ['y', 'z'] : ['l', 'g'];
+  for (let y = 0; y < N; y++)
+    for (let x = 0; x < N; x++) {
+      const d = Math.min(x, y, N - 1 - x, N - 1 - y);
+      const luz = Math.min(x, y) <= Math.min(N - 1 - x, N - 1 - y);
+      if (d === 1) l.set(x, y, (x + y) % 4 < 2 ? claro : oscuro).marcar(x, y);
+      else if (d === 2 && luz) l.set(x, y, '9').marcar(x, y);
     }
 }
 

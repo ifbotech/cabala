@@ -603,7 +603,7 @@ const NODO: Record<NodoPx, Dibujo> = {
 
 // ───────────────────────── HUD y emblemas ─────────────────────────
 
-export type HudPx = 'vida' | 'vidamax' | 'escudo' | 'oro' | 'mazo' | 'descarte' | 'poroto' | 'furia' | 'ataque' | 'aturdido' | 'candado' | 'engano' | 'pasar' | 'dado1' | 'dado2' | 'dado3' | 'dado4' | 'dado5' | 'dado6' | 'vela' | 'velaApagada' | 'medio' | 'escalon' | 'chispa';
+export type HudPx = 'vida' | 'vidamax' | 'escudo' | 'oro' | 'mazo' | 'descarte' | 'poroto' | 'furia' | 'ataque' | 'aturdido' | 'candado' | 'engano' | 'pasar' | 'dado1' | 'dado2' | 'dado3' | 'dado4' | 'dado5' | 'dado6' | 'vela' | 'velaApagada' | 'medio' | 'escalon' | 'chispa' | 'doblefilo' | 'roba' | 'chispaOro' | 'cofre';
 
 const HUD: Record<HudPx, Dibujo> = {
   vida: (l) => {
@@ -717,6 +717,37 @@ const HUD: Record<HudPx, Dibujo> = {
     l.poli([[14, 4], [16, 12], [24, 14], [16, 16], [14, 24], [12, 16], [4, 14], [12, 12]], 'y');
     l.poli([[14, 8], [15.5, 12.5], [20, 14], [15.5, 15.5], [14, 20], [12.5, 15.5], [8, 14], [12.5, 12.5]], 'Y');
     l.rect(13, 13, 2, 2, 'w');
+  },
+  // las mutaciones de la Forja Brava (0.22): el Doble Filo es una hoja carmesí con filo de los dos lados (una gota de
+  // sangre al pie: también te corta a vos); Roba Carta, dos naipes con una cruz de oro; Chispa de Oro, la moneda con su
+  // chispa
+  doblefilo: (l) => {
+    hoja(l, 5, 24, 23, 4, 2.6, ROJO);
+    l.trazo(3, 21, 9, 27, 1.1, 'y');
+    destello(l, 22, 22, 3);
+    gota(l, 7, 13, 2.2);
+  },
+  roba: (l) => {
+    naipe(l, 2, 8, 13, 18, true);
+    naipe(l, 8, 4, 13, 18);
+    l.rect(17, 16, 10, 3, 'Y').rect(20, 13, 4, 9, 'Y');
+    l.rect(17, 18, 10, 1, 'o').rect(23, 13, 1, 9, 'o');
+  },
+  chispaOro: (l) => {
+    moneda(l, 12, 16, 10);
+    destello(l, 23, 6, 4, 'Y');
+    l.set(23, 6, 'w');
+  },
+  // el cofre del Tesoro (0.22): madera con flejes de oro y su candado al frente
+  cofre: (l) => {
+    l.rect(3, 8, 22, 6, '¤').elipse(14, 8, 11, 3.4, '¤');
+    vol(l, MADERA, { base: 0.75, borde: 2, fuerzaBorde: 0.45 });
+    l.rect(3, 14, 22, 11, '¤');
+    vol(l, MADERA, { base: 0.5, borde: 2, fuerzaBorde: 0.45 });
+    l.rect(3, 13, 22, 2, 'o').rect(3, 13, 22, 1, 'Y');
+    l.rect(7, 5, 2, 20, 'o').rect(19, 5, 2, 20, 'o').rect(7, 5, 1, 20, 'y').rect(19, 5, 1, 20, 'y');
+    l.rect(12, 12, 4, 6, 'y').rect(12, 12, 4, 1, 'Y').rect(13, 15, 2, 2, '0');
+    l.rect(3, 25, 22, 1, '9');
   },
 };
 

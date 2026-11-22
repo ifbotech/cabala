@@ -100,10 +100,10 @@ export function cifra(texto: string | number, tono: TonoCifra = 'hueso', cls = '
 /** Las variables CSS de la forja: los marcos de 9 trozos, las barras y el paño. Se llama una vez al arrancar. */
 export function forjarCss(): void {
   const vars: string[] = [];
-  const estilos: Estilo[] = ['madera', 'hierro', 'oro', 'dorado', 'hueso', 'hundido', 'plata', 'prisma', 'tinta', 'paloS', 'paloC', 'paloD', 'paloH'];
+  const estilos: Estilo[] = ['madera', 'hierro', 'oro', 'dorado', 'hueso', 'hundido', 'plata', 'prisma', 'tinta', 'fieltro', 'posta', 'postaMedio', 'paloS', 'paloC', 'paloD', 'paloH'];
   for (const e of estilos) {
     vars.push(`--m-${e}:url(${url(`m:${e}`, () => marcoMapa(e))})`);
-    vars.push(`--m-${e}-viva:url(${url(`m:${e}:viva`, () => marcoMapa(e, e !== 'hueso' && e !== 'hundido' && e !== 'tinta'))})`);
+    vars.push(`--m-${e}-viva:url(${url(`m:${e}:viva`, () => marcoMapa(e, e !== 'hueso' && e !== 'hundido' && e !== 'tinta' && e !== 'fieltro'))})`);
   }
   for (const [id, rampa] of Object.entries(BARRAS)) vars.push(`--b-${id}:url(${url(`barra:${id}`, () => barraMapa(rampa))})`);
   vars.push(`--pano:url(${url('pano', panoMapa)})`);

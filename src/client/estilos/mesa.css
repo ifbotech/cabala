@@ -450,76 +450,147 @@
   touch-action: none;
 }
 
-/* ── el paño: las Postas donde se apoyan las cartas elegidas, detrás de la mano. Fieltro hundido, cada Posta un
-   hueco de puntos; la del Medio, en oro. En reposo apenas se ve; cuando hay cartas apoyadas (o se arrastra), se enciende */
+/* ── el paño (0.22): una fila PROPIA arriba de la mano, de fieltro forjado en 9 trozos (verde de mesa de juego hundido
+   en la madera, con su pelo tramado). Solo aparece cuando hay algo apoyado (o se arrastra sobre él): en reposo no hay
+   ningún bloque verde ni rótulos, solo el renglón tenue de la regla. Cada Posta es un ribete de puntos cosidos; la del
+   Medio, en hilo de oro ── */
 .pano-postas {
   position: absolute;
   left: 0;
   top: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0) 0 3px, rgba(11, 7, 17, 0.22) 3px 4px),
-    #123a2a;
-  box-shadow:
-    inset 0 calc(3px * var(--k)) 0 rgba(11, 7, 17, 0.55),
-    0 0 0 calc(1px * var(--k)) #09070f;
-  opacity: 0.85;
-  transition: opacity 120ms steps(3);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 120ms steps(3),
+    visibility 0s linear 120ms;
+}
+.pano-postas::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: calc(8px * var(--k-naipe)) solid transparent;
+  border-image: var(--m-fieltro) 8 fill / calc(8px * var(--k-naipe)) / 0 repeat;
+  image-rendering: pixelated;
 }
 .pano-postas.activo {
   opacity: 1;
+  visibility: visible;
+  transition: opacity 120ms steps(3);
+}
+/* (el enemigo cae o la mesa cobra: el paño se va con lo suyo; vuelve con el reparto) */
+.mesa.cobra .pano-postas,
+.mesa.cae .pano-postas {
+  opacity: 0;
+  visibility: hidden;
 }
 .posta {
   position: absolute;
   left: 0;
   top: 0;
-  outline: calc(2px * var(--k)) dashed #3f7a5c;
-  outline-offset: calc(-2px * var(--k));
 }
-.posta.p-medio {
-  outline-color: #b38f00;
+.posta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: calc(8px * var(--k-naipe)) solid transparent;
+  border-image: var(--m-posta) 8 / calc(8px * var(--k-naipe)) / 0 repeat;
+  image-rendering: pixelated;
 }
-.posta.apunta {
-  outline: calc(3px * var(--k)) solid var(--oro);
-  background: rgba(255, 213, 0, 0.12);
+.posta.p-medio::before {
+  border-image-source: var(--m-postaMedio);
+}
+.posta.apunta::before {
+  border-image-source: var(--m-posta-viva);
 }
 .posta .p-rot {
   position: absolute;
-  left: 0;
-  top: 0;
-  width: var(--visible, 100%);
-  height: var(--asoma);
+  inset: 0;
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 4px;
-  padding: 0 calc(4px * var(--k));
-  box-sizing: border-box;
-  overflow: hidden;
   /* la Posta vacía se puede tocar o señalar: enseña su ayuda (postaTip) */
   pointer-events: auto;
   cursor: help;
 }
 .posta .p-icono {
+  --k: var(--k-pano);
   flex: none;
-}
-.posta .p-ayuda {
-  font-family: var(--cuerpo);
-  font-size: 15px;
-  line-height: 16px;
-  font-weight: 400;
-  color: #e2fbe9;
-  text-shadow: 1px 1px 0 #09070f;
-  text-transform: none;
-  overflow-wrap: anywhere;
-}
-.posta.p-medio .p-ayuda {
-  color: var(--oro);
+  opacity: 0.6;
 }
 .posta.llena .p-rot {
   visibility: hidden;
 }
-/* la marca del Medio, sobre lo que asoma de su naipe: «x2 PEGA DOBLE» */
+/* el renglón de la regla del paño: uno solo (no uno por Posta). En reposo, tenue, en el aire de arriba de la mano;
+   con algo apoyado, al costado izquierdo del fieltro si entra */
+.pano-regla {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-family: var(--cuerpo);
+  font-size: 15px;
+  line-height: 18px;
+  color: #c9e6d2;
+  text-shadow: 1px 1px 0 #09070f;
+  opacity: 0.8;
+  pointer-events: none;
+}
+.pano-regla[hidden] {
+  display: none;
+}
+.pano-regla b {
+  font-weight: 400;
+}
+.pano-regla .p-icono {
+  --k: 1;
+  flex: none;
+}
+.pano-regla .p-sep {
+  font-style: normal;
+  opacity: 0.6;
+}
+.pano-regla .p-linea {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.pano-regla.costado {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  text-align: right;
+  white-space: normal;
+  opacity: 1;
+}
+/* (el Escalón armado, cuando su chip no entra a la derecha del paño: se enciende su renglón) */
+.pano-regla.arma .p-esc {
+  color: var(--oro);
+  font-weight: 700;
+}
+.pano-regla.arma .p-esc .p-icono {
+  animation: chisporrotea 480ms steps(4) infinite;
+}
+.pano-regla.costado .p-sep {
+  display: none;
+}
+.pano-regla .p-corto {
+  display: none;
+}
+@media (max-width: 700px) {
+  .pano-regla .p-largo {
+    display: none;
+  }
+  .pano-regla .p-corto {
+    display: inline;
+  }
+}
+/* la marca del Medio, sobre su naipe apoyado: «x2 PEGA DOBLE» */
 .posta-marca {
   position: absolute;
   left: 0;
@@ -527,9 +598,9 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  padding: 1px calc(3px * var(--k));
+  padding: 1px 3px;
   background: #09070f;
-  box-shadow: 0 0 0 calc(1px * var(--k)) var(--oro);
+  box-shadow: 0 0 0 1px var(--oro);
   pointer-events: none;
   white-space: nowrap;
 }
@@ -542,11 +613,7 @@
 .posta-marca.corta .p-marca-txt {
   display: none;
 }
-.pano-postas.estrecho .p-ayuda {
-  display: none;
-}
 @media (max-width: 700px) {
-  .pano-postas:not(.estrecho) .posta .p-icono,
   .posta-escalon .p-esc-txt {
     display: none;
   }
@@ -555,6 +622,16 @@
 .posta-chispa[hidden],
 .posta-escalon[hidden] {
   display: none;
+}
+/* el naipe apoyado va a la escala del paño (a 2×, a 1×): la fila de la mano y la del paño no se encastran */
+.mano .carta.en-pano {
+  --k: var(--k-pano);
+  --k-naipe: var(--k-pano);
+}
+/* con algo apoyado, la mano baja bajo el paño: el foco no agranda el naipe (entraría al fieltro) y su flecha va
+   dentro del canto de arriba del naipe, sin tapar ningún rótulo del paño */
+.mano.con-pano .carta:not(.elegida):focus-visible .px {
+  transform: none;
 }
 /* la Chispa dorada en la costura entre el Comodín y el naipe de su derecha */
 .posta-chispa {
@@ -4503,4 +4580,25 @@ button.chiche:focus-visible {
     font-size: 14px;
     line-height: 16px;
   }
+}
+
+/* ── 0.22 · el paño en su fila: la flecha del foco de un naipe de la mano baja va dentro de su canto de arriba (no
+   entra al fieltro ni tapa los rótulos del paño) ── */
+.mano.con-pano .carta:not(.elegida):focus-visible::before {
+  top: 2px;
+}
+/* el sello de la mutación de la Forja Brava, en el canto de abajo del naipe (lejos de sus dos índices) */
+.carta .c-mutacion {
+  position: absolute;
+  left: 50%;
+  bottom: calc(4px * var(--k-naipe));
+  translate: -50% 0;
+  line-height: 0;
+  padding: 1px;
+  background: #09070f;
+  box-shadow: 0 0 0 1px var(--oro);
+  pointer-events: none;
+}
+.carta .c-mutacion .px {
+  --k: 1;
 }

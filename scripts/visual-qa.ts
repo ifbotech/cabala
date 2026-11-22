@@ -61,7 +61,13 @@ function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[
     if (propio && parseFloat(s.fontSize) < 14) fallos.push({ regla: 'texto<14', detalle: `${nombre(el)} «${(el.textContent ?? '').trim().slice(0, 30)}» a ${s.fontSize}` });
     // fuera de la ventana (lo que no vive en una zona que se desplaza)
     if (!enRollo(el) && (el.matches('button, .chip, .bocadillo, .titulo, .cifra, .hud, .cuenta') || propio)) {
-      if (r.left < -1 || r.top < -1 || r.right > W + 1 || r.bottom > H + 1) fallos.push({ regla: 'recorte', detalle: `${nombre(el)} en ${Math.round(r.left)},${Math.round(r.top)} → ${Math.round(r.right)},${Math.round(r.bottom)}` });
+      // (lo que un `clip-path: inset(…)` recorta no cuenta: la mano que baja bajo el paño se corta en el pie de su zona)
+      const ins = /^inset\(([^)]*)\)/.exec(s.clipPath)?.[1].split(/\s+/).map((v) => parseFloat(v) || 0);
+      if (ins?.length) {
+        const [t, d = t, b = t, i = d] = ins;
+        const c = { left: r.left + Math.max(0, i), top: r.top + Math.max(0, t), right: r.right - Math.max(0, d), bottom: r.bottom - Math.max(0, b) };
+        if (c.left < -1 || c.top < -1 || c.right > W + 1 || c.bottom > H + 1) fallos.push({ regla: 'recorte', detalle: `${nombre(el)} en ${Math.round(c.left)},${Math.round(c.top)} → ${Math.round(c.right)},${Math.round(c.bottom)}` });
+      } else if (r.left < -1 || r.top < -1 || r.right > W + 1 || r.bottom > H + 1) fallos.push({ regla: 'recorte', detalle: `${nombre(el)} en ${Math.round(r.left)},${Math.round(r.top)} → ${Math.round(r.right)},${Math.round(r.bottom)}` });
     }
     // dianas: 44 px (48 en la barra del pulgar del móvil)
     if (el.matches('button[data-accion]') && !(el as HTMLButtonElement).disabled) {
@@ -208,17 +214,40 @@ function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[
   if (!document.querySelector('#capa .velo, .cortina, .mesa.cobra')) {
     for (const el of [...document.querySelectorAll<HTMLElement>('.mesa [data-mano] .carta:not(.volando)')].filter(visible)) {
       const r = el.getBoundingClientRect();
-      const ci = el.querySelector('.c-indice');
-      const arriba = ci && visible(ci) ? { x: ci.getBoundingClientRect().left + ci.getBoundingClientRect().width / 2, y: ci.getBoundingClientRect().top + ci.getBoundingClientRect().height / 2 } : { x: r.left + r.width * 0.09, y: r.top + r.height * 0.1 };
+      // (0.22: el índice es el del dibujo, sin placas de texto encima)
+      const arriba = { x: r.left + r.width * 0.09, y: r.top + r.height * 0.1 };
       const abajo = { x: r.right - r.width * 0.09, y: r.bottom - r.height * 0.1 };
       const seVe = (pt: { x: number; y: number }): boolean => pt.x >= 0 && pt.y >= 0 && pt.x < W && pt.y < H && document.elementFromPoint(pt.x, pt.y)?.closest('.carta') === el;
-      // (con naipes en el paño, el índice al pie de la mano también vale)
-      const pie = el.querySelector('.c-pie');
-      const pp = pie && visible(pie) ? pie.getBoundingClientRect() : null;
-      if (!seVe(arriba) && !seVe(abajo) && !(pp && seVe({ x: pp.left + pp.width / 2, y: pp.top + pp.height / 2 }))) {
+      if (!seVe(arriba) && !seVe(abajo)) {
         const encima = document.elementFromPoint(arriba.x, arriba.y);
         fallos.push({ regla: 'indice-tapado', detalle: `el naipe ${el.dataset.id} no deja ver ningún índice (arriba lo tapa ${encima ? nombre(encima) : 'el borde'})` });
       }
+    }
+    // (0.22) el paño es una fila propia: con el fieltro a la vista, ningún naipe de la mano entra en una Posta
+    const pano = document.querySelector('.mesa .pano-postas.activo');
+    if (pano && visible(pano)) {
+      const postas = [...pano.querySelectorAll('.posta')].map((x) => x.getBoundingClientRect());
+      for (const el of [...document.querySelectorAll<HTMLElement>('.mesa [data-mano] .carta:not(.elegida):not(.volando)')].filter(visible)) {
+        const r = el.getBoundingClientRect();
+        const dentro = postas.find((p) => Math.min(r.right, p.right) - Math.max(r.left, p.left) > 4 && Math.min(r.bottom, p.bottom) - Math.max(r.top, p.top) > 4);
+        if (dentro) fallos.push({ regla: 'mano-en-pano', detalle: `el naipe ${el.dataset.id} de la mano entra en una Posta del paño` });
+      }
+    }
+    // (0.22) con el dedo, cada naipe de una fila de la mano deja una franja tocable de 44 px o más
+    if (W <= 700 || matchMedia('(pointer: coarse)').matches) {
+      const filas: DOMRect[][] = [];
+      const rs = [...document.querySelectorAll<HTMLElement>('.mesa [data-mano] .carta:not(.volando)')].filter((el) => visible(el) && Number(el.style.zIndex || 0) < 100).map((el) => el.getBoundingClientRect());
+      for (const r of rs.sort((a, b) => a.top - b.top)) {
+        const f = filas.find((x) => Math.abs(x[0].top - r.top) < r.height * 0.3);
+        if (f) f.push(r);
+        else filas.push([r]);
+      }
+      let franja = Infinity;
+      for (const f of filas) {
+        f.sort((a, b) => a.left - b.left);
+        for (let i = 0; i + 1 < f.length; i++) if (f[i + 1].left < f[i].right) franja = Math.min(franja, f[i + 1].left - f[i].left);
+      }
+      if (franja < 44) fallos.push({ regla: 'franja', detalle: `con el dedo, un naipe de la mano deja solo ${Math.round(franja)} px tocables (mínimo 44)` });
     }
   }
   // el grito del Personaje: cerca de su retrato (a no más de 120 px en el teléfono y 280 en el escritorio, hueco entre

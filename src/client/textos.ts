@@ -267,6 +267,24 @@ export const ES = {
   coraAyuda: '+{n} escudo',
   fortunaAyuda: '+{n} oro',
   brindisAyuda: '+{n} vida',
+  // 0.22 · el paño en su fila, las Evoluciones, la Forja Brava, la Cábala Negra y los Tesoros
+  panoEscalon: '3 o más en subida: Escalón +{n}',
+  chicheUsaMando: 'Pulsá A para usarlo. No gasta el turno.',
+  evoluciona: 'EVOLUCIONA',
+  evolucionaTip: 'Tomarlo despierta {e}.',
+  evolucionTitulo: 'EVOLUCIÓN',
+  desperto: 'Despierta {a}',
+  tesoro: 'TESORO',
+  tesoroCandado: 'Candado: {n} de oro',
+  tesoroElite: 'Vencé a la Guardia Brava',
+  tesoroTip: 'Un cofre con un Amuleto adentro, entre el botín.',
+  tesoroFalta: 'Te faltan {n} de oro',
+  negraElegi: 'Elegí {n} naipes de tu Mazo',
+  negraPrimero: 'el primero: el que sacrificás',
+  negraIguales: 'dos del mismo número',
+  negraCoser: 'COSER',
+  negraVolver: 'VOLVER',
+  gChiches: 'Chiches: objetos de un solo uso (hasta 3). Tocá uno, o pulsá A sobre él con el mando. No gasta el turno.',
 };
 
 export const EN: Record<keyof typeof ES, string> = {
@@ -520,6 +538,24 @@ export const EN: Record<keyof typeof ES, string> = {
   coraAyuda: '+{n} shield',
   fortunaAyuda: '+{n} gold',
   brindisAyuda: '+{n} life',
+  // 0.22
+  panoEscalon: '3 or more rising: Step +{n}',
+  chicheUsaMando: 'Press A to use it. Does not use your turn.',
+  evoluciona: 'EVOLVES',
+  evolucionaTip: 'Taking it awakens {e}.',
+  evolucionTitulo: 'EVOLUTION',
+  desperto: '{a} awakens',
+  tesoro: 'TREASURE',
+  tesoroCandado: 'Lock: {n} gold',
+  tesoroElite: 'Beat the Bravo Guard',
+  tesoroTip: 'A chest with an Amulet inside, among the spoils.',
+  tesoroFalta: 'You lack {n} gold',
+  negraElegi: 'Pick {n} cards from your Deck',
+  negraPrimero: 'first: the one you sacrifice',
+  negraIguales: 'two of the same number',
+  negraCoser: 'SEW',
+  negraVolver: 'BACK',
+  gChiches: 'Trinkets: one-use items (up to 3). Tap one, or press A on it with a controller. Does not use your turn.',
 };
 
 export type Clave = keyof typeof ES;
@@ -618,7 +654,7 @@ export const PASO_NOMBRE: Record<string, Par> = {
   temple: P('Al rojo', 'Red-hot'),
   templada: P('Templada', 'Tempered'),
   'brava-forja': P('Forja Brava', 'Wild Forge'),
-  mano: P('Mano corta', 'Short hand'),
+  mano: P('Mano chica', 'Small hand'),
   canto: P('Canto', 'Call'),
   cantos: P('Cantos hechos', 'Calls made'),
   combate: P('Mano Caliente', 'Hot Hand'),
@@ -627,6 +663,20 @@ export const PASO_NOMBRE: Record<string, Par> = {
   'posta:medio': P('Medio', 'Middle'),
   'posta:chispa': P('Chispa', 'Spark'),
   'posta:escalon': P('Escalón', 'Step'),
+  'mut:doblefilo': P('Doble Filo', 'Double Edge'),
+  'a:cascabel-sin': P('Cascabel sin canto', 'Bell, no call'),
+};
+
+/** Las mutaciones de la Forja Brava (0.22): su nombre y lo que hacen, con las cifras del balance. */
+export const MUTACION_NOMBRE: Record<'doblefilo' | 'roba' | 'oro', Par> = {
+  doblefilo: P('Doble Filo', 'Double Edge'),
+  roba: P('Roba Carta', 'Draw Card'),
+  oro: P('Chispa de Oro', 'Gold Spark'),
+};
+export const MUTACION_DESC: Record<'doblefilo' | 'roba' | 'oro', Par> = {
+  doblefilo: P(`Al jugarlo: +${B.fogon.dobleFilo.multi} de Multi, y te corta ${B.fogon.dobleFilo.vida} de Vida (nunca te mata).`, `When played: +${B.fogon.dobleFilo.multi} Mult, and it cuts you for ${B.fogon.dobleFilo.vida} Health (never lethal).`),
+  roba: P(`Al jugarlo, tu próxima mano trae ${B.fogon.robaCarta} carta de más.`, `When played, your next hand draws ${B.fogon.robaCarta} extra card.`),
+  oro: P(`Al jugarlo: +${B.fogon.chispaOro} de oro.`, `When played: +${B.fogon.chispaOro} gold.`),
 };
 
 /** El nombre corto de cada Chiche, el que se lee bajo su icono en la bandeja de la mesa. */
@@ -644,7 +694,7 @@ export const PASO_AYUDA: Record<string, Par> = {
   temple: P('El naipe templado en el Fogón pega de más.', 'A card tempered at the Campfire hits harder.'),
   templada: P('Templada dos veces: suma Multi al jugarla.', 'Tempered twice: adds Mult when played.'),
   'brava-forja': P('Forja Brava: el número del naipe vale doble.', 'Wild Forge: the card number counts double.'),
-  mano: P('Tu Mazo juega mano corta: Multi de más en cada golpe.', 'Your deck plays a short hand: extra Mult on every hit.'),
+  mano: P('Mano chica: tu Mazo juega con menos cartas en la mano y gana Multi de más en cada golpe.', 'Small hand: your deck holds fewer cards and gets extra Mult on every hit.'),
   canto: P('El canto de tu Mazo, cuando la jugada lo arma.', 'Your deck call, when the play makes it.'),
   cantos: P('Cada canto que ya hiciste suma Daño a todos tus golpes.', 'Each call you already made adds Damage to every hit.'),
   combate: P('Mano Caliente: Multi que crece en este combate.', 'Hot Hand: Mult that grows during this fight.'),
@@ -653,6 +703,8 @@ export const PASO_AYUDA: Record<string, Par> = {
   'posta:medio': P('El naipe en la Posta del Medio pega doble su número.', 'The card on the Middle spot hits double its number.'),
   'posta:chispa': P('El naipe a la derecha de un Comodín recibe su número otra vez.', 'The card right of a Joker gets its number again.'),
   'posta:escalon': P('Tres o más naipes en orden creciente: +2 de Multi.', 'Three or more cards in rising order: +2 Mult.'),
+  'mut:doblefilo': P('Naipe de la Forja Brava: Multi de más, y te corta un poco de Vida.', 'Wild Forge card: extra Mult, and it cuts a little of your Health.'),
+  'a:cascabel-sin': P('El Cascabel cobra su precio: un golpe sin canto va con Multi de menos.', 'The Bell takes its toll: a hit without a call has less Mult.'),
   j: P('La jugada que arman tus naipes: su Daño y su Multi de base.', 'The play your cards make: its base Damage and Mult.'),
   c: P('El número de cada naipe es su Daño (0 si el enemigo es Inmune a su palo).', 'Each card number is its Damage (0 if the enemy is Immune to its suit).'),
 };
