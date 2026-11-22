@@ -41,9 +41,9 @@ export const irMazo = (): void => ir(pantallaMazo(), 'portada');
 export const irAltar = (): void => ir(pantallaAltar(), 'altar', 'cabala');
 // la Colección es la pared donde se clava lo juntado; la Crónica y los Ajustes (con el abanico de los Dorsos) se leen
 // sobre la mesa de tablas, a la luz de la vela, como la portada: el metajuego es un lugar, no un degradé
-export const irColeccion = (): void => ir(pantallaColeccion(), 'coleccion');
-export const irCronica = (): void => ir(pantallaCronica(), 'mesa');
-export const irAjustes = (): void => ir(pantallaAjustes(), 'mesa');
+export const irColeccion = (): void => ir(pantallaColeccion(), 'coleccion', 'coleccion');
+export const irCronica = (): void => ir(pantallaCronica(), 'mesa', 'coleccion');
+export const irAjustes = (): void => ir(pantallaAjustes(), 'mesa', 'coleccion');
 
 /** Guarda la partida en curso (o la borra si terminó). */
 export function guardar(): void {

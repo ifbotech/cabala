@@ -23,6 +23,8 @@ export const BUS = {
   compresor: { umbral: -14, rodilla: 10, razon: 2.5, ataque: 0.012, relajo: 0.25 },
   limitador: { umbral: -3, rodilla: 0, razon: 20, ataque: 0.002, relajo: 0.12 },
   maestro: 0.74,
+  /** Los efectos entran 5,6 dB arriba: medido, un golpe tiene que quedar 4–8 dB sobre la música en su momento. */
+  efectos: 1.9,
   /** El techo: por debajo de −4,4 dBFS no toca la señal; por encima la dobla sin recortar y nunca pasa de −1,2 dBFS. */
   techo: { rodilla: 0.6, tope: 0.87 },
   sala: { segundos: 1.7, predelay: 0.012, corte: 3200, retorno: 0.5 },
@@ -119,7 +121,9 @@ export function crearBus(ctx: BaseAudioContext, destino: AudioNode = ctx.destina
 
   const efectos = ctx.createGain();
   const musica = ctx.createGain();
-  efectos.connect(comp);
+  const empuje = ctx.createGain();
+  empuje.gain.value = BUS.efectos;
+  efectos.connect(empuje).connect(comp);
   musica.connect(comp);
   // la sala: un envío común, una convolución y su retorno
   const sala = ctx.createGain();

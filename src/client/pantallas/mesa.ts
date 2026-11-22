@@ -19,7 +19,7 @@ import { CHICHE, huecosChiche, type ChicheId } from '../../rules/chiches';
 import { EVOLUCION, evoluciono, type EvolucionDe } from '../../rules/evoluciones';
 import { ajustes, alAzar, guardarPerfil, idioma, perfil, t, tx } from '../almacen';
 import { agacharMusica, nota, sonar } from '../audio';
-import { cantar, estadoCombate, estadoMusica, ponerFuego, ponerMusica, stinger } from '../musica';
+import { cantar, estadoCombate, ponerFuego, remateMusica, stinger } from '../musica';
 import { teclear } from '../habla';
 import { RAMPA_CURA, RAMPA_ESCUDO, RAMPA_GOLPE, RAMPA_PALO, chispas, destello, haloRey, limpiarNumeros, lluviaDeMonedas, monedas, motas, numero, partirNaipe, quiebre, tajo, tajoDeReves, type Carril } from '../fx/efectos';
 import { alCeder, cajaDe, pisan, reservar, soltar as soltarTurno, tomadas, ubicar } from '../fx/director';
@@ -1086,7 +1086,6 @@ export function pantallaMesa(p: Partida): Pantalla {
         }
         case 'alpelo': {
           // te pasaste por un pelo: no cobra, pero la racha sigue viva. Suena a roce y a risita, no a Escudo
-          sonar('alpelo');
           stinger('alpelo');
           gestoRetrato('feroz', 900);
           gestoBufon($('.esc-bufon')!, 'risa');
@@ -1161,11 +1160,10 @@ export function pantallaMesa(p: Partida): Pantalla {
           // la cuenta, la mano y los botones): no quedan colgados sobre una mesa ya ganada
           if (evs.some((x) => x.t === 'victoria') && !resto.length) despejar();
           if (enemigo?.jefe && !quieto()) {
-            // el remate del tramo: la música calla, la mesa se congela en blanco y, enseguida, el naipe empieza a
+            // el remate del tramo: la música remata con su cadencia (0.28: ya no calla), la mesa se congela en blanco y, enseguida, el naipe empieza a
             // rajarse en tres pasos (el temblor crece) mientras el Rey dice lo último; la frase sigue a la vista al partirse
-            const pista = estadoMusica().deseada;
             const palo = enemigo.palo;
-            ponerMusica(null);
+            remateMusica(!!p.fin?.victoria);
             fogonazo('blanco');
             sacudir($('.mesa'), 3);
             await frenar(140);
@@ -1188,7 +1186,6 @@ export function pantallaMesa(p: Partida): Pantalla {
               await pausa(cada);
             }
             window.setTimeout(() => b.remove(), 900);
-            window.setTimeout(() => estadoMusica().deseada === null && ponerMusica(pista), 2200);
           }
           // el Rey se parte con su propio sonido (hondo, que baja); los demás, con el de siempre
           sonar(cayoRey ? 'remate' : 'cae');
@@ -1263,6 +1260,7 @@ export function pantallaMesa(p: Partida): Pantalla {
             deltaHud('vida', -pierde);
             chispas(en.x, en.y, RAMPA_GOLPE, 10, 80);
             sonar('contra');
+            agacharMusica(180, -9);
             gestoRetrato('mueca', 900);
             if (enemigo?.jefe && ev.vida > 0 && pierde * 6 >= vidaMax) reyDice(tx(alAzar(REY_DEF[enemigo.palo].voz.pega)));
             if (ev.vida > 0 && ev.vida * 3 <= vidaMax) {

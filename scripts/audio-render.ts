@@ -1,8 +1,10 @@
 // QA de audio (0.28): la medición para el juez que no oye. Renderiza fuera de línea, en un Chromium sin cabecera, el
 // mismo motor y el mismo bus maestro del juego (`src/client/musica/medir.ts`): cada escena, cada Rey, una frase
 // cantada por cada voz y cada stinger. Escribe `artifacts/jurado/audio/medidas.json` y `RESUMEN.md` (niveles y
-// partitura en texto) y FALLA si hay una sola muestra recortada, si el pico pasa de −1 dBFS o si alguna nota cantada
-// cae fuera del acorde de su compás o de la tesitura de quien canta.
+// partitura en texto) y FALLA si hay una sola muestra recortada, si el pico pasa de −1 dBFS, si alguna nota cantada
+// cae fuera del acorde de su compás o de la tesitura de quien canta, si la mezcla queda apagada o chillona (energía
+// por encima de 500 Hz y en 2,5–5 kHz), si una escena tranquila queda más de 2,5 LUFS por debajo de la mesa, si los
+// golpes no quedan 4–8 dB por encima de la música en su momento o si la Furia no abre la mezcla en menos de 300 ms.
 //   npm run qa:audio                       todo (unos 80 s)
 //   npm run qa:audio -- --solo=mesa,rey    solo los renders cuyo id empieza así (no escribe los archivos)
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -18,6 +20,13 @@ import { conServidor } from './servidor';
 
 guardian('qa:audio', 280);
 const PICO_MAX = -1;
+/** El brillo: en la mesa y contra los Reyes (sin poca Vida), 2–6 % de la energía en 2,5–5 kHz; nunca más del 8 %. */
+const BANDA_MESA = [0.02, 0.06] as const;
+const BANDA_TOPE = 0.08;
+const CON_BRILLO = /^(mesa-\d|rey-)/;
+/** Las escenas tranquilas, a no más de esto por debajo de la mesa del tramo 1; los golpes, tanto sobre la música. */
+const LUFS_DIF = 2.5;
+const FX_SOBRE = [4, 8] as const;
 const DIR = 'artifacts/jurado/audio';
 
 const mesa = (nivel: 1 | 2 | 3): Partial<T.EstadoMusical> => ({ escena: 'mesa', nivel });
@@ -27,6 +36,7 @@ const PERSONAJES = ['escoba', 'truco', 'chinchon', 'mentiroso', 'chancho'] as co
 
 const pedidos: Pedido[] = [
   { id: 'portada', tipo: 'escena', que: 'Portada / elegir Mazo', compases: 12, estado: { escena: 'portada' } },
+  { id: 'coleccion', tipo: 'escena', que: 'Colección / Crónica / Ajustes', compases: 12, estado: { escena: 'coleccion' } },
   { id: 'mapa', tipo: 'escena', que: 'Mapa', compases: 12, estado: { escena: 'mapa' } },
   { id: 'pulperia', tipo: 'escena', que: 'Pulpería', compases: 12, estado: { escena: 'pulperia' } },
   { id: 'fogon', tipo: 'escena', que: 'Fogón', compases: 12, estado: { escena: 'fogon' } },
@@ -70,6 +80,47 @@ const pedidos: Pedido[] = [
     ]),
     stingers: Array.from({ length: 9 }, (_, k) => ({ compas: k + 1, paso: 0, id: (['evolucion', 'chancho', 'escoba', 'exacto'] as const)[k % 4] })),
   },
+  // la caída de un Rey: el remate cadencial (La7 → Rem) mientras el Rey canta sus últimas palabras; y el de la victoria final
+  { id: 'caida-rey', tipo: 'escena', que: 'Caída del Rey de Espadas: remate La7 → Rem cuantizado a la negra, y la música sigue', compases: 6, estado: { escena: 'rey', nivel: 2, rey: 'S' }, remates: [{ compas: 2, paso: 5 }], cantos: [{ compas: 2, paso: 6, quien: 'S', texto: REY_DEF.S.voz.cae.es }], cambios: [{ compas: 4, estado: { escena: 'mapa', rey: null } }] },
+  { id: 'caida-final', tipo: 'escena', que: 'Caída del último Rey: remate La7 → Re mayor y entra la victoria', compases: 6, estado: { escena: 'rey', nivel: 3, rey: 'H' }, remates: [{ compas: 2, paso: 9, mayor: true }], cambios: [{ compas: 4, estado: { escena: 'victoria', rey: null } }] },
+  // la respuesta en vivo: del tramo 1 al máximo (racha + Furia 12) en mitad de un compás, y la poca Vida en mitad de otro
+  {
+    id: 'rtpc',
+    tipo: 'escena',
+    que: 'RTPC: tramo 1 → racha + Furia 12 en c3:6 → poca Vida en c5:9 (sin esperar al compás)',
+    compases: 7,
+    estado: mesa(1),
+    cambios: [{ compas: 2, paso: 6, estado: { nivel: 3 }, furia: 12 }, { compas: 4, paso: 9, estado: { vidaBaja: true } }],
+    ventanas: [
+      { id: 'antes', compas: 2, paso: 2, dur: 0.5 },
+      { id: 'despues', compas: 2, paso: 8, dur: 0.5 },
+      { id: 'antes-vida', compas: 4, paso: 5, dur: 0.5 },
+      { id: 'despues-vida', compas: 4, paso: 11, dur: 0.5 },
+    ],
+  },
+  // el balance efectos / música: un golpe, un golpazo y un contragolpe sobre la mesa del tramo 2 (la música sola con
+  // su agache, los efectos solos, y todo junto)
+  ...(['fx-musica', 'fx-solos', 'fx-mezcla'] as const).map((id): Pedido => ({
+    id,
+    tipo: 'escena',
+    que: id === 'fx-musica' ? 'Mesa 2 con los agaches del hitstop, sin efectos' : id === 'fx-solos' ? 'Golpe, golpazo y contragolpe a solas' : 'Golpe, golpazo y contragolpe sobre la mesa 2',
+    compases: 5,
+    estado: mesa(2),
+    sinMusica: id === 'fx-solos',
+    efectos: [
+      { compas: 1, paso: 0, cual: 'golpe', agache: 120, mudo: id === 'fx-musica' },
+      { compas: 1, paso: 0, cual: 'paloS', mudo: id === 'fx-musica' },
+      { compas: 2, paso: 0, cual: 'fuerte', agache: 230, mudo: id === 'fx-musica' },
+      { compas: 2, paso: 0, cual: 'paloC', mudo: id === 'fx-musica' },
+      { compas: 3, paso: 0, cual: 'contra', agache: 180, db: -9, mudo: id === 'fx-musica' },
+      { compas: 3, paso: 8, cual: 'oro', mudo: id === 'fx-musica' },
+    ],
+    ventanas: [
+      { id: 'golpe', compas: 1, paso: 0, dur: 0.12 },
+      { id: 'fuerte', compas: 2, paso: 0, dur: 0.2 },
+      { id: 'contra', compas: 3, paso: 0, dur: 0.18 },
+    ],
+  })),
   // las voces: cada una canta una frase suya sobre la mesa del tramo 2
   { id: 'voz-bufon', tipo: 'voz', que: 'El Bufón (tenor buffo)', compases: 4, estado: mesa(2), cantos: [{ compas: 1, paso: 0, quien: 'bufon', texto: VOZ.portada[0].es }, { compas: 2, paso: 8, quien: 'bufon', texto: VOZ.exacto[0].es }] },
   { id: 'voz-bufon-en', tipo: 'voz', que: 'El Bufón, en inglés', compases: 3, estado: mesa(2), cantos: [{ compas: 1, paso: 0, quien: 'bufon', texto: VOZ.portada[0].en, idioma: 'en' }] },
@@ -112,14 +163,51 @@ for (const m of medidas) {
   if (m.pico > PICO_MAX) fallos.push(`${m.id}: pico de ${m.pico} dBFS (tope ${PICO_MAX})`);
   if (m.fuera > 0) fallos.push(`${m.id}: ${m.fuera} notas cantadas fuera del acorde o de la tesitura`);
   if (!(m.rms > -60)) fallos.push(`${m.id}: no suena (RMS ${m.rms} dBFS)`);
+  if (m.banda > BANDA_TOPE) fallos.push(`${m.id}: ${(m.banda * 100).toFixed(2)} % de la energía en 2,5–5 kHz (tope ${BANDA_TOPE * 100} %)`);
+}
+// el brillo: ni apagada ni chillona
+const de = (id: string): Medida | undefined => medidas.find((m) => m.id === id);
+const sobre500 = (m: Medida): number => m.bandas[2] + m.bandas[3] + m.bandas[4];
+for (const [id, minimo] of [['mesa-1', 0.25], ['mesa-3', 0.35]] as const) {
+  const m = de(id);
+  if (m && sobre500(m) < minimo) fallos.push(`${id}: solo el ${(sobre500(m) * 100).toFixed(1)} % de la energía por encima de 500 Hz (mínimo ${minimo * 100} %)`);
+}
+for (const m of medidas) if (CON_BRILLO.test(m.id) && (m.banda < BANDA_MESA[0] || m.banda > BANDA_MESA[1])) fallos.push(`${m.id}: ${(m.banda * 100).toFixed(2)} % en 2,5–5 kHz (tiene que estar entre ${BANDA_MESA[0] * 100} y ${BANDA_MESA[1] * 100} %)`);
+// la sonoridad: las escenas tranquilas no se caen
+const mesa1 = de('mesa-1');
+for (const id of ['portada', 'coleccion', 'mapa', 'pulperia', 'fogon']) {
+  const m = de(id);
+  if (m && mesa1 && m.lufs < mesa1.lufs - LUFS_DIF) fallos.push(`${id}: ${m.lufs} LUFS, más de ${LUFS_DIF} por debajo de la mesa del tramo 1 (${mesa1.lufs})`);
+}
+// el balance: cada golpe, 4–8 dB por encima de la música en su momento (con el agache del hitstop)
+const balance: string[] = [];
+const fxM = de('fx-musica');
+const fxS = de('fx-solos');
+if (fxM && fxS)
+  for (const v of fxS.momentos) {
+    const mus = fxM.momentos.find((x) => x.id === v.id)!;
+    const dif = Math.round((v.rms - mus.rms) * 10) / 10;
+    balance.push(`${v.id}: efecto ${v.rms} dBFS, música ${mus.rms} dBFS → +${dif} dB`);
+    if (dif < FX_SOBRE[0] || dif > FX_SOBRE[1]) fallos.push(`balance: «${v.id}» queda ${dif} dB sobre la música (tiene que estar entre ${FX_SOBRE[0]} y ${FX_SOBRE[1]})`);
+  }
+// la respuesta en vivo: medio segundo después de pedirlo (sin esperar al compás) la mezcla ya cambió
+const vivo: string[] = [];
+const rt = de('rtpc');
+if (rt) {
+  const v = (id: string): { rms: number; brillo: number } => rt.momentos.find((x) => x.id === id)!;
+  const sube = Math.round((v('despues').brillo - v('antes').brillo) * 10) / 10;
+  const baja = Math.round((v('despues-vida').brillo - v('antes-vida').brillo) * 10) / 10;
+  vivo.push(`racha + Furia 12 pedidas en c3:6 → brillo ${sube >= 0 ? '+' : ''}${sube} dB en la ventana que empieza 288 ms después`, `poca Vida pedida en c5:9 → brillo ${baja} dB en la ventana que empieza 288 ms después`);
+  if (sube < 3) fallos.push(`rtpc: la racha y la Furia no abrieron la mezcla a tiempo (brillo ${sube} dB)`);
+  if (baja > -3) fallos.push(`rtpc: la poca Vida no cerró el filtro a tiempo (brillo ${baja} dB)`);
 }
 
 const n = (x: number, d = 1): string => x.toFixed(d).replace('.', ',');
 const acordes = (s: T.SeccionId, tonica = T.TONICA): string => T.SECCIONES[s].map((g) => T.acordeDeGrado(g, tonica).nombre).join(' | ');
 const tabla = (tipo: Medida['tipo']): string[] => [
-  '| id | qué | s | pico (dBFS) | recortes | RMS (dBFS) | LUFS aprox. | 2,5–5 kHz |',
-  '|---|---|---:|---:|---:|---:|---:|---:|',
-  ...medidas.filter((m) => m.tipo === tipo).map((m) => `| ${m.id} | ${m.que} | ${n(m.segundos)} | ${n(m.pico, 2)} | ${m.recortes} | ${n(m.rms)} | ${n(m.lufs)} | ${n(m.banda * 100, 2)} % |`),
+  '| id | qué | s | pico (dBFS) | recortes | RMS (dBFS) | LUFS aprox. | > 500 Hz | 2,5–5 kHz |',
+  '|---|---|---:|---:|---:|---:|---:|---:|---:|',
+  ...medidas.filter((m) => m.tipo === tipo).map((m) => `| ${m.id} | ${m.que} | ${n(m.segundos)} | ${n(m.pico, 2)} | ${m.recortes} | ${n(m.rms)} | ${n(m.lufs)} | ${n(sobre500(m) * 100)} % | ${n(m.banda * 100, 2)} % |`),
 ];
 const motivo = (rey: T.PaloRey): string => {
   const m = T.MOTIVOS[rey];
@@ -160,6 +248,11 @@ const resumen = [
   '',
   ...tabla('escena'),
   '',
+  '## Balance efectos / música y respuesta en vivo',
+  '',
+  ...balance.map((x) => `- ${x}`),
+  ...vivo.map((x) => `- ${x}`),
+  '',
   '## Voces (cantando sobre la música)',
   '',
   ...tabla('voz'),
@@ -176,14 +269,15 @@ const resumen = [
   ...(fallos.length ? ['## Fallos', '', ...fallos.map((f) => `- ${f}`), ''] : []),
 ];
 
+for (const l of [...balance, ...vivo]) console.log(`  ${l}`);
 if (solo) process.exit(fallos.length ? 1 : 0);
 mkdirSync(DIR, { recursive: true });
-writeFileSync(`${DIR}/medidas.json`, JSON.stringify({ fs: 48000, bpm: T.BPM, tonalidad: 'Re menor', picoMax: PICO_MAX, bus: BUS, nivel: NIVEL, fallos, medidas }, null, 2));
+writeFileSync(`${DIR}/medidas.json`, JSON.stringify({ fs: 48000, bpm: T.BPM, tonalidad: 'Re menor', picoMax: PICO_MAX, bus: BUS, nivel: NIVEL, balance, vivo, fallos, medidas }, null, 2));
 writeFileSync(`${DIR}/RESUMEN.md`, resumen.join('\n'));
 console.log(`\n${DIR}/medidas.json y RESUMEN.md escritos (${medidas.length} renders).`);
 if (fallos.length) {
   console.error(`\n✗ QA de audio: ${fallos.length} fallos\n  ${fallos.join('\n  ')}`);
   process.exit(1);
 }
-console.log('✓ QA de audio: sin recortes, picos por debajo de −1 dBFS y todas las notas cantadas en el acorde de su compás.');
+console.log("✓ QA de audio: sin recortes, picos por debajo de −1 dBFS, todas las notas cantadas en el acorde, y brillo, sonoridad, balance y respuesta en vivo en su sitio.");
 process.exit(0);

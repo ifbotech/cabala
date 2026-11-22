@@ -27,12 +27,12 @@ export interface Salidas {
 export const ADELANTO = 0.14;
 export const INTERVALO = 0.03;
 /** El volumen de la música entera y el nivel de cada capa. */
-export const VOLUMEN = 0.62;
-export const NIVEL: Record<T.CapaId, number> = { bajo: 0.125, guitarra: 0.31, rasgueo: 0.16, pad: 0.07, cuerdas: 0.06, bandoneon: 0.16, motivo: 0.16, bombo: 0.15, madera: 0.3, escobillas: 0.26, brasas: 0.14, latido: 0.18 };
+export const VOLUMEN = 0.44;
+export const NIVEL: Record<T.CapaId, number> = { bajo: 0.125, guitarra: 0.31, rasgueo: 0.16, pad: 0.07, cuerdas: 0.06, bandoneon: 0.16, motivo: 0.16, bombo: 0.15, madera: 0.3, escobillas: 0.28, brasas: 0.14, latido: 0.18 };
 /** La melodía se agacha 3 dB mientras alguien canta o suena un stinger. */
 export const AGACHE = 10 ** (-3 / 20);
-export const NIVEL_VOZ = 0.42;
-export const NIVEL_STINGER = 0.17;
+export const NIVEL_VOZ = 0.17;
+export const NIVEL_STINGER = 0.068;
 /** El pasabajos cálido se mece ±1,5 semitonos cada 14 segundos; la campana de la banda que cansa. */
 export const LFO = { hz: 0.07, cents: 150 };
 export const CAMPANA = { hz: 3500, q: 0.9, db: -3 };
@@ -41,7 +41,7 @@ const ENVIO_MELODIA = 0.3;
 const RAMPA_COMPAS = 0.3;
 export const RAMPA_VIVA = 0.08;
 /** El remate (la caída de un Rey): la dominante dura una negra y la tónica queda sonando; mientras, la música baja 16 dB. */
-export const REMATE = { pasosV: 4, pasosI: 12, agache: 0.16, nivel: 0.5 };
+export const REMATE = { pasosV: 4, pasosI: 12, agache: 0.16, nivel: 0.36 };
 
 interface Frase {
   quien: T.VozId;

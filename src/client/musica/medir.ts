@@ -2,7 +2,8 @@
 // MISMO bus maestro del juego y mide lo que sale: pico, muestras recortadas, RMS, LUFS aproximado (ponderación K sin
 // puertas) y la parte de la energía que cae en la banda que cansa (2,5–5 kHz). Además devuelve la partitura en texto.
 // Lo llama `scripts/audio-render.ts` (`npm run qa:audio`) desde un Chromium sin cabecera; no se usa en el juego.
-import { BUS, crearBus } from './bus';
+import { sonarEn, type Sonido } from '../audio';
+import { BUS, crearBus, crearRuido } from './bus';
 import { Motor } from './motor';
 import * as T from './teoria';
 
@@ -25,6 +26,8 @@ export interface Medida {
   bandas: number[];
   /** Notas cantadas fuera del acorde o de la tesitura (tiene que ser 0). */
   fuera: number;
+  /** El nivel en cada ventana pedida: RMS (dBFS) y «brillo» (RMS de la derivada, dB: sube con los agudos). */
+  momentos: { id: string; rms: number; brillo: number }[];
   partitura: string[];
 }
 
@@ -38,7 +41,13 @@ export interface Pedido {
   /** Con la música apagada (solo corre el reloj): para medir una voz o un stinger a solas. */
   sinMusica?: boolean;
   /** Cambios de estado en el límite de un compás (el viaje por las pantallas). */
-  cambios?: { compas: number; estado: Partial<T.EstadoMusical>; furia?: number }[];
+  cambios?: { compas: number; paso?: number; estado: Partial<T.EstadoMusical>; furia?: number }[];
+  /** Efectos del juego (los mismos de audio.ts): `agache` es el hitstop que agacha la música 6 dB esos ms; `mudo`, solo el agache. */
+  efectos?: { compas: number; paso: number; cual: Exclude<Sonido, 'segunda'>; agache?: number; db?: number; mudo?: boolean }[];
+  /** El remate de la caída de un Rey. */
+  remates?: { compas: number; paso: number; mayor?: boolean }[];
+  /** Ventanas en las que se mide el nivel (segundos de duración desde esa semicorchea). */
+  ventanas?: { id: string; compas: number; paso: number; dur: number }[];
   /** Lo que se canta y los stingers que suenan: en qué compás y semicorchea. */
   cantos?: { compas: number; paso: number; quien: T.VozId; texto: string; idioma?: T.Idioma; breve?: boolean }[];
   stingers?: { compas: number; paso: number; id: T.StingerId }[];
@@ -145,6 +154,9 @@ function compasEnTexto(c: T.Compas): string {
 
 /** Renderiza un pedido y lo mide. */
 export async function medir(p: Pedido): Promise<Medida> {
+  // (los efectos leen el ruido desde un punto al azar: acá, con semilla, para que la medición se repita igual)
+  const azar = Math.random;
+  Math.random = T.azarDe(4242);
   const segundos = p.compases * T.SEG_COMPAS + 1.5;
   const ctx = new OfflineAudioContext(2, Math.ceil(segundos * FS), FS);
   const bus = crearBus(ctx);
@@ -158,16 +170,31 @@ export async function medir(p: Pedido): Promise<Medida> {
   }
   const t0 = m.tiempoDe(m.paso);
   const sonados: string[] = [];
+  const ruido = crearRuido(ctx, 1, 3);
   for (let c = 0; c < p.compases; c++) {
-    for (const x of p.cambios ?? [])
-      if (x.compas === c) {
-        m.pedir(x.estado);
-        if (x.furia !== undefined) m.rtpc({ furia: x.furia });
-      }
-    // semicorchea por semicorchea: lo que se canta y los stingers entran «en vivo», como en el juego
+    // semicorchea por semicorchea: los cambios, lo que se canta y los stingers entran «en vivo», como en el juego
     for (let k = 0; k < T.PASOS; k++) {
       const ahora = t0 + (c * T.PASOS + k) * T.SEG_PASO;
+      for (const x of p.cambios ?? [])
+        if (x.compas === c && (x.paso ?? 0) === k) {
+          m.pedir(x.estado, ahora);
+          if (x.furia !== undefined) m.rtpc({ furia: x.furia }, ahora);
+        }
       m.planificarHasta(ahora + 0.001);
+      for (const x of p.efectos ?? [])
+        if (x.compas === c && x.paso === k) {
+          if (!x.mudo) sonarEn(ctx, bus.efectos, ruido, x.cual, ahora, 1, { tonos: m.armonia(ahora).acorde.tonos, escala: m.armonia(ahora).acorde.escala });
+          if (x.agache) {
+            // lo mismo que `agacharMusica` en el juego: −6 dB (o los que se pidan) en 20 ms, se sostiene y vuelve en 250 ms
+            const g = bus.musica.gain;
+            const abajo = 10 ** ((x.db ?? -6) / 20);
+            g.setValueAtTime(1, ahora);
+            g.linearRampToValueAtTime(abajo, ahora + 0.02);
+            g.setValueAtTime(abajo, ahora + x.agache / 1000);
+            g.linearRampToValueAtTime(1, ahora + x.agache / 1000 + 0.25);
+          }
+        }
+      for (const x of p.remates ?? []) if (x.compas === c && x.paso === k) m.rematar(!!x.mayor, ahora);
       for (const x of p.cantos ?? []) if (x.compas === c && x.paso === k) m.cantar(x.quien, x.texto, { idioma: x.idioma, breve: x.breve }, ahora - 0.02);
       for (const x of p.stingers ?? [])
         if (x.compas === c && x.paso === k) {
@@ -180,6 +207,7 @@ export async function medir(p: Pedido): Promise<Medida> {
   m.planificarHasta(t0 + p.compases * T.SEG_COMPAS);
   // se suelta todo al final del último compás: la cola de la sala entra en la medición
   m.abrir(false, t0 + p.compases * T.SEG_COMPAS);
+  Math.random = azar;
   const buf = await ctx.startRendering();
   const canales = [buf.getChannelData(0), buf.getChannelData(1)];
   let pico = 0;
@@ -204,8 +232,20 @@ export async function medir(p: Pedido): Promise<Medida> {
     partitura.push(...f.notas.map((n) => `  ${n.silaba}${n.adorno ? ` [${n.adorno}: ${n.adornos.map(T.nombreNota).join(' ')}]` : ''} → ${T.nombreNota(n.midi)} · ${n.grado} de ${n.acorde}${n.regla !== 'libre' ? ` · ${n.regla}` : ''}`));
   }
   partitura.push(...sonados);
+  const momentos = (p.ventanas ?? []).map((v) => {
+    const desde = Math.floor((t0 + (v.compas * T.PASOS + v.paso) * T.SEG_PASO) * FS);
+    const hasta = Math.min(buf.length, desde + Math.floor(v.dur * FS));
+    let e2 = 0;
+    let d2 = 0;
+    for (let k = desde + 1; k < hasta; k++) {
+      e2 += mono[k] * mono[k];
+      d2 += (mono[k] - mono[k - 1]) ** 2;
+    }
+    const n = Math.max(1, hasta - desde - 1);
+    return { id: v.id, rms: r2(db(Math.sqrt(e2 / n))), brillo: r2(db(Math.sqrt(d2 / n))) };
+  });
   const bandas = energiaPorBandas(mono, [120, 500, 2500, 5000]).map((x) => Math.round(x * 10000) / 10000);
-  return { id: p.id, tipo: p.tipo, que: p.que, segundos: r2(buf.duration), pico: r2(db(pico)), recortes, rms: r2(db(Math.sqrt(e / (buf.length * 2)))), lufs: r2(lufs(canales)), banda: bandas[3], bandas, fuera, partitura };
+  return { id: p.id, tipo: p.tipo, que: p.que, segundos: r2(buf.duration), pico: r2(db(pico)), recortes, rms: r2(db(Math.sqrt(e / (buf.length * 2)))), lufs: r2(lufs(canales)), banda: bandas[3], bandas, fuera, momentos, partitura };
 }
 
 /** Los números fijos de la cadena (para el resumen). */

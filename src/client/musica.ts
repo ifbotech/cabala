@@ -9,7 +9,7 @@
 // intervalo se apaga: cero trabajo.
 import type { Palo } from '../rules/cartas';
 import { ajustes, idioma } from './almacen';
-import { alAbrirAudio, contextoAudio, hablaron, salidaEfectos, salidaMusica, salidaSala, type VozId } from './audio';
+import { alAbrirAudio, contextoAudio, despertarAudio, hablaron, ponerAfinador, salidaEfectos, salidaMusica, salidaSala, type VozId } from './audio';
 import { INTERVALO, Motor } from './musica/motor';
 import { nivelDe, type Acorde, type EscenaId, type PaloRey, type StingerId } from './musica/teoria';
 
@@ -24,6 +24,8 @@ let enganchado = false;
 export const pistasSonadas: PistaId[] = [];
 /** Lo último que contó el combate (se recuerda aunque el audio todavía no esté abierto). */
 const combate: { tramo: number; furia: number; racha: number; vidaPct: number; rey: PaloRey | null; segunda: boolean } = { tramo: 0, furia: 0, racha: 0, vidaPct: 1, rey: null, segunda: false };
+/** Los stingers que se pidieron (para la QA, que no oye). */
+const stingersPedidos: StingerId[] = [];
 /** Por debajo de esta parte de la Vida suena el latido. */
 export const VIDA_BAJA = 0.3;
 
@@ -110,6 +112,8 @@ export const ponerFuego = (si: boolean): void => estadoCombate({ racha: si ? Mat
 
 /** Un stinger afinado al acorde del momento: los cantos de cada Mazo, «¡AL PELO!», el Golpe exacto y el jackpot de una Evolución. */
 export function stinger(tipo: StingerId): void {
+  stingersPedidos.push(tipo);
+  if (stingersPedidos.length > 40) stingersPedidos.shift();
   if (!ajustes.sonido) return;
   try {
     director()?.stinger(tipo);
@@ -137,13 +141,44 @@ export function cantar(quien: VozId, texto: string, o: { breve?: boolean } = {})
   }
 }
 
-/** Al cambiar el ajuste: suena o calla ya. */
+/**
+ * La caída de un Rey: en vez de callar, la música remata con una cadencia cuantizada a la próxima negra (La7 → Re
+ * menor; `mayor`: Re mayor, la de la victoria final) y sigue sola hacia la sección que venga.
+ */
+export function remateMusica(mayor = false): void {
+  if (!ajustes.musica) return;
+  try {
+    director()?.rematar(mayor);
+  } catch {
+    // sin audio: el juego sigue en silencio
+  }
+}
+
+/** Al cambiar el ajuste: suena o calla ya (el clic que la prende abre el audio si todavía estaba cerrado). */
 export const refrescarMusica = (): void => {
-  if (ajustes.musica) despertar();
-  else tic();
+  if (ajustes.musica) {
+    despertarAudio();
+    despertar();
+  } else tic();
 };
 
+// los efectos melódicos (el oro, el conteo del golpe, la llegada del Rey…) se afinan al acorde que suena
+ponerAfinador(() => {
+  const a = motor?.armonia().acorde;
+  return a ? { tonos: a.tonos, escala: a.escala } : null;
+});
+
 /** Para la QA: qué escena se pidió, cuál suena y cuántas semicorcheas lleva programadas. */
-export const estadoMusica = (): { deseada: PistaId | null; suena: PistaId | null; pasos: number } => ({ deseada, suena: motor?.suena ?? null, pasos: motor?.pasosDados ?? 0 });
+export const estadoMusica = (): { deseada: PistaId | null; suena: PistaId | null; pasos: number; reloj: number; arranques: number; combate: typeof combate; nivel: number; stingers: string[] } => ({
+  deseada,
+  suena: motor?.suena ?? null,
+  pasos: motor?.pasosDados ?? 0,
+  // el reloj (la semicorchea por la que va) y cuántas veces arrancó: si la música no se corta, arranca UNA vez
+  reloj: motor?.paso ?? 0,
+  arranques: motor?.arranques ?? 0,
+  combate: { ...combate },
+  nivel: motor?.aplicado.nivel ?? 0,
+  stingers: [...stingersPedidos],
+});
 /** El acorde y la escala del compás que suena ahora (lo que leen las voces), o `null` si el audio no está abierto. */
 export const armoniaActual = (): { acorde: Acorde; compas: number; paso: number } | null => motor?.armonia() ?? null;

@@ -217,7 +217,7 @@ export function mezclaDe(e: EstadoMusical): Mezcla {
       break;
     case 'coleccion':
       // Colección, Crónica y Ajustes: la portada desde la pieza de al lado (más cerrada, más pad, la guitarra lejos)
-      m = { capas: { bajo: 0.6, guitarra: 0.55, pad: 0.75, cuerdas: 0.25 }, corte: 1500, q: 0.8, sala: 0.3, bajo: 'calmo', guitarra: 'intimo', rasgueo: 'relajado', bateria: 1 };
+      m = { capas: { bajo: 0.85, guitarra: 0.85, pad: 1.05, cuerdas: 0.35 }, corte: 1700, q: 0.8, sala: 0.3, bajo: 'calmo', guitarra: 'intimo', rasgueo: 'relajado', bateria: 1 };
       break;
     case 'mapa':
       // el mismo pulso + madera y bombo lejanos + pad misterioso
@@ -254,8 +254,8 @@ export function mezclaDe(e: EstadoMusical): Mezcla {
       break;
     }
   }
-  // poca Vida: el latido grave al tempo y el filtro que se cierra con resonancia
-  if (e.vidaBaja && (e.escena === 'mesa' || e.escena === 'rey')) m = { ...m, capas: { ...m.capas, latido: 1 }, corte: Math.min(m.corte, 950), q: 3.2 };
+  // poca Vida: el latido grave al tempo, el filtro que se cierra con resonancia y la batería que se apaga (casi sin escobillas)
+  if (e.vidaBaja && (e.escena === 'mesa' || e.escena === 'rey')) m = { ...m, capas: { ...m.capas, latido: 1, escobillas: (m.capas.escobillas ?? 0) * 0.3, madera: (m.capas.madera ?? 0) * 0.7 }, corte: Math.min(m.corte, 950), q: 3.2 };
   return m;
 }
 

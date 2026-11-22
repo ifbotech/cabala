@@ -63,7 +63,8 @@ const SONIDO = {
   corta: [[1175, 0.03, 'square', 0.08], [1568, 0.06, 'triangle', 0.1]],
   exacto: [[660, 0.06, 'square', 0.16], [880, 0.06, 'square', 0.16], [1320, 0.14, 'square', 0.16]],
   canto: [[523, 0.07, 'square', 0.16], [659, 0.07, 'square', 0.16], [784, 0.07, 'square', 0.16], [1047, 0.16, 'square', 0.16]],
-  contra: [[200, 0.06, 'sawtooth', 0.24, 80], [120, 0.14, 'sawtooth', 0.22, 50]],
+  // (0.28: +2,6 dB; medido, el golpe que recibís quedaba por debajo de la música)
+  contra: [[200, 0.06, 'sawtooth', 0.32, 80], [120, 0.14, 'sawtooth', 0.3, 50]],
   frena: [[700, 0.04, 'square', 0.14], [500, 0.08, 'triangle', 0.18]],
   oro: [[988, 0.05, 'square', 0.12], [1319, 0.1, 'square', 0.12]],
   cura: [[440, 0.06, 'triangle', 0.2], [554, 0.06, 'triangle', 0.2], [659, 0.12, 'triangle', 0.2]],
@@ -125,7 +126,7 @@ const RUIDO: Partial<Record<keyof typeof SONIDO | 'segunda', Ruido[]>> = {
   golpe: [{ dur: 0.03, vol: 0.42, filtro: 'bandpass', corte: 1800, q: 0.7 }, { dur: 0.09, vol: 0.28, filtro: 'lowpass', corte: 700 }],
   fuerte: [{ dur: 0.04, vol: 0.5, filtro: 'bandpass', corte: 1400, q: 0.6 }, { dur: 0.2, vol: 0.34, filtro: 'lowpass', corte: 500, hasta: 120 }],
   remateChico: [{ dur: 0.025, vol: 0.2, filtro: 'bandpass', corte: 2400, q: 1.6 }],
-  contra: [{ dur: 0.05, vol: 0.36, filtro: 'bandpass', corte: 900, q: 0.8 }, { dur: 0.16, vol: 0.2, filtro: 'lowpass', corte: 400 }],
+  contra: [{ dur: 0.05, vol: 0.48, filtro: 'bandpass', corte: 900, q: 0.8 }, { dur: 0.16, vol: 0.27, filtro: 'lowpass', corte: 400 }],
   cae: [{ dur: 0.14, vol: 0.24, filtro: 'highpass', corte: 2400, hasta: 900 }],
   frena: [{ dur: 0.05, vol: 0.22, filtro: 'bandpass', corte: 3200, q: 3 }],
   alpelo: [{ dur: 0.11, vol: 0.26, filtro: 'bandpass', corte: 5200, hasta: 9000, q: 4 }],
@@ -220,6 +221,22 @@ export function agacharMusica(ms: number, db = -6): void {
 }
 
 /**
+ * (0.28) Abre el audio si hay algo que oír: los efectos O la música (antes, con los efectos apagados, la música no
+ * sonaba nunca). Hay que llamarlo dentro de un gesto del jugador (el primero, o el clic que prende la música en Ajustes).
+ */
+export function despertarAudio(): void {
+  if (!ajustes.sonido && !ajustes.musica) return;
+  try {
+    const c = abrirContexto();
+    const listo = (): void => alAbrir.forEach((f) => f());
+    if (c.state === 'suspended') void c.resume().then(listo);
+    else listo();
+  } catch {
+    // sin audio: el juego sigue en silencio
+  }
+}
+
+/**
  * Abre el audio con el primer gesto del jugador (un clic o una tecla, en la portada). Abrir el dispositivo de sonido
  * cuesta más de 100 ms la primera vez: hacerlo al tocar el primer sonido dejaba un tirón en mitad del primer golpe.
  */
@@ -227,15 +244,7 @@ export function prepararAudio(): void {
   const abrir = (): void => {
     removeEventListener('pointerdown', abrir, true);
     removeEventListener('keydown', abrir, true);
-    if (!ajustes.sonido) return;
-    try {
-      const c = abrirContexto();
-      const listo = (): void => alAbrir.forEach((f) => f());
-      if (c.state === 'suspended') void c.resume().then(listo);
-      else listo();
-    } catch {
-      // sin audio: el juego sigue en silencio
-    }
+    despertarAudio();
   };
   addEventListener('pointerdown', abrir, true);
   addEventListener('keydown', abrir, true);
@@ -254,7 +263,7 @@ function listo(): AudioContext | null {
 }
 
 /** Un tono con su envolvente, al bus de efectos. */
-function tono(c: AudioContext, t: number, f: number, dur: number, onda: OscillatorType, vol: number, cae?: number, detune = 0): void {
+function tono(c: BaseAudioContext, t: number, f: number, dur: number, onda: OscillatorType, vol: number, cae?: number, detune = 0, a: AudioNode = busEfectos!): void {
   const osc = c.createOscillator();
   const gan = c.createGain();
   osc.type = onda;
@@ -264,17 +273,17 @@ function tono(c: AudioContext, t: number, f: number, dur: number, onda: Oscillat
   gan.gain.setValueAtTime(0.0001, t);
   gan.gain.linearRampToValueAtTime(vol, t + 0.004);
   gan.gain.exponentialRampToValueAtTime(0.001, t + dur);
-  osc.connect(gan).connect(busEfectos!);
+  osc.connect(gan).connect(a);
   osc.start(t);
   osc.stop(t + dur + 0.02);
 }
 
 /** Una ráfaga de ruido blanco filtrado (leída desde un punto al azar del mismo buffer). */
-function soplo(c: AudioContext, t0: number, r: Ruido, altura = 1): void {
-  if (!ruidoBlanco) return;
+function soplo(c: BaseAudioContext, t0: number, r: Ruido, altura = 1, a: AudioNode = busEfectos!, ruido: AudioBuffer | null = ruidoBlanco): void {
+  if (!ruido) return;
   const t = t0 + (r.retraso ?? 0);
   const src = c.createBufferSource();
-  src.buffer = ruidoBlanco;
+  src.buffer = ruido;
   src.playbackRate.value = altura;
   const fil = c.createBiquadFilter();
   fil.type = r.filtro;
@@ -284,8 +293,8 @@ function soplo(c: AudioContext, t0: number, r: Ruido, altura = 1): void {
   const gan = c.createGain();
   gan.gain.setValueAtTime(r.vol, t);
   gan.gain.exponentialRampToValueAtTime(0.001, t + r.dur);
-  src.connect(fil).connect(gan).connect(busEfectos!);
-  const desde = Math.random() * Math.max(0, ruidoBlanco.duration - r.dur - 0.05);
+  src.connect(fil).connect(gan).connect(a);
+  const desde = Math.random() * Math.max(0, ruido.duration - r.dur - 0.05);
   src.start(t, desde, r.dur + 0.04);
 }
 
@@ -325,6 +334,64 @@ function segundaCara(c: AudioContext, t: number, palo: Palo): void {
   for (const r of RUIDO.segunda ?? []) soplo(c, t, r);
 }
 
+/** (0.28) La armonía que suena ahora: las clases de altura del acorde y de la escala del compás (la pone musica.ts). */
+export interface Afinacion {
+  tonos: number[];
+  escala: number[];
+}
+let afinador: (() => Afinacion | null) | null = null;
+export const ponerAfinador = (f: () => Afinacion | null): void => void (afinador = f);
+/** Los efectos melódicos que se afinan al acorde del momento (el resto son golpes y ruidos: no tienen tonalidad). */
+const AFINADOS: Partial<Record<Sonido, true>> = { oro: true, tintin: true, victoria: true, derrota: true, rey: true };
+const aMidi = (f: number): number => 69 + 12 * Math.log2(f / 440);
+const aHz = (m: number): number => 440 * 2 ** ((m - 69) / 12);
+const enClases = (m: number, clases: number[]): boolean => clases.includes((((m % 12) + 12) % 12));
+/** La nota de esas clases más cercana a `midi`; con `sobre` / `bajo`, estrictamente por encima o por debajo de esa otra. */
+function notaCercana(midi: number, clases: number[], sobre?: number, bajo?: number): number {
+  let mejor = Math.round(midi);
+  let dist = Infinity;
+  for (let m = Math.floor(midi) - 13; m <= midi + 13; m++) {
+    if (!enClases(m, clases) || (sobre !== undefined && m <= sobre) || (bajo !== undefined && m >= bajo)) continue;
+    const d = Math.abs(m - midi);
+    if (d < dist) {
+      dist = d;
+      mejor = m;
+    }
+  }
+  return mejor;
+}
+/**
+ * Afina una melodía (frecuencias en Hz) a unas clases de altura, conservando su dibujo: lo que subía sigue subiendo
+ * y lo que bajaba sigue bajando. Devuelve las frecuencias afinadas.
+ */
+export function afinarMelodia(fs: number[], clases: number[]): number[] {
+  const out: number[] = [];
+  let previa: number | undefined;
+  fs.forEach((f, k) => {
+    const sube = k > 0 && f > fs[k - 1] * 1.01;
+    const baja = k > 0 && f < fs[k - 1] * 0.99;
+    const m = k > 0 && !sube && !baja ? previa! : notaCercana(aMidi(f), clases, sube ? previa : undefined, baja ? previa : undefined);
+    previa = m;
+    out.push(aHz(m));
+  });
+  return out;
+}
+
+/**
+ * Programa un sonido sobre un contexto y una salida cualesquiera (el juego usa `sonar`; la medición fuera de línea,
+ * esto mismo sobre un `OfflineAudioContext`). `k` corre la altura; con `afin`, los efectos melódicos se afinan.
+ */
+export function sonarEn(c: BaseAudioContext, a: AudioNode, ruido: AudioBuffer | null, cual: Exclude<Sonido, 'segunda'>, t0: number, k = 1, afin: Afinacion | null = null): void {
+  const notas = SONIDO[cual] as Nota[];
+  const afinadas = afin && AFINADOS[cual] ? afinarMelodia(notas.map(([f]) => f * k), afin.tonos) : null;
+  let t = t0;
+  notas.forEach(([f, dur, onda = 'square', vol = 0.15, cae], n) => {
+    tono(c, t, afinadas ? afinadas[n] : f * k, dur, onda, vol * 0.5, cae && !afinadas ? cae * k : undefined, 0, a);
+    t += dur * 0.85;
+  });
+  for (const r of RUIDO[cual] ?? []) soplo(c, t0, r, k, a, ruido);
+}
+
 /**
  * Toca un sonido. No hace nada si el sonido está apagado o el navegador todavía no dejó abrir el audio.
  * `retraso` (en segundos) lo encadena detrás de otro sin timers; `palo` tiñe la segunda cara.
@@ -340,15 +407,11 @@ export function sonar(cual: Sonido, o: { retraso?: number; palo?: Palo; altura?:
       segundaCara(c, t0, o.palo ?? 'S');
       return;
     }
-    // la altura de este disparo: un corrimiento chico al azar (más grande en los golpes) y el que se pida
-    const semis = (Math.random() * 2 - 1) * (VARIA[cual] ?? VARIA_BASE);
-    const k = 2 ** (semis / 12) * (o.altura ?? 1);
-    let t = t0;
-    for (const [f, dur, onda = 'square', vol = 0.15, cae] of SONIDO[cual] as Nota[]) {
-      tono(c, t, f * k, dur, onda, vol * 0.5, cae ? cae * k : undefined);
-      t += dur * 0.85;
-    }
-    for (const r of RUIDO[cual] ?? []) soplo(c, t0, r, k);
+    // la altura de este disparo: un corrimiento chico al azar (más grande en los golpes) y el que se pida; los
+    // efectos melódicos no se corren al azar: se afinan al acorde que suena
+    const afin = AFINADOS[cual] ? (afinador?.() ?? null) : null;
+    const semis = afin ? 0 : (Math.random() * 2 - 1) * (VARIA[cual] ?? VARIA_BASE);
+    sonarEn(c, busEfectos, ruidoBlanco, cual, t0, 2 ** (semis / 12) * (o.altura ?? 1), afin);
   } catch {
     // sin audio: el juego sigue en silencio
   }
@@ -367,6 +430,18 @@ export function nota(semitono: number, larga = false): void {
   if (!ajustes.sonido || !ctx || ctx.state !== 'running' || !busEfectos) return;
   try {
     const t = ctx.currentTime;
+    const afin = afinador?.() ?? null;
+    if (afin) {
+      // (0.28) afinado: cada paso sube un grado de la ESCALA del compás desde la tónica del acorde (Re4–Do#5); el
+      // total cae en una nota del acorde y suena con la quinta del acorde arriba
+      const base = notaCercana(64, [afin.tonos[0]]);
+      let m = base;
+      for (let n = 0; n < Math.min(semitono, 21); n++) m = notaCercana(m + 1, afin.escala, m);
+      if (larga) m = notaCercana(m, [afin.tonos[0], afin.tonos[2]]);
+      tono(ctx, t, aHz(m), larga ? 0.22 : 0.07, 'square', larga ? 0.09 : 0.07);
+      if (larga) tono(ctx, t + 0.02, aHz(notaCercana(m + 7, afin.tonos, m)), 0.2, 'triangle', 0.08);
+      return;
+    }
     const f = 523.25 * 2 ** (semitono / 12);
     tono(ctx, t, f, larga ? 0.22 : 0.07, 'square', larga ? 0.09 : 0.07);
     // el total suena con su quinta arriba: cierra la cuenta
