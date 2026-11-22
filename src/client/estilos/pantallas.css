@@ -4998,3 +4998,70 @@ main.fogon.forjando [data-accion='seguir'] {
     animation: none;
   }
 }
+
+/* ───────────── 0.28 · «HAY MÁS ↓» va sobre un pie esfumado, nunca encima de una frase ─────────────
+   la flecha lleva debajo su propia franja: el texto que queda bajo ella se funde a negro antes de llegar al rótulo */
+@media (max-width: 700px) {
+  .velo.hay-mas:has(.oferta) {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .velo.hay-mas .oferta-hay-mas::before {
+    content: '';
+    position: absolute;
+    left: -100vw;
+    right: -100vw;
+    bottom: -8px;
+    height: 76px;
+    z-index: -1;
+    background: linear-gradient(rgba(9, 7, 15, 0), #09070f 52%);
+    pointer-events: none;
+  }
+  .fin-escena.hay-mas .fin-cuadro {
+    -webkit-mask-image: linear-gradient(#000 calc(100% - 78px), transparent calc(100% - 30px));
+    mask-image: linear-gradient(#000 calc(100% - 78px), transparent calc(100% - 30px));
+  }
+}
+
+/* ───────────── 0.28 · La Pulpería: la tarjeta que EVOLUCIONA entra en su bandeja ─────────────
+   fuera del teléfono, el Amuleto que despierta una Evolución toma más ancho y parte en dos columnas: a la izquierda la
+   pieza (icono, rareza, nombre, regla y precio, como sus vecinas) y a la derecha lo que despierta (su sello, quién, qué
+   gana y su maldición). La tarjeta mide lo mismo de alto que las otras: nada desborda ni empuja los Servicios */
+@media (min-width: 701px) {
+  .pulperia .venta:not(.hierro):has(.sinergia-caja.evoluciona) {
+    flex: 1.9 1 0;
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.2fr);
+    column-gap: calc(var(--u) * 1.25);
+  }
+  .pulperia .venta:not(.hierro):has(.sinergia-caja.evoluciona) > * {
+    grid-column: 1 / 3;
+  }
+  .pulperia .venta:not(.hierro):has(.sinergia-caja.evoluciona) > .op-icono {
+    grid-column: 1;
+  }
+  .pulperia .venta:not(.hierro):has(.sinergia-caja.evoluciona) > .op-clase {
+    grid-column: 2;
+  }
+  .pulperia .venta:not(.hierro):has(.sinergia-caja.evoluciona) > .op-sinergia {
+    grid-column: 3;
+    grid-row: 1 / -1;
+    align-self: center;
+    justify-self: stretch;
+    margin: 0;
+  }
+  .pulperia .venta:not(.hierro):has(.sinergia-caja.evoluciona) .sinergia-caja {
+    width: 100%;
+  }
+}
+@media (min-width: 701px) {
+  .pulperia .venta:not(.hierro):has(.sinergia-caja.evoluciona) {
+    flex: 2.3 1 0;
+    grid-template-columns: auto minmax(0, 0.75fr) minmax(0, 1.5fr);
+  }
+  .pulperia .venta:not(.hierro):has(.sinergia-caja.evoluciona) .sinergia-caja {
+    gap: 2px;
+  }
+  .pulperia .venta:not(.hierro):has(.sinergia-caja.evoluciona) .sinergia-caja .micro {
+    line-height: 1.15;
+  }
+}

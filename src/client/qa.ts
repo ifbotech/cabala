@@ -42,6 +42,7 @@ export const ESTADOS = [
   'mesa-dejalo-justo', 'resumen-derrota-movil', 'forja-brava-eleccion',
   'mesa-pega-todo', 'mesa-maldicion', 'mesa-garrote', 'mesa-limpia',
   'mesa-sol', 'mesa-chinchon', 'mesa-chancho',
+  'pulperia-evoluciona',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
 /** Estados que solo tienen sentido en vivo (`&vivo`, para las secuencias del Jurado): no entran en la QA visual. */
@@ -332,6 +333,17 @@ export function montarQa(estado: string): void {
     case 'pulperia':
       montar(partida(mazo, (p) => p.fase === 'pulperia', 'QA', undefined, 'pulperia'));
       break;
+    case 'pulperia-evoluciona': {
+      // (0.28) el mostrador con la tarjeta más alta que puede traer: un Amuleto que EVOLUCIONA (el Cofre con tu don de
+      // Oros: «★ EVOLUCIONA · SOL DE LA TIMBA…» y su maldición) al lado de otro con ★ SINERGIA
+      const p = partida(mazo, (x) => x.fase === 'pulperia', 'QA', undefined, 'pulperia');
+      darDon(p, 'D');
+      p.amuletos = p.amuletos.filter((a) => a !== 'cofre');
+      const venta = p.tienda?.amuletos;
+      if (venta?.length) venta[Math.min(1, venta.length - 1)].id = 'cofre';
+      montar(p);
+      break;
+    }
     case 'pulperia-chiches': {
       // el mostrador con un Chiche ya vendido y la bandeja con dos de tres: el que queda se puede llevar
       const p = partida(mazo, (x) => x.fase === 'pulperia', 'QA', undefined, 'pulperia');
