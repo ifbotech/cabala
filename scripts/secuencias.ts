@@ -25,6 +25,8 @@ interface Q {
   aVida: number;
   contra: number | null;
   jugada: string;
+  perfora?: boolean;
+  sobra?: number;
 }
 type G = {
   __cabala: {
@@ -145,27 +147,52 @@ await conServidor(5198, async (url) => {
       await p.waitForTimeout(500);
       await rafaga('rey-irrumpe', 12, 230);
 
-      // 2 · la segunda cara: un golpe que lo deja a media Vida (sin matarlo); el naipe se da vuelta y cae el cartel
-      await mesa('mesa-rey');
+      // 2 · la segunda cara (0.25: filmada de verdad): la Corte reducida a un naipe con 1 de Vida y el Rey detrás, EN SU
+      // PRIMERA CARA; un golpe con Espadas abate al de adelante y lo que Perfora le sobra entra al Rey, que se planta en
+      // la mitad («SE PLANTA · N SE PIERDEN»), se da vuelta y cae el cartel de su segunda cara
+      await mesa('rey-abre');
       await p.waitForTimeout(500);
-      await p.evaluate(() => {
+      const planta = await p.evaluate(() => {
         const g = window as unknown as G;
         const x = g.__cabala.sesion.partida;
-        const e = x.combate.fila[0];
-        e.escudo = 0;
-        const candidatos = [g.__cabala.mejorGolpe(x)?.ids ?? [], ...x.combate.mano.map((k) => [k.id])];
+        const fila = x.combate.fila;
+        const rey = fila[fila.length - 1];
+        if (!rey?.jefe) return 'no hay Rey al fondo de la fila';
+        if (fila.length > 2) fila.splice(1, fila.length - 2);
+        if (fila.length < 2) return 'el Rey ya está en la mesa';
+        rey.segunda = false;
+        rey.escudo = 0;
+        fila[0].escudo = 0;
+        fila[0].vida = 1;
+        // (Perfora es de Espadas: ni el de adelante ni el Rey pueden ser Inmunes a Espadas —el Caudillo lo es: hace de
+        // Rey de Bastos—, y la mano lleva por lo menos una)
+        if (fila[0].palo === 'S') fila[0].palo = 'D';
+        if (rey.palo === 'S') rey.palo = 'C';
+        rey.vida = rey.vidaMax;
+        const mano = x.combate.mano;
+        if (!mano.some((k) => k.palo === 'S')) {
+          const k = mano.find((c) => c.palo !== 'X');
+          if (k) k.palo = 'S';
+        }
+        g.__mesa.sincronizar();
+        const candidatos = [g.__cabala.mejorGolpe(x)?.ids ?? [], ...mano.filter((k) => k.palo === 'S').map((k) => [k.id])];
         const ids = candidatos.find((c) => {
+          if (!c.length) return false;
           const q = g.__mesa.cuenta(c);
-          return c.length && q.ok && q.aVida > 0 && q.aVida < e.vidaMax - 1;
+          return q.ok && !!q.perfora && (q.sobra ?? 0) > 1;
         });
-        if (!ids) return;
-        const a = g.__mesa.cuenta(ids).aVida;
-        e.vida = Math.min(e.vidaMax, a * 2 < e.vidaMax ? Math.floor(e.vidaMax / 2 + a / 2) : a + 1);
+        if (!ids) return 'sin un golpe que perfore';
+        const q = g.__mesa.cuenta(ids);
+        // lo que sobra cruza la mitad del Rey: se planta ahí
+        rey.vida = Math.min(rey.vidaMax, Math.floor(rey.vidaMax / 2) + Math.max(1, Math.floor((q.sobra ?? 0) / 2)));
         g.__mesa.sincronizar();
         g.__mesa.golpear(ids);
+        return true;
       });
+      if (planta !== true) fallos.push(`${w} · rey-segunda: ${planta}`);
       await p.waitForTimeout(250);
-      await rafaga('rey-segunda', 12, 170);
+      // (el golpe, la caída del de adelante, la entrada del Rey con su cartel y recién ahí lo que Perfora le sobra: ~5 s)
+      await rafaga('rey-segunda', 24, 210);
 
       // 3 · el Tajo de revés: repetir la jugada contra el Caudillo en segunda cara. Primero el aviso antes de soltar
       // (el chip rojo junto a TE PEGA y el ×2 del Rey), después el golpe que vuelve doble y atraviesa el Escudo. La
