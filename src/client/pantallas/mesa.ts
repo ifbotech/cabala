@@ -16,7 +16,7 @@ import { ver } from '../../rules/perfil';
 import { REY_DEF } from '../../rules/reyes';
 import { acomodoExacto, mejorAcomodo } from '../../rules/bot';
 import { CHICHE, huecosChiche, type ChicheId } from '../../rules/chiches';
-import { EVOLUCION, type EvolucionDe } from '../../rules/evoluciones';
+import { EVOLUCION, evoluciono, type EvolucionDe } from '../../rules/evoluciones';
 import { ajustes, alAzar, guardarPerfil, idioma, perfil, t, tx } from '../almacen';
 import { agacharMusica, nota, sonar, vozBufon } from '../audio';
 import { estadoMusica, ponerFuego, ponerMusica } from '../musica';
@@ -92,6 +92,8 @@ export function mascaraHtml(palo: Palo): string {
 
 /** Las partidas (por su semilla) en las que el Bufón ya presentó DEJALO JUSTO. */
 const dialPresentado = new Set<string>();
+/** (0.25) Las partidas en las que el Bufón ya dijo lo de Mesa limpia. */
+const mesaLimpiaVista = new Set<string>();
 
 export function pantallaMesa(p: Partida): Pantalla {
   const c = () => p.combate!;
@@ -116,7 +118,9 @@ export function pantallaMesa(p: Partida): Pantalla {
    */
   const nacerEnDueno = (r: DOMRect, txt: string, esc: number): number => {
     const h = medidaNumero(txt, esc).h;
-    return innerWidth <= 700 ? r.top + Math.max(2, (r.height - h) / 2) : r.top - h - 12;
+    // (0.25) en el teléfono, montado en el canto de arriba de su caja: separado de la cifra que explica (adentro se leía
+    // «48 33/81» como un solo número) y casi sin pisar la barra del pulgar
+    return innerWidth <= 700 ? r.top - Math.round(h * 0.6) : r.top - h - 12;
   };
   /** En qué Posta del paño va cada carta de `sel` (mismo orden). */
   const postasDeSel = (sel: readonly Carta[]): number[] | undefined => (mano ? sel.map((k) => mano!.postaDe(k.id)) : undefined);
@@ -162,6 +166,25 @@ export function pantallaMesa(p: Partida): Pantalla {
     if (dialPresentado.has(p.semilla)) return;
     dialPresentado.add(p.semilla);
     decir(t('bufonDial'), 'brillo', 5200);
+  }
+  /**
+   * (0.25) Mesa limpia: en el primer tramo la Escoba arranca cada combate con Escudo. Mientras dure el primer turno, la
+   * caja del ESCUDO lleva su rótulo «MESA LIMPIA»; la primera vez en la partida, el Bufón lo dice.
+   */
+  const escudoLimpio = (): number => (p.acto === 0 ? ((B.mazos[p.mazoId] as { mesaLimpia?: number }).mesaLimpia ?? 0) : 0);
+  let mesaLimpiaDicha = false;
+  function ponerMesaLimpia(): void {
+    const e = escudoLimpio();
+    const caja = $('[data-hud-escudo]');
+    const ya = caja?.querySelector('.hud-limpia');
+    const va = e > 0 && !!p.combate && c().turno === 1 && c().golpes === 0;
+    if (!va) return void ya?.remove();
+    if (caja && !ya) caja.insertAdjacentHTML('beforeend', `<b class="hud-limpia" ${tip(t('mesaLimpia'), t('mesaLimpiaTip', { e }))}>${esc(t('mesaLimpia'))}</b>`);
+    if (!mesaLimpiaVista.has(p.semilla) && !ensena) {
+      mesaLimpiaVista.add(p.semilla);
+      mesaLimpiaDicha = true;
+      decir(t('bufonMesaLimpia', { e }), 'brillo', 4600);
+    }
   }
 
   // ───────────── pintar ─────────────
@@ -493,7 +516,19 @@ export function pantallaMesa(p: Partida): Pantalla {
     // lo que dan los palos, cada cosa con su nombre: «CURA ♥ +15», «ESCUDO +4», «ORO +2»
     const efecto = (rotulo: string, icono: Parameters<typeof pxHud>[0], n: number, tono: 'azul' | 'verde' | 'oro'): string =>
       `<span class="chip c-efecto ef-${icono}"><b class="c-ef-rot">${rotulo}</b>${pxHud(icono)}${cifra(`+${n}`, tono)}</span>`;
-    const efectos = `${q.escudo ? efecto(t('escudo'), 'escudo', q.escudo, 'azul') : ''}${q.cura ? efecto(t('cura'), 'vida', q.cura, 'verde') : ''}${q.oro ? efecto(t('oro'), 'oro', q.oro, 'oro') : ''}`;
+    // (0.25) con el Garrote del Cacique, las Copas dan Escudo: el chip del Escudo lo dice («Copas → Escudo»)
+    const copasEscudo = evoluciono(p, 'poncho') && q.ef.some((k) => k.palo === 'H');
+    const escudoChip = q.escudo
+      ? copasEscudo
+        ? `<span class="chip c-efecto ef-escudo c-garrote" ${tip(t('copasEscudo'), t('copasEscudoTip'))}>${pxEvolucion('poncho', 'd-i')}<b class="c-ef-rot">${t('copasEscudo')}</b>${pxHud('escudo')}${cifra(`+${q.escudo}`, 'azul')}</span>`
+        : efecto(t('escudo'), 'escudo', q.escudo, 'azul')
+      : '';
+    const efectos = `${escudoChip}${q.cura ? efecto(t('cura'), 'vida', q.cura, 'verde') : ''}${q.oro ? efecto(t('oro'), 'oro', q.oro, 'oro') : ''}`;
+    // (0.25) la maldición de una Evolución avisa antes de golpear: «−N de Vida», con el ícono de la que cobra
+    const malditas = (['lanza', 'caliz'] as const).filter((de) => evoluciono(p, de) && (de === 'caliz' || (!q.abate && !q.ejecuta)));
+    const maldicionChip = q.maldicion
+      ? `<span class="chip c-maldicion" ${tip(t('maldicion'), malditas.map((de) => t('maldicionTip', { d: `${tx(EVOLUCION[de].nombre)}` })).join('\n'), malditas.map((de) => tx(EVOLUCION[de].desc)).join('\n'))}>${malditas.map((de) => pxEvolucion(de, 'd-i')).join('')}<b class="c-mal-n">${esc(t('maldicionVida', { n: q.maldicion }))}</b></span>`
+      : '';
     return `<div class="cuenta previa ${q.abate || q.ejecuta ? 'abate' : ''}" ${tip(`${tx(JUGADA_NOMBRE[q.jugada])}: ${t('dano')} × ${t('multi')}`, d, m)}>
       <span class="c-formula">
         <span class="chip c-jugada">${esc(tx(JUGADA_NOMBRE[q.jugada]))}</span>
@@ -508,7 +543,7 @@ export function pantallaMesa(p: Partida): Pantalla {
         </span>
         ${efectos ? `<span class="c-efectos">${efectos}</span>` : ''}
       </span>
-      <span class="c-chips">${veredicto}${q.canto ? `<span class="chip canto c-canto">${esc(tx(MAZO[p.mazoId].canto))}</span>` : ''}${q.perfora && enemigo && enemigo.escudo > 0 ? `<span class="chip azul">${t('perfora')}</span>` : ''}${destino}</span>
+      <span class="c-chips">${veredicto}${q.canto ? `<span class="chip canto c-canto">${esc(tx(MAZO[p.mazoId].canto))}</span>` : ''}${q.perfora && enemigo && enemigo.escudo > 0 ? `<span class="chip azul">${t('perfora')}</span>` : ''}${destino}${maldicionChip}</span>
       ${desglose}
       ${dialEnCuenta ? `<span class="c-dial-fila">${dialEnCuenta}</span>` : ''}
     </div>`;
@@ -721,6 +756,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     mano?.poner(c().mano);
     pintarCuenta();
     actualizarTiras(p);
+    ponerMesaLimpia();
   }
 
   // ───────────── animar los sucesos de una acción ─────────────
@@ -1040,6 +1076,27 @@ export function pantallaMesa(p: Partida): Pantalla {
           }
           break;
         }
+        // (0.25) la maldición de una Evolución cobra, como el Doble Filo: el «−N» nace en su caja del HUD (Vida u oro) con
+        // el ícono de la Evolución que lo cobra, la ficha brinca en la bandeja y suena seco
+        case 'maldicion': {
+          if (ev.n <= 0) break;
+          const deOro = ev.de === 'cofre';
+          const caja = $(deOro ? '[data-hud-oro]' : '[data-hud-vida]')?.getBoundingClientRect();
+          if (deOro) hud.oro = Math.max(0, hud.oro - ev.n);
+          else hud.vida = Math.max(1, hud.vida - ev.n);
+          ponerHud(hud);
+          dispararFicha(`a:${ev.de}`);
+          sonar('maldicion');
+          if (caja) {
+            const txt = `-${ev.n}`;
+            const y = nacerEnDueno(caja, txt, 1);
+            numero(txt, caja.left + caja.width / 2, y, deOro ? 'oro' : 'roja', 1, { ancla: { caja: { x: caja.left, y: caja.top, w: caja.width, h: caja.height }, max: 40, que: deOro ? 'tu ORO' : 'tu VIDA' } });
+            selloMaldicion(ev.de, caja, y);
+          }
+          if (!deOro) gestoRetrato('mueca', 700);
+          await pausa(quieto() ? 0 : 220);
+          break;
+        }
         case 'baraja':
           hud.mazo = c().mazo.length + (evs.filter((x) => x.t === 'roba').length ? 0 : 0);
           ponerHud(hud);
@@ -1125,6 +1182,22 @@ export function pantallaMesa(p: Partida): Pantalla {
     if (!quieto()) ubicar(s, 'sello', 1000, [0, -0.3, 0.3].map((f) => () => void (s.style.top = `${Math.round(en.y + f * alto)}px`)));
     window.setTimeout(() => s.remove(), quieto() ? 1400 : 1000);
     await pausa(380);
+  }
+  /**
+   * (0.25) El ícono de la Evolución que cobra su maldición, junto al «−N» que nace en la caja del HUD (a su izquierda,
+   * a la altura del número): dice de dónde sale el costo. Se va solo en un segundo.
+   */
+  function selloMaldicion(de: EvolucionDe, caja: DOMRect, y: number): void {
+    if (enFoto()) return;
+    const s = document.createElement('span');
+    s.className = 'sello-maldicion';
+    s.setAttribute('aria-hidden', 'true');
+    s.innerHTML = pxEvolucion(de);
+    $('#capa')?.append(s);
+    const w = s.offsetWidth || 32;
+    s.style.left = `${Math.round(Math.max(4, caja.left + caja.width / 2 - w - 26))}px`;
+    s.style.top = `${Math.round(y)}px`;
+    if (!enFoto()) window.setTimeout(() => s.remove(), quieto() ? 1400 : 1100);
   }
   /** La entrada del combate: el rótulo de lo que viene (o el Rey en persona). */
   async function entrada(): Promise<void> {
@@ -2126,6 +2199,7 @@ export function pantallaMesa(p: Partida): Pantalla {
         mano?.poner(c().mano, nuevo ? centro($('[data-accion="ver-mazo"]', raiz)) : undefined);
         pintarCuenta();
         ensenar();
+        ponerMesaLimpia();
         // con mando o teclado, el foco va a la mano (y no al primer botón de la cabecera)
         if (porTeclado() && !document.activeElement?.closest('.mano')) $<HTMLElement>('.mano .carta', raiz)?.focus();
       };
@@ -2134,12 +2208,12 @@ export function pantallaMesa(p: Partida): Pantalla {
         void entrada().then(() => {
           ocupado = false;
           repartir();
-          if (!ensena) voz(tipo === 'rey' ? VOZ.entraRey : VOZ.entra, 'reposo');
+          if (!ensena && !mesaLimpiaDicha) voz(tipo === 'rey' ? VOZ.entraRey : VOZ.entra, 'reposo');
           if (tipo === 'rey' && c().fila[0]?.jefe) gritar(p.mazoId, tx(GRITO[p.mazoId].rey));
         });
       } else {
         repartir();
-        if (enFoto() && !ensena) voz(tipo === 'rey' ? VOZ.entraRey : VOZ.entra, 'reposo');
+        if (enFoto() && !ensena && !mesaLimpiaDicha) voz(tipo === 'rey' ? VOZ.entraRey : VOZ.entra, 'reposo');
       }
       // para la QA y las pruebas: la mesa viva
       (window as unknown as { __mesa?: unknown }).__mesa = {

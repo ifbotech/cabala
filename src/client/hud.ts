@@ -129,10 +129,13 @@ export function hudHtml(p: Partida, v: VistaHud = vistaDe(p)): string {
  */
 function tirasTip(p: Partida): string {
   const evos = evoluciones(p).map((de) => `★ ${tx(EVOLUCION[de].nombre)}: ${tx(EVOLUCION[de].desc)}`);
-  const cargas = PALOS.filter((s) => sirveA(p, s)).map((s) => cargaQue(p, s));
+  // (0.25) corta: las cargas en 0 no ocupan renglón y, con una Evolución, el glosario de la bandeja se va (lo dice «LO
+  // QUE LLEVÁS» al abrirla)
+  // (con una Evolución, las cargas ya se leen en la bandeja misma, «FILO 4»: la ayuda no las repite)
+  const cargas = evos.length ? [] : PALOS.filter((s) => sirveA(p, s) && carga(p, s) > 0).map((s) => cargaQue(p, s));
   // (cada Evolución en su renglón, arriba de las cargas: el cuerpo de la ayuda corre de corrido)
   // (0.24: con el mando dice «A para leerlas», no «Tocá»)
-  const pie = (toca: string): string => [...evos.slice(1), ...(evos.length ? [t('llevasTip')] : []), ...cargas, toca].join('\n');
+  const pie = (toca: string): string => [...evos.slice(1), ...cargas, toca].join('\n');
   return `${tip(evos.length ? `★ ${t('evolucionTitulo')}` : t('llevas'), evos.length ? evos[0] : t('llevasTip'), pie(t('llevasToca')))} data-tip-pie-mando="${esc(pie(t('llevasTocaMando')))}"`;
 }
 

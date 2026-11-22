@@ -940,7 +940,9 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       const libre = raiz.clientWidth - 4 - der;
       dialEl.style.maxWidth = `${Math.max(0, libre)}px`;
       dialAlto = dialEl.offsetHeight;
-      const entra = libre >= 180 && dialEl.scrollWidth <= libre && dialAlto <= lp.hv + lp.subida;
+      // (0.25: y el botón mismo no se corta por dentro)
+      const b = dialEl.firstElementChild as HTMLElement | null;
+      const entra = libre >= 180 && dialEl.scrollWidth <= libre && (!b || b.scrollWidth <= b.clientWidth + 1) && dialAlto <= lp.hv + lp.subida;
       if (!entra) {
         dialEl.hidden = true;
         dialEl.innerHTML = '';

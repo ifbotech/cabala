@@ -40,7 +40,7 @@ export const ESTADOS = [
   'evolucion-jackpot', 'hud-evolucion', 'oferta-evoluciona', 'forja-brava', 'cabala-negra', 'mapa-tesoro', 'botin-tesoro',
   'altar-devolver', 'resumen-victoria', 'resumen-derrota', 'mesa-exacto', 'fogon-mutaciones', 'hud-evolucion-foco',
   'mesa-dejalo-justo', 'resumen-derrota-movil', 'forja-brava-eleccion',
-  'mesa-pega-todo',
+  'mesa-pega-todo', 'mesa-maldicion', 'mesa-garrote', 'mesa-limpia',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
 /** Estados que solo tienen sentido en vivo (`&vivo`, para las secuencias del Jurado): no entran en la QA visual. */
@@ -412,6 +412,33 @@ export function montarQa(estado: string): void {
       if (estado === 'mesa-pega-todo') $<HTMLElement>('[data-accion="dial"]')?.click();
       break;
     }
+    case 'mesa-maldicion':
+    case 'mesa-garrote': {
+      // (0.25) la maldición a la vista antes de golpear: con el Facón Maldito, un golpe que no abate avisa «−3 de Vida»;
+      // con el Garrote del Cacique, las Copas elegidas dan Escudo («Copas → Escudo»)
+      const p = partida(mazo, (x) => enCombate(x));
+      const de = estado === 'mesa-maldicion' ? 'lanza' : 'poncho';
+      darAmuleto(p, de);
+      darDon(p, de === 'lanza' ? 'S' : 'C');
+      const c = p.combate!;
+      // (es una foto de QA: si la mano no trae una Copa, la primera carta lo es)
+      if (de === 'poncho' && !c.mano.some((k) => k.palo === 'H')) c.mano[0] = { ...c.mano[0], palo: 'H' };
+      const sola = c.mano
+        .filter((k) => k.palo !== 'X' && (de === 'lanza' || k.palo === 'H'))
+        .map((k) => [k])
+        .find((sel) => {
+          const q = cuenta(p, sel);
+          return q.ok && !q.abate && !q.ejecuta;
+        });
+      montar(p);
+      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
+      if (sola && mesa) mesa.mano.elegir(sola.map((k) => k.id));
+      break;
+    }
+    case 'mesa-limpia':
+      // (0.25) la Escoba en el primer tramo arranca con Escudo: el rótulo MESA LIMPIA sobre su caja y el Bufón que lo dice
+      montar(partida('escoba', (p) => p.acto === 0 && enCombate(p, 0)));
+      break;
     case 'fogon':
       montar(partida(mazo, (p) => p.fase === 'fogon', 'QA', undefined, 'fogon'));
       break;

@@ -96,6 +96,8 @@ const SONIDO = {
   mascara: [[180, 0.05, 'square', 0.2, 90], [1175, 0.04, 'square', 0.1], [988, 0.04, 'square', 0.1], [1319, 0.09, 'triangle', 0.14]],
   // el naipe del Rey que se raja antes de partirse: un crujido seco y corto
   grieta: [[420, 0.03, 'sawtooth', 0.12, 180], [95, 0.06, 'square', 0.14, 50]],
+  // (0.25) la maldición de una Evolución cobra: un golpe seco y hondo y una nota agria que se cae
+  maldicion: [[82, 0.05, 'square', 0.24, 41], [622, 0.05, 'square', 0.1, 466], [233, 0.14, 'sawtooth', 0.12, 110]],
   // el total de la cuenta que se revela: un sello hondo y el acorde que lo corona
   revela: [[98, 0.09, 'square', 0.24, 49], [523, 0.06, 'square', 0.12], [784, 0.08, 'square', 0.12], [1047, 0.22, 'triangle', 0.16]],
   // el Crítico que estalla en su término del MULTI: un hachazo seco y dos notas de oro que suben

@@ -36,6 +36,21 @@ export const $ = <T extends HTMLElement = HTMLElement>(sel: string, raiz: Parent
 export const $$ = <T extends HTMLElement = HTMLElement>(sel: string, raiz: ParentNode = document): T[] => [...raiz.querySelectorAll<T>(sel)];
 export const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+/**
+ * (0.25) El texto de una Evolución con su maldición a la vista como costo: lo que sigue a «MALDICIÓN:» («CURSE:») va
+ * con su rótulo y su color propios (`.maldicion-txt`), en cada renglón. Devuelve HTML ya escapado.
+ */
+export const conMaldicion = (s: string): string =>
+  s
+    .split('\n')
+    .map((linea) => {
+      const m = /(MALDICIÓN|CURSE):\s*/.exec(linea);
+      if (!m) return esc(linea);
+      const antes = linea.slice(0, m.index).trimEnd();
+      return `${antes ? `${esc(antes)} ` : ''}<span class="maldicion-txt"><b class="maldicion-rot">${esc(m[1])}</b> ${esc(linea.slice(m.index + m[0].length))}</span>`;
+    })
+    .join('\n');
+
 let actual: Pantalla | null = null;
 let modal: { acciones: Record<string, Accion>; atras?: () => void } | null = null;
 
@@ -189,7 +204,7 @@ function mostrarTip(el: HTMLElement): void {
   tipEl = document.createElement('div');
   tipEl.className = 'tip';
   tipEl.setAttribute('role', 'tooltip');
-  tipEl.innerHTML = `${titulo ? `<b>${esc(titulo)}</b>` : ''}${cuerpo ? `<span>${esc(cuerpo)}</span>` : ''}${pie ? `<span class="apagado">${esc(pie)}</span>` : ''}${el.dataset.tipPalos ? `<span class="tip-palos">${[...el.dataset.tipPalos].map((s) => pxInmune(s as Palo)).join('')}</span>` : ''}`;
+  tipEl.innerHTML = `${titulo ? `<b>${esc(titulo)}</b>` : ''}${cuerpo ? `<span>${conMaldicion(cuerpo)}</span>` : ''}${pie ? `<span class="apagado">${conMaldicion(pie)}</span>` : ''}${el.dataset.tipPalos ? `<span class="tip-palos">${[...el.dataset.tipPalos].map((s) => pxInmune(s as Palo)).join('')}</span>` : ''}`;
   document.body.append(tipEl);
   tipAncla = el;
   el.setAttribute('data-tip-abierto', '');
@@ -199,9 +214,10 @@ function mostrarTip(el: HTMLElement): void {
 }
 /**
  * (0.24) Lo que una ayuda nunca tapa: los botones que se pueden pulsar, los títulos y las cifras del HUD (salvo los de
- * la propia pieza que se inspecciona).
+ * la propia pieza que se inspecciona). (0.25) Y en la mesa, al enemigo: su naipe, su barra de Vida, su TE PEGA, y la
+ * cuenta abierta del golpe.
  */
-export const TAPA_NUNCA = 'button, .titulo, .hud [data-n]';
+export const TAPA_NUNCA = 'button, .titulo, .hud [data-n], .mesa [data-ataque], .mesa .e-barras, .mesa [data-carta], .mesa [data-cuenta] .cuenta:not(.reposo)';
 function obstaculos(ancla: HTMLElement): DOMRect[] {
   // (y la pieza misma: la ayuda no tapa lo que se está mirando)
   const out: DOMRect[] = [ancla.getBoundingClientRect()];
@@ -209,6 +225,9 @@ function obstaculos(ancla: HTMLElement): DOMRect[] {
     // (lo que quedó atrás en el Mapa —recorrido, salteado, ESTÁS ACÁ— no se toca más: la ayuda puede pasarle por encima
     // antes que tapar el camino que sigue)
     if (o === ancla || o.contains(ancla) || ancla.contains(o) || o.closest('.tip, .calienta') || o.matches('.nodo.hecho, .nodo.pasado, .nodo.actual')) continue;
+    // (en el teléfono no hay otro lugar libre que el naipe del enemigo: la ayuda larga puede ir sobre él, nunca sobre su
+    // TE PEGA, su barra, la cuenta ni la mano)
+    if (innerWidth <= 700 && o.matches('[data-carta]')) continue;
     const r = o.getBoundingClientRect();
     if (r.width < 2 || r.height < 2 || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) continue;
     const s = getComputedStyle(o);
@@ -424,7 +443,7 @@ export function sinergiaHtml(tipo: TipoOferta, id: string, p?: Partida): string 
   if (de) {
     const nombre = tx(EVOLUCION[de].nombre);
     const por = tipo === 'amuleto' ? t('evolucionCon', { p: tx(PALO_NOMBRE[EVOLUCION[de].palo]) }) : t('evolucionConAmuleto', { a: tx(AMULETO[de].nombre) });
-    return `<span class="sinergia-caja evoluciona" ${tip(`${t('evolucionTitulo')}: ${nombre}`, tx(EVOLUCION[de].desc), t('evolucionaTip', { e: nombre }))}><span class="chip sello-evo">${pxEstrella()} ${t('evoluciona')}</span><span class="micro evo-quien">${pxEvolucion(de, 'evo-mini')}<span><b>${esc(nombre)}</b> <span class="evo-por">${esc(por)}</span></span></span><span class="micro evo-gana">${esc(tx(EVOLUCION[de].desc))}</span></span>`;
+    return `<span class="sinergia-caja evoluciona" ${tip(`${t('evolucionTitulo')}: ${nombre}`, tx(EVOLUCION[de].desc), t('evolucionaTip', { e: nombre }))}><span class="chip sello-evo">${pxEstrella()} ${t('evoluciona')}</span><span class="micro evo-quien">${pxEvolucion(de, 'evo-mini')}<span><b>${esc(nombre)}</b> <span class="evo-por">${esc(por)}</span></span></span><span class="micro evo-gana">${conMaldicion(tx(EVOLUCION[de].desc))}</span></span>`;
   }
   const s = p ? sinergia(p, tipo, id) : null;
   // (la carga de Copas se llama TRAGO en la interfaz: la nota del motor dice «Suma a Brindis»)

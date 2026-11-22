@@ -327,7 +327,9 @@ function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[
   for (const t of [...document.querySelectorAll('.tip')].filter(visible)) {
     const T = t.getBoundingClientRect();
     const ancla = document.querySelector('[data-tip-abierto]');
-    for (const o of [...document.querySelectorAll('#app button:not(.nodo.hecho, .nodo.pasado, .nodo.actual), #capa button, #app .titulo, #capa .titulo, #app .hud [data-n]')].filter(visible)) {
+    // (0.25: y en la mesa, lo del enemigo —su TE PEGA, su barra y, fuera del teléfono, su naipe— y la cuenta abierta)
+    const enemigo = `, #app .mesa [data-ataque], #app .mesa .e-barras, #app .mesa [data-cuenta] .cuenta:not(.reposo)${W > 700 ? ', #app .mesa [data-carta]' : ''}`;
+    for (const o of [...document.querySelectorAll(`#app button:not(.nodo.hecho, .nodo.pasado, .nodo.actual), #capa button, #app .titulo, #capa .titulo, #app .hud [data-n]${enemigo}`)].filter(visible)) {
       if (ancla && (o === ancla || o.contains(ancla) || ancla.contains(o))) continue;
       const O = o.getBoundingClientRect();
       if (Math.min(T.right, O.right) - Math.max(T.left, O.left) > 2 && Math.min(T.bottom, O.bottom) - Math.max(T.top, O.top) > 2) {

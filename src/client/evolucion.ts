@@ -13,7 +13,7 @@ import { RAMPA_PALO, chispas, destello } from './fx/efectos';
 import { enFoto } from './fx/motor';
 import { quieto } from './ritmo';
 import { pxAmuleto, pxEvolucion } from './sprites';
-import { $, esc } from './ui';
+import { $, conMaldicion, esc } from './ui';
 import { VOZ } from './voces';
 
 /** Cuánto dura el jackpot si nadie lo corta. */
@@ -33,7 +33,7 @@ export function jackpotHtml(de: EvolucionDe): string {
         <span class="evo-icono">${pxEvolucion(de)}</span>
       </div>
       <b class="evo-nombre">${esc(tx(ev.nombre))}</b>
-      <span class="evo-desc">${esc(tx(ev.desc))}</span>
+      <span class="evo-desc">${conMaldicion(tx(ev.desc))}</span>
     </div>
   </div>`;
 }

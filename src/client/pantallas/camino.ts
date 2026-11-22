@@ -37,7 +37,7 @@ import { resumenDe, type ResumenPartida } from '../../rules/resumen';
 import { VOZ } from '../voces';
 import { bufonDice } from '../bufon-vivo';
 import { glifo } from '../nav';
-import { $, abrirModal, anfitrion, bufonHtml, cerrarModal, esc, fichaDe, irASalida, repintar, reyHtml, sinergiaHtml, tip, type Accion, type Pantalla } from '../ui';
+import { $, abrirModal, anfitrion, bufonHtml, cerrarModal, conMaldicion, esc, fichaDe, irASalida, repintar, reyHtml, sinergiaHtml, tip, type Accion, type Pantalla } from '../ui';
 
 const fijo = (): number | undefined => (enFoto() ? 0 : undefined);
 const expresionDe = (p: Partida): Expresion => (p.afinidad <= -2 ? 'sombria' : p.afinidad >= 2 ? 'brillo' : 'reposo');
@@ -75,7 +75,7 @@ export function modalMazo(p: Partida, titulo: string, elegir?: (id: string) => v
 /** «LO QUE LLEVÁS»: cada Amuleto, Cábala, carga y Bendición con su texto entero (la tira del HUD es su resumen). */
 export function modalPiezas(p: Partida): void {
   const fila = (icono: string, nombre: string, clase: string, desc: string, marco = ''): string =>
-    `<li class="pieza-fila" tabindex="0"><span class="pieza-icono${marco ? ` marco ${marco}` : ''}">${icono}</span><div class="pieza-texto"><b>${esc(nombre)}</b><span class="sub">${esc(clase)}</span><p>${esc(desc)}</p></div></li>`;
+    `<li class="pieza-fila" tabindex="0"><span class="pieza-icono${marco ? ` marco ${marco}` : ''}">${icono}</span><div class="pieza-texto"><b>${esc(nombre)}</b><span class="sub">${esc(clase)}</span><p>${conMaldicion(desc)}</p></div></li>`;
   const vacio = `<li class="pieza-fila vacia"><p class="sub">${t('nada')}</p></li>`;
   // (0.23) el Amuleto que evolucionó se lee como lo que es ahora: su forma despierta, su nombre y su regla nueva
   const amuletos = p.amuletos.map((id) =>
