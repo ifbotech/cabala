@@ -139,6 +139,8 @@ export interface Stats {
   mejorGolpe: number;
   turnos: number;
   danoRecibido: number;
+  /** Golpes por jugada (0.23.0, para la Build Estrella). Opcional: las partidas viejas no lo traen. */
+  jugadas?: Record<string, number>;
 }
 
 export interface Partida {
@@ -201,7 +203,12 @@ export interface Partida {
   stats: Stats;
   /** Golpes exactos seguidos (de 0 al tope): cada uno sube el premio del siguiente. Se corta al abatir sin exactitud. */
   racha: number;
-  fin?: { victoria: boolean; porotos: number };
+  fin?: {
+    victoria: boolean;
+    porotos: number;
+    /** Quién te bajó (0.23.0): para «Qué te frenó». */
+    por?: { palo: Palo; rango: Rango; jefe: boolean; elite: boolean; acto: number; vida: number; vidaMax: number };
+  };
 }
 
 // ───────────────────────── ayudas ─────────────────────────

@@ -204,6 +204,8 @@ export function elegirNodo(p: Partida, id: string): Ev[] {
 function terminar(p: Partida, victoria: boolean): void {
   p.fase = 'fin';
   p.fin = { victoria, porotos: porotosDe(p, victoria) };
+  const e = p.combate?.fila[0];
+  if (!victoria && e) p.fin.por = { palo: e.palo, rango: e.rango, jefe: !!e.jefe, elite: !!e.elite, acto: p.acto, vida: e.vida, vidaMax: e.vidaMax };
   delete p.combate;
 }
 

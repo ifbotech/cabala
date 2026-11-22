@@ -690,6 +690,8 @@ export function golpear(p: Partida, ids: readonly string[], postas?: readonly nu
   p.stats.golpes++;
   p.stats.mejorGolpe = Math.max(p.stats.mejorGolpe, q.total);
   if (q.jugada === 'poker') p.stats.pokers++;
+  const js = (p.stats.jugadas ??= {});
+  js[q.jugada] = (js[q.jugada] ?? 0) + 1;
   if (engano) {
     c.enganos--;
     c.engano = false;

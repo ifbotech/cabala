@@ -15,7 +15,8 @@ import { COLUMNAS, PISOS, REGLAS_MAPA, TRAMOS, cumple, generarTramo } from '../s
 import { MAZOS } from '../src/rules/mazos';
 import type { MazoId } from '../src/rules/mazos';
 import * as juego from '../src/rules/partida';
-import { altarLleno } from '../src/rules/perfil';
+import { altarLleno, anotar, devolver, mejorar, perfilNuevo } from '../src/rules/perfil';
+import { resumenDe } from '../src/rules/resumen';
 import { BENDICION, BENDICIONES } from '../src/rules/reyes';
 import { EVOLUCION, EVOLUCIONES, despierta, evoluciono } from '../src/rules/evoluciones';
 import { CABALA } from '../src/rules/bufon';
@@ -787,5 +788,41 @@ describe('0.22.0: Evoluciones, Forja Brava, Cábala Negra y Tesoros', () => {
     const p = mesa('chinchon', [c('S', 7), c('C', 2)], { ataque: 20 }, (x) => (x.amuletos = ['doscaras']));
     const sin = mesa('chinchon', [c('S', 7), c('C', 2)], { ataque: 20 });
     expect(cuenta(p, [p.combate!.mano[0]]).contra!).toBeGreaterThan(cuenta(sin, [sin.combate!.mano[0]]).contra!);
+  });
+});
+
+describe('0.23.0: el Altar devuelve y el resumen de la partida', () => {
+  it('Devolver un nivel del Altar reintegra todo lo que costó', () => {
+    const perfil = perfilNuevo();
+    perfil.porotos = 100;
+    expect(devolver(perfil, 'vida')).toBe(false);
+    expect(mejorar(perfil, 'vida')).toBe(true);
+    expect(mejorar(perfil, 'vida')).toBe(true);
+    expect(perfil.porotos).toBeLessThan(100);
+    expect(devolver(perfil, 'vida')).toBe(true);
+    expect(devolver(perfil, 'vida')).toBe(true);
+    expect(perfil.porotos).toBe(100);
+    expect(perfil.altar.vida).toBe(0);
+  });
+  it('el resumen dice la Build Estrella, quién te frenó y el próximo récord', () => {
+    const perfil = perfilNuevo();
+    let derrotas = 0;
+    for (let i = 0; i < 12; i++) {
+      const p = juego.nuevaPartida({ mazo: 'escoba', semilla: `RESUMEN${i}` });
+      jugarEntera(p, { rng: { rng: i + 7 } });
+      const r = resumenDe(p, perfil);
+      expect(r.estrella.mejorGolpe).toBe(p.stats.mejorGolpe);
+      expect(r.estrella.amuletos.length).toBeLessThanOrEqual(3);
+      expect(r.estrella.jugada).toBeDefined();
+      if (!r.victoria) {
+        derrotas++;
+        expect(r.freno).not.toBeNull();
+        expect(r.freno!.leQuedaba).toBeGreaterThan(0);
+        expect(r.freno!.por.acto).toBe(p.acto);
+      } else expect(r.freno).toBeNull();
+      if (i === 0) expect(r.record.nuevo).toBe(true); // la primera partida siempre marca algo
+      anotar(perfil, p, i);
+    }
+    expect(derrotas).toBeGreaterThan(0);
   });
 });
