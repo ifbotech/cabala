@@ -487,6 +487,29 @@ piezas con icono de Vida máxima, grito junto al retrato; Vida máxima por Rey p
 
 **Medición.** Jurado 7,6 · 7,5 · 8,0 · 7,6. Panel 70,0 % (IC95 57–80 %); Deck 33 % (n = 9), Móvil 93 % (n = 15).
 
+## 0.27.0 · Cero P0 (publicada)
+
+**Qué se buscó.** Primer salto del mandato de obra maestra (meta nueva: Jurado ≥ 9,1 con 0 P0 y 0 P1, sin panel
+simulado, con un séptimo juez de audio): cerrar el P0 de la mano del teléfono, separar ¡CHINCHÓN! del Chancho, que el
+bot juegue el Sol, causa → efecto en los cobros y limpiar la Constitución.
+
+**Lecciones.**
+- Quinta subida seguida de los seis jurados visuales (8,6 · 8,5 · 8,5 · 8,6) y ningún P0: el de ux-móvil quedó cerrado
+  haciendo ceder la cuenta y no la mano. Quedan 3 P1: escritorio con algo apoyado (arte), cuenta plegada que calla de
+  más (móvil) y el sello SE PLANTA, que la aserción da por visto y nadie ve (deck): una aserción que mira el DOM no
+  prueba que algo se vea.
+- El juez de audio puntuó 5,1 la música vieja: sin reloj común, voces ajenas a la armonía, stingers desafinados. Baja
+  la media de los siete a 8,3 · 8,0 · 7,9 · 8,1; es la línea de base de la 0.28.
+- `corta` del Chinchón es muy sensible: de 2 a 3 de Escudo por carta sube 10 puntos de victorias; se compensó con Vida.
+- Que el bot pague los descartes del Sol sube a todos los Mazos ~2 puntos: el descarte pasó a costar 5.
+- El bot jugaba golpes de 4–5 cartas con 3 Postas (mano con cartas de más): lo cazó el humo de la interfaz, no el
+  laboratorio. Las reglas se topan en `cuenta`, no en el paño.
+- Diseño (P2): el Envido canta en casi todos los golpes del Truco (21,9 por partida), las maldiciones del Facón y el
+  Garrote cobran por lo mismo, el Golpe exacto casi no ocurre y el informe no cuenta Evoluciones ni oro en descartes.
+
+**Medición.** Jurado de siete 8,3 · 8,0 · 7,9 · 8,1 (seis visuales 8,6 · 8,5 · 8,5 · 8,6; audio 5,1). Laboratorio sin
+avisos (vacío 28,0–31,4; lleno 45,1–48,6).
+
 ## 0.26.0 · Que cambie cómo se juega (publicada)
 
 **Qué se buscó.** Que el Sol y el Brindis dejen de leerse como números y el Garrote no apague las Copas; que la Pierna
