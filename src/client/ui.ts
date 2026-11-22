@@ -219,7 +219,10 @@ function mostrarTip(el: HTMLElement): void {
  * la propia pieza que se inspecciona). (0.25) Y en la mesa, al enemigo: su naipe, su barra de Vida, su TE PEGA, y la
  * cuenta abierta del golpe.
  */
-export const TAPA_NUNCA = 'button, .titulo, .hud [data-n], .mesa [data-ataque], .mesa .e-barras, .mesa [data-carta], .mesa [data-cuenta] .cuenta:not(.reposo), .mesa .e-sellos > *, .esc-bufon .bocadillo, .mesa .e-dice';
+export const TAPA_NUNCA = 'button, .titulo, .hud [data-n], .mesa [data-ataque], .mesa .e-barras, .mesa [data-carta], .mesa [data-cuenta] .cuenta:not(.reposo), .mesa .e-sellos > *, .esc-bufon .bocadillo, .mesa .e-dice, ' +
+  // (0.28) con mando la ayuda está siempre abierta: tampoco pisa el desglose de la cuenta, el naipe de La Corte, el
+  // renglón de botones, el rótulo de la bandeja de Chiches, los naipes de la mano ni al Bufón con su globo
+  '.mesa [data-cuenta] .c-bajo, .mesa [data-cuenta] .cuenta.reposo .pista, .mesa .corte .corte-carta, .mesa [data-mano] .carta, .anfitrion .bufon, .anfitrion .bocadillo, .esc-bufon .bufon';
 function obstaculos(ancla: HTMLElement): DOMRect[] {
   // (y la pieza misma: la ayuda no tapa lo que se está mirando)
   const out: DOMRect[] = [ancla.getBoundingClientRect()];
@@ -359,13 +362,28 @@ function carrilDelMapa(el: HTMLElement, r: DOMRect): boolean {
   tipEl.style.maxWidth = `${Math.floor(Math.min(ancho, 380))}px`;
   const w = tipEl.offsetWidth;
   const h = tipEl.offsetHeight;
-  const y = Math.max(techo, Math.min(piso - h, r.top + r.height / 2 - h / 2));
+  let y = Math.max(techo, Math.min(piso - h, r.top + r.height / 2 - h / 2));
   // (0.20) al lado del nodo mismo, si ahí no tapa otro nodo ni sus escudos; si no, en el carril de al lado del mapa
   const otros = [...lienzo.querySelectorAll<HTMLElement>('.nodo')].filter((n) => n !== el).map((n) => n.getBoundingClientRect());
   const libre = (x: number): boolean =>
     x >= 8 && x + w <= innerWidth - 8 && !otros.some((o) => o.right + 4 > x && o.left - 4 < x + w && o.bottom + 30 > y && o.top - 4 < y + h);
   const pegado = [r.right + margen, r.left - margen - w].find(libre);
-  const x = pegado ?? (derecha >= izquierda ? L.right + margen : L.left - margen - w);
+  let x = pegado ?? (derecha >= izquierda ? L.right + margen : L.left - margen - w);
+  // (0.28) en su carril vive el Bufón con su globo: la ayuda va por encima de él (o, si no entra, por debajo de lo que
+  // dice), nunca sobre su cara ni sobre su frase
+  const vecinos = [...document.querySelectorAll<HTMLElement>('.pantalla .anfitrion .bufon, .pantalla .anfitrion .bocadillo:not([hidden])')].map((n) => n.getBoundingClientRect()).filter((o) => o.width > 2 && o.right > x && o.left < x + w);
+  if (vecinos.some((o) => o.bottom > y && o.top < y + h)) {
+    const arriba = Math.min(...vecinos.map((o) => o.top)) - h - 6;
+    const abajo = Math.max(...vecinos.map((o) => o.bottom)) + 6;
+    if (arriba >= techo) y = arriba;
+    else if (abajo + h <= piso) y = abajo;
+    else {
+      // (ni arriba ni abajo: al otro lado del nodo o al carril de enfrente)
+      const otro = [r.right + margen, L.right + margen, r.left - margen - w].find((xx) => xx >= 8 && xx + w <= innerWidth - 8 && !vecinos.some((o) => o.right > xx && o.left < xx + w) && libre(xx));
+      if (otro !== undefined) x = otro;
+      else if (L.right + margen + w <= innerWidth - 8) x = L.right + margen;
+    }
+  }
   tipEl.style.left = `${Math.round(x)}px`;
   tipEl.style.top = `${Math.round(y)}px`;
   tipEl.dataset.lado = x >= r.right ? 'der' : 'izq';

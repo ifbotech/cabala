@@ -405,7 +405,10 @@ function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[
     const T = t.getBoundingClientRect();
     const ancla = document.querySelector('[data-tip-abierto]');
     // (0.25: y en la mesa, lo del enemigo —su TE PEGA, su barra y, fuera del teléfono, su naipe— y la cuenta abierta)
-    const enemigo = `, #app .mesa [data-ataque], #app .mesa .e-barras, #app .mesa [data-cuenta] .cuenta:not(.reposo)${W > 700 ? ', #app .mesa [data-carta]' : ''}`;
+    // (0.28: y, fuera del teléfono, el texto vivo que la ayuda del foco tapaba con mando: el desglose de la cuenta, el
+    // naipe de La Corte, el renglón de botones y el Bufón con su globo)
+    const vivo = W > 700 ? ', #app .mesa [data-cuenta] .c-bajo, #app .mesa [data-cuenta] .cuenta.reposo .pista, #app .mesa .corte .corte-carta, #app .anfitrion .bufon, #app .anfitrion .bocadillo, #app .esc-bufon .bufon, #app .esc-bufon .bocadillo' : '';
+    const enemigo = `, #app .mesa [data-ataque], #app .mesa .e-barras, #app .mesa [data-cuenta] .cuenta:not(.reposo)${W > 700 ? ', #app .mesa [data-carta]' : ''}${vivo}`;
     for (const o of [...document.querySelectorAll(`#app button:not(.nodo.hecho, .nodo.pasado, .nodo.actual), #capa button, #app .titulo, #capa .titulo, #app .hud [data-n]${enemigo}`)].filter(visible)) {
       if (ancla && (o === ancla || o.contains(ancla) || ancla.contains(o))) continue;
       const O = o.getBoundingClientRect();
