@@ -373,24 +373,50 @@ export function pantallaMesa(p: Partida): Pantalla {
       const ex = acomodoExacto(p, sel);
       return ex ? { postas: ex, exacto: true } : null;
     }
+    // (0.25) sin Perfora la mesa ya apoya sola el exacto (pegar con todo no gana nada); con Perfora, solo si hay alguien
+    // detrás de la Corte que reciba lo que sobra
     const max = mejorAcomodo(p, sel);
     const ahora = postasDeSel(sel) ?? [];
-    return !cuenta(p, sel, max).exacto && max.some((x, i) => x !== ahora[i]) ? { postas: max, exacto: false } : null;
+    const qm = cuenta(p, sel, max);
+    return !qm.exacto && (!qm.perfora || hayDetras()) && max.some((x, i) => x !== ahora[i]) ? { postas: max, exacto: false } : null;
+  }
+  /** ¿Queda alguien en la Corte detrás del enemigo activo? (lo que Perfora le sobra pasa a él) */
+  const hayDetras = (): boolean => c().fila.length > 1;
+  /**
+   * (0.25) Cómo apoya la mesa lo elegido: lo que más pega (sin Perfora, `mejorAcomodo` ya prefiere el exacto); con
+   * Perfora y nadie detrás, lo que sobra no va a ningún lado, así que también apoya el exacto: nunca la opción peor.
+   */
+  function acomodoMesa(sel: Carta[]): number[] {
+    const max = mejorAcomodo(p, sel);
+    const q = cuenta(p, sel, max);
+    if (q.ok && q.abate && !q.exacto && q.perfora && !hayDetras()) return acomodoExacto(p, sel) ?? max;
+    return max;
   }
   /**
    * (0.24) El dial es una acción con verbo y premio: «DEJALO JUSTO · +3 de oro · +2 Multi al próximo» (lo que paga el
-   * Golpe exacto, con la racha que sube) o, ya en el exacto, «PEGÁ CON TODO · +N al total». Va en Y (el mando), X (el
-   * teclado) o un toque; color propio (prisma) y fuera del renglón del veredicto.
+   * Golpe exacto, con la racha que sube) o, ya en el exacto, «PEGÁ CON TODO · +N al total». (0.25) Con Perfora dice
+   * también lo que pierde cada lado: el exacto, lo que pasaba al siguiente; pegar con todo, el oro del exacto. Va en R3
+   * (el mando: la Y queda siempre para DESCARTAR), X (el teclado) o un toque; color propio (prisma).
    */
   function dialHtml(q: Cuenta, sel: Carta[], d: { postas: number[]; exacto: boolean } | null): string {
     if (!d) return '';
     const multi = B.exacto.multi * Math.min(B.exacto.rachaTope, (p.racha ?? 0) + 1);
     const rot = t(d.exacto ? 'chipExacto' : 'chipMaximo');
-    const premio = d.exacto
+    const otra = cuenta(p, sel, d.postas);
+    // lo que pasaba (o pasa) al siguiente de la Corte con Perfora
+    const pasan = d.exacto ? q.sobra : otra.sobra;
+    const conPasan = pasan > 0 && hayDetras();
+    const gana = d.exacto
       ? [t('chipExactoOro', { o: B.exacto.oro }), t('chipExactoMulti', { m: multi })]
-      : [t('chipMaximoPremio', { n: Math.max(0, cuenta(p, sel, d.postas).total - q.total) })];
-    const ayuda = d.exacto ? t('exactoTip', { o: B.exacto.oro, m: multi }) : t('maximoTip');
-    return `<button class="btn marco prisma c-dial ${d.exacto ? 'dial-exacto' : 'dial-maximo'}" data-accion="dial" data-tecla="x" data-foco="dial" ${tip(rot, ayuda)}>${glifo('Y', 'X')}<span class="dial-txt"><b class="dial-verbo">${esc(rot)}</b><span class="dial-premio">${premio.map((x) => `<span>${esc(x)}</span>`).join('<i class="dial-sep" aria-hidden="true"> · </i>')}</span></span></button>`;
+      : [conPasan ? t('dialPasan', { n: pasan }) : t('chipMaximoPremio', { n: Math.max(0, otra.total - q.total) })];
+    const pierde = d.exacto ? (conPasan ? [t('dialPierde', { n: pasan })] : []) : [t('dialSinOro', { o: B.exacto.oro })];
+    const ayuda = d.exacto
+      ? `${t('exactoTip', { o: B.exacto.oro, m: multi })}${conPasan ? ` ${t('dialPierdeTip', { n: pasan })}` : ''}`
+      : conPasan
+        ? t('maximoTipPerfora', { n: pasan, o: B.exacto.oro })
+        : t('maximoTip');
+    const premio = [...gana.map((x) => `<span>${esc(x)}</span>`), ...pierde.map((x) => `<span class="dial-pierde">${esc(x)}</span>`)];
+    return `<button class="btn marco prisma c-dial ${d.exacto ? 'dial-exacto' : 'dial-maximo'}" data-accion="dial" data-tecla="x" data-foco="dial" ${tip(rot, ayuda)}>${glifo('R3', 'X')}<span class="dial-txt"><b class="dial-verbo">${esc(rot)}</b><span class="dial-premio">${premio.join('<i class="dial-sep" aria-hidden="true"> · </i>')}</span></span></button>`;
   }
   /** Lo que la cuenta lleva en su propio renglón cuando el dial no entra al costado del paño. */
   let dialEnCuenta = '';
@@ -2077,10 +2103,10 @@ export function pantallaMesa(p: Partida): Pantalla {
           $('[data-soltar="descarte"]', raiz)?.classList.toggle('apunta', zona === 'descarte');
         },
         zonas: () => ({ enemigo: $('[data-escena]', raiz)?.getBoundingClientRect(), descarte: $('[data-soltar="descarte"]', raiz)?.getBoundingClientRect() }),
-        // (la mesa acomoda sola: la mejor disposición del paño para lo elegido)
+        // (la mesa acomoda sola: la mejor disposición del paño para lo elegido; nunca la peor de las dos del dial)
         acomodar: (ids) => {
           const sel = ids.map((id) => c().mano.find((k) => k.id === id)).filter((k): k is Carta => !!k);
-          return sel.length === ids.length ? mejorAcomodo(p, sel) : null;
+          return sel.length === ids.length ? acomodoMesa(sel) : null;
         },
       }, postasDe(p));
       pintarArriba();

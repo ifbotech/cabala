@@ -3979,9 +3979,11 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     display: none;
   }
 }
-/* el «≡» de MENÚ le deja el sitio al glifo de Start, como el «?» de JUGADAS */
-html:is([data-entrada='mando'], [data-entrada='teclado']) .b-menu-signo {
-  display: none;
+/* el «≡» de MENÚ le deja el sitio al glifo de Start, como el «?» de JUGADAS (no en el teléfono, sin glifos) */
+@media (min-width: 701px) {
+  html:is([data-entrada='mando'], [data-entrada='teclado']) .b-menu-signo {
+    display: none;
+  }
 }
 
 /* teléfono: DAÑO y MULTI del desglose comparten renglón cuando caben (lo decide `apretarCuenta`), y con La Corte arriba a
@@ -4598,17 +4600,17 @@ button.chiche:focus-visible {
 }
 .c-dial .dial-verbo {
   font-family: var(--rot);
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 400;
-  line-height: 18px;
+  line-height: 20px;
   letter-spacing: 0.06em;
   color: #fff;
   text-shadow: 1px 1px 0 #2a0b3d;
 }
 .c-dial .dial-premio {
   font-family: var(--cuerpo);
-  font-size: 16px;
-  line-height: 18px;
+  font-size: 18px;
+  line-height: 20px;
   text-transform: none;
   letter-spacing: 0;
   color: var(--oro);
@@ -4616,6 +4618,13 @@ button.chiche:focus-visible {
 }
 .c-dial.dial-maximo .dial-premio {
   color: #ff8fa8;
+}
+/* (0.25) lo que pierde cada lado del dial, en rojo de costo: se lee como precio, no como premio */
+.c-dial .dial-premio .dial-pierde {
+  color: #ff8fa8;
+}
+.c-dial.dial-maximo .dial-premio > span:first-child {
+  color: var(--oro);
 }
 .c-dial .dial-sep {
   font-style: normal;
@@ -4647,10 +4656,12 @@ button.chiche:focus-visible {
   width: 100%;
   margin-top: 4px;
 }
-/* (con el dial a la vista, Y es el dial: DESCARTAR apaga su glifo Y y la regla del costado lo dice) */
-html[data-entrada='mando'] .mesa.con-dial [data-accion='descartar'] > .glifo.g-y {
-  display: none;
+/* (0.25) en su renglón de la cuenta, lo que gana y lo que pierde se parten en renglones si no entran (nada se corta) */
+.c-dial-fila .c-dial .dial-premio {
+  white-space: normal;
+  flex-wrap: wrap;
 }
+/* (0.25: el dial va en R3; Y es DESCARTAR siempre, así que DESCARTAR no apaga su glifo) */
 html[data-entrada] .mesa:not(.con-dial) .pano-regla .p-mando.p-dial {
   display: none;
 }

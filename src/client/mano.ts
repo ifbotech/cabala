@@ -169,7 +169,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
   raiz.append(pano);
   const regla = document.createElement('span');
   regla.className = 'pano-regla';
-  regla.innerHTML = `<span class="p-linea">${pxHud('medio', 'p-icono')}<b>${esc(t('postaMedioAyuda'))}</b></span><i class="p-sep">·</i><span class="p-linea p-esc">${pxHud('escalon', 'p-icono')}<b class="p-largo">${esc(t('panoEscalon', { n: B.postas.escalon }))}</b><b class="p-corto">${esc(`${tx(PASO_NOMBRE['posta:escalon'])} +${B.postas.escalon}`)}</b></span><span class="p-linea p-mando">${glifo('LB', 'Q')}${glifo('RB', 'W')}<b>${esc(t('pistaCorre'))}</b></span><span class="p-linea p-mando p-dial">${glifo('Y', 'X')}<b>${esc(t('pistaJusto'))}</b></span>`;
+  regla.innerHTML = `<span class="p-linea">${pxHud('medio', 'p-icono')}<b>${esc(t('postaMedioAyuda'))}</b></span><i class="p-sep">·</i><span class="p-linea p-esc">${pxHud('escalon', 'p-icono')}<b class="p-largo">${esc(t('panoEscalon', { n: B.postas.escalon }))}</b><b class="p-corto">${esc(`${tx(PASO_NOMBRE['posta:escalon'])} +${B.postas.escalon}`)}</b></span><span class="p-linea p-mando">${glifo('LB', 'Q')}${glifo('RB', 'W')}<b>${esc(t('pistaCorre'))}</b></span><span class="p-linea p-mando p-dial">${glifo('R3', 'X')}<b>${esc(t('pistaJusto'))}</b></span>`;
   raiz.append(regla);
   const slots = enPosta.map((_, i) => {
     const el = document.createElement('div');
@@ -448,8 +448,12 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
         marcaMedio.classList.toggle('corta', marcaMedio.offsetWidth > libre);
         anchoMarca = { visible: libre, w: marcaMedio.offsetWidth };
       }
-      // (0.23) montada en el borde de arriba del naipe, no sobre su primera pinta
-      ponerEn(marcaMedio, nm.x + Math.round(visible) - anchoMarca.w - 2 * kp, nm.y - Math.round(marcaMedio.offsetHeight * 0.6), Z.marca);
+      // (0.23) montada en el borde de arriba del naipe, no sobre su primera pinta. (0.25) Sobre un Comodín, arriba de
+      // todo el naipe si hay aire (su rótulo COMODÍN va arriba y al centro); si no, adentro de su esquina de abajo (no
+      // pisa la mano que queda debajo)
+      const altoM = marcaMedio.offsetHeight;
+      const yMarca = nm.carta.palo !== 'X' ? nm.y - Math.round(altoM * 0.6) : nm.y >= altoM + 2 ? nm.y - altoM - 2 : nm.y + lp.hv - altoM - Math.round(3 * kp);
+      ponerEn(marcaMedio, nm.x + Math.round(visible) - anchoMarca.w - 2 * kp, yMarca, Z.marca);
     }
     // la Chispa: entre la Posta del Comodín y la de su derecha
     chispas.forEach((el, i) => {

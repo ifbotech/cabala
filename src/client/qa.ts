@@ -40,6 +40,7 @@ export const ESTADOS = [
   'evolucion-jackpot', 'hud-evolucion', 'oferta-evoluciona', 'forja-brava', 'cabala-negra', 'mapa-tesoro', 'botin-tesoro',
   'altar-devolver', 'resumen-victoria', 'resumen-derrota', 'mesa-exacto', 'fogon-mutaciones', 'hud-evolucion-foco',
   'mesa-dejalo-justo', 'resumen-derrota-movil', 'forja-brava-eleccion',
+  'mesa-pega-todo',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
 /** Estados que solo tienen sentido en vivo (`&vivo`, para las secuencias del Jurado): no entran en la QA visual. */
@@ -364,10 +365,16 @@ export function montarQa(estado: string): void {
       break;
     }
     case 'mesa-dejalo-justo':
+    case 'mesa-pega-todo':
     case 'mesa-exacto': {
-      // (0.23) el dial del paño: lo elegido, acomodado al máximo, sobra; otra manera de apoyarlo abate justo (chip EXACTO)
-      const p = partida(mazo, (x) => enCombate(x));
-      const m = p.combate!.mano;
+      // (0.23) el dial del paño: lo elegido, acomodado al máximo, sobra; otra manera de apoyarlo abate justo.
+      // (0.25) Sin Perfora la mesa ya lo apoya justo sola (`mesa-exacto`: ¡EXACTO!, sin dial); con Perfora (la Lanza) y
+      // alguien detrás, la mesa pega con todo y el dial ofrece DEJALO JUSTO con lo que pierde (`mesa-dejalo-justo`);
+      // aplicado, ofrece PEGÁ CON TODO con lo que pasa al siguiente (`mesa-pega-todo`)
+      const p = partida(mazo, (x) => enCombate(x) && x.combate!.fila.length > 1);
+      const conPerfora = estado !== 'mesa-exacto';
+      if (conPerfora) darAmuleto(p, 'lanza');
+      const m = p.combate!.mano.filter((k) => conPerfora || k.palo !== 'S');
       const subs: Carta[][] = [];
       for (let a = 0; a < m.length; a++)
         for (let b = a + 1; b < m.length; b++) {
@@ -400,8 +407,9 @@ export function montarQa(estado: string): void {
       montar(p);
       const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
       if (mesa && elegidas.length) mesa.mano.elegir(elegidas.map((k) => k.id));
-      // (0.24) con el mando: DEJALO JUSTO lleva la Y (y DESCARTAR la apaga); el Bufón lo presenta
-      if (estado === 'mesa-dejalo-justo') document.documentElement.dataset.entrada = 'mando';
+      // (0.25) con el mando: el dial lleva R3 (la Y sigue siendo DESCARTAR); el Bufón lo presenta
+      if (estado !== 'mesa-exacto') document.documentElement.dataset.entrada = 'mando';
+      if (estado === 'mesa-pega-todo') $<HTMLElement>('[data-accion="dial"]')?.click();
       break;
     }
     case 'fogon':

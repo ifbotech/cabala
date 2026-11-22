@@ -1353,9 +1353,12 @@ html[data-entrada='teclado'] .glifo.g-tecla {
 .btn:disabled .glifo {
   opacity: 0.55;
 }
-/* el «?» de JUGADAS le deja el sitio al glifo */
-html:is([data-entrada='mando'], [data-entrada='teclado']) .b-signo {
-  display: none;
+/* el «?» de JUGADAS le deja el sitio al glifo (0.25: salvo en el teléfono, donde el glifo no se enseña: el botón no
+   puede quedar como una caja vacía) */
+@media (min-width: 701px) {
+  html:is([data-entrada='mando'], [data-entrada='teclado']) .b-signo {
+    display: none;
+  }
 }
 
 /* lo que se inspecciona con la cruceta sin pulsarse (el enemigo, La Corte, cada pieza de «Lo que llevás») */
