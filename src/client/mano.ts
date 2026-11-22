@@ -253,7 +253,9 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     // (en el teléfono, el aire de los peldaños solo se abre con el Escalón armado: el alto es oro)
     const subida = k >= 2 ? 28 : marcas.escalon ? 16 : 0;
     // lo que tiene que verse de la mano cuando baja (la parte de arriba de cada naipe: su índice y sus primeras pintas)
-    const minMano = k >= 2 ? 120 : 60;
+    // (0.24: la mano de 8 del teléfono sigue en sus dos filas con algo apoyado: de la de atrás asoma su franja y de la
+    // de adelante, su índice y sus primeras pintas; el paño enseña lo de arriba de cada naipe)
+    const minMano = k >= 2 ? 120 : raiz.classList.contains('dos-filas') ? DIANA - 2 + 60 : 60;
     const aire = k >= 2 ? 10 : 6;
     // (en el teléfono, si no hay alto, del naipe apoyado se ve lo de arriba: su índice y su primera pinta)
     const hv = Math.max(Math.round(hp * (k >= 2 ? 0.6 : 0.4)), Math.min(hp, alto - tapa - minMano - aire - 2 * borde - subida));
@@ -283,7 +285,6 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     const enMano = naipes.filter((c) => !c.elegida);
     const n = enMano.length;
     const hueco = Math.round(6 * k);
-    const paso = n > 1 ? Math.min(w + hueco, (ancho - w) / (n - 1)) : 0;
     // con algo apoyado, la fila de la mano baja bajo el paño (su pie queda tras el HUD o la barra del pulgar)
     // (0.23) en el teléfono el paño ocupa siempre su lugar (apagado si está vacío): la mano no salta bajo el pulgar
     const conPano = reservaPano();
@@ -318,11 +319,15 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     };
     // si en una fila las cartas se montarían mucho (el móvil) y hay alto, van en dos filas: de la de atrás asoma la
     // parte de arriba de cada naipe (su número y sus primeras pintas) y ninguna tapa de costado a otra. Con naipes en
-    // el paño (que va encima de la mano), lo que queda va en una sola fila: la de atrás quedaría tapada
-    if (raiz.classList.contains('dos-filas') && n > 1 && paso < w * 0.8 && !conPano) {
-      const atras = Math.ceil(n / 2);
-      fila(enMano.slice(0, atras), base - DIANA + 2);
-      fila(enMano.slice(atras), base);
+    // el paño (que va encima de la mano), las dos filas bajan juntas bajo el paño (0.24: elegir no cambia de filas).
+    // Cada naipe conserva su lugar en su fila (el que subió al paño deja su hueco): nadie salta de una fila a la otra
+    const N = naipes.length;
+    const pasoTodas = N > 1 ? Math.min(w + hueco, (ancho - w) / (N - 1)) : 0;
+    if (raiz.classList.contains('dos-filas') && n > 1 && pasoTodas < w * 0.8) {
+      const atras = Math.ceil(N / 2);
+      const pie = conPano ? Math.max(alto - h, lp.manoY + DIANA - 2) : base;
+      fila(naipes.slice(0, atras), pie - DIANA + 2);
+      fila(naipes.slice(atras), pie);
       ponerPostas();
       return out;
     }
