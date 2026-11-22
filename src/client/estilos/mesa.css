@@ -4722,3 +4722,33 @@ body.mueve-pano [data-cuenta] .cuenta.previa {
     display: none;
   }
 }
+
+/* ───────────── 0.25 · la mesa del teléfono: los naipes del jugador, enteros ───────────── */
+/* la mano tiene un alto fijo (con o sin paño, con mano de 3 o de 8): el paño enseña sus naipes enteros y, en reposo,
+   la mano va entera sobre la barra del pulgar; al elegir, lo que queda baja y asoma su índice y sus primeras pintas */
+@container mesa (min-height: 720px) {
+  .mano,
+  .mano.dos-filas {
+    height: 226px;
+  }
+}
+/* el TE PEGA va a su columna, a la derecha del naipe y bajo La Corte: nunca sobre la cara del enemigo */
+@container mesa (min-height: 741px) {
+  .mesa .enemigo {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+  .mesa .e-ataque,
+  .mesa:has(.corte .corte-carta) .e-ataque {
+    grid-column: 3 / 4;
+    grid-row: 1;
+    justify-self: end;
+    align-self: end;
+  }
+}
+@container mesa (min-height: 741px) {
+  /* (la pila de La Corte, un punto más chica: el TE PEGA con su causa debajo entra bajo ella) */
+  .mesa .corte-carta .px {
+    width: calc(var(--w) * 0.3px);
+    height: calc(var(--h) * 0.3px);
+  }
+}

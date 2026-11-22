@@ -255,7 +255,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     // lo que tiene que verse de la mano cuando baja (la parte de arriba de cada naipe: su índice y sus primeras pintas)
     // (0.24: la mano de 8 del teléfono sigue en sus dos filas con algo apoyado: de la de atrás asoma su franja y de la
     // de adelante, su índice y sus primeras pintas; el paño enseña lo de arriba de cada naipe)
-    const minMano = k >= 2 ? 120 : raiz.classList.contains('dos-filas') ? DIANA - 2 + 60 : 60;
+    // (0.25: con algo apoyado, lo que queda de la mano de 8 entra en UNA fila: ningún naipe flota solo en la de atrás)
+    const minMano = k >= 2 ? 120 : raiz.classList.contains('dos-filas') && !(enPosta.some(Boolean) && entraEnFila(naipes.filter((c) => !c.elegida).length)) ? DIANA - 2 + 60 : 60;
     const aire = k >= 2 ? 10 : 6;
     // (en el teléfono, si no hay alto, del naipe apoyado se ve lo de arriba: su índice y su primera pinta)
     const hv = Math.max(Math.round(hp * (k >= 2 ? 0.6 : 0.4)), Math.min(hp, alto - tapa - minMano - aire - 2 * borde - subida));
@@ -288,7 +289,9 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     // con algo apoyado, la fila de la mano baja bajo el paño (su pie queda tras el HUD o la barra del pulgar)
     // (0.23) en el teléfono el paño ocupa siempre su lugar (apagado si está vacío): la mano no salta bajo el pulgar
     const conPano = reservaPano();
-    const base = conPano ? Math.max(alto - h, lp.manoY) : alto - h;
+    // (0.25) en el teléfono, sin nada apoyado, la mano va entera a la vista (su pie, sobre la barra del pulgar)
+    const { tapa } = medidas();
+    const base = conPano ? Math.max(alto - h, lp.manoY) : innerWidth <= 700 ? Math.max(0, alto - tapa - h) : alto - h;
     const foco = document.activeElement;
     /**
      * Una fila centrada. Si una carta tiene el foco y se monta sobre su vecina, la fila le abre lugar: la enfocada se
@@ -323,7 +326,10 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     // Cada naipe conserva su lugar en su fila (el que subió al paño deja su hueco): nadie salta de una fila a la otra
     const N = naipes.length;
     const pasoTodas = N > 1 ? Math.min(w + hueco, (ancho - w) / (N - 1)) : 0;
-    if (raiz.classList.contains('dos-filas') && n > 1 && pasoTodas < w * 0.8) {
+    // (0.25) con algo apoyado, si lo que queda entra en una fila (con 44 px tocables cada uno), va en una: en el teléfono
+    // la mano de 8 ya no deja un naipe solo flotando en la fila de atrás
+    const unaFila = conPano && entraEnFila(n);
+    if (raiz.classList.contains('dos-filas') && n > 1 && pasoTodas < w * 0.8 && !unaFila) {
       const atras = Math.ceil(N / 2);
       const pie = conPano ? Math.max(alto - h, lp.manoY + DIANA - 2) : base;
       fila(naipes.slice(0, atras), pie - DIANA + 2);
@@ -338,8 +344,11 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     ponerPostas();
     return out;
   }
-  /** (0.23) ¿El paño ocupa su lugar? Con algo apoyado, siempre; en el teléfono, también vacío (la mano no salta). */
-  const reservaPano = (): boolean => enPosta.some(Boolean) || (innerWidth <= 700 && entraEnFila(naipes.length));
+  /**
+   * ¿El paño ocupa su lugar? Con algo apoyado. (0.25: en el teléfono ya no se reserva vacío; la mano tiene alto fijo y,
+   * en reposo, va entera a la vista: al elegir, lo elegido sube al paño y el resto baja un poco, sin pasar bajo el pulgar)
+   */
+  const reservaPano = (): boolean => enPosta.some(Boolean);
   /** ¿Entran 
  naipes en una fila dejando a cada uno al menos 44 px tocables? (la mano de 8 del teléfono, no) */
   const entraEnFila = (n: number): boolean => {
