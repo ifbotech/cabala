@@ -4175,8 +4175,8 @@ button.chiche {
 }
 .chiche .ch-nombre {
   font-family: var(--cuerpo);
-  font-size: 15px;
-  line-height: 16px;
+  font-size: 18px;
+  line-height: 18px;
   color: var(--hueso);
   white-space: nowrap;
   text-shadow: 1px 1px 0 #09070f;

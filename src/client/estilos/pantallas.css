@@ -4192,7 +4192,7 @@ button.visor-carta:disabled {
   flex-basis: 100%;
   text-align: center;
   font-family: var(--cuerpo);
-  font-size: 16px;
+  font-size: 18px;
   color: var(--hueso-2);
 }
 /* ESTA PARTIDA | TU MEJOR: dos columnas con su rótulo encima y una raya entre las dos */
@@ -4209,8 +4209,8 @@ button.visor-carta:disabled {
 }
 .fin-rec-rot {
   font-family: var(--rot);
-  font-size: 16px;
-  line-height: 20px;
+  font-size: 18px;
+  line-height: 22px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--hueso);

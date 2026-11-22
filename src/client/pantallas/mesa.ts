@@ -763,6 +763,14 @@ export function pantallaMesa(p: Partida): Pantalla {
   async function animar(evs: Ev[], antes: Enemigo[], q: Cuenta | null): Promise<void> {
     let indice = 0;
     const carta = () => $('[data-carta]');
+    // (0.25) tu mejor golpe respira: entre tu número grande (o cualquier golpe a un Rey) y lo que hace el Rey o el que
+    // te pega hay ~600 ms de aire; TURBO (cualquier entrada) lo corta
+    let tGolpe = 0;
+    const respiro = async (): Promise<void> => {
+      const falta = tGolpe ? 600 - (performance.now() - tGolpe) : 0;
+      tGolpe = 0;
+      if (falta > 40) await pausa(falta);
+    };
     for (const ev of evs) {
       switch (ev.t) {
         case 'golpe': {
@@ -820,6 +828,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           enemigo.escudo = ev.escudo;
           pintarEnemigo();
           $('[data-carta]')?.classList.add('herido');
+          if (grande || enemigo.jefe) tGolpe = performance.now();
           if (ev.n >= enemigo.vidaMax * 0.75) voz(VOZ.fuerte, 'risa');
           // (si enseguida se da vuelta, calla: habla su segunda cara)
           if (enemigo.jefe && ev.vida > 0 && !sigueSegunda && ev.n >= enemigo.vidaMax * 0.3) reyDice(tx(REY_DEF[enemigo.palo].voz.duele));
@@ -980,6 +989,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           pintarEnemigo();
           break;
         case 'contra': {
+          await respiro();
           placa = null;
           // el cartel de la segunda cara se va antes de que el Rey embista: nada tapa al que te pega
           quitarCartelSegunda();
@@ -1047,6 +1057,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           $('[data-ataque]')?.classList.add('sube');
           break;
         case 'rey':
+          await respiro();
           quitarCartelSegunda();
           await poderRey(ev.que, ev.n);
           break;
