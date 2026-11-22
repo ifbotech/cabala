@@ -4422,3 +4422,29 @@ button.visor-carta:disabled {
   bottom: calc(var(--u) * 2);
   filter: hue-rotate(220deg) saturate(1.4);
 }
+
+/* ── 0.24: JUGADAS en el teléfono: CERRAR va al pie, bajo el pulgar (la cabecera queda con su título) ── */
+@media (max-width: 700px) {
+  .panel.jugadas > .cabecera {
+    display: contents;
+  }
+  .panel.jugadas > .cabecera > .titulo {
+    order: -1;
+  }
+  .panel.jugadas > .cabecera > [data-accion='cerrar'] {
+    order: 2;
+    align-self: stretch;
+    min-height: 48px;
+    flex: none;
+  }
+}
+@media (max-width: 700px) {
+  /* (la flecha de «hay más» sube sobre CERRAR, al rincón: no se esconde bajo el botón ni parece su foco) */
+  .panel.jugadas.hay-mas::after {
+    left: auto;
+    right: calc(var(--u) * 2);
+    margin-left: 0;
+    bottom: calc(48px + var(--u) + 14px);
+    filter: hue-rotate(220deg) saturate(1.4);
+  }
+}
