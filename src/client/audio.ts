@@ -342,7 +342,7 @@ export interface Afinacion {
 let afinador: (() => Afinacion | null) | null = null;
 export const ponerAfinador = (f: () => Afinacion | null): void => void (afinador = f);
 /** Los efectos melódicos que se afinan al acorde del momento (el resto son golpes y ruidos: no tienen tonalidad). */
-const AFINADOS: Partial<Record<Sonido, true>> = { oro: true, tintin: true, victoria: true, derrota: true, rey: true };
+const AFINADOS: Partial<Record<Sonido, true>> = { oro: true, tintin: true, victoria: true, derrota: true, rey: true, canto: true, cura: true, exacto: true, evolucion: true, escalon: true, prenda: true };
 const aMidi = (f: number): number => 69 + 12 * Math.log2(f / 440);
 const aHz = (m: number): number => 440 * 2 ** ((m - 69) / 12);
 const enClases = (m: number, clases: number[]): boolean => clases.includes((((m % 12) + 12) % 12));

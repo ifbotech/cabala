@@ -51,6 +51,42 @@ const musicaDe = (p: Page): Promise<Musica & { acto: number | null }> =>
     const g = (window as unknown as { __cabala: { musica: () => Musica; sesion: { partida: null | { acto: number } } } }).__cabala;
     return { ...g.musica(), acto: g.sesion.partida?.acto ?? null };
   });
+/**
+ * (0.28) Salir de la Pulpería. Una vez (en cinco corridas) este clic se quedó 30 s esperando: primero lo tapó el
+ * jackpot de una Evolución (a propósito: se traga la entrada hasta 1,6 s) y después, sin que se haya podido repetir,
+ * una carta en venta. Si vuelve a pasar, el humo dice QUÉ tapa el botón, dónde está cada cosa y con qué semilla.
+ */
+async function salirDeLaPulperia(p: Page): Promise<void> {
+  try {
+    await p.click('[data-accion="salir"]', { timeout: 8000 });
+  } catch (e) {
+    const foto = await p.evaluate(() => {
+      const caja = (el: Element | null): string => {
+        const r = el?.getBoundingClientRect();
+        return r ? `${Math.round(r.left)},${Math.round(r.top)}–${Math.round(r.right)},${Math.round(r.bottom)}` : '—';
+      };
+      const salir = document.querySelector('[data-accion="salir"]');
+      const r = salir?.getBoundingClientRect();
+      const encima = r ? (document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) as HTMLElement | null) : null;
+      const corridos: string[] = [];
+      for (const el of document.querySelectorAll<HTMLElement>('#app, #app *')) if (el.scrollTop || el.scrollLeft) corridos.push(`${el.tagName}.${el.className} ${el.scrollLeft},${el.scrollTop}`);
+      const g = (window as unknown as { __cabala: { sesion: { partida: null | { semilla: string; oro: number; amuletos: string[] } } } }).__cabala.sesion.partida;
+      return {
+        salir: caja(salir),
+        encima: encima ? `${encima.tagName}.${encima.className}[${encima.dataset.foco ?? ''}] ${caja(encima)} transform ${getComputedStyle(encima).transform}` : '—',
+        ventas: [...document.querySelectorAll('.venta')].map((v) => `${(v as HTMLElement).dataset.foco}:${caja(v)}`).join(' '),
+        cuerpo: caja(document.querySelector('.pul-cuerpo')),
+        capa: [...(document.querySelector('#capa')?.children ?? [])].map((c) => c.className).join(' | '),
+        corridos,
+        ventana: `${scrollX},${scrollY}`,
+        semilla: g?.semilla,
+        oro: g?.oro,
+        amuletos: g?.amuletos,
+      };
+    });
+    throw new Error(`HUMO: no se pudo salir de la Pulpería: ${JSON.stringify(foto)} · ${String(e).split(String.fromCharCode(10))[0]}`);
+  }
+}
 const libre = (p: Page) => p.waitForFunction(() => !document.querySelector('.mano.bloqueada') && !document.querySelector('.cortina'), undefined, { timeout: 10000 });
 const centro = async (p: Page, sel: string) => {
   const caja = await p.locator(sel).first().boundingBox();
@@ -128,7 +164,10 @@ await conServidor(5192, async (url) => {
     // tsx envuelve las funciones con `__name`: la página necesita tenerlo
     await ctx.addInitScript('globalThis.__name = (f) => f');
     const p = await ctx.newPage();
-    p.on('pageerror', (e) => errores.push(e.message));
+    p.on('pageerror', (e) => {
+      errores.push(e.message);
+      console.error(`  (error de página: ${e.message})`);
+    });
     p.on('console', (m) => m.type() === 'error' && errores.push(m.text()));
     await hastaLaMesa(p, url);
     ok('portada → elegir Mazo → «ELEGÍ UNA CÁBALA» → Mapa → mesa');
@@ -267,8 +306,8 @@ await conServidor(5192, async (url) => {
           const antes = x.oro;
           await venta.click();
           await p.waitForTimeout(30);
-          if ((await estado(p))!.oro === antes && !(await p.locator('.velo').count())) await p.click('[data-accion="salir"]');
-        } else if (!(await p.locator('.velo').count())) await p.click('[data-accion="salir"]');
+          if ((await estado(p))!.oro === antes && !(await p.locator('.velo').count())) await salirDeLaPulperia(p);
+        } else if (!(await p.locator('.velo').count())) await salirDeLaPulperia(p);
       } else if (x.fase === 'fogon') {
         if (await p.locator('[data-accion="descansar"]:not([disabled])').count()) await p.click('[data-accion="descansar"]');
         else await p.click('.fogon [data-accion="seguir"]');

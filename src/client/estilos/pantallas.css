@@ -517,6 +517,13 @@ button.visor-carta:disabled {
   justify-content: center;
   gap: calc(var(--u) * 2);
 }
+/* (0.28) Si una carta en venta crece (descripciones largas, sobre todo en inglés), la fila centrada se sale del cuerpo
+   también por ARRIBA y tapaba «SALIR» (lo encontró el humo: en, Truco, semillas 2P8AGK y YAPERV, 1366 × 768). La
+   cabecera queda por encima: el botón de salir nunca queda tapado. (El desborde en sí sigue pendiente.) */
+.pulperia > .cabecera {
+  position: relative;
+  z-index: 2;
+}
 .bandejas {
   display: flex;
   flex-direction: column;
