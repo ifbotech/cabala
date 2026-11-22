@@ -393,19 +393,11 @@
   display: inline-flex;
   justify-content: flex-end;
 }
-/* lo que dan los palos (ESCUDO, CURA, ORO): en el escritorio, en el renglón de la fórmula; en el teléfono, en el suyo */
+/* lo que dan los palos (ESCUDO, CURA, ORO): en el renglón de la fórmula, junto al total (que ya no baila: las cifras
+   guardan su ancho final); si no entran, bajan solos. (0.26: también en el teléfono alto: el renglón propio le comía
+   al paño el alto que necesita para que la mano no se mueva al elegir) */
 .c-efectos {
   display: contents;
-}
-/* (en el teléfono bajo, de menos de 741 px de alto, no hay renglón de sobra: van junto al total, que ya no baila
-   porque las cifras guardan su ancho final) */
-@media (max-width: 700px) and (min-height: 741px) {
-  .mesa .cuenta .c-efectos {
-    display: flex;
-    flex-basis: 100%;
-    justify-content: center;
-    gap: 6px;
-  }
 }
 .c-chips {
   display: inline-flex;

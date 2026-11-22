@@ -102,6 +102,13 @@ const UMBRAL_DEDO = 14;
 const RESBALON = 30;
 /** Con el dedo, el tamaño del grupo que va en el aire: más chico, deja ver al enemigo y la cuenta. */
 const ESCALA_DEDO = 0.8;
+/** (0.26) En el teléfono, lo que el paño enseña de cada naipe apoyado (su índice y su primera fila de pintas), px. */
+const HV_TEL = 92;
+/** (0.26) Lo menos que le queda a la escena del teléfono (el naipe del enemigo y su barra) cuando el paño pide alto, px. */
+const ESCENA_MIN = 158;
+const ESCENA_MIN_BAJA = 112;
+/** (0.26) Lo menos que el paño del teléfono enseña de lo apoyado sin mover la mano (el índice), px. */
+const HV_MIN_TEL = 30;
 /**
  * Las capas de la mesa de cartas: el fieltro del paño, la mano, la que pasa el cursor, los naipes apoyados en las
  * Postas (0.21: por ENCIMA de la mano: lo que jugás se ve entero), sus marcas y la carta con el foco.
@@ -238,7 +245,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
    * paso entre una y otra, lo que se ve de cada naipe apoyado (`hv`: entero salvo en el teléfono más bajo), el aire de
    * los peldaños del Escalón (`subida`), dónde termina el paño (`fin`) y dónde arranca la mano cuando hay algo apoyado.
    */
-  function lugaresPosta(): { xs: number[]; y: number; paso: number; wp: number; hp: number; hv: number; subida: number; fin: number; manoY: number } {
+  function lugaresPosta(): { xs: number[]; y: number; paso: number; wp: number; hp: number; hv: number; subida: number; fin: number; manoY: number; quieta: boolean } {
     const { k, kp, tapa } = medidas();
     const wp = 100 * kp;
     const hp = 140 * kp;
@@ -256,13 +263,26 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     // (0.24: la mano de 8 del teléfono sigue en sus dos filas con algo apoyado: de la de atrás asoma su franja y de la
     // de adelante, su índice y sus primeras pintas; el paño enseña lo de arriba de cada naipe)
     // (0.25: con algo apoyado, lo que queda de la mano de 8 entra en UNA fila: ningún naipe flota solo en la de atrás)
-    const minMano = k >= 2 ? 120 : raiz.classList.contains('dos-filas') && !(enPosta.some(Boolean) && entraEnFila(naipes.filter((c) => !c.elegida).length)) ? DIANA - 2 + 60 : 60;
     const aire = k >= 2 ? 10 : 6;
-    // (en el teléfono, si no hay alto, del naipe apoyado se ve lo de arriba: su índice y su primera pinta)
-    const hv = Math.max(Math.round(hp * (k >= 2 ? 0.6 : 0.4)), Math.min(hp, alto - tapa - minMano - aire - 2 * borde - subida));
+    // (0.26: en el teléfono la mano no se mueve al elegir: se ve entera, en su fila o en sus dos filas, y el paño enseña
+    // lo que le queda arriba de ella —lo de arriba de cada naipe apoyado—. Solo si ni así entra el índice de lo apoyado
+    // —la mano de 8 en un teléfono bajo—, la mano cede como en la 0.25)
+    const dosFilas = raiz.classList.contains('dos-filas');
+    let hv = 0;
+    let quieta = false;
+    if (telefono()) {
+      const techo = baseTel() - (dosFilas ? DIANA - 2 : 0);
+      hv = Math.min(hp, techo - aire - 2 * borde - subida);
+      quieta = hv >= HV_MIN_TEL;
+    }
+    if (!quieta) {
+      const minMano = k >= 2 ? 120 : dosFilas && !(enPosta.some(Boolean) && entraEnFila(naipes.filter((c) => !c.elegida).length)) ? DIANA - 2 + 60 : 60;
+      // (en el teléfono, si no hay alto, del naipe apoyado se ve lo de arriba: su índice y su primera pinta)
+      hv = Math.max(Math.round(hp * (k >= 2 ? 0.6 : 0.4)), Math.min(hp, alto - tapa - minMano - aire - 2 * borde - subida));
+    }
     const y = borde + subida;
     const fin = y + hv + borde;
-    return { xs: enPosta.map((_, i) => Math.round(x0 + i * paso)), y, paso, wp, hp, hv, subida, fin, manoY: fin + aire };
+    return { xs: enPosta.map((_, i) => Math.round(x0 + i * paso)), y, paso, wp, hp, hv, subida, fin, manoY: fin + aire, quieta };
   }
 
   /** Dónde descansa cada carta: las elegidas en su Posta; las demás, en una fila centrada (o en dos, en el móvil). */
@@ -291,8 +311,15 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     const conPano = reservaPano();
     // (0.25) en el teléfono, sin nada apoyado, la mano va entera a la vista (su pie, sobre la barra del pulgar)
     const { tapa } = medidas();
-    const base = conPano ? Math.max(alto - h, lp.manoY) : innerWidth <= 700 ? Math.max(0, alto - tapa - h) : alto - h;
-    const foco = document.activeElement;
+    // (0.26) en el teléfono la mano NO se mueve al elegir: queda donde estaba en reposo (lo que cede alto es el paño, y
+    // la zona de la mano crece hacia arriba lo justo: ver `ajustarAlto`)
+    const tel = telefono();
+    const quieta = tel && (!conPano || lp.quieta);
+    const base = quieta ? baseTel() : conPano ? Math.max(alto - h, lp.manoY) : tel ? Math.max(0, alto - tapa - h) : alto - h;
+    // (la fila le abre lugar a la carta con el foco solo con teclado o mando: con el dedo o el ratón, el foco que deja un
+    // toque no corre a nadie)
+    const ent = document.documentElement.dataset.entrada;
+    const foco = ent === 'teclado' || ent === 'mando' ? document.activeElement : null;
     /**
      * Una fila centrada. Si una carta tiene el foco y se monta sobre su vecina, la fila le abre lugar: la enfocada se
      * ve entera y las demás se aprietan (cada una conserva su índice a la vista).
@@ -328,10 +355,11 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     const pasoTodas = N > 1 ? Math.min(w + hueco, (ancho - w) / (N - 1)) : 0;
     // (0.25) con algo apoyado, si lo que queda entra en una fila (con 44 px tocables cada uno), va en una: en el teléfono
     // la mano de 8 ya no deja un naipe solo flotando en la fila de atrás
-    const unaFila = conPano && entraEnFila(n);
-    if (raiz.classList.contains('dos-filas') && n > 1 && pasoTodas < w * 0.8 && !unaFila) {
+    // (0.26: en el teléfono no: la mano de 8 conserva sus dos filas con los huecos de lo que subió al paño)
+    const unaFila = conPano && !quieta && entraEnFila(n);
+    if (raiz.classList.contains('dos-filas') && N > 1 && pasoTodas < w * 0.8 && !unaFila) {
       const atras = Math.ceil(N / 2);
-      const pie = conPano ? Math.max(alto - h, lp.manoY + DIANA - 2) : base;
+      const pie = conPano && !quieta ? Math.max(alto - h, lp.manoY + DIANA - 2) : base;
       fila(naipes.slice(0, atras), pie - DIANA + 2);
       fila(naipes.slice(atras), pie);
       ponerPostas();
@@ -346,7 +374,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
   }
   /**
    * ¿El paño ocupa su lugar? Con algo apoyado. (0.25: en el teléfono ya no se reserva vacío; la mano tiene alto fijo y,
-   * en reposo, va entera a la vista: al elegir, lo elegido sube al paño y el resto baja un poco, sin pasar bajo el pulgar)
+   * en reposo, va entera a la vista. 0.26: al elegir, lo elegido sube al paño y el resto NO se mueve)
    */
   const reservaPano = (): boolean => enPosta.some(Boolean);
   /** ¿Entran 
@@ -357,6 +385,57 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
   };
   /** ¿Se juega con el dedo? (el teléfono o una pantalla táctil sin ratón) */
   const dedo = (): boolean => matchMedia('(pointer: coarse)').matches;
+  /** ¿La mesa del teléfono? (la mano no se mueve al elegir) */
+  const telefono = (): boolean => innerWidth <= 700;
+  /** En el teléfono, la `y` de la fila de adelante de la mano en reposo (más lo que creció la zona hacia arriba). */
+  const baseTel = (): number => {
+    const { tapa, h } = medidas();
+    return Math.max(0, raiz.clientHeight - crece - tapa - h) + crece;
+  };
+  /**
+   * (0.26) En el teléfono, con algo apoyado, la zona de la mano crece hacia ARRIBA (le saca alto a la escena) lo justo
+   * para que el paño enseñe lo de arriba de cada naipe apoyado (`HV_TEL`): la mano queda clavada donde estaba en reposo,
+   * en su fila o en sus dos filas, y el segundo toque cae en el naipe que se ve. Devuelve cuánto creció la zona en este
+   * cuadro (las cartas corren su `y` eso mismo: en la pantalla no se mueve nada).
+   */
+  let altoNat = { clave: '', h: 0 };
+  let crece = 0;
+  function ajustarAlto(): number {
+    const antes = crece;
+    if (!telefono()) {
+      if (crece) {
+        crece = 0;
+        raiz.style.height = '';
+      }
+      return -antes;
+    }
+    const clave = `${innerWidth}x${innerHeight}|${raiz.classList.contains('dos-filas')}`;
+    if (altoNat.clave !== clave) {
+      raiz.style.height = '';
+      crece = 0;
+      altoNat = { clave, h: raiz.clientHeight };
+    }
+    let quiere = 0;
+    if (enPosta.some(Boolean) && altoNat.h > 0) {
+      const { tapa, h, kp } = medidas();
+      const hp = 140 * kp;
+      const techo = Math.max(0, altoNat.h - tapa - h) - (raiz.classList.contains('dos-filas') ? DIANA - 2 : 0);
+      const natural = techo - 6 - 8 - (marcas.escalon ? 16 : 0);
+      quiere = Math.max(0, Math.min(hp, HV_TEL) - natural);
+      // (la escena, con el enemigo y la cuenta, conserva su piso: más chico en el teléfono bajo)
+      const escena = raiz.closest('.mesa')?.querySelector<HTMLElement>('.escena');
+      const piso = innerHeight >= 760 ? ESCENA_MIN : ESCENA_MIN_BAJA;
+      if (escena && escena.clientHeight > 0) quiere = Math.min(quiere, Math.max(0, escena.clientHeight + crece - piso));
+      quiere = Math.round(quiere);
+      // (si ni así entra el índice de lo apoyado, la mano cede como en la 0.25 y la zona no crece)
+      if (natural + quiere < HV_MIN_TEL) quiere = 0;
+    }
+    if (quiere !== crece) {
+      crece = quiere;
+      raiz.style.height = crece ? `${altoNat.h + crece}px` : '';
+    }
+    return crece - antes;
+  }
 
   const puesto = new WeakMap<HTMLElement, string>();
   /** `corte`: lo que se recorta del pie del naipe (la mano que baja bajo el paño no se asoma por debajo de su zona). */
@@ -487,6 +566,10 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     const dt = Math.min(0.033, (ahora - ultimo) / 1000);
     ultimo = ahora;
     const quieto = todoQuieto();
+    // (0.26) si la zona de la mano creció hacia arriba (o volvió), cada carta corre su `y` lo mismo: en la pantalla queda
+    // donde estaba
+    const corrio = ajustarAlto();
+    if (corrio) for (const c of naipes) if (!c.vuela) c.y += corrio;
     const dest = destinos();
     const { k, w } = medidas();
     // (0.23) el Comodín tapado por su vecina de la derecha (la mano de 8) lleva su nombre de canto, a la izquierda: en
