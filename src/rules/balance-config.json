@@ -173,12 +173,12 @@
       "multiMano": 5
     },
     "chinchon": {
-      "vida": 32,
+      "vida": 26,
       "mano": 7,
       "hasta": 8,
       "comodines": 2,
       "cargaDano": 2,
-      "corta": 2,
+      "corta": 3,
       "multiMano": 1
     },
     "mentiroso": {
@@ -192,7 +192,7 @@
       "multiMano": 0
     },
     "chancho": {
-      "vida": 48,
+      "vida": 47,
       "mano": 4,
       "hasta": 9,
       "comodines": 2,
@@ -265,7 +265,7 @@
     "sol": {
       "oroDoble": 2,
       "tope": 3,
-      "descarte": 3
+      "descarte": 5
     },
     "brindis": {
       "cada": 10,

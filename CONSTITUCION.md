@@ -35,7 +35,7 @@ baraja española para un jugador, en pixel-art oscuro, que se juega en el navega
 - **Mazo del jugador**: cartas del **1 al 9** de los cuatro palos más **Comodines**.
 - **Enemigos (la Corte)**: **10 Sota → 11 Caballo → 12 Rey** de cada palo. Un enemigo activo a la vez.
 - **Poder natural de cada palo**: Espadas perforan (atraviesan la defensa y lo que sobra sigue), Bastos dan Escudo,
-  Oros dan monedas y salpican, Copas curan.
+  Oros dan monedas, Copas curan.
 - **Cada enemigo es Inmune a su propio palo.**
 - **TOTAL = DAÑO × MULTI**, los dos siempre enteros.
 - Códigos internos de palo (nadie los ve en pantalla): `S` Espadas, `C` Bastos, `D` Oros, `H` Copas.
@@ -75,7 +75,8 @@ Cada Mazo es una fantasía mecánica única y tiene su Personaje jugable, con re
 
 1. **Escoba** (Escoba del 15) · *La Barrendera*: los golpes que suman 15 justo cantan **¡ESCOBA!**.
 2. **Truco** (Envido y Bravas) · *El Paisano Bravo*: mazo corto del 1 al 7, las 4 Bravas y **¡ENVIDO!**.
-3. **Chinchón** (Pierna y Escalera) · *La Timbera del Club*: Piernas y Escaleras de palo que escalan y mitigan.
+3. **Chinchón** (Pierna y Escalera) · *La Timbera del Club*: Piernas y Escaleras de palo que escalan y cantan
+   **¡CHINCHÓN!**: cortás la mano y lo que te queda sin jugar es Escudo.
 4. **El Mentiroso** (Cara de Piedra) · *El Chamuyero*: Comodines de más y el **Engaño**.
 5. **Chancho Va** (Mano al Centro) · *El Manotazo*: ciclado frenético, **¡CHANCHO!** y golpes que aturden.
 
@@ -136,10 +137,8 @@ certificar (la huella del informe tiene que coincidir).
 ### 1.12 Las Evoluciones malditas, DEJALO JUSTO y Mesa limpia (0.25.0)
 
 - **Cada Evolución cambia una regla y trae su maldición**, escrita en su ficha: el **Facón Maldito** hace que todo
-  golpe Perfore (la sobra pasa ×3), pero el golpe que no abate te corta Vida; el **Garrote del Cacique** suma tu Escudo
-  entero al Daño, pero tus Copas ya no curan: te dan Escudo; el **Sol de la Timba** paga doble tus Oros, pero cada
-  descarte te cuesta oro; el **Brindis de Sangre** cura doble con tus Copas y suma Multi a cada golpe, pero cada golpe
-  te bebe Vida. Las maldiciones de Vida nunca te matan: te dejan en 1.
+  golpe Perfore (la sobra pasa ×3), pero el golpe que no abate te corta Vida. El Garrote, el Sol y el Brindis se
+  rehicieron en la 0.26.0 (ver 1.13). Las maldiciones de Vida nunca te matan: te dejan en 1.
 - **DEJALO JUSTO.** Sin Perfora lo que sobra no va a ningún lado: si las mismas cartas abaten con Golpe exacto apoyadas
   de otra manera, la mesa las apoya así sola. Con Perfora, la elección queda en el dial (exacto o pegar con todo).
 - **Mesa limpia.** En el primer tramo la Escoba, el Mazo de entrada, arranca cada combate con Escudo: el primer
@@ -152,7 +151,15 @@ certificar (la huella del informe tiene que coincidir).
   descarte cuesta oro. **Brindis de Sangre**: +1 de Multi por cada 10 % de Vida que te falta, y cada golpe te bebe Vida.
   El premio va en la regla; la MALDICIÓN dice sólo el costo.
 - **Chancho Va**: la Pierna (tres iguales) también canta ¡CHANCHO! y aturde 1 turno; el Póker aturde 2.
-- **Chinchón**: el turno del ¡CHINCHÓN! el enemigo no te pega (antes, la mitad).
+
+### 1.14 ¡CHINCHÓN! corta la mano (0.27.0)
+
+- **Chinchón**: cada Pierna o Escalera de palo canta ¡CHINCHÓN! y **corta la mano**: cada carta que te queda sin jugar
+  te da Escudo (crece con el tramo, como los Bastos). Jugar corto cubre más; jugar largo pega más. Ya no anula el golpe
+  del enemigo: ese premio (Aturdir) es del Chancho Va.
+- El laboratorio juega el **Sol de la Timba**: el bot paga descartes con oro cuando el golpe es flojo o no canta, y el
+  balance se certifica con esa regla en juego.
+
 ## 2 · Dirección de arte: «Dark Dithered Lithography»
 
 **La vara es la de los 5 Dorsos.** Vale para todas las pantallas y componentes.
