@@ -4853,3 +4853,14 @@ body.mueve-pano [data-cuenta] .cuenta.previa {
     display: inline;
   }
 }
+/* (0.25) en las ventanas bajas (Steam Deck, 1366 × 768), el desglose con muchos términos (Taba, Sol de la Timba,
+   Primera sangre…) no salta a un tercer renglón: los términos van separados por aire, sin el punto, y la mesa no se
+   corre al elegir */
+@media (min-width: 701px) and (max-height: 860px) {
+  .mesa .c-desglose .d-terminos > .d-sep {
+    display: none;
+  }
+  .mesa .c-desglose .d-terminos {
+    column-gap: 0.7em;
+  }
+}

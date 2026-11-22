@@ -4733,3 +4733,8 @@ button.visor-carta:disabled {
 .al-devolver {
   min-height: 48px;
 }
+/* (0.25) la Cábala Negra del teléfono: un número con muchos naipes (los Ases de un Mazo grande) baja a otro renglón en
+   vez de salirse del panel */
+.negra-bandeja.por-numero .visor-fila {
+  flex-wrap: wrap;
+}
