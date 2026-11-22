@@ -1,6 +1,6 @@
 {
   "fecha": "2026-11-22",
-  "huella": "54fa4420bad2e933",
+  "huella": "fc5947041119281c",
   "rapido": false,
   "partidasPorCelda": 3000,
   "objetivos": {
@@ -63,33 +63,37 @@
       ],
       "exactos": 0.6,
       "cantos": 9.4,
+      "evolucion": 85.2,
+      "solOro": 10.4,
       "mejorGolpe": 44496,
       "porotos": 77,
       "minutos": 15.5
     },
     {
       "mazo": "truco",
-      "vacio": 29.4,
-      "lleno": 48.2,
-      "reinado8": 26.6,
+      "vacio": 28.9,
+      "lleno": 48.1,
+      "reinado8": 24.5,
       "caidas": [
-        76,
-        301,
-        1741
+        154,
+        398,
+        1582
       ],
-      "caidaTramo1": 2.5,
+      "caidaTramo1": 5.1,
       "golpesGuardia": 2.3,
-      "golpesRey": 3.8,
+      "golpesRey": 4,
       "golpeMedio": [
-        423,
-        832,
-        1739
+        295,
+        753,
+        1784
       ],
-      "exactos": 0.1,
-      "cantos": 21.9,
-      "mejorGolpe": 25110,
-      "porotos": 88,
-      "minutos": 14.2
+      "exactos": 0.2,
+      "cantos": 21.1,
+      "evolucion": 93.1,
+      "solOro": 6.2,
+      "mejorGolpe": 23391,
+      "porotos": 86,
+      "minutos": 14.4
     },
     {
       "mazo": "chinchon",
@@ -111,6 +115,8 @@
       ],
       "exactos": 1.8,
       "cantos": 12.6,
+      "evolucion": 89.5,
+      "solOro": 28.3,
       "mejorGolpe": 25878,
       "porotos": 80,
       "minutos": 15.2
@@ -135,6 +141,8 @@
       ],
       "exactos": 1.8,
       "cantos": 11.9,
+      "evolucion": 93.6,
+      "solOro": 26,
       "mejorGolpe": 29394,
       "porotos": 85,
       "minutos": 14.1
@@ -159,6 +167,8 @@
       ],
       "exactos": 1,
       "cantos": 6.9,
+      "evolucion": 92.8,
+      "solOro": 17.2,
       "mejorGolpe": 32760,
       "porotos": 85,
       "minutos": 15.2

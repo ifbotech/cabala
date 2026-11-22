@@ -141,6 +141,8 @@ export interface Stats {
   danoRecibido: number;
   /** Golpes por jugada (0.23.0, para la Build Estrella). Opcional: las partidas viejas no lo traen. */
   jugadas?: Record<string, number>;
+  /** Oro pagado en descartes del Sol de la Timba (0.28.0, lo cuenta el laboratorio). */
+  solOro?: number;
 }
 
 export interface Partida {

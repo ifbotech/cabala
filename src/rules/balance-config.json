@@ -158,7 +158,7 @@
       "mesaLimpia": 10
     },
     "truco": {
-      "vida": 54,
+      "vida": 53,
       "mano": 3,
       "hasta": 7,
       "comodines": 2,
@@ -168,9 +168,9 @@
         "S7": 24,
         "D7": 20
       },
-      "envido": 45,
+      "envido": 11,
       "cargaDano": 1,
-      "multiMano": 5
+      "multiMano": 7
     },
     "chinchon": {
       "vida": 26,

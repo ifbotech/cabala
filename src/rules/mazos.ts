@@ -57,7 +57,7 @@ export const MAZO: Record<MazoId, MazoDef> = {
         c: m.truco.bravas.S7,
         d: m.truco.bravas.D7,
       }),
-      fillL(L('Dos cartas del mismo palo: ¡ENVIDO!, Multi {mm} y +{e} de Daño, más +{c} por cada Envido ya cantado.', 'Two cards of the same suit: ENVIDO! Mult {mm} and +{e} Damage, plus +{c} for each Envido already called.'), { e: m.truco.envido, c: m.truco.cargaDano, mm: B.jugadas.envido.m }),
+      fillL(L('Dos cartas del mismo palo: ¡ENVIDO!, Multi {mm} y +{e} de Daño (×2 y ×3 en los tramos 2 y 3), más +{c} por cada Envido ya cantado.', 'Two cards of the same suit: ENVIDO! Mult {mm} and +{e} Damage (×2 and ×3 in stretches 2 and 3), plus +{c} for each Envido already called.'), { e: m.truco.envido, c: m.truco.cargaDano, mm: B.jugadas.envido.m }),
     ],
     desbloqueo: null,
   },

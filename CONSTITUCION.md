@@ -160,6 +160,13 @@ certificar (la huella del informe tiene que coincidir).
 - El laboratorio juega el **Sol de la Timba**: el bot paga descartes con oro cuando el golpe es flojo o no canta, y el
   balance se certifica con esa regla en juego.
 
+### 1.15 El Envido que escala y un laboratorio que cuenta (0.28.0)
+
+- **Truco**: el Daño del ¡ENVIDO! crece con el tramo (×2 y ×3), como los poderes de palo: el golpe del Truco ya no
+  arranca doblando al de los demás Mazos ni se apaga en el tramo 3.
+- El informe del laboratorio cuenta, por Mazo, cuántas partidas terminan con una Evolución despierta y cuánto oro se
+  paga en descartes del Sol de la Timba.
+
 ## 2 · Dirección de arte: «Dark Dithered Lithography»
 
 **La vara es la de los 5 Dorsos.** Vale para todas las pantallas y componentes.
