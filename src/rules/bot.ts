@@ -116,6 +116,12 @@ export function mejorAcomodo(p: Partida, sel: readonly Carta[]): number[] {
     const q = cuenta(p, sel, pos);
     if (q.ok && q.total > total) (mejor = pos), (total = q.total);
   }
+  // (0.25.0) sin Perfora lo que sobra no va a ningún lado: si otra manera abate igual con Golpe exacto, la mesa la
+  // apoya sola (paga oro y racha). Con Perfora, lo de más pasa al siguiente y la elección queda en el dial.
+  const q = cuenta(p, sel, mejor);
+  if (q.ok && q.abate && !q.exacto && !q.perfora) {
+    for (const pos of todas) if (cuenta(p, sel, pos).exacto) return pos;
+  }
   return mejor;
 }
 
@@ -172,7 +178,17 @@ export function decidir(p: Partida): Decision | null {
   // Chancho Va: el pase gratis siempre se usa con la peor carta que no entra en el golpe
   if (c.pasar && fuera.length && puedeDescartar(p, 1) === 'gratis' && c.mazo.length + c.descarte.length > 0) return { t: 'descarte', ids: [fuera[0].id] };
   if (flojo && c.descartes > 0 && fuera.length >= 2) return { t: 'descarte', ids: fuera.slice(0, 3).map((k) => k.id) };
-  return { t: 'golpe', ids: m.ids, engano: m.engano, postas: m.postas };
+  // como la mesa (0.25.0): si abate sin Perfora, apoya las mismas cartas de la manera que deja el Golpe exacto
+  let postas = m.postas;
+  if (m.q.abate && !m.q.exacto && !m.q.perfora) {
+    const sel = m.ids.map((id) => c.mano.find((k) => k.id === id)!);
+    const c0 = c.engano;
+    c.engano = m.engano;
+    const ex = mejorAcomodo(p, sel);
+    if (cuenta(p, sel, ex).exacto) postas = ex;
+    c.engano = c0;
+  }
+  return { t: 'golpe', ids: m.ids, engano: m.engano, postas };
 }
 
 // ───────────────────────── fuera del combate ─────────────────────────

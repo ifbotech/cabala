@@ -37,6 +37,7 @@ export const MAZO: Record<MazoId, MazoDef> = {
       fillL(L('Si las cartas del golpe suman 15: ¡ESCOBA!, ×{x} de Multi.', 'If the cards in a hit add up to 15: ESCOBA! ×{x} Mult.'), { x: m.escoba.multi }),
       fillL(L('Cada Escoba deja +{d} de Daño en todos tus golpes, para siempre.', 'Each Escoba leaves +{d} Damage on all your hits, forever.'), { d: m.escoba.cargaDano }),
       L('Cualquier grupo de cartas que sume 15 vale como jugada.', 'Any set of cards adding up to 15 counts as a play.'),
+      fillL(L('Mesa limpia: en el primer tramo arrancás cada combate con {e} de Escudo.', 'Clean table: in the first stretch you start every fight with {e} Shield.'), { e: m.escoba.mesaLimpia }),
     ],
     desbloqueo: null,
   },

@@ -148,26 +148,27 @@
   },
   "mazos": {
     "escoba": {
-      "vida": 74,
+      "vida": 70,
       "mano": 3,
       "hasta": 9,
       "comodines": 2,
       "multi": 3,
       "cargaDano": 2,
-      "multiMano": 3
+      "multiMano": 3,
+      "mesaLimpia": 10
     },
     "truco": {
-      "vida": 61,
+      "vida": 56,
       "mano": 3,
       "hasta": 7,
       "comodines": 2,
       "bravas": {
-        "S1": 24,
-        "C1": 20,
-        "S7": 16,
-        "D7": 12
+        "S1": 32,
+        "C1": 28,
+        "S7": 24,
+        "D7": 20
       },
-      "envido": 28,
+      "envido": 40,
       "cargaDano": 1,
       "multiMano": 4
     },
@@ -181,13 +182,13 @@
       "multiMano": 3
     },
     "mentiroso": {
-      "vida": 17,
+      "vida": 18,
       "mano": 8,
       "hasta": 6,
       "comodines": 3,
       "enganos": 1,
       "furiaFallo": 3,
-      "caraDePiedra": 17,
+      "caraDePiedra": 14,
       "multiMano": 0
     },
     "chancho": {
@@ -256,14 +257,18 @@
   "evoluciones": {
     "facon": {
       "sobra": 3,
-      "multi": 1
+      "corta": 3
     },
     "garrote": 1,
     "sol": {
-      "oro": 2,
-      "tope": 3
+      "oroDoble": 2,
+      "tope": 3,
+      "descarte": 3
     },
-    "brindis": 1
+    "brindis": {
+      "multi": 3,
+      "bebe": 2
+    }
   },
   "tesoros": {
     "precio": 30,

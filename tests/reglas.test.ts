@@ -693,18 +693,19 @@ describe('0.22.0: Evoluciones, Forja Brava, Cábala Negra y Tesoros', () => {
       expect(despierta(q, 'amuleto', de)).toBe(de);
     }
   });
-  it('el Sol de la Timba sube el tope del Cofre y el Brindis de Sangre suma otro tanto con la Vida alta', () => {
+  it('el Sol de la Timba sube el tope del Cofre y el Brindis de Sangre suma Multi siempre', () => {
     const mano = [c('S', 7), c('C', 7)];
     const p = mesa('chinchon', mano, {}, (x) => {
       x.amuletos = ['cofre', 'caliz'];
       x.oro = 300;
     });
     const antes = cuenta(p, mano);
+    expect(antes.pasos.some((x) => x.de === 'a:caliz')).toBe(true);
     p.bendiciones = { [donDe('D')]: 1, [donDe('H')]: 1 };
     const despues = cuenta(p, mano);
     expect(despues.pasos.some((x) => x.de === 'ev:cofre' && x.v === B.evoluciones.sol.tope)).toBe(true);
-    expect(despues.pasos.filter((x) => x.de === 'ev:caliz').reduce((s, x) => s + x.v, 0)).toBe(B.amuletos.caliz.multi + B.evoluciones.brindis);
-    expect(despues.multi).toBe(antes.multi + B.evoluciones.sol.tope - B.amuletos.cofre.tope + B.evoluciones.brindis);
+    expect(despues.pasos.filter((x) => x.de === 'ev:caliz').reduce((s, x) => s + x.v, 0)).toBe(B.evoluciones.brindis.multi);
+    expect(despues.multi).toBe(antes.multi + B.evoluciones.sol.tope - B.amuletos.cofre.tope + B.evoluciones.brindis.multi - B.amuletos.caliz.multi);
   });
   it('la tercera pasada por el Fogón es la Forja Brava: número doble y una mutación', () => {
     let forjas = 0;
@@ -885,5 +886,84 @@ describe('0.23.0: el Altar devuelve y el resumen de la partida', () => {
       anotar(perfil, p, i);
     }
     expect(derrotas).toBeGreaterThan(0);
+  });
+});
+
+
+
+describe('0.25.0: cada Evolución trae su maldición', () => {
+  const donDe = (palo: string) => BENDICIONES.find((id) => BENDICION[id].rey === palo && !BENDICION[id].dual)!;
+  it('el Facón Maldito corta Vida cuando el golpe no abate, y nunca te mata', () => {
+    const mano = [c('S', 3), c('D', 2)];
+    const p = mesa('chinchon', mano, {}, (x) => {
+      x.amuletos = ['lanza'];
+      x.bendiciones = { [donDe('S')]: 1 };
+    });
+    const q = cuenta(p, [mano[0]]);
+    expect(q.abate).toBe(false);
+    expect(q.maldicion).toBe(B.evoluciones.facon.corta);
+    p.vida = 2;
+    const evs = golpear(p, [mano[0].id]);
+    expect(evs.some((e) => e.t === 'maldicion' && e.de === 'lanza' && e.n === 1)).toBe(true);
+    expect(p.vida).toBeGreaterThanOrEqual(0);
+  });
+  it('el Brindis de Sangre cura doble y bebe Vida en cada golpe', () => {
+    const mano = [c('H', 4), c('S', 2)];
+    const p = mesa('chinchon', mano, {}, (x) => (x.amuletos = ['caliz']));
+    const antes = cuenta(p, [mano[0]]);
+    p.bendiciones = { [donDe('H')]: 1 };
+    const despues = cuenta(p, [mano[0]]);
+    expect(despues.cura).toBe(antes.cura * 2);
+    expect(despues.maldicion).toBe(B.evoluciones.brindis.bebe);
+  });
+  it('el Garrote del Cacique vuelve Escudo lo que curaban tus Copas', () => {
+    const mano = [c('H', 4), c('C', 4)];
+    const p = mesa('chinchon', mano, {}, (x) => (x.amuletos = ['poncho']));
+    p.bendiciones = { [donDe('C')]: 1 };
+    p.amuletos = [];
+    const antes = cuenta(p, mano);
+    p.amuletos = ['poncho'];
+    const despues = cuenta(p, mano);
+    expect(antes.cura).toBeGreaterThan(0);
+    expect(despues.cura).toBe(0);
+    expect(despues.escudo).toBe(antes.escudo + antes.cura);
+  });
+  it('el Sol de la Timba paga doble los Oros y cobra oro por cada descarte', () => {
+    const mano = [c('D', 4), c('C', 4), c('S', 3)];
+    const p = mesa('chinchon', mano, {}, (x) => {
+      x.amuletos = ['cofre'];
+      x.oro = 10;
+    });
+    const antes = cuenta(p, mano.slice(0, 2));
+    p.bendiciones = { [donDe('D')]: 1 };
+    expect(cuenta(p, mano.slice(0, 2)).oro).toBe(antes.oro * B.evoluciones.sol.oroDoble);
+    const evs = descartar(p, [mano[2].id]);
+    expect(evs.some((e) => e.t === 'maldicion' && e.de === 'cofre')).toBe(true);
+    expect(p.oro).toBe(10 - B.evoluciones.sol.descarte);
+  });
+  it('sin Perfora, la mesa apoya sola la manera que deja el Golpe exacto', () => {
+    // sin el Amuleto de la Lanza ni Espadas no hay Perfora; si alguna disposición abate exacto, mejorAcomodo la elige
+    for (let i = 0; i < 60; i++) {
+      const n = 1 + (i % 9);
+      const mano = i % 2 ? [c('D', n), c('C', n), c('D', 1 + ((i * 5) % 9))] : [c('D', n), c('C', n)];
+      const p = mesa('chinchon', mano, {}, () => {});
+      const sel = mano;
+      const q = cuenta(p, sel, mejorAcomodo(p, sel));
+      if (!q.ok || q.perfora) continue;
+      p.combate!.fila[0].vida = q.aVida - 1;
+      const pos = mejorAcomodo(p, sel);
+      const r = cuenta(p, sel, pos);
+      expect(r.abate).toBe(true);
+      // si alguna disposición abate exacto, es la que quedó apoyada: no queda otro exacto para ofrecer
+      expect(acomodoExacto(p, sel)).toBeNull();
+    }
+  });
+});
+
+describe('0.25.0: Mesa limpia', () => {
+  it('la Escoba arranca cada combate del primer tramo con Escudo', () => {
+    const p = mesa('escoba', [c('S', 2)]);
+    expect(p.acto).toBe(0);
+    expect(p.combate!.escudo).toBeGreaterThanOrEqual(B.mazos.escoba.mesaLimpia);
   });
 });

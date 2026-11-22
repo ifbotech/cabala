@@ -72,10 +72,10 @@ Consumibles de un solo uso que se apoyan **sobre la madera, a la derecha de la m
 
 | Amuleto | Evoluciona en | Qué hace |
 |---|---|---|
-| **Lanza del Caudillo** | **EL FACÓN MALDITO** | Todo golpe Perfora y lo que sobra pasa ×3. Cada abatido: +1 de Multi en el combate. |
-| **Poncho del Cacique** | **GARROTE DEL CACIQUE** | Con 6 o más de Escudo: +2 de Multi. Tu Escudo entero se suma al Daño. |
-| **Cofre del Caudal** | **SOL DE LA TIMBA** | +1 de Multi por cada 30 de oro (tope +3). Cada abatido te paga 2 de oro. |
-| **Cáliz del Bacanal** | **BRINDIS DE SANGRE** | +2 de Multi siempre, y con 80 % de Vida o más, +1 más. |
+| **Lanza del Caudillo** | **EL FACÓN MALDITO** | Todo golpe Perfora y lo que sobra pasa ×3. MALDICIÓN: el golpe que no abate te corta 3 de Vida. |
+| **Poncho del Cacique** | **GARROTE DEL CACIQUE** | Con 6+ de Escudo, +2 Multi; tu Escudo entero se suma al Daño. MALDICIÓN: tus Copas no curan, dan Escudo. |
+| **Cofre del Caudal** | **SOL DE LA TIMBA** | Tus Oros pagan doble; +1 Multi cada 30 de oro (tope +3). MALDICIÓN: cada descarte, −3 de oro. |
+| **Cáliz del Bacanal** | **BRINDIS DE SANGRE** | Tus Copas curan doble. MALDICIÓN: cada golpe te bebe 2 de Vida, pero suma +3 de Multi. |
 
 - **Forja Brava.** El Fogón tiene 3 pasadas sobre un naipe: +4 de Daño, Templada (+1 de Multi al jugarla) y **¡FORJA BRAVA!**, que duplica el naipe entero (su número y su temple) y le deja la mutación que elijas entre dos a la vista: **Doble Filo** (+2 de Multi, te corta 2 de Vida), **Roba Carta** (robás 1) o **Chispa de Oro** (+3 de oro). La segunda pasada arriesga quemar el naipe un 35 % y la tercera un 50 %.
 - **Cábala Negra.** Una vez por partida, desde el segundo tramo, el Bufón cose naipes: **coser dos iguales** (dos del mismo número se vuelven uno que junta lo suyo y pega de más) o **trasplantar** (el primero se sacrifica y el segundo toma su palo y lo que le dejó el fuego).
@@ -210,10 +210,10 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 
 | Mazo | Personaje | Vida · mano | Regla estrella | Se abre con |
 |---|---|---|---|---|
-| **Escoba** · Escoba del 15 | La Barrendera | 74 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×3 y más Daño para siempre. | abierto desde el principio |
-| **Truco** · Envido y Bravas | El Paisano Bravo | 61 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
+| **Escoba** · Escoba del 15 | La Barrendera | 70 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×3 y más Daño para siempre. | abierto desde el principio |
+| **Truco** · Envido y Bravas | El Paisano Bravo | 56 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
 | **Chinchón** · Pierna y Escalera | La Timbera del Club | 27 · 7 | Piernas y Escaleras de palo crecen siempre y te cubren. | Vencé a un Rey. |
-| **El Mentiroso** · Cara de Piedra | El Chamuyero | 17 · 8 | Comodines, Escudo de entrada y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
+| **El Mentiroso** · Cara de Piedra | El Chamuyero | 18 · 8 | Comodines, Escudo de entrada y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
 | **Chancho Va** · Mano al Centro | El Manotazo | 48 · 4 | Pasá una carta gratis por turno. Cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
 
 **Escoba** (¡ESCOBA!)
@@ -221,12 +221,13 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 - Si las cartas del golpe suman 15: ¡ESCOBA!, ×3 de Multi.
 - Cada Escoba deja +2 de Daño en todos tus golpes, para siempre.
 - Cualquier grupo de cartas que sume 15 vale como jugada.
+- Mesa limpia: en el primer tramo arrancás cada combate con 10 de Escudo.
 
 **Truco** (¡ENVIDO!)
 - Mano de 3 cartas, como en la mesa: tus golpes llevan +4 de Multi.
 - Tu Mazo va del 1 al 7, y barajarlo no sube la Furia.
-- Las 4 Bravas pegan de más: 1 de Espadas +24, 1 de Bastos +20, 7 de Espadas +16, 7 de Oros +12.
-- Dos cartas del mismo palo: ¡ENVIDO!, Multi 2 y +28 de Daño, más +1 por cada Envido ya cantado.
+- Las 4 Bravas pegan de más: 1 de Espadas +32, 1 de Bastos +28, 7 de Espadas +24, 7 de Oros +20.
+- Dos cartas del mismo palo: ¡ENVIDO!, Multi 2 y +40 de Daño, más +1 por cada Envido ya cantado.
 
 **Chinchón** (¡CHINCHÓN!)
 - Mano de 7 cartas.
@@ -236,7 +237,7 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 **El Mentiroso** (¡MENTIRA!)
 - Mano de 8 cartas.
 - Tu Mazo lleva 3 Comodines.
-- Cara de Piedra: empezás cada combate con 17 de Escudo.
+- Cara de Piedra: empezás cada combate con 14 de Escudo.
 - Engaño, una vez por combate: todas las cartas del golpe fingen ser tu carta más alta y nada les es Inmune.
 - Si el Engaño no abate al enemigo, su Furia sube 3.
 

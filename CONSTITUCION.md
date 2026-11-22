@@ -132,6 +132,18 @@ certificar (la huella del informe tiene que coincidir).
 - **Resumen de la partida** en la misma escena del final, en dos capas: **Build Estrella** (Evoluciones, hasta tres
   Amuletos, la Bendición y la jugada que más usaste, el mejor golpe) y **Qué te frenó / Próximo récord**, con un botón
   grande **OTRA MANO YA**.
+
+### 1.12 Las Evoluciones malditas, DEJALO JUSTO y Mesa limpia (0.25.0)
+
+- **Cada Evolución cambia una regla y trae su maldición**, escrita en su ficha: el **Facón Maldito** hace que todo
+  golpe Perfore (la sobra pasa ×3), pero el golpe que no abate te corta Vida; el **Garrote del Cacique** suma tu Escudo
+  entero al Daño, pero tus Copas ya no curan: te dan Escudo; el **Sol de la Timba** paga doble tus Oros, pero cada
+  descarte te cuesta oro; el **Brindis de Sangre** cura doble con tus Copas y suma Multi a cada golpe, pero cada golpe
+  te bebe Vida. Las maldiciones de Vida nunca te matan: te dejan en 1.
+- **DEJALO JUSTO.** Sin Perfora lo que sobra no va a ningún lado: si las mismas cartas abaten con Golpe exacto apoyadas
+  de otra manera, la mesa las apoya así sola. Con Perfora, la elección queda en el dial (exacto o pegar con todo).
+- **Mesa limpia.** En el primer tramo la Escoba, el Mazo de entrada, arranca cada combate con Escudo: el primer
+  contacto no castiga.
 ## 2 · Dirección de arte: «Dark Dithered Lithography»
 
 **La vara es la de los 5 Dorsos.** Vale para todas las pantallas y componentes.
