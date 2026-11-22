@@ -680,7 +680,7 @@ export const EN: Record<keyof typeof ES, string> = {
   negraCosido: 'SEWN!',
   tesoroCerrado: 'THE CHEST IS LOCKED',
   dialPasan: '{n} carry',
-  dialPierde: 'no {n} carry',
+  dialPierde: '{n} lost',
   dialSinOro: 'no +{o} gold',
   dialPierdeTip: 'The {n} overflow no longer carries to the next in the Court.',
   maximoTipPerfora: 'The hardest-hitting layout: it Pierces and {n} carry to the next in the Court. Not an Exact hit: no {o} gold.',

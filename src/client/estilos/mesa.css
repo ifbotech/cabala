@@ -1936,7 +1936,28 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     font-size: 14px;
   }
 }
-/* (0.26) la placa que no te pega lo dice en celeste: «NO TE PEGA» y su causa */
+/* (0.26) la placa que no te pega lo dice en celeste: «NO TE PEGA» y su causa. Los dos rótulos van en la misma celda y
+   el ancho es el de «TE PEGA»: el otro sobresale parejo a los dos lados, sin ensanchar la placa (la mesa no se corre) */
+.e-ataque .e-pega {
+  display: inline-grid;
+  justify-items: center;
+}
+.e-ataque .e-pega > span {
+  grid-area: 1 / 1;
+}
+.e-ataque .e-pega > .ep-no {
+  width: 0;
+  display: flex;
+  justify-content: center;
+  white-space: nowrap;
+  visibility: hidden;
+}
+.e-ataque.no-pega .e-pega > .ep-no {
+  visibility: visible;
+}
+.e-ataque.no-pega .e-pega > .ep-si {
+  visibility: hidden;
+}
 .mesa .e-ataque.no-pega .e-pega {
   color: var(--cian);
 }
@@ -4531,7 +4552,7 @@ button.chiche:focus-visible {
     max-width: 104px;
   }
   .mesa .e-ataque > .rotulo.e-pega {
-    display: block;
+    display: grid;
     order: -1;
     flex-basis: 100%;
     text-align: center;

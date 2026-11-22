@@ -256,7 +256,7 @@ export function pantallaMesa(p: Partida): Pantalla {
         <span class="e-suelta chip canto">${t('soltaAca')}</span>
       </div>
       <div class="e-ataque mirable ${e.aturdido > 0 ? 'dormido' : ''}" data-ataque tabindex="0" ${tip(`${t('tePegaRotulo')} ${e.ataque + furia}`, t('tePegaTip'), furia ? `${t('furia')} ${furia}: ${notaFuria}` : '')}>
-        <b class="rotulo e-pega">${t('tePegaRotulo')}</b>
+        <b class="rotulo e-pega"><span class="ep-si">${t('tePegaRotulo')}</span><span class="ep-no" aria-hidden="true">${t('noTePega')}</span></b>
         ${furia ? `<i class="e-llamas n${furia >= 8 ? 3 : furia >= 4 ? 2 : 1}" aria-hidden="true">${pxHud('furia')}${pxHud('furia')}${pxHud('furia')}</i>` : ''}${pxHud('ataque')}<span class="e-golpe"><span data-n="ataque">${cifra(e.ataque + furia, 'roja', 'grande')}</span><b class="e-neto" hidden></b></span>${tajoHtml}
         ${furiaHtml}
       </div>
@@ -478,7 +478,8 @@ export function pantallaMesa(p: Partida): Pantalla {
     const gana = d.exacto
       ? [t('chipExactoOro', { o: B.exacto.oro }), t('chipExactoMulti', { m: multi })]
       : [conPasan ? t('dialPasan', { n: pasan }) : t('chipMaximoPremio', { n: Math.max(0, otra.total - q.total) })];
-    const pierde = d.exacto ? (conPasan ? [t('dialPierde', { n: pasan })] : []) : [t('dialSinOro', { o: B.exacto.oro })];
+    // (en el teléfono, lo que el exacto pierde queda en la ayuda: el chip de la cuenta, justo debajo, ya dice lo que pasa)
+    const pierde = d.exacto ? (conPasan && innerWidth > 700 ? [t('dialPierde', { n: pasan })] : []) : [t('dialSinOro', { o: B.exacto.oro })];
     const ayuda = d.exacto
       ? `${t('exactoTip', { o: B.exacto.oro, m: multi })}${conPasan ? ` ${t('dialPierdeTip', { n: pasan })}` : ''}`
       : conPasan
@@ -713,8 +714,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     // (0.26) si no te pega, y dice por qué, el rótulo lo dice: «NO TE PEGA · LO ABATÍS»
     const noPega = golpe === 0 && !!causa;
     ataque.classList.toggle('no-pega', noPega);
-    const rot = ataque.querySelector<HTMLElement>('.e-pega');
-    if (rot) rot.textContent = noPega ? t('noTePega') : t('tePegaRotulo');
+    // (los dos rótulos ocupan la misma celda: el más largo no ensancha la placa ni corre la mesa al elegir)
     const neto = ataque.querySelector<HTMLElement>('.e-neto');
     if (neto) {
       neto.innerHTML = causa ? causa.split(/ (?=[^ ]+$)/).map((x) => `<span>${esc(x)}</span>`).join('') : '';
