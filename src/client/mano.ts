@@ -158,7 +158,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     const el = document.createElement('div');
     el.className = `posta${i === medio ? ' p-medio' : ''}`;
     el.dataset.posta = String(i);
-    el.innerHTML = `<span class="p-rot">${pxHud(i === medio ? 'medio' : 'escalon', 'p-icono')}<b class="p-ayuda">${esc(ayudaPosta(i))}</b></span>`;
+    // (su ayuda de verdad: al pasar el cursor o tocar la Posta vacía, qué hace cada una)
+    el.innerHTML = `<span class="p-rot" ${tip(ayudaPosta(i), t('postaTip'))}>${pxHud(i === medio ? 'medio' : 'escalon', 'p-icono')}<b class="p-ayuda">${esc(ayudaPosta(i))}</b></span>`;
     pano.append(el);
     return el;
   });
@@ -220,10 +221,13 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     const out = new Map<string, { x: number; y: number }>();
     const lp = lugaresPosta();
     // el Escalón se ve: cada naipe de la escalera sube un poco más que el de su izquierda
+    // (sin salirse por arriba de la mano: si no hay alto, los peldaños se achican)
     let peldano = 0;
+    const nEsc = enPosta.filter(Boolean).length;
+    const escalon = nEsc > 1 ? Math.min(5 * k, Math.max(0, lp.y) / (nEsc - 1)) : 0;
     enPosta.forEach((id, i) => {
       if (!id) return;
-      const sube = marcas.escalon ? Math.round(peldano++ * 5 * k) : 0;
+      const sube = marcas.escalon ? Math.round(peldano++ * escalon) : 0;
       out.set(id, { x: lp.xs[i], y: lp.y - sube });
     });
     const enMano = naipes.filter((c) => !c.elegida);

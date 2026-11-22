@@ -139,10 +139,12 @@ function fichasFisicas(que: 'vida' | 'oro', delta: number): void {
     f.className = `ficha-fisica ff-${que} ${gana ? 'ff-gana' : 'ff-pierde'}`;
     f.setAttribute('aria-hidden', 'true');
     f.innerHTML = pxHud(que === 'oro' ? 'oro' : 'vida');
-    const lado = (i - (n - 1) / 2) * 10;
+    // (0.21) solo hacia el lado del icono que no tiene cifras (la izquierda): nacen sobre el icono o a su izquierda y
+    // saltan o caen por ahí; nunca cruzan el número de al lado
+    const lado = -i * 6;
     f.style.left = `${Math.round(r.left + r.width / 2 + lado)}px`;
     f.style.top = `${Math.round(r.top + r.height / 2)}px`;
-    f.style.setProperty('--dx', `${Math.round(lado * (gana ? -0.6 : 2.2))}px`);
+    f.style.setProperty('--dx', `${-Math.round(gana ? 4 + i * 6 : 10 + i * 12)}px`);
     f.style.animationDelay = `${i * 45}ms`;
     capa.append(f);
     window.setTimeout(() => f.remove(), 560 + i * 45);

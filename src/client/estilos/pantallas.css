@@ -2008,6 +2008,45 @@ button.visor-carta:disabled {
     min-height: 0;
   }
 
+  /* (0.21) los Chiches, lo nuevo del mostrador, van primero y en renglones compactos (icono, nombre y precio arriba, lo
+     que hace abajo): a 390 px se ven sin desplazar el rollo; los Amuletos siguen debajo */
+  .pulperia .bandejas > .bandejas-pie > .b-chiches,
+  .pulperia .b-chiches {
+    order: -1;
+  }
+  .pulperia .b-chiches .ventas {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .pulperia .b-chiches .venta.hierro {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'icono nombre precio'
+      'icono desc desc';
+    align-items: center;
+    column-gap: 8px;
+    row-gap: 0;
+    padding: 2px 8px;
+    text-align: left;
+  }
+  .pulperia .b-chiches .venta.hierro > .op-icono {
+    grid-area: icono;
+  }
+  .pulperia .b-chiches .venta.hierro > .op-nombre {
+    grid-area: nombre;
+    justify-self: start;
+  }
+  .pulperia .b-chiches .venta.hierro > :is(.precio, .chip) {
+    grid-area: precio;
+    margin-top: 0;
+  }
+  .pulperia .b-chiches .venta.hierro > .op-desc {
+    grid-area: desc;
+    justify-self: start;
+    line-height: 1.1;
+  }
+
   /* la Cábala: sus tarjetas no llevan icono; el texto usa todo el ancho (el rótulo «A la suerte» ocupaba una columna
      y dejaba media tarjeta vacía) */
   .cabala .opcion {

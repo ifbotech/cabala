@@ -31,7 +31,7 @@ import { cifra, pxChiche, lienzoNaipe, lienzoNaipeSegunda, pxMascara, pxNaipeSeg
 import type { AmuletoId } from '../../rules/amuletos';
 import type { AumentoId } from '../../rules/aumentos';
 import type { BendicionId } from '../../rules/reyes';
-import { JUGADA_NOMBRE, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_AYUDA, PASO_NOMBRE, RANGO_NOMBRE, RASGO_CORTA, SEGUNDA_BURLA, SEGUNDA_CORTA, TRAMO_NOMBRE } from '../textos';
+import { CHICHE_CORTO, JUGADA_NOMBRE, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_AYUDA, PASO_NOMBRE, RANGO_NOMBRE, RASGO_CORTA, SEGUNDA_BURLA, SEGUNDA_CORTA, TRAMO_NOMBRE } from '../textos';
 import { ENSENANZA, GRITO, VOZ } from '../voces';
 import { $, bufonHtml, esc, fichaDe, gestoBufon, reyHtml, tip, type Pantalla } from '../ui';
 import { glifo, porTeclado } from '../nav';
@@ -112,6 +112,9 @@ export function pantallaMesa(p: Partida): Pantalla {
   const cuentaDe = (sel: Carta[] = seleccion()): Cuenta => cuenta(p, sel, postasDeSel(sel));
   /** El Dado Cargado de esta mano (su +Multi entra por «golpe anterior»: el desglose lo nombra por lo que es). */
   let dadoArmado = false;
+  /** El Chiche que el primer toque dejó listo (el segundo lo usa) y con qué se tocó la mesa por última vez. */
+  let chicheListo: number | null = null;
+  let ultimoPuntero = '';
 
   // ───────────── el Bufón habla ─────────────
   function decir(texto: string, gesto: Expresion = 'reposo', ms = 3400): void {
@@ -233,7 +236,8 @@ export function pantallaMesa(p: Partida): Pantalla {
     if (clase === 'b') return fichaDe('bendicion', id).nombre;
     if (clase === 'r') return tx(REY_DEF[id as Palo].carga);
     if (de === 'canto') return tx(MAZO[p.mazoId].canto);
-    if (de === 'prox' && dadoArmado) return tx(PASO_NOMBRE.dado);
+    // (el Dado Cargado se lee como lo que da: «MULTI +3», también en el teléfono)
+    if (de === 'prox' && dadoArmado) return t('multi');
     return PASO_NOMBRE[de] ? tx(PASO_NOMBRE[de]) : de;
   }
   /** La ayuda corta de cada término del desglose: la de su pieza o la del glosario. */
@@ -331,8 +335,10 @@ export function pantallaMesa(p: Partida): Pantalla {
   function cuentaHtml(q: Cuenta, sel: Carta[]): string {
     // en reposo, la zona de la cuenta dice qué hacer
     // (con mando o teclado, la pista es de botones: el CSS enseña la que toca según `html[data-entrada]`)
+    // (con el Dado Cargado tirado, la cuenta en reposo ya dice lo que suma al próximo golpe)
+    const dado = dadoArmado ? `<span class="chip d-dado" ${tip(tx(PASO_NOMBRE.dado), tx(PASO_AYUDA.dado))}>${pxChiche('dado', 'd-i')}${t('multi')} +${B.chiches.dado}</span>` : '';
     if (!sel.length)
-      return `<div class="cuenta reposo"><span class="sub pista p-puntero">${t('elegiCartas')}</span><span class="sub pista p-botones">${glifo('A', 'ENTER')} ${t('pistaElige')} · ${glifo('X', 'G')} ${t('pistaGolpea')} · ${glifo('Y', 'D')} ${t('pistaDescarta')}</span></div>`;
+      return `<div class="cuenta reposo">${dado}<span class="sub pista p-puntero">${t('elegiCartas')}</span><span class="sub pista p-botones">${glifo('A', 'ENTER')} ${t('pistaElige')} · ${glifo('LB', 'Q')}${glifo('RB', 'W')} ${t('pistaCorre')} · ${glifo('X', 'G')} ${t('pistaGolpea')} · ${glifo('Y', 'D')} ${t('pistaDescarta')}</span></div>`;
     if (!q.ok) {
       const motivo = q.motivo === 'comodines' ? t('soloComodines') : q.motivo === 'muchas' ? t('muchas') : t('noJugada');
       return `<div class="cuenta invalida"><span class="chip">${motivo}</span></div>`;
@@ -349,7 +355,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     // la pieza); el conteo lo enciende con su propio golpe. Nada de chip aparte ni de ×2 estampado sobre el total
     const esCritico = (x: Paso): boolean => q.critico && x.tipo === 'x' && x.de === 'b:puntahacha';
     const termino = (x: Paso, valor: string): string =>
-      `<span class="d-t d-${x.tipo}${/^[aubr]:/.test(x.de) ? ' d-pieza' : x.de.startsWith('j:') || x.de === 'canto' ? ' d-nombre' : ''}${x.de.startsWith('posta:') ? ' d-posta' : ''}${esCritico(x) ? ' d-critico' : ''}" data-paso="${clave(x)}" ${tip(pasoNombre(x.de), pasoAyuda(x.de))}>${pasoIcono(x.de)}<span class="d-n">${esc(pasoNombre(x.de))}</span>${esCritico(x) ? `<b class="d-crit">${t('critico')}</b>` : ''}<b class="d-v">${valor}</b></span>`;
+      `<span class="d-t d-${x.tipo}${/^[aubr]:/.test(x.de) ? ' d-pieza' : x.de.startsWith('j:') || x.de === 'canto' || (x.de === 'prox' && dadoArmado) ? ' d-nombre' : ''}${x.de.startsWith('posta:') ? ' d-posta' : ''}${esCritico(x) ? ' d-critico' : ''}" data-paso="${clave(x)}" ${tip(pasoNombre(x.de), pasoAyuda(x.de))}>${pasoIcono(x.de)}<span class="d-n">${esc(pasoNombre(x.de))}</span>${esCritico(x) ? `<b class="d-crit">${t('critico')}</b>` : ''}<b class="d-v">${valor}</b></span>`;
     const cartasD = q.pasos.filter(esCarta);
     const piezasD = q.pasos.filter((x) => x.tipo === 'd' && !esCarta(x) && x.v !== 0);
     const sumanM = q.pasos.filter((x) => x.tipo === 'm' && x.v !== 0);
@@ -475,8 +481,14 @@ export function pantallaMesa(p: Partida): Pantalla {
       const neto = golpeNeto(q, sel.length);
       let golpe = neto ?? enemigo.ataque + furia;
       let causa = '';
+      let corto = '';
       if (neto !== null) causa = tajo ? '' : frenaEscudo(q).causa;
-      else if (!sel.length && enemigo.aturdido <= 0 && !c().caraDePoker) {
+      else if (!sel.length && enemigo.aturdido <= 0 && c().caraDePoker) {
+        // (0.21) con Cara de Póker este turno no te pega: la placa dice 0 y por qué, no el golpe crudo del naipe
+        golpe = 0;
+        causa = fichaDe('aumento', 'caradepoker').nombre;
+        corto = pxAumento('caradepoker' as AumentoId);
+      } else if (!sel.length && enemigo.aturdido <= 0) {
         const k = contraataque(p, enemigo, { repite: false });
         const frena = Math.min(Math.min(escudoTope(p), c().escudo), k.n - k.directo);
         if (frena > 0) {
@@ -484,7 +496,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           causa = `${k.n} − ${frena} ${t('escudo')}`;
         }
       }
-      ponerGolpeRey(golpe, tajo, causa);
+      ponerGolpeRey(golpe, tajo, causa, corto);
     }
     marcarInmunes();
     marcarCopias(q);
@@ -512,7 +524,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     panoAntes = { chispas: chispas.length, escalon };
   }
   /** La placa TE PEGA del Rey: la cifra grande (lo que pega de verdad) y, con el Tajo, su causa chica debajo («24 ×2»). */
-  function ponerGolpeRey(golpe: number, tajo: boolean, causa = ''): void {
+  function ponerGolpeRey(golpe: number, tajo: boolean, causa = '', corto = ''): void {
     const ataque = $('[data-ataque]');
     if (!ataque) return;
     ataque.classList.toggle('tajo', tajo);
@@ -522,6 +534,7 @@ export function pantallaMesa(p: Partida): Pantalla {
       // (en el teléfono, la causa va en el renglón de abajo de la placa, corta y con su icono: «🛡 −20»)
       const frena = /− (\d+)/.exec(causa)?.[1];
       if (frena) neto.insertAdjacentHTML('beforeend', `<span class="neto-corto">${pxHud('escudo')}−${frena}</span>`);
+      else if (corto) neto.insertAdjacentHTML('beforeend', `<span class="neto-corto">${corto}</span>`);
       neto.hidden = !causa;
     }
     const nAtaque = ataque.querySelector<HTMLElement>('[data-n="ataque"]');
@@ -834,16 +847,16 @@ export function pantallaMesa(p: Partida): Pantalla {
           hud.escudo = Math.max(0, hud.escudo - ev.frenado);
           hud.vida = ev.vida;
           ponerHud(hud);
-          // lo que frenó tu Escudo, en azul sobre su caja: en un solo cuadro se lee «perdí 23, el Escudo frenó 4»
-          if (ev.frenado > 0) {
-            const re = $('[data-hud-escudo]')?.getBoundingClientRect();
-            if (re) numero(`-${ev.frenado}`, re.left + re.width / 2, re.top + 4 * S, 'azul', 1);
-          }
-          if (ev.n - ev.frenado > 0) {
-            // el daño recibido nace pegado a la cifra de VIDA (arriba a su derecha, sobre el rótulo): sube y cae sin
-            // taparla, y nunca sobre la zona de descarte
-            const rv = $('[data-hud-vida]')?.getBoundingClientRect();
-            numero(`-${ev.n - ev.frenado}`, rv ? rv.left + rv.width * 0.72 : en.x, (rv ? rv.top : en.y) - 6 * S, 'roja', 2);
+          // lo que te pegan va en UN carril, pegado a la cifra de VIDA (arriba, sobre el rótulo): el rojo que perdiste y, a
+          // su derecha en el mismo renglón, el azul que frenó tu Escudo. Suben rectos (sin deriva): no se cruzan y se leen
+          // juntos, «−23 −4», sin taparla ni caer sobre la zona de descarte
+          const rv = $('[data-hud-vida]')?.getBoundingClientRect();
+          const carrilX = rv ? rv.left + rv.width * 0.66 : en.x;
+          const carrilY = (rv ? rv.top : en.y) - 6 * S;
+          const pierde = ev.n - ev.frenado;
+          if (ev.frenado > 0) numero(`-${ev.frenado}`, pierde > 0 ? carrilX + 6 : carrilX, carrilY + 6 * S, 'azul', 1, { alinear: pierde > 0 ? 'izquierda' : undefined, vx: 0 });
+          if (pierde > 0) {
+            numero(`-${pierde}`, ev.frenado > 0 ? carrilX - 2 : carrilX, carrilY, 'roja', 2, { alinear: ev.frenado > 0 ? 'derecha' : undefined, vx: 0 });
             chispas(en.x, en.y, RAMPA_GOLPE, 10, 80);
             sonar('contra');
             gestoRetrato('mueca', 900);
@@ -1110,7 +1123,7 @@ export function pantallaMesa(p: Partida): Pantalla {
       h
         .map((id, i) =>
           id
-            ? `<button class="chiche" data-accion="chiche" data-i="${i}" data-chiche="${id}" data-foco="chiche-${i}" aria-label="${esc(tx(CHICHE[id].nombre))}" ${tip(tx(CHICHE[id].nombre), tx(CHICHE[id].desc), t('chicheUsa'))}>${pxChiche(id)}</button>`
+            ? `<button class="chiche" data-accion="chiche" data-i="${i}" data-chiche="${id}" data-foco="chiche-${i}" aria-label="${esc(tx(CHICHE[id].nombre))}" ${tip(tx(CHICHE[id].nombre), tx(CHICHE[id].desc), t(matchMedia('(pointer: coarse)').matches ? 'chicheUsaTel' : 'chicheUsa'))}>${pxChiche(id)}<span class="ch-nombre">${esc(tx(CHICHE_CORTO[id] ?? CHICHE[id].nombre))}</span></button>`
             : `<span class="chiche vacio" data-i="${i}" ${tip(t('chiches'), t('chicheVacio'))}></span>`,
         )
         .join('') +
@@ -1180,7 +1193,8 @@ export function pantallaMesa(p: Partida): Pantalla {
     const de = centro(boton);
     boton?.classList.add('usado');
     // cada uno va a lo suyo: la Ginebra a tu Vida, el Dado y el Fósforo al enemigo, la Tiza y el Poroto a la mano
-    const a = id === 'ginebra' ? centro($('[data-hud-vida]')) : id === 'dado' || id === 'fosforo' ? centro($('[data-carta]')) : centro($('[data-mano]'));
+    // (el Dado, a la cuenta: ahí se lee «MULTI +3»)
+    const a = id === 'ginebra' ? centro($('[data-hud-vida]')) : id === 'dado' ? centro($('[data-cuenta]')) : id === 'fosforo' ? centro($('[data-carta]')) : centro($('[data-mano]'));
     await volarChiche(id, de, a);
     if (id === 'dado') dadoArmado = true;
     if (!quieto() && (id === 'fosforo' || id === 'dado')) {
@@ -1202,7 +1216,13 @@ export function pantallaMesa(p: Partida): Pantalla {
     let toma: { i: number; id: ChicheId; x: number; y: number; fantasma: HTMLElement | null; pid: number } | null = null;
     let tragar = false;
     raiz.addEventListener('pointerdown', (ev) => {
+      ultimoPuntero = ev.pointerType;
       const b = (ev.target as HTMLElement).closest<HTMLElement>('[data-chiches] button.chiche');
+      // (tocar en otro lado desarma el Chiche que quedó listo)
+      if (!b || Number(b.dataset.i) !== chicheListo) {
+        chicheListo = null;
+        document.querySelectorAll('[data-chiches] .chiche.listo').forEach((x) => x.classList.remove('listo'));
+      }
       if (!b || ocupado) return;
       toma = { i: Number(b.dataset.i), id: b.dataset.chiche as ChicheId, x: ev.clientX, y: ev.clientY, fantasma: null, pid: ev.pointerId };
     });
@@ -1955,7 +1975,19 @@ export function pantallaMesa(p: Partida): Pantalla {
         modalJugadas(p, q.ok ? q.jugada : null);
       },
       golpear: () => void golpear(mano?.seleccion() ?? []),
-      chiche: (el) => void usarChiche(Number(el.dataset.i)),
+      // (con el dedo, el primer toque enseña qué hace y lo deja listo; el segundo lo usa. El cursor ya lo enseña al pasar
+      // y el mando o el teclado, al enfocarlo: ahí se usa de una)
+      chiche: (el, ev) => {
+        const i = Number(el.dataset.i);
+        if ((ev as MouseEvent).detail > 0 && ultimoPuntero === 'touch' && chicheListo !== i) {
+          chicheListo = i;
+          document.querySelectorAll('[data-chiches] .chiche.listo').forEach((b) => b.classList.remove('listo'));
+          el.classList.add('listo');
+          return;
+        }
+        chicheListo = null;
+        void usarChiche(i);
+      },
       descartar: () => void descartar(mano?.seleccion() ?? []),
       engano: () => {
         juego.armarEngano(p, !c().engano);

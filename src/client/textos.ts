@@ -202,6 +202,7 @@ export const ES = {
   elegiUnaTecla: 'Enter o A: elegir',
   // 0.15.0 · Deck de verdad: la pista de botones y los rótulos fijos del enemigo
   pistaElige: 'elige',
+  pistaCorre: 'corre de Posta',
   pistaGolpea: 'golpea',
   pistaDescarta: 'descarta',
   tePegaRotulo: 'TE PEGA',
@@ -253,6 +254,7 @@ export const ES = {
   chiches: 'CHICHES',
   chicheVacio: 'Hueco libre: se compra en La Pulpería o se roba como Prenda.',
   chicheUsa: 'Tocalo o arrastralo al enemigo. No gasta el turno.',
+  chicheUsaTel: 'Tocalo otra vez para usarlo, o arrastralo al enemigo. No gasta el turno.',
   chicheLleno: 'Ya llevás tres Chiches.',
   prenda: '¡PRENDA!',
   prendaTip: 'Al abatir con Golpe exacto, al pelo o cantando, a veces le robás un Chiche al caído.',
@@ -456,6 +458,7 @@ export const EN: Record<keyof typeof ES, string> = {
   cargaRey: '{c} {n}',
   elegiUnaTecla: 'Enter or A: choose',
   pistaElige: 'picks',
+  pistaCorre: 'moves spot',
   pistaGolpea: 'strikes',
   pistaDescarta: 'discards',
   tePegaRotulo: 'HITS YOU',
@@ -504,6 +507,7 @@ export const EN: Record<keyof typeof ES, string> = {
   chiches: 'TRINKETS',
   chicheVacio: 'Empty slot: buy one at the Store or steal one as Spoils.',
   chicheUsa: 'Tap it or drag it onto the enemy. Does not use your turn.',
+  chicheUsaTel: 'Tap it again to use it, or drag it onto the enemy. Does not use your turn.',
   chicheLleno: 'You already carry three Trinkets.',
   prenda: 'SPOILS!',
   prendaTip: 'Taking one down with an Exact Hit, a hair over or a call sometimes steals a Trinket from the fallen.',
@@ -623,6 +627,15 @@ export const PASO_NOMBRE: Record<string, Par> = {
   'posta:medio': P('Medio', 'Middle'),
   'posta:chispa': P('Chispa', 'Spark'),
   'posta:escalon': P('Escalón', 'Step'),
+};
+
+/** El nombre corto de cada Chiche, el que se lee bajo su icono en la bandeja de la mesa. */
+export const CHICHE_CORTO: Record<string, Par> = {
+  ginebra: P('Ginebra', 'Gin'),
+  dado: P('Dado', 'Die'),
+  fosforo: P('Fósforo', 'Match'),
+  tiza: P('Tiza', 'Chalk'),
+  poroto: P('Poroto', 'Bean'),
 };
 
 /** La ayuda corta de cada término del desglose que no es una pieza (las piezas usan su propia descripción). */

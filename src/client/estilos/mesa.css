@@ -464,7 +464,7 @@
   box-shadow:
     inset 0 calc(3px * var(--k)) 0 rgba(11, 7, 17, 0.55),
     0 0 0 calc(1px * var(--k)) #09070f;
-  opacity: 0.55;
+  opacity: 0.85;
   transition: opacity 120ms steps(3);
 }
 .pano-postas.activo {
@@ -496,16 +496,20 @@
   padding: 0 calc(4px * var(--k));
   box-sizing: border-box;
   overflow: hidden;
+  /* la Posta vacía se puede tocar o señalar: enseña su ayuda (postaTip) */
+  pointer-events: auto;
+  cursor: help;
 }
 .posta .p-icono {
   flex: none;
 }
 .posta .p-ayuda {
   font-family: var(--cuerpo);
-  font-size: 14px;
-  line-height: 14px;
+  font-size: 15px;
+  line-height: 16px;
   font-weight: 400;
-  color: #9fd9b8;
+  color: #e2fbe9;
+  text-shadow: 1px 1px 0 #09070f;
   text-transform: none;
   overflow-wrap: anywhere;
 }
@@ -4144,6 +4148,25 @@ html[data-entrada='teclado'] .chiches .ch-rot .g-tecla {
   cursor: pointer;
   touch-action: none;
 }
+/* su nombre a la vista, debajo del icono (en el teléfono, el primer toque lo enseña en su ayuda) */
+button.chiche {
+  grid-template-rows: 1fr auto;
+  height: auto;
+  padding: 4px 2px 3px;
+  gap: 2px;
+}
+.chiche .ch-nombre {
+  font-family: var(--cuerpo);
+  font-size: 14px;
+  line-height: 16px;
+  color: var(--hueso);
+  white-space: nowrap;
+  text-shadow: 1px 1px 0 #09070f;
+}
+.chiche.listo {
+  outline: 3px solid var(--oro);
+  outline-offset: 2px;
+}
 .chiche.vacio {
   cursor: help;
   opacity: 0.6;
@@ -4261,6 +4284,11 @@ button.chiche:focus-visible {
   .hud .chiche {
     width: 44px;
     height: 44px;
+    padding: 0;
+    grid-template-rows: 1fr;
+  }
+  .hud .chiche .ch-nombre {
+    display: none;
   }
   .mesa .hud .hud-tiras {
     margin-right: var(--ancho-chiches, 0px);
@@ -4413,5 +4441,40 @@ button.chiche:focus-visible {
 @container mesa (max-height: 700px) {
   .mesa .cuenta .c-nopega .c-causa {
     display: none;
+  }
+}
+
+/* ───────────── 0.21 · el TE PEGA del teléfono se lee: su rótulo arriba, la cifra y, debajo, por qué te pega menos ───────────── */
+@container mesa (max-height: 860px) {
+  .mesa .e-ataque {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 0;
+    width: max-content;
+    max-width: 104px;
+  }
+  .mesa .e-ataque > .rotulo.e-pega {
+    display: block;
+    order: -1;
+    flex-basis: 100%;
+    text-align: center;
+    font-size: 14px;
+    line-height: 16px;
+  }
+  .mesa .e-ataque .e-golpe {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .mesa .e-ataque .e-neto:not([hidden]) {
+    font-size: 16px;
+    line-height: 18px;
+  }
+  .mesa .e-ataque .e-neto .neto-corto .px {
+    --k: 1;
+  }
+  /* (las llamas de la Furia bajan bajo el rótulo, sobre el emblema: no lo tapan) */
+  .mesa .e-ataque > .e-llamas {
+    top: 12px;
   }
 }

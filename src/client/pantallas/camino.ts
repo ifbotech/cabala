@@ -29,7 +29,7 @@ import { CHICHE, huecosChiche } from '../../rules/chiches';
 import { lienzoNaipe, cifra, pxChiche, pxAmuleto, pxAumento, pxBendicion, pxHud, pxInmune, pxMitades, pxNaipe, pxNaipeSegunda, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
 import { naipeMapa } from '../pixel/naipes';
 import { personajeMapa } from '../pixel/personajes';
-import { JUGADA_COMO, JUGADA_NOMBRE, NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, TRAMO_NOMBRE } from '../textos';
+import { JUGADA_COMO, JUGADA_NOMBRE, NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_AYUDA, PASO_NOMBRE, TRAMO_NOMBRE } from '../textos';
 import { VOZ } from '../voces';
 import { bufonDice } from '../bufon-vivo';
 import { $, abrirModal, anfitrion, bufonHtml, cerrarModal, esc, fichaDe, irASalida, repintar, reyHtml, sinergiaHtml, tip, type Accion, type Pantalla } from '../ui';
@@ -107,7 +107,7 @@ function avisarRollo(velo: HTMLElement): void {
 }
 
 /** Las palabras del juego, en una línea cada una (el glosario de JUGADAS y la ayuda de la mesa). Los números salen del motor. */
-export type EntradaGlosario = 'multi' | 'furia' | 'escudo' | 'exacto' | 'alpelo' | 'racha' | 'segunda' | 'engano';
+export type EntradaGlosario = 'multi' | 'furia' | 'escudo' | 'exacto' | 'alpelo' | 'racha' | 'segunda' | 'engano' | 'medio' | 'chispa' | 'escalon';
 export function textoGlosario(e: EntradaGlosario): string {
   switch (e) {
     case 'multi':
@@ -126,6 +126,11 @@ export function textoGlosario(e: EntradaGlosario): string {
       return t('gSegunda');
     case 'engano':
       return t('gEngano', { n: B.mazos.mentiroso.enganos, f: B.mazos.mentiroso.furiaFallo });
+    // las Postas del paño (0.21): la mesa las acomoda sola; LB/RB (Q/W) o arrastrar las corre
+    case 'medio':
+    case 'chispa':
+    case 'escalon':
+      return tx(PASO_AYUDA[`posta:${e}`]);
   }
 }
 const GLOSARIO: readonly { e: EntradaGlosario; nombre: () => string }[] = [
@@ -137,6 +142,9 @@ const GLOSARIO: readonly { e: EntradaGlosario; nombre: () => string }[] = [
   { e: 'racha', nombre: () => t('racha', { n: B.exacto.rachaTope }).replace(/\s*×\d+$/, '') },
   { e: 'segunda', nombre: () => t('segundaCara') },
   { e: 'engano', nombre: () => t('engano') },
+  { e: 'medio', nombre: () => tx(PASO_NOMBRE['posta:medio']) },
+  { e: 'chispa', nombre: () => tx(PASO_NOMBRE['posta:chispa']) },
+  { e: 'escalon', nombre: () => tx(PASO_NOMBRE['posta:escalon']) },
 ];
 
 /**
