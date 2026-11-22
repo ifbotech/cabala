@@ -59,17 +59,34 @@ export interface Decision {
   postas?: number[];
 }
 
+/** Los juegos de k Postas de n, en orden creciente. */
+function subconjuntos(n: number, k: number): number[][] {
+  if (k === 0) return [[]];
+  const out: number[][] = [];
+  for (let i = k - 1; i < n; i++) for (const r of subconjuntos(i, k - 1)) out.push([...r, i]);
+  return out;
+}
+/** Todas las maneras de poner k cartas en n Postas (una carta por Posta). */
+function permutaciones(n: number, k: number): number[][] {
+  if (k === 0) return [[]];
+  const out: number[][] = [];
+  for (const r of permutaciones(n, k - 1)) for (let i = 0; i < n; i++) if (!r.includes(i)) out.push([...r, i]);
+  return out;
+}
+
 /** Las maneras de apoyar un golpe en el paño que el bot prueba: la de por defecto, en Escalón y con la más alta al Medio. */
 export function acomodos(p: Partida, sel: readonly Carta[]): number[][] {
   const n = postasDe(p);
   const k = sel.length;
   const out = [postasPorDefecto(n, k)];
   if (k >= 3) {
+    // en Escalón sobre cada juego de Postas posible (así también se prueba la más alta justo en el Medio)
     const orden = sel.map((_, i) => i).sort((a, b) => sel[a].n - sel[b].n);
-    const desde = Math.max(0, Math.min(n - k, medioDe(n) - Math.floor(k / 2)));
-    const pos: number[] = new Array(k);
-    orden.forEach((i, j) => (pos[i] = desde + j));
-    out.push(pos);
+    for (const lugares of subconjuntos(n, k)) {
+      const pos: number[] = new Array(k);
+      orden.forEach((i, j) => (pos[i] = lugares[j]));
+      out.push(pos);
+    }
   }
   if (k >= 2) {
     // la más alta al Medio y, si hay Comodín, a su izquierda (le da Chispa)
@@ -91,7 +108,8 @@ export function acomodos(p: Partida, sel: readonly Carta[]): number[][] {
  * defecto). El jugador puede reordenar después; esto es lo que ve al elegir las cartas.
  */
 export function mejorAcomodo(p: Partida, sel: readonly Carta[]): number[] {
-  const todas = acomodos(p, sel);
+  // la mesa prueba todas las maneras (a lo sumo 5 × 4 × 3 × 2 = 120): la de por defecto va primero y gana los empates
+  const todas = [postasPorDefecto(postasDe(p), sel.length), ...permutaciones(postasDe(p), sel.length)];
   let mejor = todas[0];
   let total = cuenta(p, sel, mejor).total;
   for (const pos of todas.slice(1)) {

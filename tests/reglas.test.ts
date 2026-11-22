@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { AMULETO, AMULETOS } from '../src/rules/amuletos';
 import { B } from '../src/rules/balance';
-import { jugarEntera, mejorGolpe, paso } from '../src/rules/bot';
+import { jugarEntera, mejorAcomodo, mejorGolpe, paso } from '../src/rules/bot';
 import { clasificar, resolver } from '../src/rules/cartas';
 import type { Carta, PaloCarta } from '../src/rules/cartas';
 import { CHICHES } from '../src/rules/chiches';
@@ -509,6 +509,16 @@ describe('0.21.0: las Postas del paño', () => {
     expect(baja.escalon).toBe(false);
     expect(sube.multi - baja.multi).toBe(B.postas.escalon);
     expect(B.postas.escalon).toBe(2);
+  });
+  it('la mesa acomoda sola la mejor disposición: ninguna otra manera de apoyar esas cartas pega más (0.22)', () => {
+    const mano = [c('S', 2), c('C', 3), c('D', 4)];
+    const p = mesa('mentiroso', mano);
+    const mejor = cuenta(p, mano, mejorAcomodo(p, mano)).total;
+    for (const a of [0, 1, 2, 3, 4]) for (const b of [0, 1, 2, 3, 4]) for (const d of [0, 1, 2, 3, 4]) {
+      if (a === b || b === d || a === d) continue;
+      const q = cuenta(p, mano, [a, b, d]);
+      if (q.ok) expect(q.total).toBeLessThanOrEqual(mejor);
+    }
   });
   it('el naipe a la derecha de un Comodín recibe su Chispa', () => {
     const mano = [{ id: 'X1', palo: 'X' as const, n: 0 }, c('S', 6)];
