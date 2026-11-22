@@ -952,6 +952,9 @@ button.visor-carta:disabled {
     width: var(--n);
     height: var(--n);
   }
+  .nodo .nodo-tesoro {
+    --k: 2;
+  }
   .mapa-bufon {
     display: none;
   }
@@ -3631,23 +3634,17 @@ button.visor-carta:disabled {
 }
 
 /* ───────────── 0.22: los Tesoros (cofre en el Mapa, candado en el Botín y en ELEGÍ UNA) ───────────── */
+/* (0.23) el baúl de hierro, a escala 2 (≥ 40 px), montado en la esquina del nodo como parte de él: sin caja, con su sombra */
 .nodo-tesoro {
   position: absolute;
-  right: calc(-8px * var(--k));
-  top: calc(-6px * var(--k));
+  right: calc(-14px * var(--k));
+  top: calc(-8px * var(--k));
   z-index: 1;
-  --k: var(--kp, 1);
-  display: flex;
-  align-items: flex-end;
-  gap: 0;
+  /* (la escala de su nodo: 2 en portátil, 3 en 1920; en el teléfono, donde el nodo va a 1, el baúl queda en 2) */
+  --k: var(--k2);
   line-height: 0;
-  padding: 2px;
-  background: var(--abismo);
-  box-shadow: inset 0 0 0 2px var(--oro);
+  filter: drop-shadow(0 2px 0 #09070f) drop-shadow(2px 0 0 #09070f);
   pointer-events: none;
-}
-.nodo-tesoro .px + .px {
-  margin-left: -4px;
 }
 .nodo.hecho .nodo-tesoro,
 .nodo.lejos .nodo-tesoro {
@@ -3655,6 +3652,8 @@ button.visor-carta:disabled {
 }
 .oferta-tesoro {
   display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
   gap: 8px;
   margin: 0 auto;
@@ -3675,10 +3674,7 @@ button.visor-carta:disabled {
   align-items: center;
   gap: 4px;
 }
-.op-candado.falta,
-.bp-precio.falta {
-  opacity: 0.6;
-}
+
 .op-falta {
   font-family: var(--cuerpo);
   font-size: var(--fs);
@@ -3686,12 +3682,13 @@ button.visor-carta:disabled {
   background: var(--abismo);
   padding: 2px 6px;
 }
+/* (0.23) cerrado: se apaga lo de adentro, nunca el candado (antes se apagaba dos veces y la cifra no se leía) */
 .o-tesoro .opcion:disabled {
-  opacity: 0.55;
+  opacity: 1;
   cursor: not-allowed;
 }
-.o-tesoro .opcion:disabled .op-falta {
-  opacity: 1;
+.o-tesoro .opcion:disabled > :not(.op-cerrojo) {
+  opacity: 0.55;
 }
 .bp-precio {
   display: inline-flex;
@@ -3760,13 +3757,6 @@ button.visor-carta:disabled {
   }
 }
 
-@media (min-width: 1700px) and (min-height: 950px) {
-  .nodo-tesoro {
-    --k: 2;
-    right: -14px;
-    top: -12px;
-  }
-}
 
 /* ───────────── 0.23: el Altar devuelve ───────────── */
 .al-botones {
@@ -4048,5 +4038,20 @@ button.visor-carta:disabled {
   }
   .forja-elige .forja-riesgo.corto {
     display: block;
+  }
+}
+/* ───────────── 0.23: el cofre del Tesoro se abre ───────────── */
+.bp-arte.cofre-abre .px {
+  animation: cofre-abre 0.36s steps(4);
+}
+@keyframes cofre-abre {
+  0% {
+    transform: translateY(calc(2px * var(--k))) scale(0.92);
+  }
+  50% {
+    transform: translateY(calc(-4px * var(--k))) scale(1.12);
+  }
+  100% {
+    transform: none;
   }
 }

@@ -322,7 +322,7 @@ export function pantallaMapa(p: Partida): Pantalla {
       ${pxNodo(n.tipo)}
       ${n.palos?.length ? `<span class="nodo-palos">${n.palos.map((s) => pxInmune(s)).join('')}</span>` : ''}
       ${estado === 'actual' ? `<span class="nodo-aca chip">${t('vosAca')}</span>` : ''}
-      ${n.tesoro && estado !== 'hecho' ? `<span class="nodo-tesoro t-${n.tesoro}" aria-hidden="true">${pxHud('cofre')}${n.tesoro === 'oro' ? pxHud('candado') : ''}</span>` : ''}
+      ${n.tesoro && estado !== 'hecho' ? `<span class="nodo-tesoro t-${n.tesoro}" aria-hidden="true">${pxHud('cofre')}</span>` : ''}
     </button>`;
   };
   // los caminos: de cada nodo a los que siguen, piso arriba
@@ -398,7 +398,10 @@ function ofertaHtml(p: Partida, oferta: Oferta, fraseRey: string): string {
   // (0.22) el Tesoro: un cofre con candado de oro (si no te alcanza, sus opciones quedan apagadas y lo dice)
   const precio = oferta.precio ?? 0;
   const alcanza = p.oro >= precio;
-  const candado = precio ? `<span class="op-cerrojo"><span class="precio op-candado ${alcanza ? '' : 'falta'}">${pxHud('candado')}${cifra(precio, alcanza ? 'oro' : 'roja', 'grande')}</span></span>` : '';
+  // (la cifra del candado se lee siempre a 7:1: oro si te alcanza, hueso si no; el rojo lo pone «Te faltan»)
+  const candado = precio ? `<span class="op-cerrojo"><span class="precio op-candado ${alcanza ? '' : 'falta'}">${pxHud('candado')}${cifra(precio, alcanza ? 'oro' : 'hueso', 'grande')}</span></span>` : '';
+  // (0.23) DEJAR EL COFRE va arriba, en el renglón del cofre (abajo caía sobre el HUD)
+  const saltarHtml = `<button class="btn marco chico" data-accion="saltar" data-foco="saltar" ${alcanza ? '' : 'data-inicio'}>${precio ? t('saltarCofre') : t('saltar', { n: B.botin.saltar })}</button>`;
   const opcion = (id: string, i: number): string => {
     const f = fichaDe(oferta.tipo, id, p);
     const rey = oferta.tipo === 'bendicion' ? BENDICION[id as BendicionId].rey : null;
@@ -413,10 +416,10 @@ function ofertaHtml(p: Partida, oferta: Oferta, fraseRey: string): string {
   };
   return `<div class="oferta o-${oferta.tipo} ${oferta.tesoro ? 'o-tesoro' : ''}" data-oferta="${oferta.tipo}">
       <h2 class="titulo oferta-titulo">${t(TITULO_OFERTA[oferta.tipo])}</h2>
-      ${oferta.tesoro ? `<p class="oferta-tesoro" ${tip(t('tesoro'), t('tesoroTip'), precio ? t('tesoroCandado', { n: precio }) : t('tesoroElite'))}>${pxHud('cofre')}<b>${t('tesoro')}</b>${precio ? `<span class="sub">${t('tesoroCandado', { n: precio })}</span>` : ''}${alcanza ? '' : `<span class="op-falta">${t('tesoroFalta', { n: precio - p.oro })}</span>`}</p>` : ''}
+      ${oferta.tesoro ? `<p class="oferta-tesoro" ${tip(t('tesoro'), t('tesoroTip'), precio ? t('tesoroCandado', { n: precio }) : t('tesoroElite'))}>${pxHud('cofre')}<b>${t('tesoro')}</b>${precio ? `<span class="sub">${t('tesoroCandado', { n: precio })}</span>` : ''}${alcanza ? '' : `<span class="op-falta">${t('tesoroFalta', { n: precio - p.oro })}</span>`}${saltarHtml}</p>` : ''}
       ${cabeza}
       <div class="opciones">${oferta.opciones.map(opcion).join('')}</div>
-      <button class="btn marco chico" data-accion="saltar" data-foco="saltar" ${alcanza ? '' : 'data-inicio'}>${precio ? t('saltarCofre') : t('saltar', { n: B.botin.saltar })}</button>
+      ${oferta.tesoro ? '' : saltarHtml}
     </div>`;
 }
 
@@ -572,7 +575,7 @@ export function pantallaBotin(p: Partida, desdeMesa = false): Pantalla {
     if (it.t === 'vidamax') return pieza(pxHud('vidamax'), t('vidaMaxMas', { n: it.n }), `<span class="bp-pie">${t('vidaMaxPie')}</span>${cobrado}`, 'hecho cura vidamax');
     const icono = it.oferta.tesoro ? pxHud('cofre') : it.oferta.tipo === 'bendicion' ? pxNodo('rey') : it.oferta.tipo === 'amuleto' ? pxHud('candado') : pxNodo('cabala');
     const precio = it.oferta.precio ?? 0;
-    const llave = precio && !it.hecho ? `<span class="bp-precio ${p.oro >= precio ? '' : 'falta'}" ${tip(t('tesoro'), t('tesoroTip'), t('tesoroCandado', { n: precio }))}>${pxHud('candado')}${cifra(precio, p.oro >= precio ? 'oro' : 'roja', 'grande')}</span>` : '';
+    const llave = precio && !it.hecho ? `<span class="bp-precio ${p.oro >= precio ? '' : 'falta'}" ${tip(t('tesoro'), t('tesoroTip'), t('tesoroCandado', { n: precio }))}>${pxHud('candado')}${cifra(precio, p.oro >= precio ? 'oro' : 'hueso', 'grande')}</span>` : '';
     return pieza(
       icono,
       it.oferta.tesoro ? t('tesoro') : t(NOMBRE_OFERTA[it.oferta.tipo]),
@@ -637,7 +640,26 @@ export function pantallaBotin(p: Partida, desdeMesa = false): Pantalla {
     },
     acciones: {
       ...accionesComunes(p),
-      abrir: (el) => modalOferta(p, Number(el.dataset.i), trasElegir),
+      // (0.23) el cofre de un Tesoro se abre con su momento: el candado cede (su sonido), la tapa salta y brilla de adentro
+      abrir: async (el) => {
+        const i = Number(el.dataset.i);
+        const it = botin.items[i];
+        if (it?.t === 'oferta' && it.oferta.tesoro && p.oro >= (it.oferta.precio ?? 0)) {
+          const arte = el.closest('.botin-fila')?.querySelector<HTMLElement>('.bp-arte');
+          if (arte && !arte.classList.contains('cofre-abre')) {
+            arte.innerHTML = pxHud('cofreAbierto');
+            arte.classList.add('cofre-abre');
+            sonar('tesoro');
+            const r = arte.getBoundingClientRect();
+            if (!quieto() && !enFoto()) {
+              destello(r.left + r.width / 2, r.top + r.height * 0.4, ['#ffffff', '#fff799', '#ffd500', '#ff7b00'], 26);
+              chispas(r.left + r.width / 2, r.top + r.height * 0.35, ['#fff799', '#ffd500', '#ff7b00'], 16, 120, -70);
+              await pausa(380);
+            }
+          }
+        }
+        modalOferta(p, i, trasElegir);
+      },
       seguir: cerrarBotin,
     },
   };
