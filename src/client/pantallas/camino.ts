@@ -437,6 +437,13 @@ export function calentarOfertas(p: Partida): void {
   // y lo que el golpe estrena: los fogonazos, el nombre que sube, la ficha que dispara y el naipe que salta (con su
   // índice y su sello de Templada: rasterizar esa letra escalada y con brillo la primera vez costaba ~150 ms)
   el.insertAdjacentHTML('beforeend', '<i class="fogonazo f-oro"></i><i class="fogonazo f-blanco"></i><b class="c-vuela v-x">×2</b><b class="c-vuela v-d">+1</b><span class="hud"><span class="ficha dispara" style="display:inline-block;width:40px;height:40px;background:#555"></span></span><div class="carta cuenta-pop" style="position:absolute;left:0;top:0;width:60px;height:90px;background:#ccc"><span class="c-indice" data-palo="D">9</span><span class="c-temple">+8★</span></div>');
+  // (0.22) y el sello del Bufón (Cara de Póker, Seña Falsa) que estalla girado y a 1,7×: su primera vez costaba ~105 ms
+  // en frío; de paso, el jackpot de una Evolución y el grito de la Forja Brava
+  const au = p.aumentos[0] ?? AUMENTOS[0];
+  el.insertAdjacentHTML(
+    'beforeend',
+    `<div class="sello-bufon" style="left:50%;top:40%">${pxAumento(au, 'sb-i')}<span class="sb-txt"><b class="rotulo">${esc(fichaDe('aumento', au).nombre)}</b><span class="sb-extra">${esc(t('forjaBrava'))}</span></span></div><b class="forja-grito rotulo" style="left:50%;top:70%">${t('forjaBrava')}</b>`,
+  );
   $('#capa')?.append(el);
   el.querySelectorAll('.opcion').forEach((b, i) => b.classList.toggle('caliente-foco', i % 2 === 0));
   setTimeout(() => el.remove(), 900);
