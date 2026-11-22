@@ -14,7 +14,7 @@ import * as juego from '../../rules/partida';
 import { donesDe, escudoTope } from '../../rules/estado';
 import { ver } from '../../rules/perfil';
 import { REY_DEF } from '../../rules/reyes';
-import { mejorAcomodo } from '../../rules/bot';
+import { acomodoExacto, mejorAcomodo } from '../../rules/bot';
 import { CHICHE, huecosChiche, type ChicheId } from '../../rules/chiches';
 import { EVOLUCION, type EvolucionDe } from '../../rules/evoluciones';
 import { ajustes, alAzar, guardarPerfil, idioma, perfil, t, tx } from '../almacen';
@@ -344,6 +344,27 @@ export function pantallaMesa(p: Partida): Pantalla {
       el.style.minWidth = `${el.offsetWidth}px`;
     }
   }
+  /**
+   * (0.23) El dial del paño: si otra manera de apoyar estas mismas cartas abate con Golpe exacto, la cuenta ofrece el
+   * chip EXACTO (un toque, R3 o X lo aplica); ya en el exacto, el chip MÁXIMO vuelve a la disposición que más pega. La
+   * cuenta siempre dice lo que hay en el paño.
+   */
+  function dialDe(q: Cuenta, sel: Carta[]): { postas: number[]; exacto: boolean } | null {
+    if (!q.ok || !sel.length || !mano || !enemigo) return null;
+    if (!q.exacto) {
+      const ex = acomodoExacto(p, sel);
+      return ex ? { postas: ex, exacto: true } : null;
+    }
+    const max = mejorAcomodo(p, sel);
+    const ahora = postasDeSel(sel) ?? [];
+    return !cuenta(p, sel, max).exacto && max.some((x, i) => x !== ahora[i]) ? { postas: max, exacto: false } : null;
+  }
+  function dialHtml(q: Cuenta, sel: Carta[]): string {
+    const d = dialDe(q, sel);
+    if (!d) return '';
+    const rot = t(d.exacto ? 'chipExacto' : 'chipMaximo');
+    return `<button class="chip c-dial ${d.exacto ? 'dial-exacto' : 'dial-maximo'}" data-accion="dial" data-tecla="x" ${tip(rot, t(d.exacto ? 'exactoTip' : 'maximoTip'))}>${glifo('R3', 'X')}${rot}</button>`;
+  }
   function cuentaHtml(q: Cuenta, sel: Carta[]): string {
     // en reposo, la zona de la cuenta dice qué hacer
     // (con mando o teclado, la pista es de botones: el CSS enseña la que toca según `html[data-entrada]`)
@@ -432,7 +453,7 @@ export function pantallaMesa(p: Partida): Pantalla {
         </span>
         ${efectos ? `<span class="c-efectos">${efectos}</span>` : ''}
       </span>
-      <span class="c-chips">${veredicto}${q.canto ? `<span class="chip canto c-canto">${esc(tx(MAZO[p.mazoId].canto))}</span>` : ''}${q.perfora && enemigo && enemigo.escudo > 0 ? `<span class="chip azul">${t('perfora')}</span>` : ''}${destino}</span>
+      <span class="c-chips">${veredicto}${dialHtml(q, sel)}${q.canto ? `<span class="chip canto c-canto">${esc(tx(MAZO[p.mazoId].canto))}</span>` : ''}${q.perfora && enemigo && enemigo.escudo > 0 ? `<span class="chip azul">${t('perfora')}</span>` : ''}${destino}</span>
       ${desglose}
     </div>`;
   }
@@ -2024,6 +2045,17 @@ export function pantallaMesa(p: Partida): Pantalla {
         modalJugadas(p, q.ok ? q.jugada : null);
       },
       golpear: () => void golpear(mano?.seleccion() ?? []),
+      // (0.23) el dial del paño: las mismas cartas, apoyadas para el Golpe exacto (o de vuelta al máximo)
+      dial: () => {
+        if (ocupado || !mano) return;
+        const sel = seleccion();
+        const d = dialDe(cuentaDe(sel), sel);
+        if (!d) return;
+        const foco = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>('.carta')?.dataset.id;
+        mano.elegir(sel.map((k) => k.id), d.postas);
+        sonar(d.exacto ? 'exacto' : 'clic');
+        if (foco) $<HTMLElement>(`.mano .carta[data-id="${foco}"]`)?.focus();
+      },
       // (con el dedo, el primer toque enseña qué hace y lo deja listo; el segundo lo usa. El cursor ya lo enseña al pasar
       // y el mando o el teclado, al enfocarlo: ahí se usa de una)
       chiche: (el, ev) => {

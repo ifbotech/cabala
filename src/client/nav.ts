@@ -68,7 +68,7 @@ export const entradaActual = (): Entrada => entrada;
 /** Si se viene jugando con teclado o mando (sin ratón ni dedo): entonces el foco va solo a lo principal de cada pantalla. */
 export const porTeclado = (): boolean => entrada !== 'puntero';
 
-export type GlifoMando = 'A' | 'B' | 'X' | 'Y' | 'LB' | 'RB' | 'LT' | 'RT' | 'L3' | 'SEL' | 'START';
+export type GlifoMando = 'A' | 'B' | 'X' | 'Y' | 'LB' | 'RB' | 'LT' | 'RT' | 'L3' | 'R3' | 'SEL' | 'START';
 /**
  * El glifo de un botón, dos veces: el del mando y el de la tecla. Van escondidos; el CSS enseña el que toca según
  * con qué se viene jugando (`html[data-entrada]`), así que nada se repinta al pasar del ratón al mando.
@@ -170,7 +170,7 @@ export function iniciarNav(): void {
       atras();
     } else if (k === 'c' && irAChiches()) {
       ev.preventDefault();
-    } else if (k === 'g' || k === 'd' || k === 'e' || k === 'j') {
+    } else if (k === 'g' || k === 'd' || k === 'e' || k === 'j' || k === 'x') {
       if (atajo(k)) ev.preventDefault();
     } else if (k === 'm' && !hayModal()) {
       // M abre el menú, como Start
@@ -233,6 +233,8 @@ export function iniciarNav(): void {
       if (recien(5) && !correrPosta(1)) saltar(true);
       // L3: el foco va a la bandeja de Chiches (y de ahí, A lo usa)
       if (recien(10)) irAChiches();
+      // (0.23) R3: el dial del paño (EXACTO ↔ MÁXIMO), cuando la cuenta lo ofrece
+      if (recien(11)) atajo('x');
       if (recien(6)) atajo('e');
       if (recien(7)) alternar('ver-piezas', '.piezas');
       if (recien(8)) alternar('jugadas', '.jugadas');

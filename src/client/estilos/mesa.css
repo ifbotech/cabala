@@ -4652,3 +4652,36 @@ button.chiche:focus-visible {
     visibility: hidden;
   }
 }
+/* ───────────── 0.23: el dial del paño (chip EXACTO ↔ MÁXIMO junto a la cuenta) ───────────── */
+.chip.c-dial {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  pointer-events: auto;
+  min-height: 44px;
+  padding: 0 calc(6px * var(--k));
+  border: calc(4px * var(--k)) solid transparent;
+  border-image: var(--m-oro) 8 fill / calc(4px * var(--k)) / 0 repeat;
+  color: #1c1024;
+}
+.chip.c-dial.dial-maximo {
+  border-image-source: var(--m-hierro);
+  color: var(--hueso);
+}.chip.c-dial:hover,
+.chip.c-dial:focus-visible {
+  outline: 2px solid #7df3ff;
+  outline-offset: 2px;
+}.chip.c-dial.dial-exacto {
+  animation: dial-late 0.9s steps(2) infinite alternate;
+}
+@keyframes dial-late {
+  100% {
+    transform: translateY(calc(-1px * var(--k)));
+  }
+}
+@media (pointer: coarse) {
+  .chip.c-dial {
+    min-height: 44px;
+  }
+}

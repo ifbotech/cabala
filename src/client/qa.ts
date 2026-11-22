@@ -1,7 +1,7 @@
 // Estados fijos para la QA visual: `?qa=<estado>` monta una pantalla concreta de una partida determinista (semilla
 // fija, perfil de muestra que no se guarda) y deja la escena en modo foto. `&lang=en` la pone en inglés, `&vivo`
 // deja correr las animaciones y `&perfil=nuevo` usa un perfil recién estrenado.
-import { mejorGolpe, paso } from '../rules/bot';
+import { acomodoExacto, mejorAcomodo, mejorGolpe, paso } from '../rules/bot';
 import { cuenta, postasDe, postasPorDefecto } from '../rules/combate';
 import type { Carta } from '../rules/cartas';
 import type { Partida, TipoNodo } from '../rules/estado';
@@ -354,6 +354,44 @@ export function montarQa(estado: string): void {
           if (m) mesa.mano.elegir(m.ids, m.postas);
         });
       if (estado === 'mesa-prenda') void mesa.prenda('dado');
+      break;
+    }
+    case 'mesa-exacto': {
+      // (0.23) el dial del paño: lo elegido, acomodado al máximo, sobra; otra manera de apoyarlo abate justo (chip EXACTO)
+      const p = partida(mazo, (x) => enCombate(x));
+      const m = p.combate!.mano;
+      const subs: Carta[][] = [];
+      for (let a = 0; a < m.length; a++)
+        for (let b = a + 1; b < m.length; b++) {
+          subs.push([m[a], m[b]]);
+          for (let d = b + 1; d < m.length; d++) subs.push([m[a], m[b], m[d]]);
+        }
+      for (let a = 0; a < m.length; a++) subs.push([m[a]]);
+      let elegidas: Carta[] = [];
+      for (const sel of subs) {
+        const max = cuenta(p, sel, mejorAcomodo(p, sel));
+        // (la de por defecto suele ser la máxima: se busca entre todas las maneras de apoyarlas una que pegue menos)
+        const maneras: number[][] = [];
+        const n = postasDe(p);
+        const armar = (hecho: number[]): void => {
+          if (hecho.length === sel.length) return void maneras.push(hecho);
+          for (let x = 0; x < n; x++) if (!hecho.includes(x)) armar([...hecho, x]);
+        };
+        armar([]);
+        const def = maneras.map((pos) => cuenta(p, sel, pos)).find((q) => q.ok && q.aVida > 0 && q.aVida < max.aVida);
+        if (!def || !max.ok) continue;
+        const e = p.combate!.fila[0];
+        const vida = e.vida;
+        e.vida = def.aVida;
+        if (acomodoExacto(p, sel)) {
+          elegidas = sel;
+          break;
+        }
+        e.vida = vida;
+      }
+      montar(p);
+      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
+      if (mesa && elegidas.length) mesa.mano.elegir(elegidas.map((k) => k.id));
       break;
     }
     case 'fogon':

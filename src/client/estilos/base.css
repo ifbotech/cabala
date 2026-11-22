@@ -1336,7 +1336,7 @@ button.hud-tiras .ficha {
   background: #ffd500;
   color: #14101e;
 }
-.glifo:is(.g-lb, .g-rb, .g-lt, .g-rt, .g-l3, .g-sel) {
+.glifo:is(.g-lb, .g-rb, .g-lt, .g-rt, .g-l3, .g-r3, .g-sel) {
   background: #9a90a8;
 }
 html[data-entrada='mando'] .glifo.g-mando,
