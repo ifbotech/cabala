@@ -13,7 +13,7 @@ import { gritar } from './hud';
 import { GRITO } from './voces';
 import { modoFoto } from './fx/motor';
 import { irAjustes, irAltar, irColeccion, irCronica, irMazo, irPortada, pintarFase, sesion } from './juego';
-import { $ } from './ui';
+import { $, enfocarJugador } from './ui';
 import { mascaraHtml } from './pantallas/mesa';
 import { BENDICION, BENDICIONES, type BendicionId } from '../rules/reyes';
 import type { Palo } from '../rules/cartas';
@@ -111,7 +111,7 @@ export function montarQa(estado: string): void {
       // (0.23) el Altar con una mejora comprada elegida: MEJORAR y DEVOLVER, con lo que vuelve
       irAltar();
       $<HTMLElement>('[data-accion="ofrenda"][data-id="vida"]')?.click();
-      $<HTMLElement>('[data-accion="devolver"]')?.focus();
+      requestAnimationFrame(() => enfocarJugador($<HTMLElement>('[data-accion="devolver"]')));
       break;
     case 'coleccion':
       irColeccion();
@@ -421,7 +421,8 @@ export function montarQa(estado: string): void {
       darDon(p, 'C');
       montar(p);
       // (0.23) con el foco en la bandeja (adonde llegan el mando y el teclado), su ayuda dice en qué se volvió
-      if (estado === 'hud-evolucion-foco') $<HTMLElement>('[data-tiras]')?.focus();
+      // (cuando la mesa ya se acomodó: la ayuda esquiva la mano y los botones donde quedan)
+      if (estado === 'hud-evolucion-foco') requestAnimationFrame(() => enfocarJugador($<HTMLElement>('[data-tiras]')));
       break;
     }
     case 'oferta-evoluciona': {

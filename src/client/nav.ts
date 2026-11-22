@@ -4,7 +4,7 @@
 // corren una Posta a la izquierda o a la derecha), C / L3 lleva el foco a la bandeja de Chiches, la palanca derecha
 // desplaza lo que se desplaza y Start abre el menú. Lo que se inspecciona sin pulsarse (el enemigo, La Corte) lleva
 // `tabindex="0"`.
-import { $, $$, atras, hayModal } from './ui';
+import { $, $$, atras, enfocarJugador, hayModal } from './ui';
 
 const FOCO = 'button:not(:disabled):not([aria-disabled="true"]), [tabindex="0"]';
 
@@ -22,7 +22,7 @@ export function mover(dx: number, dy: number): void {
   if (!lista.length) return;
   const actual = document.activeElement as HTMLElement | null;
   if (!actual || !lista.includes(actual)) {
-    principal(lista)?.focus();
+    enfocarJugador(principal(lista));
     return;
   }
   const a = actual.getBoundingClientRect();
@@ -48,7 +48,7 @@ export function mover(dx: number, dy: number): void {
   // primero se trae a la vista y después se enfoca (así su ayuda se ubica donde quedó). En el Mapa, el nodo va al
   // centro del rollo: nada queda bajo la cabecera, el HUD ni los bordes que se funden
   mejor.scrollIntoView({ block: mejor.closest('.mapa-rollo') ? 'center' : 'nearest', inline: 'nearest' });
-  mejor.focus({ preventScroll: true });
+  enfocarJugador(mejor, { preventScroll: true });
 }
 
 /** Lo principal de una pantalla: lo que lleva `data-inicio`; en la mesa, la primera carta de la mano; si no, lo primero. */
@@ -106,7 +106,7 @@ function saltar(aBotones: boolean): void {
   const lista = visibles();
   const enMano = (el: HTMLElement): boolean => el.classList.contains('carta') && !!el.closest('[data-mano]');
   const destino = aBotones ? (lista.find((el) => el.dataset.accion === 'golpear') ?? lista.find((el) => !!el.closest('.botones'))) : (lista.find((el) => enMano(el) && el.classList.contains('elegida')) ?? lista.find(enMano));
-  destino?.focus();
+  enfocarJugador(destino);
 }
 
 /** LB / RB con una carta del paño enfocada: la corren una Posta a la izquierda o a la derecha. */
@@ -120,7 +120,7 @@ function correrPosta(dir: -1 | 1): boolean {
 export function irAChiches(): boolean {
   if (hayModal()) return false;
   const b = $<HTMLButtonElement>('.chiches button.chiche');
-  b?.focus();
+  enfocarJugador(b);
   return !!b;
 }
 

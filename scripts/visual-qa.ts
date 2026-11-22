@@ -320,6 +320,34 @@ function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[
       if (!g || !visible(g)) fallos.push({ regla: 'glifo-mando', detalle: `${nombre(b)} «${(b.textContent ?? '').trim().slice(0, 24)}» sin su glifo ${pide.slice(2).toUpperCase()}` });
     }
   }
+  // (0.24) ninguna ayuda abierta tapa un botón, un título ni una cifra del HUD («tip-tapa»), salvo los de la propia
+  // pieza que se inspecciona
+  for (const t of [...document.querySelectorAll('.tip')].filter(visible)) {
+    const T = t.getBoundingClientRect();
+    const ancla = document.querySelector('[data-tip-abierto]');
+    for (const o of [...document.querySelectorAll('#app button, #capa button, #app .titulo, #capa .titulo, #app .hud [data-n]')].filter(visible)) {
+      if (ancla && (o === ancla || o.contains(ancla) || ancla.contains(o))) continue;
+      const O = o.getBoundingClientRect();
+      if (Math.min(T.right, O.right) - Math.max(T.left, O.left) > 2 && Math.min(T.bottom, O.bottom) - Math.max(T.top, O.top) > 2) {
+        fallos.push({ regla: 'tip-tapa', detalle: `la ayuda «${(t.textContent ?? '').trim().slice(0, 24)}» tapa ${nombre(o)} «${((o as HTMLElement).innerText ?? '').trim().slice(0, 20)}»` });
+        break;
+      }
+    }
+  }
+  // (0.24) «ELEGÍ UNA» (con la cinta del Tesoro o sin ella) no pisa el HUD que queda a la vista («oferta-hud»)
+  const hud = document.querySelector('#app .hud');
+  if (hud && visible(hud)) {
+    const H0 = hud.getBoundingClientRect();
+    for (const o of [...document.querySelectorAll('#capa .velo .oferta :is(.opcion, .btn)')].filter(visible)) {
+      const O = o.getBoundingClientRect();
+      // (lo que se desliza dentro del velo se ve solo hasta su borde de abajo)
+      const fondo = Math.min(O.bottom, o.closest('.velo')!.getBoundingClientRect().bottom);
+      if (fondo > H0.top + 2 && O.right > H0.left && O.left < H0.right) {
+        fallos.push({ regla: 'oferta-hud', detalle: `${nombre(o)} baja hasta ${Math.round(fondo)} y el HUD empieza en ${Math.round(H0.top)}` });
+        break;
+      }
+    }
+  }
   // restos de español en la pantalla inglesa
   if (idioma === 'en') {
     const texto = (document.querySelector('#app') as HTMLElement).innerText + (document.querySelector('#capa') as HTMLElement).innerText;

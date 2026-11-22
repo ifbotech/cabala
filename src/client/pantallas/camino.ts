@@ -416,7 +416,7 @@ function ofertaHtml(p: Partida, oferta: Oferta, fraseRey: string): string {
   };
   return `<div class="oferta o-${oferta.tipo} ${oferta.tesoro ? 'o-tesoro' : ''}" data-oferta="${oferta.tipo}">
       <h2 class="titulo oferta-titulo">${t(TITULO_OFERTA[oferta.tipo])}</h2>
-      ${oferta.tesoro ? `<p class="oferta-tesoro" ${tip(t('tesoro'), t('tesoroTip'), precio ? t('tesoroCandado', { n: precio }) : t('tesoroElite'))}>${pxHud('cofre')}<b>${t('tesoro')}</b>${precio ? `<span class="sub">${t('tesoroCandado', { n: precio })}</span>` : ''}${alcanza ? '' : `<span class="op-falta">${t('tesoroFalta', { n: precio - p.oro })}</span>`}${saltarHtml}</p>` : ''}
+      ${oferta.tesoro ? `<p class="oferta-tesoro">${pxHud('cofre')}<b>${t('tesoro')}</b>${precio ? `<span class="sub">${t('tesoroCandado', { n: precio })}</span>` : ''}${alcanza ? '' : `<span class="op-falta">${t('tesoroFalta', { n: precio - p.oro })}</span>`}${saltarHtml}</p>` : ''}
       ${cabeza}
       <div class="opciones">${oferta.opciones.map(opcion).join('')}</div>
       ${oferta.tesoro ? '' : saltarHtml}
@@ -457,6 +457,22 @@ export function calentarOfertas(p: Partida): void {
   $('#capa')?.append(el);
   el.querySelectorAll('.opcion').forEach((b, i) => b.classList.toggle('caliente-foco', i % 2 === 0));
   setTimeout(() => el.remove(), 900);
+}
+
+/**
+ * (0.24) La oferta se centra en lo que queda libre sobre el HUD (que sigue a la vista debajo del velo): ni los naipes
+ * ni SALTAR lo pisan (en el teléfono, lo que no entra se desliza dentro del velo).
+ */
+function reservarHud(velo: HTMLElement): void {
+  const hud = $('#app .hud');
+  if (!hud) return;
+  const r = hud.getBoundingClientRect();
+  if (r.height === 0 || r.top >= innerHeight) return;
+  velo.classList.add('sobre-hud');
+  const reserva = `${Math.round(innerHeight - r.top + 6)}px`;
+  // (en el teléfono el velo entero termina sobre el HUD: así lo que no entra se desliza ahí adentro y no por encima)
+  if (innerWidth <= 700) velo.style.bottom = reserva;
+  else velo.style.paddingBottom = reserva;
 }
 
 function modalOferta(p: Partida, indice: number, alTerminar: () => void): void {
@@ -513,6 +529,7 @@ function modalOferta(p: Partida, indice: number, alTerminar: () => void): void {
         o.style.setProperty('--dy', `${Math.round(d.top + d.height / 2 - (r.top + r.height / 2))}px`);
       }
   }
+  reservarHud(velo);
   if (oferta.tipo === 'bendicion' && habla && !quieto()) teclear($('[data-teclea]', velo), fraseRey, habla);
   // la irrupción del Rey que habla: su aura se abre desde el retrato
   if (habla) {

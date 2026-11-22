@@ -114,7 +114,7 @@ export function irASalida(raiz: ParentNode | null): boolean {
   if (document.activeElement === b) b.click();
   else {
     b.scrollIntoView({ block: 'nearest' });
-    b.focus();
+    enfocarJugador(b);
   }
   return true;
 }
@@ -135,7 +135,18 @@ export function iniciarUi(): void {
     else ocultarTip();
   };
   document.addEventListener('pointerover', mostrar);
-  document.addEventListener('focusin', mostrar);
+  // (0.24) el foco abre la ayuda solo si lo movió el jugador (cruceta, flechas, Tab, LB/RB, L3): el que pone el
+  // programa al abrir un modal, al repintar o al cambiar de pantalla no abre nada (tapaba el título o MEJORAR)
+  document.addEventListener('focusin', (ev) => {
+    if (focoJugador || performance.now() - tabEn < 250) mostrar(ev);
+  });
+  document.addEventListener(
+    'keydown',
+    (ev) => {
+      if (ev.key === 'Tab') tabEn = performance.now();
+    },
+    true,
+  );
   document.addEventListener('pointerdown', (ev) => {
     if (!(ev.target as HTMLElement).closest?.('[data-tip]')) ocultarTip();
   });
@@ -150,6 +161,20 @@ export function iniciarUi(): void {
     },
     true,
   );
+}
+
+/** (0.24) ¿El foco que está por llegar lo mueve el jugador? (solo ese abre la ayuda) */
+let focoJugador = false;
+let tabEn = -1e9;
+/** Enfoca `el` como lo haría el jugador con la cruceta o las flechas: su ayuda se abre (y esquiva lo importante). */
+export function enfocarJugador(el: HTMLElement | null | undefined, opciones?: FocusOptions): void {
+  if (!el) return;
+  focoJugador = true;
+  try {
+    el.focus(opciones);
+  } finally {
+    focoJugador = false;
+  }
 }
 
 let tipEl: HTMLElement | null = null;
@@ -167,7 +192,28 @@ function mostrarTip(el: HTMLElement): void {
   tipEl.innerHTML = `${titulo ? `<b>${esc(titulo)}</b>` : ''}${cuerpo ? `<span>${esc(cuerpo)}</span>` : ''}${pie ? `<span class="apagado">${esc(pie)}</span>` : ''}${el.dataset.tipPalos ? `<span class="tip-palos">${[...el.dataset.tipPalos].map((s) => pxInmune(s as Palo)).join('')}</span>` : ''}`;
   document.body.append(tipEl);
   tipAncla = el;
+  el.setAttribute('data-tip-abierto', '');
   ubicarTip(el);
+  // (con la letra recién cargada todo cambia de lugar: se vuelve a ubicar)
+  if (document.fonts.status !== 'loaded') void document.fonts.ready.then(() => tipAncla === el && ubicarTip(el));
+}
+/**
+ * (0.24) Lo que una ayuda nunca tapa: los botones que se pueden pulsar, los títulos y las cifras del HUD (salvo los de
+ * la propia pieza que se inspecciona).
+ */
+export const TAPA_NUNCA = 'button, .titulo, .hud [data-n]';
+function obstaculos(ancla: HTMLElement): DOMRect[] {
+  // (y la pieza misma: la ayuda no tapa lo que se está mirando)
+  const out: DOMRect[] = [ancla.getBoundingClientRect()];
+  for (const o of document.querySelectorAll<HTMLElement>(TAPA_NUNCA)) {
+    if (o === ancla || o.contains(ancla) || ancla.contains(o) || o.closest('.tip, .calienta')) continue;
+    const r = o.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2 || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) continue;
+    const s = getComputedStyle(o);
+    if (s.visibility === 'hidden' || Number(s.opacity) === 0) continue;
+    out.push(r);
+  }
+  return out;
 }
 function ubicarTip(el: HTMLElement): void {
   if (!tipEl) return;
@@ -177,12 +223,71 @@ function ubicarTip(el: HTMLElement): void {
   tipEl.classList.remove('tip-carril');
   tipEl.style.maxWidth = '';
   if (ayudaDeNaipe(el, r)) return;
+  ubicarTipLibre(el, r, false);
+}
+/**
+ * (0.24) Arriba, abajo, a un costado o al otro y, si todo eso pisa algo, corrida de a poco: gana el primer lugar que no
+ * tapa un botón, un título ni una cifra del HUD (si no hay ninguno, el que menos tapa).
+ */
+function ubicarTipLibre(el: HTMLElement, r: DOMRect, ancha: boolean): void {
+  if (!tipEl) return;
   const w = tipEl.offsetWidth;
   const h = tipEl.offsetHeight;
-  const x = Math.max(4, Math.min(innerWidth - w - 4, r.left + r.width / 2 - w / 2));
+  const ox = (x: number): number => Math.max(4, Math.min(innerWidth - w - 4, x));
+  const oy = (y: number): number => Math.max(4, Math.min(innerHeight - h - 4, y));
+  const cx = r.left + r.width / 2 - w / 2;
+  const cy = r.top + r.height / 2 - h / 2;
   const arriba = r.top - h - 6;
-  tipEl.style.left = `${Math.round(x)}px`;
-  tipEl.style.top = `${Math.round(arriba >= 4 ? arriba : Math.min(innerHeight - h - 4, r.bottom + 6))}px`;
+  const abajo = r.bottom + 6;
+  const lugares: [number, number][] = [];
+  if (arriba >= 4) lugares.push([ox(cx), arriba]);
+  if (abajo + h <= innerHeight - 4) lugares.push([ox(cx), abajo]);
+  if (r.right + 6 + w <= innerWidth - 4) lugares.push([r.right + 6, oy(cy)]);
+  if (r.left - 6 - w >= 4) lugares.push([r.left - 6 - w, oy(cy)]);
+  for (let k = 1; k <= 12; k++)
+    for (const s of [-1, 1]) {
+      const x = ox(cx + s * k * Math.max(40, w / 4));
+      if (arriba >= 4) lugares.push([x, arriba]);
+      if (abajo + h <= innerHeight - 4) lugares.push([x, abajo]);
+    }
+  // (sin lugar arriba ni abajo, como antes: arriba si entra, si no, abajo)
+  if (!lugares.length) lugares.push([ox(cx), arriba >= 4 ? arriba : oy(abajo)]);
+  const obs = obstaculos(el);
+  const tapa = ([x, y]: [number, number]): number =>
+    obs.reduce((s, o) => s + Math.max(0, Math.min(x + w, o.right) - Math.max(x, o.left)) * Math.max(0, Math.min(y + h, o.bottom) - Math.max(y, o.top)), 0);
+  let mejor = lugares[0];
+  let menos = Infinity;
+  for (const l of lugares) {
+    const n = tapa(l);
+    if (n < menos) {
+      menos = n;
+      mejor = l;
+      if (n === 0) break;
+    }
+  }
+  // (si todo lo de al lado pisa algo, el hueco libre más cercano de la pantalla: una ayuda larga —la bandeja del HUD— se
+  // va a la escena antes que tapar GOLPEAR o la mano)
+  if (menos > 0) {
+    let cerca = Infinity;
+    const paso = 16;
+    for (let y = 4; y + h <= innerHeight - 4; y += paso)
+      for (let x = 4; x + w <= innerWidth - 4; x += paso) {
+        const d = Math.hypot(x + w / 2 - (r.left + r.width / 2), y + h / 2 - (r.top + r.height / 2));
+        if (d >= cerca) continue;
+        if (tapa([x, y]) === 0) {
+          cerca = d;
+          mejor = [x, y];
+        }
+      }
+    // (y si ni así, más ancha y más baja: en el teléfono, a todo el ancho)
+    if (cerca === Infinity && !ancha) {
+      tipEl.style.maxWidth = `${Math.min(innerWidth - 8, Math.max(w, 560))}px`;
+      ubicarTipLibre(el, r, true);
+      return;
+    }
+  }
+  tipEl.style.left = `${Math.round(mejor[0])}px`;
+  tipEl.style.top = `${Math.round(mejor[1])}px`;
 }
 /**
  * La ayuda de un naipe de la mano (el temple, la copia del Comodín): nunca encima de la cuenta (con el mando el foco
@@ -244,6 +349,7 @@ function carrilDelMapa(el: HTMLElement, r: DOMRect): boolean {
 }
 export function ocultarTip(): void {
   tipEl?.remove();
+  tipAncla?.removeAttribute('data-tip-abierto');
   tipEl = null;
   tipAncla = null;
 }

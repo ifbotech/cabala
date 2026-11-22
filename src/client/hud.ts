@@ -125,7 +125,9 @@ function tirasTip(p: Partida): string {
   const evos = evoluciones(p).map((de) => `★ ${tx(EVOLUCION[de].nombre)}: ${tx(EVOLUCION[de].desc)}`);
   const cargas = PALOS.filter((s) => sirveA(p, s)).map((s) => cargaQue(p, s));
   // (cada Evolución en su renglón, arriba de las cargas: el cuerpo de la ayuda corre de corrido)
-  return tip(evos.length ? `★ ${t('evolucionTitulo')}` : t('llevas'), evos.length ? evos[0] : t('llevasTip'), [...evos.slice(1), ...(evos.length ? [t('llevasTip')] : []), ...cargas].join('\n'));
+  // (0.24: con el mando dice «A para leerlas», no «Tocá»)
+  const pie = (toca: string): string => [...evos.slice(1), ...(evos.length ? [t('llevasTip')] : []), ...cargas, toca].join('\n');
+  return `${tip(evos.length ? `★ ${t('evolucionTitulo')}` : t('llevas'), evos.length ? evos[0] : t('llevasTip'), pie(t('llevasToca')))} data-tip-pie-mando="${esc(pie(t('llevasTocaMando')))}"`;
 }
 
 /** Repinta las tiras (Amuletos, Cábalas, cargas y Bendiciones) y marca la carga que acaba de subir. */
@@ -136,7 +138,7 @@ export function actualizarTiras(p: Partida, sube?: Palo): void {
   const ayuda = document.createElement('i');
   ayuda.innerHTML = `<i ${tirasTip(p)}></i>`;
   const nueva = ayuda.firstElementChild as HTMLElement;
-  for (const a of ['data-tip-t', 'data-tip', 'data-tip-pie']) {
+  for (const a of ['data-tip-t', 'data-tip', 'data-tip-pie', 'data-tip-pie-mando']) {
     const v = nueva.getAttribute(a);
     if (v === null) el.removeAttribute(a);
     else el.setAttribute(a, v);
