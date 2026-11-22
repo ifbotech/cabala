@@ -243,7 +243,14 @@ await conServidor(5192, async (url) => {
         else await p.click('.fogon [data-accion="seguir"]');
       } else if (x.fase === 'cabala') {
         if (await p.locator('.cabala [data-accion="seguir"]').count()) await p.click('.cabala [data-accion="seguir"]');
-        else await p.locator('.cabala .opcion:not([disabled])').first().click();
+        else if (await p.locator('.negra-bandeja').count()) {
+          // (0.22) la Cábala Negra: se eligen los naipes en su bandeja (los que quedan encendidos) y se cose
+          const coser = p.locator('.negra-bandeja [data-accion="coser"]:not([disabled])');
+          const naipe = p.locator('.negra-naipe:not([disabled]):not(.elegida)').first();
+          if (await coser.count()) await coser.click();
+          else if (await naipe.count()) await naipe.click();
+          else await p.click('.negra-bandeja [data-accion="volver"]');
+        } else await p.locator('.cabala .opcion:not([disabled])').first().click();
       }
     }
     exigir((await estado(p))?.fase === 'fin', `la partida no llegó al final en ${pasos} pasos`);
