@@ -104,6 +104,13 @@ function indice(l: Lienzo, s: Palo, rango: number): void {
     const gi = girar(girar(g));
     l.pegar(gi, NAIPE_W - x - CIFRA_W, NAIPE_H - 5 - CIFRA_H);
   });
+  // (0.28) el 6 y el 9 llevan su raya al pie, como en cualquier naipe: el 9 girado ya no se lee «6» (ni el Comodín
+  // que copia un 9). La del índice de abajo, girada con él, queda del lado de adentro
+  if (rango === 6 || rango === 9) {
+    const x = OX + 4;
+    l.rect(x, 5 + CIFRA_H + 1, CIFRA_W, 1, k);
+    l.rect(NAIPE_W - x - CIFRA_W, NAIPE_H - 5 - CIFRA_H - 2, CIFRA_W, 1, k);
+  }
 }
 
 // ───────────── disposiciones de las pintas ─────────────

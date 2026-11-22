@@ -374,7 +374,7 @@ export function pantallaMesa(p: Partida): Pantalla {
   function apretarCuenta(zona: HTMLElement): void {
     const cu = zona.querySelector<HTMLElement>('.cuenta:not(.reposo):not(.invalida)');
     if (!cu) return;
-    cu.classList.remove('apretada', 'apretada-2', 'apretada-3', 'apretada-4', 'apretada-tel', 'apretada-tel-2', 'desglose-junto', 'plegada', 'plegada-2');
+    cu.classList.remove('apretada', 'apretada-2', 'apretada-3', 'apretada-4', 'apretada-tel', 'apretada-tel-2', 'desglose-junto', 'plegada', 'plegada-2', 'plegada-3', 'plegada-4');
     // en el teléfono, si el desglose pasa de dos renglones, la cuenta pierde su aire (y sus términos se juntan) para
     // que el naipe del Rey siga asomando por arriba
     if (window.innerWidth <= 700) {
@@ -397,6 +397,19 @@ export function pantallaMesa(p: Partida): Pantalla {
         if (!escena || escena.clientHeight >= 106) break;
         cu.classList.add(nivel);
       }
+      // (0.28) plegada a su renglón fijo (jugada · fórmula · lo que dan los palos · desenlace), si aun así no entra en dos
+      // renglones suelta primero lo que sobra o le queda (está en la hoja) y después lo que dan los palos; el nombre de la
+      // jugada no se va nunca
+      if (cu.classList.contains('plegada-2')) {
+        const fo = cu.querySelector<HTMLElement>('.c-formula');
+        const sc = getComputedStyle(cu);
+        const ancho = cu.clientWidth - (parseFloat(sc.paddingLeft) || 0) - (parseFloat(sc.paddingRight) || 0);
+        const alta = (): boolean => cu.offsetHeight > 58;
+        // (el piso del desenlace no entra: se va lo que sobra o le queda; el de la fórmula no entra: lo que dan los palos)
+        if (alta() || (ch?.offsetWidth ?? 0) > ancho) cu.classList.add('plegada-3');
+        if (alta() || (fo?.offsetWidth ?? 0) > ancho) cu.classList.add('plegada-4');
+      }
+      marcarPlegada(cu);
       return;
     }
     const f = cu.querySelector<HTMLElement>('.c-formula');
@@ -416,6 +429,65 @@ export function pantallaMesa(p: Partida): Pantalla {
       if (!parte()) return;
       cu.classList.add(nivel);
     }
+  }
+  /**
+   * (0.28) La cuenta plegada del teléfono es una diana: un toque la abre como HOJA sobre la escena (la cuenta entera: la
+   * jugada, la fórmula, lo que dan los palos, el desglose con sus nombres, lo que sobra o le queda y lo que te pega), sin
+   * mover la mano ni el paño; otro toque (en ella o en la hoja) la cierra, y se cierra sola al golpear o descartar.
+   */
+  let hojaAbierta = false;
+  function marcarPlegada(cu: HTMLElement): void {
+    const si = cu.matches('.plegada, .plegada-2');
+    if (si) {
+      cu.dataset.accion = 'hoja';
+      cu.setAttribute('role', 'button');
+      cu.setAttribute('aria-expanded', String(hojaAbierta));
+      cu.setAttribute('aria-label', `${cu.querySelector('.c-jugada')?.textContent ?? ''} · ${t('verCuenta')}`);
+      // (su ayuda al toque era la cuenta en prosa: ahora el toque abre la hoja)
+      for (const a of ['data-tip', 'data-tip-t', 'data-tip-pie']) cu.removeAttribute(a);
+      // (su «▾» es un botón de verdad, de 44 px: con el dedo, el toque no se le va al dial de al lado)
+      if (!cu.querySelector('.c-abre')) cu.insertAdjacentHTML('beforeend', `<button type="button" class="c-abre" data-accion="hoja" aria-label="${esc(t('verCuenta'))}"></button>`);
+    } else {
+      delete cu.dataset.accion;
+      cu.removeAttribute('role');
+      cu.removeAttribute('aria-expanded');
+      hojaAbierta = false;
+    }
+    pintarHoja();
+  }
+  function pintarHoja(): void {
+    const vieja = document.querySelector<HTMLElement>('.mesa .cuenta-hoja');
+    const cu = $<HTMLElement>('[data-cuenta] .cuenta.previa');
+    if (!hojaAbierta || ocupado || !cu || !cu.matches('.plegada, .plegada-2')) {
+      hojaAbierta = false;
+      vieja?.remove();
+      cu?.setAttribute('aria-expanded', 'false');
+      cu?.classList.remove('abierta');
+      return;
+    }
+    const sel = seleccion();
+    const q = cuentaDe(sel);
+    const h = vieja ?? document.createElement('div');
+    h.className = 'cuenta-zona cuenta-hoja';
+    h.dataset.accion = 'hoja';
+    h.setAttribute('role', 'dialog');
+    h.setAttribute('aria-label', t('verCuenta'));
+    h.innerHTML = `${cuentaHtml(q, sel)}<b class="hoja-cierra rotulo" aria-hidden="true">${esc(t('cerrarCuenta'))}</b>`;
+    if (!vieja) $('.mesa')?.append(h);
+    // pegada arriba del renglón plegado: crece hacia la escena (la tapa mientras está abierta). Si entera no entra ahí
+    // (el teléfono bajo), cuelga del borde de arriba de la pantalla y baja sobre su renglón y el paño: nunca sobre la mano
+    const r = cu.getBoundingClientRect();
+    h.style.top = '';
+    h.style.maxHeight = '';
+    h.style.bottom = `${Math.round(innerHeight - r.top + 4)}px`;
+    if (h.offsetHeight > r.top - 10) {
+      const techoMano = Math.min(innerHeight, ...[...document.querySelectorAll<HTMLElement>('[data-mano] .carta:not(.elegida):not(.volando)')].map((k) => k.getBoundingClientRect().top));
+      h.style.bottom = 'auto';
+      h.style.top = '6px';
+      h.style.maxHeight = `${Math.max(120, Math.round(techoMano - 14))}px`;
+    }
+    cu.setAttribute('aria-expanded', 'true');
+    cu.classList.add('abierta');
   }
   /**
    * Las cifras de la fórmula (Daño, Multi y el total) guardan el ancho de su cifra final: durante el conteo suben de
@@ -531,7 +603,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     // (con el Dado Cargado tirado, la cuenta en reposo ya dice lo que suma al próximo golpe)
     const dado = dadoArmado ? `<span class="chip d-dado" ${tip(tx(PASO_NOMBRE.dado), tx(PASO_AYUDA.dado))}>${pxChiche('dado', 'd-i')}${esc(tx(PASO_NOMBRE.dado))}: ${t('multi')} +${B.chiches.dado}</span>` : '';
     if (!sel.length)
-      return `<div class="cuenta reposo">${dado}<span class="sub pista p-puntero">${t('elegiCartas')}</span><span class="sub pista p-botones">${glifo('A', 'ENTER')} ${t('pistaElige')} · ${glifo('LB', 'Q')}${glifo('RB', 'W')} ${t('pistaCorre')} · ${glifo('X', 'G')} ${t('pistaGolpea')} · ${glifo('Y', 'D')} ${t('pistaDescarta')}</span></div>`;
+      return `<div class="cuenta reposo">${dado}<span class="sub pista p-puntero">${t('elegiCartas')}</span><span class="sub pista p-botones">${glifo('A', 'ENTER')} ${t('pistaElige')} · ${glifo('LB', 'Q')}${glifo('RB', 'W')} ${t('pistaCorre')} · ${glifo('X', 'G')} ${t('pistaGolpea')} · ${glifo('Y', 'D')} ${t(c().pasar ? 'pistaPasa' : 'pistaDescarta')}${p.mazoId === 'mentiroso' && c().enganos > 0 ? ` · ${glifo('LT', 'E')} ${t('pistaEngana')}` : ''}</span></div>`;
     if (!q.ok) {
       const motivo = q.motivo === 'comodines' ? t('soloComodines') : q.motivo === 'muchas' ? t('muchas') : t('noJugada');
       return `<div class="cuenta invalida"><span class="chip">${motivo}</span></div>`;
@@ -670,6 +742,10 @@ export function pantallaMesa(p: Partida): Pantalla {
     if (d?.exacto) presentarDial();
     if (el) {
       el.innerHTML = cuentaHtml(q, sel);
+      if (!sel.length || !q.ok) {
+        hojaAbierta = false;
+        pintarHoja();
+      }
       fijarAnchos(el);
       mano?.ajustar();
       apretarCuenta(el);
@@ -843,12 +919,17 @@ export function pantallaMesa(p: Partida): Pantalla {
         : `<span class="b-quedan">(${c().descartes})</span>`;
       const nombre = sol ? `<span class="b-nombre">${t('descartar')}</span><span class="b-costo"><i class="b-sep" aria-hidden="true">· </i>${esc(t('descartarOro', { o: oroSol }))}</span>` : t('descartar');
       d.classList.toggle('con-sol', sol);
-      d.innerHTML = `${glifo('Y', 'D')}${modo === 'gratis' || (c().pasar && !sel.length) ? `${pxHud('pasar')} ${t('pasar')}` : `${nombre} ${quedan}`}`;
+      const pasa = modo === 'gratis' || (c().pasar && !sel.length);
+      d.classList.toggle('con-regla', pasa);
+      d.innerHTML = `${glifo('Y', 'D')}${pasa ? `<span class="b-nombre">${pxHud('pasar')} ${t('pasar')}</span><span class="b-regla">${esc(t('pasarRegla'))}</span>` : `${nombre} ${quedan}`}`;
       if (sol) for (const [k, v] of Object.entries({ 'data-tip-t': t('descartar'), 'data-tip': t('descartesOroTip', { o: oroSol }) })) d.setAttribute(k, v);
     }
     const e = $<HTMLButtonElement>('[data-accion="engano"]');
     if (e) {
       e.disabled = ocupado || c().enganos <= 0;
+      const regla = e.querySelector<HTMLElement>('.b-regla');
+      const dice = c().enganos > 0 ? t('enganoRegla', { n: c().enganos }) : t('enganoReglaCero');
+      if (regla && regla.textContent !== dice) regla.textContent = dice;
       e.classList.toggle('oro', c().engano);
       e.setAttribute('aria-pressed', String(c().engano));
     }
@@ -2409,6 +2490,8 @@ export function pantallaMesa(p: Partida): Pantalla {
   }
   async function golpear(ids: string[], dadas?: number[]): Promise<void> {
     if (ocupado || !p.combate) return;
+    hojaAbierta = false;
+    pintarHoja();
     // (la QA y las pruebas pueden pedir dónde va cada carta: se apoyan así antes de contar)
     if (dadas && mano) mano.elegir(ids, dadas);
     const sel = c().mano.filter((k) => ids.includes(k.id));
@@ -2449,6 +2532,8 @@ export function pantallaMesa(p: Partida): Pantalla {
   }
   async function descartar(ids: string[]): Promise<void> {
     if (ocupado || !p.combate || !ids.length) return;
+    hojaAbierta = false;
+    pintarHoja();
     if (!puedeDescartar(p, ids.length)) {
       mano?.negar();
       sonar('error');
@@ -2501,7 +2586,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           <div class="chiches" data-chiches role="group" aria-label="${t('chiches')}"></div>
           <button class="btn marco oro grande" data-accion="golpear" data-foco="golpear" data-tecla="g" disabled>${glifo('X', 'G')}${t('golpear')}</button>
           <button class="btn marco hierro" data-accion="descartar" data-foco="descartar" data-tecla="d" disabled>${glifo('Y', 'D')}${t('descartar')}</button>
-          ${p.mazoId === 'mentiroso' ? `<button class="btn marco prisma chico" data-accion="engano" data-foco="engano" data-tecla="e" aria-pressed="false" ${tip(t('engano'), textoGlosario('engano'))}>${glifo('LT', 'E')}${pxHud('engano')} ${t('engano')}</button>` : ''}
+          ${p.mazoId === 'mentiroso' ? `<button class="btn marco prisma chico" data-accion="engano" data-foco="engano" data-tecla="e" aria-pressed="false" ${tip(t('engano'), textoGlosario('engano'))}>${glifo('LT', 'E')}<span class="b-nombre">${pxHud('engano')} ${t('engano')}</span><span class="b-regla">${esc(t('enganoRegla', { n: c().enganos }))}</span></button>` : ''}
         </div>
       </section>
       ${hudHtml(p, hud)}
@@ -2582,6 +2667,7 @@ export function pantallaMesa(p: Partida): Pantalla {
       };
     },
     alSalir: () => {
+      document.querySelector('.mesa .cuenta-hoja')?.remove();
       document.removeEventListener('pointermove', seguir);
       observaMano?.disconnect();
       ponerFuego(false);
@@ -2596,6 +2682,13 @@ export function pantallaMesa(p: Partida): Pantalla {
         modalJugadas(p, q.ok ? q.jugada : null);
       },
       golpear: () => void golpear(mano?.seleccion() ?? []),
+      // (0.28) la cuenta plegada del teléfono: un toque abre (o cierra) su hoja sobre la escena
+      hoja: () => {
+        if (ocupado) return;
+        hojaAbierta = !hojaAbierta;
+        sonar('clic');
+        pintarHoja();
+      },
       // (0.23) el dial del paño: las mismas cartas, apoyadas para el Golpe exacto (o de vuelta al máximo)
       dial: () => {
         if (ocupado || !mano) return;

@@ -111,8 +111,8 @@ const ESCALA_DEDO = 0.8;
  * lo alto), la cuenta se pliega (lo hace la mesa) y la escena conserva su piso: 80 px de naipe del enemigo y su barra.
  */
 const ESCENA_PISO = 108;
-/** (0.27) El alto de la cuenta plegada a un renglón (la fórmula y lo que te pega), px. */
-const CUENTA_PLEGADA = 46;
+/** (0.27) El alto de la cuenta plegada (0.28: su renglón fijo en dos pisos: jugada · fórmula · palos / desenlace), px. */
+const CUENTA_PLEGADA = 58;
 /** (0.27) En el teléfono bajo, lo más que la mano de dos filas hunde su pie tras la barra del pulgar (siempre igual), px. */
 const HUNDE_MAX = 40;
 /** El ribete del fieltro alrededor de los naipes apoyados y el aire entre el paño y la mano, px. */
@@ -242,6 +242,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     // mover la mano: ninguno se monta sobre su vecino ni queda cortado
     if (innerWidth <= 700 && raiz.clientWidth > 0) kp = Math.max(0.5, Math.floor(Math.min(1, cabeAncho(), kpAlto) * 20 + 1e-6) / 20);
     raiz.style.setProperty('--k-pano', String(kp));
+    // (0.28) el paño muy chico (teléfono bajo) no lleva el rótulo COMODÍN de canto: no entra en el alto del naipe
+    raiz.classList.toggle('pano-chico', kp < 0.8);
     // lo que tapa la barra del pulgar al pie de la mano (el margen negativo del teléfono)
     const tapa = Math.max(0, -parseFloat(s.marginBottom) || 0);
     cacheMedidas = { w: 100 * k, h: 140 * k, k, kp, tapa, clave };

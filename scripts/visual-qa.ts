@@ -442,6 +442,22 @@ function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[
       if (S.bottom > V.bottom + 1 || S.top < V.top - 1) fallos.push({ regla: 'oferta-sin-aviso', detalle: `SALTAR no se ve sin deslizar (${Math.round(S.top)} → ${Math.round(S.bottom)} en un velo de ${Math.round(V.top)} → ${Math.round(V.bottom)})` });
     }
   }
+  // (0.28) «jugada-sin-nombre»: con una jugada válida elegida, su NOMBRE (Par, Escalera, Pierna…) está a la vista en la
+  // cuenta: en su chip, en su casilla del renglón plegado del teléfono o en su término del desglose. En ninguna
+  // ventana ni con ningún alto se elige a ciegas
+  const previa = document.querySelector('.mesa [data-cuenta] .cuenta.previa');
+  if (previa && visible(previa) && !document.querySelector('#capa .velo, .cortina') && !document.body.classList.contains('mueve-pano')) {
+    const seVe = (el: Element): boolean => {
+      if (!visible(el) || (el.textContent ?? '').trim().length < 2) return false;
+      for (let a: Element | null = el; a && a !== previa.parentElement; a = a.parentElement) if (getComputedStyle(a).visibility === 'hidden' || getComputedStyle(a).display === 'none') return false;
+      const r = el.getBoundingClientRect();
+      if (r.left < -1 || r.top < -1 || r.right > W + 1 || r.bottom > H + 1) return false;
+      const encima = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return !encima || previa.contains(encima) || encima.contains(previa) || !!encima.closest('.tip');
+    };
+    const nombres = [...previa.querySelectorAll('.c-jugada, .d-t[data-paso*="|j:"] .d-n')].filter(seVe);
+    if (!nombres.length) fallos.push({ regla: 'jugada-sin-nombre', detalle: `la cuenta («${(previa.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 40)}») no enseña el nombre de la jugada` });
+  }
   // restos de español en la pantalla inglesa
   if (idioma === 'en') {
     const texto = (document.querySelector('#app') as HTMLElement).innerText + (document.querySelector('#capa') as HTMLElement).innerText;
@@ -711,6 +727,68 @@ await conServidor(5191, async (url) => {
         }
         await pagina.screenshot({ path: `${carpeta}/${v.nombre}/${estado}.png` });
         const m = await pagina.evaluate(medir, { esMovil: v.w < 700 });
+        // (0.28) «hoja-cuenta»: en el teléfono, la cuenta plegada se abre con UN toque como hoja sobre la escena: la hoja
+        // queda entera dentro de la ventana y por encima del renglón plegado, dice el nombre de la jugada y sus términos,
+        // y ni un naipe de la mano ni GOLPEAR ni DESCARTAR se mueven (±1 px). Otro toque la cierra
+        // (no con el golpe en el aire: ahí la mesa no escucha)
+        const mesaLibre = await pagina.evaluate(() => !(window as unknown as { __mesa?: { ocupado?: () => boolean } }).__mesa?.ocupado?.());
+        if (v.w < 700 && mesaLibre && (await pagina.locator('.mesa [data-cuenta] .cuenta[data-accion="hoja"]').count())) {
+          const cajasHoja = (): Promise<Record<string, number[]>> =>
+            pagina.evaluate(() => {
+              const out: Record<string, number[]> = {};
+              const caja = (el: Element): number[] => {
+                const r = el.getBoundingClientRect();
+                return [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)];
+              };
+              for (const el of document.querySelectorAll<HTMLElement>('[data-mano] .carta')) out[`naipe ${el.dataset.id}`] = caja(el);
+              for (const s of ['[data-accion="golpear"]', '[data-accion="descartar"]', '[data-mano] .pano-postas']) {
+                const el = document.querySelector(s);
+                if (el) out[s] = caja(el);
+              }
+              return out;
+            });
+          const antes = await cajasHoja();
+          // (se toca su «▾»: adentro de la cuenta puede haber otro botón, el dial)
+          const cu = await pagina.locator('.mesa [data-cuenta] .cuenta[data-accion="hoja"] .c-abre').boundingBox();
+          if (cu) {
+            await pagina.touchscreen.tap(cu.x + cu.width / 2, cu.y + cu.height / 2);
+            await pagina.waitForTimeout(260);
+            const mal = await pagina.evaluate(() => {
+              const h = document.querySelector<HTMLElement>('.mesa .cuenta-hoja');
+              const cuenta = document.querySelector('.mesa [data-cuenta] .cuenta');
+              if (!h || !cuenta) return 'el toque no abrió la hoja';
+              const r = h.getBoundingClientRect();
+              const c = cuenta.getBoundingClientRect();
+              if (r.width < 200 || r.height < 60) return `la hoja mide ${Math.round(r.width)}×${Math.round(r.height)}`;
+              // (la hoja va sobre la escena; en el teléfono bajo puede bajar sobre su renglón y el paño, nunca sobre la mano)
+              const techoMano = Math.min(innerHeight, ...[...document.querySelectorAll<HTMLElement>('[data-mano] .carta:not(.elegida)')].map((k) => k.getBoundingClientRect().top));
+              void c;
+              if (r.left < 0 || r.top < 0 || r.right > innerWidth || r.bottom > techoMano - 2) return `la hoja (${Math.round(r.top)} → ${Math.round(r.bottom)}) se sale de la ventana o baja sobre la mano (${Math.round(techoMano)})`;
+              if (h.scrollHeight > h.clientHeight + 2) return `la hoja no entra entera (pide ${h.scrollHeight} px y enseña ${h.clientHeight})`;
+              const nombre = [...h.querySelectorAll<HTMLElement>('.d-t[data-paso*="|j:"] .d-n, .c-jugada')].find((el) => el.getBoundingClientRect().width > 2 && (el.textContent ?? '').trim().length > 1);
+              if (!nombre) return 'la hoja no dice el nombre de la jugada';
+              const sinNombre = [...h.querySelectorAll<HTMLElement>('.c-desglose .d-t:not(.d-c)')].filter((el) => !((el.querySelector('.d-n')?.getBoundingClientRect().width ?? 0) > 2));
+              if (sinNombre.length) return `en la hoja, ${sinNombre.length} términos del desglose van sin su nombre`;
+              const encima = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+              if (encima && !h.contains(encima)) return `la hoja queda bajo ${encima.tagName.toLowerCase()}.${String(encima.className).split(' ')[0]}`;
+              return '';
+            });
+            if (mal) fallos.push({ regla: 'hoja-cuenta', detalle: mal });
+            const despues = await cajasHoja();
+            for (const [s, a] of Object.entries(antes)) {
+              const d = despues[s];
+              if (!d) continue;
+              const corre = Math.max(...d.map((n, i) => Math.abs(n - a[i])));
+              if (corre > 1) fallos.push({ regla: 'hoja-cuenta', detalle: `${s} se corre ${corre} px al abrir la hoja (${a.join(',')} → ${d.join(',')})` });
+            }
+            await pagina.screenshot({ path: `${carpeta}/${v.nombre}/${estado}.hoja.png` });
+            // (otro toque, en la hoja, la cierra)
+            const hb = (await pagina.locator('.mesa .cuenta-hoja').count()) ? await pagina.locator('.mesa .cuenta-hoja').boundingBox() : null;
+            if (hb) await pagina.touchscreen.tap(hb.x + hb.width / 2, hb.y + hb.height / 2);
+            await pagina.waitForTimeout(160);
+            if (await pagina.locator('.mesa .cuenta-hoja').count()) fallos.push({ regla: 'hoja-cuenta', detalle: 'otro toque no cerró la hoja' });
+          }
+        }
         // (0.27) «el dedo manda», sin excepciones («elige-tres», «elige-cinco»): en las TRES ventanas del teléfono
         // (390×844, 390×664 y 360×740) y con las manos de 3 (Escoba), 4 (Chancho Va), 7 (Chinchón) y 8 (El Mentiroso),
         // toques de verdad, uno por naipe, hasta llenar el paño (hasta 5). Cada toque va al lugar donde ese naipe se
