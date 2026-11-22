@@ -5416,3 +5416,35 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
 .c-dial .dial-premio > .dial-sep {
   white-space: pre;
 }
+
+/* ───────────── 0.27 · menores del Jurado ───────────── */
+@media (max-width: 700px) {
+  /* GOLPEAR, siempre en el mismo lugar: con el Engaño (El Mentiroso) los tres botones van en un renglón, también en el
+     teléfono alto, y ENGAÑO queda en su antifaz. La memoria del pulgar no cambia al cambiar de Mazo */
+  .mano-zona:has([data-accion='engano']) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) 56px;
+    grid-template-areas:
+      'mano mano mano'
+      'golpear descartar engano';
+  }
+  .botones [data-accion='engano'] {
+    color: transparent;
+    letter-spacing: -1em;
+    white-space: nowrap;
+    gap: 0;
+    padding: 0;
+  }
+}
+/* mientras se juega el golpe, el foco suelta su aro y su flecha: nada celeste encima del conteo */
+.mesa.ocupada .mano .carta:focus-visible .px {
+  box-shadow: none;
+  transform: none;
+}
+.mesa.ocupada .mano .carta:focus-visible::before {
+  display: none;
+}
+.c-dial .dial-toca {
+  color: var(--oro);
+  background: #09070f;
+  box-shadow: 0 0 0 2px var(--oro);
+}

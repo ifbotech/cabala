@@ -37,7 +37,7 @@ import { resumenDe, type ResumenPartida } from '../../rules/resumen';
 import { VOZ } from '../voces';
 import { bufonDice } from '../bufon-vivo';
 import { glifo } from '../nav';
-import { $, abrirModal, anfitrion, bufonHtml, cerrarModal, conMaldicion, esc, fichaDe, irASalida, repintar, reyHtml, sinergiaHtml, tip, type Accion, type Pantalla } from '../ui';
+import { $, abrirModal, anfitrion, bufonHtml, cerrarModal, conMaldicion, esc, fichaDe, gestoBufon, irASalida, repintar, reyHtml, sinergiaHtml, tip, type Accion, type Pantalla } from '../ui';
 
 const fijo = (): number | undefined => (enFoto() ? 0 : undefined);
 const expresionDe = (p: Partida): Expresion => (p.afinidad <= -2 ? 'sombria' : p.afinidad >= 2 ? 'brillo' : 'reposo');
@@ -873,19 +873,80 @@ export function pantallaFogon(p: Partida): Pantalla {
    * (0.26) El naipe sale del panel (que se pliega) en su propia capa y baja, a escala entera y ENTERO, hasta pararse
    * sobre la fogata del tercio de abajo; una llama de pixel-art le sube por el pie mientras dura el suspenso.
    */
+  /**
+   * (0.27) La llama de la Forja Brava: pixel-art tramado a celda entera (Bayer 4×4, rampa blanco → oro → naranja →
+   * carmín → índigo). No es una tira al pie: son lenguas que SUBEN por los dos bordes del naipe y lo envuelven (bajas al
+   * medio, donde se lee el naipe; altas a los costados), y crecen en tres escalones de 400 ms mientras dura el suspenso.
+   */
+  const llamaForja = (capa: HTMLElement, k: number): void => {
+    const W = 156;
+    const H = 150;
+    const cv = document.createElement('canvas');
+    cv.className = 'forja-llama';
+    cv.width = W;
+    cv.height = H;
+    cv.style.width = `${W * k}px`;
+    cv.style.height = `${H * k}px`;
+    capa.append(cv);
+    const c = cv.getContext('2d');
+    if (!c) return;
+    const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+    const RAMPA = [[255, 247, 153], [255, 213, 0], [255, 170, 0], [255, 123, 0], [216, 30, 60], [122, 0, 38], [58, 20, 86]];
+    const t0 = performance.now();
+    let cuadro = -1;
+    const pinta = (): void => {
+      if (!cv.isConnected) return;
+      const t = (performance.now() - t0) / 1000;
+      const n = Math.floor(t * 12);
+      if (n !== cuadro) {
+        cuadro = n;
+        const crece = capa.classList.contains('sale') ? 0.3 : [0.5, 0.75, 1][Math.min(2, Math.floor(t / 0.4))];
+        const img = c.createImageData(W, H);
+        for (let px = 0; px < W; px++) {
+          const u = Math.abs((px - W / 2) / (W / 2));
+          // (bajas al medio, altas a los costados; cada lengua es un diente que baila de a pasos)
+          const diente = Math.abs(((px + n * 3) % 14) - 7) / 7;
+          const baile = 0.82 + 0.18 * Math.sin(px * 0.41 + n * 1.9) + 0.1 * Math.sin(px * 0.13 - n * 1.1);
+          // (las puntas de afuera caen: dos cuernos de fuego, no una losa)
+          const borde = Math.min(1, (1 - u) / 0.14);
+          const alto = Math.max(2, H * crece * (0.26 + 0.8 * u ** 1.4) * baile * (0.72 + 0.28 * diente) * (0.25 + 0.75 * borde));
+          for (let yy = 0; yy < alto && yy < H; yy++) {
+            const py = H - 1 - yy;
+            const v = yy / alto;
+            const b = BAYER[(px & 3) + ((py & 3) << 2)] / 16;
+            // (la punta se deshace tramada)
+            if (v > 0.8 && b < (v - 0.8) / 0.2) continue;
+            const i = Math.max(0, Math.min(RAMPA.length - 1, Math.floor(v * RAMPA.length + (b - 0.5) * 1.3)));
+            const o = (py * W + px) * 4;
+            img.data[o] = RAMPA[i][0];
+            img.data[o + 1] = RAMPA[i][1];
+            img.data[o + 2] = RAMPA[i][2];
+            img.data[o + 3] = 255;
+          }
+        }
+        c.putImageData(img, 0, 0);
+      }
+      requestAnimationFrame(pinta);
+    };
+    pinta();
+  };
   const bajarAlFuego = (carta: Carta, r0: DOMRect, f: { x: number; y: number }): HTMLElement => {
     const kRaiz = Number(getComputedStyle(document.documentElement).getPropertyValue('--k')) || 1;
     const capa = document.createElement('div');
     capa.className = 'forja-capa';
     capa.setAttribute('aria-hidden', 'true');
-    capa.style.setProperty('--k', String(Math.max(1, Math.round(kRaiz))));
-    capa.innerHTML = `<span class="fuego-carta al-fuego bravo">${pxNaipe(carta)}</span><i class="forja-llama"></i>`;
+    // (0.27: en la Deck y el escritorio el naipe va a 2×: el momento cumbre no es más chico que el gorro del Bufón)
+    const kCapa = Math.max(innerWidth >= 1100 ? 2 : 1, Math.round(kRaiz));
+    capa.style.setProperty('--k', String(kCapa));
+    capa.innerHTML = `<span class="fuego-carta al-fuego bravo">${pxNaipe(carta)}</span>`;
     document.body.append(capa);
+    llamaForja(capa, kCapa);
     const w = capa.offsetWidth;
     const h = capa.offsetHeight;
     // (el pie del naipe, metido en las llamas; nunca debajo del HUD)
     const techoHud = document.querySelector('.hud')?.getBoundingClientRect().top ?? innerHeight;
-    const top = Math.max(8, Math.min(f.y + Math.round(h * 0.12), techoHud - 6) - h);
+    // (0.27: un tercio del naipe adentro de la fogata, que lo envuelve)
+    const top = Math.max(8, Math.min(f.y + Math.round(h * 0.3), techoHud - 6) - h);
     const left = Math.round(f.x - w / 2);
     capa.style.left = `${left}px`;
     capa.style.top = `${Math.round(top)}px`;
@@ -1061,6 +1122,11 @@ export function pantallaFogon(p: Partida): Pantalla {
           if (el && f && r0 && r0.width > 0 && !quieto()) forja = bajarAlFuego(carta, r0, f);
           avivarFuego(1);
           sonar('forjaSube');
+          // (0.27) ya elegiste: el Bufón no sigue diciendo «Elegí la mutación y rezá»; contiene el aliento
+          const globo = $('main.fogon .anfitrion .bocadillo') ?? $('main.fogon .bocadillo');
+          if (globo) globo.textContent = t('bufonSuspenso');
+          const bf = $('main.fogon .anfitrion .bufon');
+          if (bf) gestoBufon(bf, 'sombria');
           if (!quieto()) await new Promise((ok) => setTimeout(ok, 400));
           await pausa(1100);
         } else {

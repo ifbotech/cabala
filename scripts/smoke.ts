@@ -216,6 +216,16 @@ await conServidor(5192, async (url) => {
         } else {
           if (c.engano) await p.click('[data-accion="engano"]');
           await elegir(p, c.ids);
+          // (0.27) el bot a veces aconseja más cartas de las que entran en el paño (mano de 4 con «Dar de abajo» y 3
+          // Postas: `postasDe` cuenta la mano del Mazo, no la de este turno). Una persona no puede apoyar la cuarta: juega
+          // lo que entra. El humo hace lo mismo (la primera carta sola que valga) y lo anota
+          if (await p.locator('[data-accion="golpear"]:disabled').count()) {
+            console.log(`  · el consejo (${c.ids.join(',')}) no entra en el paño: se juega una carta sola`);
+            for (const id of x.mano) {
+              await elegir(p, [id]);
+              if (!(await p.locator('[data-accion="golpear"]:disabled').count())) break;
+            }
+          }
           // uno de cada cuatro golpes, arrastrando; el resto, con el botón
           if (pasos % 4 === 0) {
             await arrastrar(p, c.ids[0], '[data-carta]');
@@ -297,6 +307,22 @@ await conServidor(5192, async (url) => {
       const pt = await puntoDe(m, id);
       await m.touchscreen.tap(pt.x, pt.y);
       await m.waitForTimeout(260);
+    }
+    // (0.27) lo mismo que en el escritorio: si el consejo no entra en el paño, se juega la primera carta sola que valga
+    if (await m.locator('[data-accion="golpear"]:disabled').count()) {
+      const quedo = await m.evaluate(() => [...document.querySelectorAll<HTMLElement>('.mano .carta.elegida')].map((x2) => x2.dataset.id).join(','));
+      console.log(`  · móvil: el consejo (${ids.join(',')}) dejó elegido [${quedo}] y no es jugada: se juega una carta sola`);
+      for (const id of antes.mano) {
+        for (const ya of await m.evaluate(() => [...document.querySelectorAll<HTMLElement>('.mano .carta.elegida')].map((x2) => x2.dataset.id ?? ''))) {
+          const pt = await puntoDe(m, ya);
+          await m.touchscreen.tap(pt.x, pt.y);
+          await m.waitForTimeout(260);
+        }
+        const pt = await puntoDe(m, id);
+        await m.touchscreen.tap(pt.x, pt.y);
+        await m.waitForTimeout(260);
+        if (!(await m.locator('[data-accion="golpear"]:disabled').count())) break;
+      }
     }
     await m.locator('[data-accion="golpear"]').tap();
     await m.waitForFunction((g) => ((window as unknown as { __cabala: { sesion: { partida: { stats: { golpes: number } } } } }).__cabala.sesion.partida.stats.golpes ?? 0) > g, antes.golpes, { timeout: 8000 });

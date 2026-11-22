@@ -471,7 +471,7 @@ export function montarQa(estado: string): void {
       const e = c.fila[0];
       e.aturdido = 0;
       e.vida = e.vidaMax = Math.max(e.vidaMax, 300);
-      e.ataque = Math.max(e.ataque, 23);
+      e.ataque = 31;
       c.escudo = 0;
       const palos = (['S', 'C', 'D', 'H'] as const).filter((x) => x !== e.palo);
       for (let i = 0; i < 3; i++) c.mano[i] = { ...c.mano[i], n: 4, palo: palos[i] };
