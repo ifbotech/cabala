@@ -38,7 +38,16 @@ interface Turno {
   viva: () => Caja | null;
   /** Qué hace si algo que pesa más le cae encima: se corre a otro lugar libre o se apaga. */
   ceder?: () => void;
+  /** (0.22) De quién es: lo que vuela no puede alejarse más de `max` píxeles de esa caja (el «−N» de tu VIDA). */
+  ancla?: Ancla;
 }
+export interface Ancla {
+  caja: Caja;
+  max: number;
+  que: string;
+}
+/** El hueco entre dos cajas (0 si se tocan o se pisan). */
+export const hueco = (a: Caja, b: Caja): number => Math.round(Math.hypot(Math.max(0, b.x - (a.x + a.w), a.x - (b.x + b.w)), Math.max(0, b.y - (a.y + a.h), a.y - (b.y + b.h))));
 
 /** Una caja agrandada `m` píxeles por lado (las zonas prohibidas se miden con aire: lo que entra escalando crece). */
 const inflar = (c: Caja, m: number): Caja => ({ x: c.x - m, y: c.y - m, w: c.w + 2 * m, h: c.h + 2 * m });
@@ -91,7 +100,7 @@ export interface Pedido {
  * después sin pisar nada que pese lo mismo o más, y después esperando su turno (150 y 250 ms). Si nada sirve, va a
  * la que menos pisa. Lo prohibido no se pisa nunca si hay otra salida.
  */
-export function pedir(capa: CapaEscena, candidatas: Caja[], ms: number, o: { esperaMax?: number; viva?: () => Caja | null } = {}): Pedido {
+export function pedir(capa: CapaEscena, candidatas: Caja[], ms: number, o: { esperaMax?: number; viva?: () => Caja | null; ancla?: Ancla } = {}): Pedido {
   purgar();
   const t = ahora();
   const prohib = prohibidas();
@@ -100,6 +109,8 @@ export function pedir(capa: CapaEscena, candidatas: Caja[], ms: number, o: { esp
   const choca = (c: Caja, demora: number, estricto: boolean): number => {
     let a = 0;
     for (const z of prohib) a += pisan(c, inflar(z, 10)) * 1e6;
+    // (lo que tiene dueño no se va lejos de él: alejarse pesa casi como pisar lo prohibido)
+    if (o.ancla && hueco(c, o.ancla.caja) > o.ancla.max) a += 5e5;
     for (const x of turnos) {
       if (x.hasta <= t + demora || x.desde >= t + demora + ms) continue;
       if (!estricto && PESO[x.capa] < peso) continue;
@@ -109,6 +120,10 @@ export function pedir(capa: CapaEscena, candidatas: Caja[], ms: number, o: { esp
   };
   const elegir = (i: number, demora: number): Pedido => {
     const id = reservar(capa, candidatas[i], ms, o.viva, demora);
+    if (o.ancla) {
+      const x = turnos.find((u) => u.id === id);
+      if (x) x.ancla = o.ancla;
+    }
     // lo que pesa menos y queda debajo se corre (o se apaga): el número no se tapa con un bocadillo
     for (const x of [...turnos]) {
       if (x.id === id || !x.ceder || PESO[x.capa] >= peso) continue;
@@ -272,6 +287,13 @@ export function solapes(): string[] {
   for (let i = 0; i < xs.length; i++) {
     for (let j = i + 1; j < xs.length; j++) if (pisan(xs[i].caja, xs[j].caja, 3)) malos.push(`${xs[i].capa} (${fmt(xs[i].caja)}) pisa ${xs[j].capa} (${fmt(xs[j].caja)})`);
     for (const z of prohib) if (pisan(xs[i].caja, z, 3)) malos.push(`${xs[i].capa} (${fmt(xs[i].caja)}) pisa una zona prohibida (${fmt(z)})`);
+  }
+  // (0.22) lo que tiene dueño, cerca de su dueño: el «−N» que te pegan, a no más de su tope de tu VIDA
+  for (const x of turnos) {
+    if (!x.ancla || x.desde > ahora()) continue;
+    const c = x.viva();
+    const d = c ? hueco(c, x.ancla.caja) : 0;
+    if (c && d > x.ancla.max + 4) malos.push(`${x.capa} (${fmt(c)}) queda a ${d} px de ${x.ancla.que} (máximo ${x.ancla.max})`);
   }
   return malos;
 }

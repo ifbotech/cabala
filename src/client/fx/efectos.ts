@@ -6,7 +6,7 @@ import type { Palo } from '../../rules/cartas';
 import { cifraMapa, type TonoCifra } from '../pixel/cifras';
 import { lienzo } from '../sprites';
 import { S, aCelda, azar, disco, efecto, entre, vivos, type Ctx, type Efecto } from './motor';
-import { pedir, soltar, type Caja } from './director';
+import { pedir, soltar, type Ancla, type Caja } from './director';
 
 /** Rampas de cada palo, del cuadro blanco del impacto a la brasa que se apaga. */
 export const RAMPA_PALO: Record<Palo | 'X', string[]> = {
@@ -285,7 +285,7 @@ export interface Carril {
   y: number;
   alinear?: Alinear;
 }
-export function numero(texto: string | number, x: number, y: number, tono: TonoCifra = 'hueso', escala = 1, o: { alinear?: Alinear; vx?: number; carriles?: Carril[]; vidaMin?: number } = {}): Caja | null {
+export function numero(texto: string | number, x: number, y: number, tono: TonoCifra = 'hueso', escala = 1, o: { alinear?: Alinear; vx?: number; carriles?: Carril[]; vidaMin?: number; ancla?: Ancla } = {}): Caja | null {
   if (!vivos()) return null;
   const glifos = glifosDe(texto, tono);
   const base = glifos.reduce((s, g) => s + g.width - 1, 0);
@@ -293,9 +293,10 @@ export function numero(texto: string | number, x: number, y: number, tono: TonoC
   const altoG = glifos[0]?.height ?? 9;
   const alto = altoG * escala;
   const grande = escala >= 2;
-  const g = grande ? 100 : 190;
-  const vy0 = grande ? -46 : -70;
-  const vx0 = o.vx ?? entre(-14, 14);
+  // (0.22) el número con dueño (el «−N» de tu VIDA) sube poco y derecho: no se le aleja ni cae sobre su cifra
+  const g = o.ancla ? 12 : grande ? 100 : 190;
+  const vy0 = o.ancla ? -16 : grande ? -46 : -70;
+  const vx0 = o.ancla ? 0 : (o.vx ?? entre(-14, 14));
   const T = 0.95;
   // lo que barre en todo su vuelo (en celdas, desde donde nace), con el rebote del primer instante
   let ex0 = 0;
@@ -325,20 +326,29 @@ export function numero(texto: string | number, x: number, y: number, tono: TonoC
     px: Math.max(1, Math.min(Wc - ancho - 1, aCelda(cx) - (al === 'derecha' ? ancho : al === 'izquierda' ? 0 : ancho / 2))),
     py: Math.max(1 - ey0, Math.min(Hc - alto - ey1 - 1, aCelda(cy))),
   });
-  const sobre = (n: { px: number; py: number }): Caja => ({ x: (n.px + ex0 - rebote) * S, y: (n.py + ey0) * S, w: (ancho + ex1 - ex0 + 2 * rebote + base) * S, h: (alto + altoG + ey1 - ey0) * S });
-  // los carriles: el pedido (o los que se den) y, si chocan, un renglón más arriba o un número más al costado
+  // (0.22: la caja es la de su vuelo, sin el rebote del primer instante —dura 70 ms— ni un número y un renglón de más:
+  // inflada, chocaba con todo y el «−N» terminaba trepando lejos de tu VIDA)
+  // (el rebote del que no tiene dueño crece medio número a cada costado y un renglón hacia arriba)
+  void rebote;
+  const rx = o.ancla ? 0 : base / 2;
+  const ry = o.ancla ? 0 : altoG;
+  const sobre = (n: { px: number; py: number }): Caja => ({ x: (n.px + Math.min(ex0, -rx)) * S, y: (n.py + Math.min(ey0, -ry)) * S, w: (ancho + Math.max(ex1, rx) - Math.min(ex0, -rx)) * S, h: (alto + ey1 - Math.min(ey0, -ry)) * S });
+  // los carriles: el pedido (o los que se den) y, si chocan, un renglón más arriba o un número más al costado (el que
+  // tiene dueño solo se corre de costado, medio número: no trepa)
   const bases: Carril[] = o.carriles?.length ? o.carriles : [{ x, y, alinear: o.alinear }];
   const nacimientos: { px: number; py: number }[] = [];
   for (const b of bases) nacimientos.push(nace(b.x, b.y, b.alinear));
+  const corrimientos = o.ancla ? [[-0.5, 0], [0.5, 0], [-1, 0], [1, 0]] : [[0, -1], [0, -2], [-1, 0], [1, 0], [0, -3], [-1, -1], [1, -1]];
   for (const b of bases)
-    for (const [dx, dy] of [[0, -1], [0, -2], [-1, 0], [1, 0], [0, -3], [-1, -1], [1, -1]])
+    for (const [dx, dy] of corrimientos)
       nacimientos.push(nace(b.x + dx * (ancho + 6) * S, b.y + dy * (alto + 4) * S, b.alinear));
   let t = 0;
   let px = 0;
   let py = 0;
   let k = escala;
-  const viva = (): Caja | null => (t >= T - 0.25 ? null : { x: Math.round(px - (k - escala) * ancho * 0.25) * S, y: Math.round(py) * S, w: base * k * S, h: altoG * k * S });
-  const pd = pedir('numero', nacimientos.map(sobre), T * 1000, { viva });
+  // (el rebote crece hacia arriba y hacia los dos costados: nunca baja sobre lo que tiene debajo —tu VIDA—)
+  const viva = (): Caja | null => (t >= T - 0.25 ? null : { x: Math.round(px - ((k - escala) * base) / 2) * S, y: Math.round(py - (k - escala) * altoG) * S, w: base * k * S, h: altoG * k * S });
+  const pd = pedir('numero', nacimientos.map(sobre), T * 1000, { viva, ancla: o.ancla });
   ({ px, py } = nacimientos[pd.i]);
   let vx = vx0;
   let vy = vy0;
@@ -380,10 +390,11 @@ export function numero(texto: string | number, x: number, y: number, tono: TonoC
       if (t > T - 0.25 && Math.floor(t * 30) % 2) return;
       // entra con un rebote de escala entera: grande un instante y a su tamaño (el tope contra el borde se recalcula
       // en cada cuadro, con el tamaño de ese cuadro)
-      k = t < 0.07 ? escala + 1 : escala;
+      // (el número con dueño no rebota: nace a su tamaño, pegado a su caja)
+      k = t < 0.07 && !o.ancla ? escala + 1 : escala;
       const wk = base * k;
-      let gx = Math.max(1, Math.min(aCelda(innerWidth) - wk - 1, Math.round(px - (k - escala) * ancho * 0.25)));
-      const gy = Math.max(1, Math.min(aCelda(innerHeight) - altoG * k - 1, Math.round(py)));
+      let gx = Math.max(1, Math.min(aCelda(innerWidth) - wk - 1, Math.round(px - ((k - escala) * base) / 2)));
+      const gy = Math.max(1, Math.min(aCelda(innerHeight) - altoG * k - 1, Math.round(py - (k - escala) * altoG)));
       for (const gl of glifos) {
         c.drawImage(gl, gx, gy, gl.width * k, gl.height * k);
         gx += (gl.width - 1) * k;

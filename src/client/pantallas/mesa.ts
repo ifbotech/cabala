@@ -847,16 +847,20 @@ export function pantallaMesa(p: Partida): Pantalla {
           hud.escudo = Math.max(0, hud.escudo - ev.frenado);
           hud.vida = ev.vida;
           ponerHud(hud);
-          // lo que te pegan va en UN carril, pegado a la cifra de VIDA (arriba, sobre el rótulo): el rojo que perdiste y, a
-          // su derecha en el mismo renglón, el azul que frenó tu Escudo. Suben rectos (sin deriva): no se cruzan y se leen
-          // juntos, «−23 −4», sin taparla ni caer sobre la zona de descarte
+          // (0.22) lo que te pegan va pegado a su dueño: el rojo que perdiste, apoyado sobre el canto de arriba de tu VIDA;
+          // el azul que frenó tu Escudo, sobre el de tu ESCUDO. Suben poco y derecho (sin deriva ni rebote de renglón), y
+          // el director no los deja irse a más de 40 px de su caja (la QA en movimiento lo mide)
           const rv = $('[data-hud-vida]')?.getBoundingClientRect();
-          const carrilX = rv ? rv.left + rv.width * 0.66 : en.x;
-          const carrilY = (rv ? rv.top : en.y) - 6 * S;
+          const re = $('[data-hud-escudo]')?.getBoundingClientRect();
           const pierde = ev.n - ev.frenado;
-          if (ev.frenado > 0) numero(`-${ev.frenado}`, pierde > 0 ? carrilX + 6 : carrilX, carrilY + 6 * S, 'azul', 1, { alinear: pierde > 0 ? 'izquierda' : undefined, vx: 0 });
+          const caja = (r: DOMRect) => ({ x: r.left, y: r.top, w: r.width, h: r.height });
+          if (ev.frenado > 0) {
+            const r = re && re.width > 0 ? re : rv;
+            // (nace apoyado sobre la caja, con el aire de la cifra que protege el director: 12 px)
+            numero(`-${ev.frenado}`, r ? r.left + r.width / 2 : en.x, r ? r.top - medidaNumero(`-${ev.frenado}`, 1).h - 12 : en.y, 'azul', 1, { ancla: r ? { caja: caja(r), max: 40, que: 'tu ESCUDO' } : undefined });
+          }
           if (pierde > 0) {
-            numero(`-${pierde}`, ev.frenado > 0 ? carrilX - 2 : carrilX, carrilY, 'roja', 2, { alinear: ev.frenado > 0 ? 'derecha' : undefined, vx: 0 });
+            numero(`-${pierde}`, rv ? rv.left + rv.width / 2 : en.x, rv ? rv.top - medidaNumero(`-${pierde}`, 2).h - 12 : en.y, 'roja', 2, { ancla: rv ? { caja: caja(rv), max: 40, que: 'tu VIDA' } : undefined });
             chispas(en.x, en.y, RAMPA_GOLPE, 10, 80);
             sonar('contra');
             gestoRetrato('mueca', 900);
