@@ -97,6 +97,9 @@ const cortaDicha = new Set<string>();
 /** (0.25) Las partidas en las que el Bufón ya dijo lo de Mesa limpia. */
 const mesaLimpiaVista = new Set<string>();
 
+/** (0.28) Lo que dura en pantalla la placa «−N» del contragolpe (ms): el turno siguiente se reparte cuando ya se fue. */
+const PLACA_CONTRA = 820;
+
 export function pantallaMesa(p: Partida): Pantalla {
   const c = () => p.combate!;
   let mano: Mano | null = null;
@@ -224,7 +227,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     const porTurno = e.jefe ? B.furia.reyPorTurno + (e.palo === 'S' ? B.reyes.S.furiaTurno : 0) : 0;
     const notaFuria = `${t('furiaIncluida')}${porTurno ? ` · ${t('furiaTurno', { n: porTurno })}` : ''}`;
     const furiaHtml = furia
-      ? `<span class="e-furia"><span class="e-furia-chip">${pxHud('furia')}<b class="rotulo">${t('furia')}</b>${cifra(furia, 'oro')}</span><span class="e-furia-nota"><span class="solo-ancho">${esc(t('furiaIncluida'))}${porTurno ? `<br>${esc(t('furiaTurno', { n: porTurno }))}` : ''}</span><span class="solo-movil">${esc(t('furiaIncl'))}${porTurno ? `<br>${esc(t('furiaTurnoCorto', { n: porTurno }))}` : ''}</span></span></span>`
+      ? `<span class="e-furia"><span class="e-furia-chip">${pxHud('furia')}<b class="rotulo">${t('furia')}</b>${cifra(furia, 'oro')}</span><span class="e-furia-nota"><span class="solo-ancho">${esc(t('furiaIncluida'))}${porTurno ? `<span class="fn-2"><i class="fn-sep" aria-hidden="true"> · </i>${esc(t('furiaTurno', { n: porTurno }))}</span>` : ''}</span><span class="solo-movil">${esc(t('furiaIncl'))}${porTurno ? `<br>${esc(t('furiaTurnoCorto', { n: porTurno }))}` : ''}</span></span></span>`
       : '';
     // el Tajo de revés armado: una sola fórmula, igual antes de soltar y durante el golpe. La cifra grande es lo que
     // te pega de verdad (42) y debajo, chica, su causa («21 ×2»); nunca un ×2 pegado a la cifra. Lo pone
@@ -345,17 +348,21 @@ export function pantallaMesa(p: Partida): Pantalla {
       // (se mide con desplazamientos, no con cajas: la cuenta entra con una animación que la corre unos píxeles)
       bajo.style.left = `${Math.round(x - cu.offsetLeft - cu.clientLeft)}px`;
       bajo.style.width = `${Math.max(220, Math.round((izq !== null ? izq - rz.left : rz.width - 8) - x - 12))}px`;
-      bajo.classList.remove('chico', 'chico-2', 'chico-3');
-      // (si el desglose es más alto que el paño, se aprieta por pasos: sin nombres de pieza, sin la pista, más junto)
+      // (0.28) la columna cae en la franja fija de lo jugado (arriba de la mano, que no se mueve): su techo es el de la
+      // zona de la mano y su alto, el del paño
+      const rc = cu.getBoundingClientRect();
+      bajo.style.top = `${Math.round(zm.getBoundingClientRect().top - rc.top - cu.clientTop)}px`;
+      bajo.classList.remove('chico', 'chico-2', 'chico-3', 'chico-4');
+      // (si el desglose es más alto que el paño, se aprieta por pasos SIN borrar nombres: primero los acorta, después
+      // suelta la pista del mando, después junta los renglones y por último baja un punto la letra)
       const kp = Number(getComputedStyle(zm).getPropertyValue('--k-pano')) || 1;
-      const tope = 140 * kp + 10;
-      if (izq !== null) for (const nivel of ['chico', 'chico-2', 'chico-3']) {
+      const tope = 140 * kp + 12;
+      for (const nivel of ['chico', 'chico-2', 'chico-3', 'chico-4']) {
         if (bajo.offsetHeight <= tope) break;
         bajo.classList.add(nivel);
       }
       filaCuenta = cu.offsetTop + cu.clientTop + bajo.offsetTop;
     }
-    mano.subir(zm.getBoundingClientRect().top - (rz.top + filaCuenta));
   }
   /**
    * La cuenta va en un solo renglón de chips más su desglose: si en la Deck o el portátil (701–1699 px) no cabe, se
@@ -541,7 +548,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     // la pieza); el conteo lo enciende con su propio golpe. Nada de chip aparte ni de ×2 estampado sobre el total
     const esCritico = (x: Paso): boolean => q.critico && x.tipo === 'x' && x.de === 'b:puntahacha';
     const termino = (x: Paso, valor: string): string =>
-      `<span class="d-t d-${x.tipo}${/^[aubr]:/.test(x.de) ? ' d-pieza' : x.de.startsWith('j:') || x.de === 'canto' || x.de.startsWith('posta:') || (x.de === 'prox' && dadoArmado) ? ' d-nombre' : ''}${x.de.startsWith('posta:') ? ' d-posta' : ''}${esCritico(x) ? ' d-critico' : ''}" data-paso="${clave(x)}" ${tip(pasoNombre(x.de), pasoAyuda(x.de))}>${pasoIcono(x.de)}<span class="d-n">${esc(pasoNombre(x.de))}</span>${esCritico(x) ? `<b class="d-crit">${t('critico')}</b>` : ''}<b class="d-v">${valor}</b></span>`;
+      `<span class="d-t d-${x.tipo}${x.v < 0 ? ' d-neg' : ''}${/^[aubr]:/.test(x.de) ? ' d-pieza' : x.de.startsWith('j:') || x.de === 'canto' || x.de.startsWith('posta:') || (x.de === 'prox' && dadoArmado) ? ' d-nombre' : ''}${x.de.startsWith('posta:') ? ' d-posta' : ''}${esCritico(x) ? ' d-critico' : ''}" data-paso="${clave(x)}" ${tip(pasoNombre(x.de), pasoAyuda(x.de))}>${pasoIcono(x.de)}<span class="d-n">${esc(pasoNombre(x.de))}</span>${esCritico(x) ? `<b class="d-crit">${t('critico')}</b>` : ''}<b class="d-v">${valor}</b></span>`;
     const cartasD = q.pasos.filter(esCarta);
     const piezasD = q.pasos.filter((x) => x.tipo === 'd' && !esCarta(x) && x.v !== 0);
     const sumanM = q.pasos.filter((x) => x.tipo === 'm' && x.v !== 0);
@@ -553,7 +560,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     // el primer sumando del Multi va sin signo (arranca de él); lo que multiplica, con su «×» pegado a la cifra
     const filaM = [...sumanM.map((x, i) => termino(x, i === 0 && x.v > 0 ? `${x.v}` : mas(x.v))), ...porM.map((x) => termino(x, `×${x.v}`))];
     const fila = (cls: string, rotulo: string, xs: string[], corto = rotulo): string => `<span class="d-fila ${cls}"><b class="d-rot"><span class="d-rot-l">${rotulo}</span>${corto !== rotulo ? `<span class="d-rot-c">${corto}</span>` : ''}</b><span class="d-terminos">${xs.length ? xs.join('<i class="d-sep" aria-hidden="true">·</i>') : '<b class="d-v">1</b>'}</span></span>`;
-    const desglose = `<span class="c-desglose">${fila('d-fd', t('dano'), filaD, t('danoCorto'))}${fila('d-fm', t('multi'), filaM)}</span>`;
+    const desglose = (corta0: string): string => `<span class="c-desglose">${corta0}${fila('d-fd', t('dano'), filaD, t('danoCorto'))}${fila('d-fm', t('multi'), filaM)}</span>`;
     // antes de soltar, la cuenta lo dice todo: el veredicto («LO ABATÍS», «NO LO ABATÍS», «¡EXACTO!», «¡AL PELO!»)
     // encabeza los chips, y la fórmula con su TOTAL, «LE QUEDAN»/«SOBRAN», TE PEGA y el desglose quedan a la vista
     // (0.18.1: esconder el total confundía); al soltar, el conteo vuelve a subir la fórmula término a término
@@ -623,7 +630,7 @@ export function pantallaMesa(p: Partida): Pantalla {
         ${efectos ? `<span class="c-efectos">${efectos}</span>` : ''}
       </span>
       <span class="c-chips">${veredicto}${q.canto ? `<span class="chip canto c-canto">${esc(tx(MAZO[p.mazoId].canto))}</span>` : ''}${q.perfora && enemigo && enemigo.escudo > 0 ? `<span class="chip azul">${t('perfora')}</span>` : ''}${destino}${maldicionChip}</span>
-      <span class="c-bajo">${cortaHtml}${desglose}${dialEnCuenta ? `<span class="c-dial-fila">${dialEnCuenta}</span>` : ''}${pistaPano}</span>
+      <span class="c-bajo">${innerWidth > 700 ? desglose(cortaHtml) : cortaHtml + desglose('')}${dialEnCuenta ? `<span class="c-dial-fila">${dialEnCuenta}</span>` : ''}${pistaPano}</span>
     </div>`;
   }
   /**
@@ -1059,9 +1066,13 @@ export function pantallaMesa(p: Partida): Pantalla {
           const grande = entra >= enemigo.vidaMax * 0.5;
           // (0.26) lo que Perfora pasa al siguiente lleva su color (púrpura): no se confunde con el celeste del Escudo
           const tono = dePerfora ? 'purpura' : ev.aEscudo >= ev.n || planta ? 'azul' : 'roja';
-          const caja = numero(entra, cs[0].x, cs[0].y, tono, grande ? 2 : 1, { carriles: cs, vx: cs[0].alinear === 'izquierda' ? 14 : cs[0].alinear === 'derecha' ? -14 : 0, vidaMin: grande ? 0.6 : 0.36 });
+          // (0.28) el Rey que se planta: primero su sello, en su lugar fijo al costado de la barra; el número va por el otro
+          // lado del naipe (nunca le pasa por encima)
+          const sePlanta = (planta || plantaPerfora) && pierde > 0;
+          if (sePlanta) selloPlanta(pierde);
+          if (sePlanta && cs.length >= 3) cs.push(cs.shift()!);
+          numero(entra, cs[0].x, cs[0].y, tono, grande ? 2 : 1, { carriles: cs, vx: cs[0].alinear === 'izquierda' ? 14 : cs[0].alinear === 'derecha' ? -14 : 0, vidaMin: grande ? 0.6 : 0.36 });
           tDano = performance.now();
-          if ((planta || plantaPerfora) && caja && pierde > 0) selloPlanta(caja, pierde);
           if (cantoPendiente) cantoGrande();
           enemigo.vida = ev.vida;
           enemigo.escudo = ev.escudo;
@@ -1239,8 +1250,9 @@ export function pantallaMesa(p: Partida): Pantalla {
             const falta = 760 - (performance.now() - tMalEscudo);
             if (falta > 40) await pausa(falta);
           }
-          // (tu número ya se leyó: se apaga antes de que nazca lo que te pegan)
-          limpiarNumeros();
+          // (tu número ya se leyó: se apaga del todo antes de que nazca lo que te pegan —0.28: forzado, el 170 no sigue
+          // a la vista cuando nace el «−19»—)
+          limpiarNumeros(true);
           placa = null;
           // el cartel de la segunda cara se va antes de que el Rey embista: nada tapa al que te pega
           quitarCartelSegunda();
@@ -1255,9 +1267,10 @@ export function pantallaMesa(p: Partida): Pantalla {
           // (0.27) causa → efecto: primero el número, adentro de su caja del HUD («−4 ESCUDO» en tu ESCUDO, «−19» en tu
           // VIDA: nunca sobre la mano ni sobre GOLPEAR o DESCARTAR), con el golpe y su ruido; recién después bajan las
           // cifras
-          if (ev.frenado > 0) deltaHud('escudo', -ev.frenado);
+          // (0.28) y las placas se van ANTES de que se reparta el turno siguiente (duran lo que la espera de abajo)
+          if (ev.frenado > 0) deltaHud('escudo', -ev.frenado, { ms: PLACA_CONTRA });
           if (pierde > 0) {
-            deltaHud('vida', -pierde);
+            deltaHud('vida', -pierde, { ms: PLACA_CONTRA });
             chispas(en.x, en.y, RAMPA_GOLPE, 10, 80);
             sonar('contra');
             agacharMusica(180, -9);
@@ -1287,8 +1300,8 @@ export function pantallaMesa(p: Partida): Pantalla {
           hud.escudo = Math.max(0, hud.escudo - ev.frenado);
           hud.vida = ev.vida;
           ponerHud(hud);
-          // (y la mano del turno nuevo no llega hasta que el «−N» se leyó)
-          await pausa(pierde > 0 ? 470 : 300);
+          // (y la mano del turno nuevo no llega hasta que el «−N» se leyó y se fue)
+          await pausa(quieto() ? 300 : PLACA_CONTRA - 130 + 20);
           break;
         }
         case 'contragolpe': {
@@ -1825,30 +1838,48 @@ export function pantallaMesa(p: Partida): Pantalla {
   /** El sello «SE PLANTA EN LA MITAD» pegado bajo el número del golpe que se frenó, en su mismo carril. */
   /** El sello «SE PLANTA EN LA MITAD» en el aire (el cartel de la segunda cara, que llega después, lo despide). */
   let plantaViva: { el: HTMLElement; id: number; t: number } | null = null;
-  function selloPlanta(caja: { x: number; y: number; w: number; h: number }, pierde: number): void {
+  function selloPlanta(pierde: number): void {
     if (enFoto()) return;
+    plantaViva?.el.remove();
     const s = document.createElement('div');
     s.className = 'sello-planta';
     s.setAttribute('role', 'status');
-    // (0.26) en un solo renglón («SE PLANTA EN LA MITAD · 100 SE PIERDEN») y nunca sobre la barra ni el nombre del Rey
-    s.innerHTML = `<b class="rotulo">${esc(t('sePlanta'))}</b>${pierde > 0 ? `<span class="sp-pierde"><i class="sp-sep" aria-hidden="true">· </i>${esc(t('pierde', { n: pierde }))}</span>` : ''}`;
+    // (0.28) grande, en dos renglones («SE PLANTA EN LA MITAD» / «100 SE PIERDEN») y en un lugar FIJO que el número no
+    // cruza: al costado de la barra de Vida del Rey (sobre su rasgo, que es la regla que se está cumpliendo); en el
+    // teléfono, sobre el paño vacío (entre la cuenta y la mano). No cede ni se apaga: nada pesa más que la explicación de por qué entró menos
+    s.innerHTML = `<b class="rotulo">${esc(t('sePlanta'))}</b>${pierde > 0 ? `<span class="sp-pierde">${esc(t('pierde', { n: pierde }))}</span>` : ''}`;
     $('#capa')?.append(s);
-    const cx = caja.x + caja.w / 2;
     const barra = $('[data-enemigo] .e-vida')?.getBoundingClientRect();
-    const sh = s.offsetHeight;
-    const tapaBarra = (dy: number): boolean => !!barra && barra.width > 0 && caja.y + caja.h + dy < barra.bottom + 2 && caja.y + caja.h + dy + sh > barra.top - 2;
-    const pon = (dy: number) => (): void => {
-      const w = s.offsetWidth;
-      s.style.left = `${Math.round(Math.max(w / 2 + 6, Math.min(innerWidth - w / 2 - 6, cx)))}px`;
-      s.style.top = `${Math.round(caja.y + caja.h + dy)}px`;
-    };
-    const dys = [6, 26, -caja.h - sh - 10];
-    const pd = ubicar(s, 'sello', 1400, [...dys.filter((d) => !tapaBarra(d)), ...dys.filter(tapaBarra)].map(pon));
-    plantaViva = { el: s, id: pd.id, t: performance.now() + pd.demora };
-    window.setTimeout(() => {
-      s.remove();
-      if (plantaViva?.el === s) plantaViva = null;
-    }, (quieto() ? 1700 : 1400) + pd.demora);
+    const w = s.offsetWidth;
+    const h = s.offsetHeight;
+    let x = innerWidth / 2 - w / 2;
+    let y = innerHeight * 0.3;
+    if (barra && barra.width > 0) {
+      if (innerWidth > 700) {
+        x = barra.right + 12;
+        y = barra.bottom - h;
+      } else {
+        // (teléfono: sobre el paño vacío, entre la cuenta y la mano; bajo la barra taparía el total de la cuenta)
+        const pano = $('[data-mano] .pano-postas')?.getBoundingClientRect();
+        const cu = $('[data-cuenta]')?.getBoundingClientRect();
+        x = innerWidth / 2 - w / 2;
+        const techoMano = Math.min(innerHeight, ...[...document.querySelectorAll('[data-mano] .carta:not(.volando)')].map((c) => c.getBoundingClientRect().top));
+        y = pano && pano.height > 0 ? Math.max(Math.min(pano.top + (pano.height - h) / 2, techoMano - h - 8), (cu?.bottom ?? 0) + 6) : barra.bottom + 4;
+      }
+    }
+    x = Math.round(Math.max(6, Math.min(innerWidth - w - 6, x)));
+    y = Math.round(Math.max(6, Math.min(innerHeight - h - 6, y)));
+    s.style.left = `${x}px`;
+    s.style.top = `${y}px`;
+    const id = reservar('sello', { x, y, w, h }, 1400, cajaDe(s));
+    plantaViva = { el: s, id, t: performance.now() };
+    window.setTimeout(
+      () => {
+        s.remove();
+        if (plantaViva?.el === s) plantaViva = null;
+      },
+      quieto() ? 1700 : 1400,
+    );
   }
   /** Si el golpe trae canto, el canto grande espera al número: sale después, arriba del naipe y en otro renglón. */
   let cantoPendiente = false;
@@ -1879,6 +1910,18 @@ export function pantallaMesa(p: Partida): Pantalla {
       g.style.top = `${Math.round(Math.max(gh / 2 + 4, Math.min(innerHeight - gh / 2 - 4, y)))}px`;
     };
     const alternativas: (() => void)[] = [];
+    // (0.28) fuera del teléfono el canto cae sobre el paño vacío (la franja de lo jugado): la escena baja no tiene lugar
+    // para él sin tapar el sello INMUNE, el número del golpe ni el TE PEGA. Arranca en el borde izquierdo del fieltro
+    // (a su izquierda está el desglose, que sigue encendido) y puede seguir hacia la columna de los botones
+    const pano = innerWidth > 700 ? $('[data-mano] .pano-postas')?.getBoundingClientRect() : undefined;
+    if (pano && pano.width > 0) {
+      g.classList.add('en-pano');
+      // (entra en el ancho del fieltro: si no, baja de cuerpo; nunca llega a la bandeja de Chiches)
+      // (su entrada lo agranda un tercio: se mide con ese estirón)
+      const tope = Math.max(150, (pano.width - 24) / 1.34);
+      if (g.offsetWidth * 1.06 > tope) g.style.fontSize = `${Math.max(24, Math.floor((parseFloat(getComputedStyle(g).fontSize) * tope) / (g.offsetWidth * 1.06)))}px`;
+      alternativas.push(pon(pano.left + pano.width / 2, pano.top + pano.height / 2));
+    }
     for (const fy of [-0.08, 0.14, 0.3, 0.9]) for (const dx of [0, 0.4, -0.4, 0.8, -0.8]) alternativas.push(pon(cx + dx * w, arriba + h * fy));
     const pd = ubicar(g, 'canto', 850, alternativas, 1.06);
     window.setTimeout(() => g.remove(), 850 + pd.demora);
@@ -1961,7 +2004,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     const w = el?.getBoundingClientRect().width ?? 160;
     // (0.27) el sello «SE PLANTA EN LA MITAD · N SE PIERDEN» se lee antes de que el naipe se dé vuelta: 900 ms a la vista
     if (plantaViva) {
-      const falta = 900 - (performance.now() - plantaViva.t);
+      const falta = 1100 - (performance.now() - plantaViva.t);
       if (falta > 40) await pausa(falta);
     }
     // el golpe que lo dejó a media Vida se congela, la luz se le mete adentro y el naipe se cierra de canto
@@ -1996,7 +2039,18 @@ export function pantallaMesa(p: Partida): Pantalla {
       g.style.left = `${Math.round(Math.max(gw / 2 + 6, Math.min(innerWidth - gw / 2 - 6, m.x + dx * gw)))}px`;
       g.style.top = `${Math.round(m.y)}px`;
     };
-    ubicar(g, 'cartel', 1500, [pon(0.5, 0), pon(0.3, 0), pon(0.7, 0), pon(0.5, 0.3), pon(0.5, -0.3), pon(0.5, 0.42), pon(0.5, -0.42), pon(0.2, 0.3), pon(0.2, 0.42), pon(0.85, 0), pon(0.85, 0.42)]);
+    // (0.28) fuera del teléfono cae sobre el paño vacío (la franja de lo jugado, bajo la cuenta): no tapa el nombre del
+    // Rey en su barra, ni su regla nueva (el rótulo del costado, que es lo que anuncia), ni el TE PEGA
+    const enPano = (): void => {
+      const r = $('[data-mano] .pano-postas')?.getBoundingClientRect();
+      if (!r || !r.width) return pon(0.5, 0)();
+      const gw = g.offsetWidth;
+      // (sin llegar a la bandeja de Chiches ni a los botones)
+      const tope = ($('.mano-zona .botones')?.getBoundingClientRect().left ?? innerWidth) - 16;
+      g.style.left = `${Math.round(Math.max(gw / 2 + 6, Math.min(tope - gw * 0.62, r.left + r.width / 2)))}px`;
+      g.style.top = `${Math.round(r.top + r.height / 2)}px`;
+    };
+    ubicar(g, 'cartel', 1500, [...(innerWidth > 700 ? [enPano] : []), pon(0.5, 0), pon(0.3, 0), pon(0.7, 0), pon(0.5, 0.3), pon(0.5, -0.3), pon(0.5, 0.42), pon(0.5, -0.42), pon(0.2, 0.3), pon(0.2, 0.42), pon(0.85, 0), pon(0.85, 0.42)]);
     window.setTimeout(() => g.remove(), 1500);
     await pausa(950);
     // (lo que sigue suele ser el Rey que te pega: el cartel ya se leyó y se va enseguida, sin quedar encima de él)

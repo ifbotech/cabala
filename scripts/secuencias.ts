@@ -6,15 +6,20 @@
 // por nav.ts como la de un mando de verdad): elegir, golpear, cobrar y elegir el premio sin tocar el ratón.
 // Quedan en artifacts/jurado/secuencias/<ventana>-<momento>-NN.png.
 //   npx tsx scripts/secuencias.ts
-import { mkdirSync, rmSync } from 'node:fs';
+import { mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { chromium, type Page } from 'playwright';
 import { guardian } from './guardian';
+import { manoViva, placasHud } from './mano-viva';
 import { conServidor } from './servidor';
 
 guardian('secuencias', 290);
 const SALIDA = 'artifacts/jurado/secuencias';
-rmSync(SALIDA, { recursive: true, force: true });
+// (0.28) con las secuencias nuevas la corrida entera pasa del tope de 300 s: `--ventana=1280` o `--ventana=390` corre
+// una sola (y borra solo sus cuadros); sin argumento corre las dos, como siempre
+const soloVentana = Number(process.argv.find((a) => a.startsWith('--ventana='))?.split('=')[1]) || 0;
+if (!soloVentana) rmSync(SALIDA, { recursive: true, force: true });
 mkdirSync(SALIDA, { recursive: true });
+if (soloVentana) for (const x of readdirSync(SALIDA)) if (x.startsWith(`${soloVentana}-`)) rmSync(`${SALIDA}/${x}`, { force: true });
 const LANG = 'es';
 
 interface Q {
@@ -65,7 +70,7 @@ const fallos: string[] = [];
 await conServidor(5198, async (url) => {
   const navegador = await chromium.launch();
   try {
-    for (const [w, h] of [[1280, 800], [390, 844]] as const) {
+    for (const [w, h] of ([[1280, 800], [390, 844]] as const).filter(([ancho]) => !soloVentana || ancho === soloVentana)) {
       const ctx = await navegador.newContext({ viewport: { width: w, height: h }, hasTouch: w < 500, locale: 'es-AR' });
       await ctx.addInitScript('globalThis.__name = (f) => f');
       // en Steam Deck todo se graba con el mando (los glifos y el foco que vería quien juega con él)
@@ -110,16 +115,67 @@ await conServidor(5198, async (url) => {
       };
       // (0.27) `debe`: algo que TIENE que verse en algún cuadro de la ráfaga (el sello «SE PLANTA EN LA MITAD»): si no
       // sale en ninguno, la corrida falla
-      const rafaga = async (nombre: string, cuadros: number, cada: number, pg: Page = p, mide = true, debe?: { sel: string; que: string }): Promise<void> => {
+      const manoVista = new Set<string>();
+      // (0.28) la aserción mira la PANTALLA, no el DOM: la caja ENTERA dentro de la ventana, opaca, de por lo menos
+      // `anchoMin` px y sin nada encima (se le pregunta al navegador qué hay en su centro y en sus cuatro esquinas de
+      // adentro). `minimo`: en cuántos cuadros seguidos de la ráfaga tiene que verse así
+      const rafaga = async (nombre: string, cuadros: number, cada: number, pg: Page = p, mide = true, debe?: { sel: string; que: string; minimo?: number; anchoMin?: number }): Promise<void> => {
         if (mide) await vigilar(pg);
         let visto = 0;
+        let porque = 'no está en el DOM';
         for (let i = 0; i < cuadros; i++) {
-          if (debe && (await pg.evaluate((sel) => [...document.querySelectorAll<HTMLElement>(sel)].some((el) => { const r = el.getBoundingClientRect(); const st = getComputedStyle(el); return r.width > 2 && r.height > 2 && st.visibility !== 'hidden' && Number(st.opacity) > 0.3; }), debe.sel))) visto++;
+          if (debe) {
+            const mal = await pg.evaluate(
+              ({ sel, anchoMin }) => {
+                const els = [...document.querySelectorAll<HTMLElement>(sel)];
+                if (!els.length) return 'no está en el DOM';
+                let ultimo = '';
+                for (const el of els) {
+                  const r = el.getBoundingClientRect();
+                  const st = getComputedStyle(el);
+                  if (st.visibility === 'hidden' || st.display === 'none' || Number(st.opacity) < 0.9) ultimo = `apagado (visibility ${st.visibility}, opacity ${st.opacity})`;
+                  else if (r.width < anchoMin || r.height < 14) ultimo = `chico (${Math.round(r.width)}×${Math.round(r.height)})`;
+                  else if (r.left < 0 || r.top < 0 || r.right > innerWidth || r.bottom > innerHeight) ultimo = `fuera de la ventana (${Math.round(r.left)},${Math.round(r.top)} → ${Math.round(r.right)},${Math.round(r.bottom)})`;
+                  else {
+                    // (lo que vuela no recibe el puntero: se lo presta un instante para preguntar qué hay encima)
+                    el.style.setProperty('pointer-events', 'auto', 'important');
+                    const puntos = [
+                      [0.5, 0.5],
+                      [0.1, 0.2],
+                      [0.9, 0.2],
+                      [0.1, 0.8],
+                      [0.9, 0.8],
+                    ];
+                    let tapa = '';
+                    for (const [fx, fy] of puntos) {
+                      const hit = document.elementFromPoint(r.left + r.width * fx, r.top + r.height * fy);
+                      if (hit && !el.contains(hit)) tapa = `${hit.tagName.toLowerCase()}.${String(hit.className).split(' ')[0]}`;
+                    }
+                    el.style.removeProperty('pointer-events');
+                    if (!tapa) return '';
+                    ultimo = `tapado por ${tapa}`;
+                  }
+                }
+                return ultimo;
+              },
+              { sel: debe.sel, anchoMin: debe.anchoMin ?? 40 },
+            );
+            if (!mal) visto++;
+            else if (!porque.includes(mal)) porque = porque === 'no está en el DOM' ? mal : `${porque}; ${mal}`;
+          }
           await pg.screenshot({ path: `${SALIDA}/${w}-${nombre}-${String(i + 1).padStart(2, '0')}.png` });
+          // (0.28) y en cada cuadro: ningún naipe posado tapa la cuenta ni queda cortado por el HUD
+          if (mide)
+            for (const x of [...(await pg.evaluate(manoViva, { quietas: true })), ...(await pg.evaluate(placasHud))]) {
+              const clave = `${nombre}|${x.regla}`;
+              if (manoVista.has(clave)) continue;
+              manoVista.add(clave);
+              fallos.push(`${w} · ${nombre} (cuadro ${i + 1}): ${x.regla}: ${x.detalle}`);
+            }
           await pg.waitForTimeout(cada);
         }
         if (mide) await cosechar(nombre, pg);
-        if (debe && visto < 2) fallos.push(`${w} · ${nombre}: ${debe.que} se vio en ${visto} cuadros de ${cuadros} (tiene que verse en 2 o más)`);
+        if (debe && visto < (debe.minimo ?? 2)) fallos.push(`${w} · ${nombre}: ${debe.que} se vio entero y sin nada encima en ${visto} cuadros de ${cuadros} (tiene que verse en ${debe.minimo ?? 2} o más; ${porque})`);
       };
       const mesa = async (estado: string, pg: Page = p): Promise<void> => {
         await pg.goto(`${url}/?qa=${estado}&vivo&lang=${LANG}`);
@@ -197,7 +253,43 @@ await conServidor(5198, async (url) => {
       if (planta !== true) fallos.push(`${w} · rey-segunda: ${planta}`);
       await p.waitForTimeout(250);
       // (el golpe, la caída del de adelante, la entrada del Rey con su cartel y recién ahí lo que Perfora le sobra: ~5 s)
-      await rafaga('rey-segunda', 26, 210, p, true, { sel: '.sello-planta', que: 'el sello «SE PLANTA EN LA MITAD · N SE PIERDEN»' });
+      await rafaga('rey-segunda', 26, 210, p, true, { sel: '.sello-planta', que: 'el sello «SE PLANTA EN LA MITAD · N SE PIERDEN»', minimo: 3, anchoMin: w === 1280 ? 240 : 150 });
+
+      // 2b · (0.28) el Rey se planta, filmado de frente: un golpe directo al Rey en su primera cara, que está apenas por
+      // encima de la mitad: casi todo el golpe se pierde. El sello tiene que verse ≥ 600 ms (5 cuadros de 150 ms), entero
+      // y sin nada encima, ANTES de que el naipe se dé vuelta
+      await mesa('mesa-rey');
+      await p.waitForTimeout(500);
+      const sePlanta = await p.evaluate(() => {
+        const g = window as unknown as G;
+        const x = g.__cabala.sesion.partida;
+        const rey = x.combate.fila[0];
+        if (!rey?.jefe) return 'no hay Rey en la mesa';
+        rey.segunda = false;
+        rey.escudo = 0;
+        rey.aturdido = 0;
+        rey.vida = Math.floor(rey.vidaMax / 2) + 4;
+        g.__mesa.sincronizar();
+        const m = g.__cabala.mejorGolpe(x);
+        if (!m) return 'sin golpe';
+        const q = g.__mesa.cuenta(m.ids) as Q & { total: number; frenaEnMitad?: boolean };
+        if (!q.ok || q.abate || q.ejecuta || !q.frenaEnMitad) return `el golpe no se frena en la mitad (${JSON.stringify({ ok: q.ok, abate: q.abate, total: q.total, frena: q.frenaEnMitad })})`;
+        if (q.total <= 4) return `el golpe (${q.total}) no pierde nada`;
+        g.__mesa.mano.elegir(m.ids, m.postas);
+        (window as unknown as { __planta: { ids: string[]; postas?: number[] } }).__planta = m;
+        return true;
+      });
+      if (sePlanta !== true) fallos.push(`${w} · rey-planta: ${sePlanta}`);
+      else {
+        await p.waitForTimeout(350);
+        await p.screenshot({ path: `${SALIDA}/${w}-rey-planta-00.png` });
+        await p.evaluate(() => {
+          const g = window as unknown as G;
+          const m = (window as unknown as { __planta: { ids: string[]; postas?: number[] } }).__planta;
+          g.__mesa.golpear(m.ids, m.postas);
+        });
+        await rafaga('rey-planta', 22, 150, p, true, { sel: '.sello-planta', que: 'el sello «SE PLANTA EN LA MITAD · N SE PIERDEN»', minimo: 5, anchoMin: w === 1280 ? 240 : 150 });
+      }
 
       // 3 · el Tajo de revés: repetir la jugada contra el Caudillo en segunda cara. Primero el aviso antes de soltar
       // (el chip rojo junto a TE PEGA y el ×2 del Rey), después el golpe que vuelve doble y atraviesa el Escudo. La
@@ -367,6 +459,80 @@ await conServidor(5198, async (url) => {
         g.__mesa.golpear(g.__mesa.mano.seleccion());
       });
       await rafaga('maldicion', 16, 220);
+
+      // 5e · (0.28) ¡CHINCHÓN! corta la mano: los escuditos «+N» salen de cada carta sin jugar y vuelan a tu ESCUDO
+      await mesa('mesa-chinchon');
+      await p.waitForTimeout(600);
+      await p.screenshot({ path: `${SALIDA}/${w}-chinchon-corta-00.png` });
+      await p.evaluate(() => {
+        const g = window as unknown as G;
+        g.__mesa.golpear(g.__mesa.mano.seleccion());
+      });
+      // (el conteo dura ~1,5 s; los escuditos salen después del número, uno cada 70 ms)
+      await p.waitForSelector('.escudo-vuela', { timeout: 9000 }).catch(() => undefined);
+      await rafaga('chinchon-corta', 10, 70, p, true, { sel: '.escudo-vuela', que: 'un escudito «+N» en vuelo de la mano al ESCUDO', minimo: 1, anchoMin: 16 });
+      await libre();
+
+      // 5f · (0.28) ¡CHANCHO! con la Pierna: tres del mismo número cantan (un escalón menos que el Póker) y aturden
+      await mesa('mesa-chancho');
+      await p.waitForTimeout(600);
+      const pierna = await p.evaluate(() => {
+        const g = window as unknown as G;
+        const x = g.__cabala.sesion.partida;
+        const e = x.combate.fila[0];
+        e.aturdido = 0;
+        e.vida = e.vidaMax = Math.max(e.vidaMax, 900);
+        const mano = x.combate.mano as { id: string; palo: string; n: number }[];
+        const palos = ['S', 'C', 'D', 'H'].filter((k) => k !== e.palo);
+        // (cartas nuevas, con id nuevo, para que la mano las dibuje de verdad)
+        mano.splice(0, 3, ...palos.slice(0, 3).map((palo, i) => ({ id: `qa-pierna-${i}`, palo, n: 5 })));
+        g.__mesa.sincronizar();
+        const ids = mano.slice(0, 3).map((k) => k.id);
+        const q = g.__mesa.cuenta(ids) as Q & { canto?: boolean };
+        if (!q.ok || q.jugada !== 'pierna') return `no arma Pierna (${q.jugada})`;
+        if (!q.canto) return 'la Pierna no canta';
+        g.__mesa.mano.elegir(ids);
+        (window as unknown as { __pierna: string[] }).__pierna = ids;
+        return true;
+      });
+      if (pierna !== true) fallos.push(`${w} · chancho-canta: ${pierna}`);
+      else {
+        await p.waitForTimeout(350);
+        await p.screenshot({ path: `${SALIDA}/${w}-chancho-canta-00.png` });
+        await p.evaluate(() => void (window as unknown as G).__mesa.golpear((window as unknown as { __pierna: string[] }).__pierna));
+        await rafaga('chancho-canta', 16, 170, p, true, { sel: '.canto-grande', que: 'el canto grande «¡CHANCHO!»', minimo: 2, anchoMin: 80 });
+      }
+      await libre();
+
+      // 5g · (0.28) el Sol de la Timba cobra un descarte: sin descartes y con oro, DESCARTAR cuesta; el «−N» nace en tu ORO
+      await mesa('mesa-sol');
+      await p.waitForTimeout(600);
+      const sol = await p.evaluate(() => {
+        const g = window as unknown as G & { __mesa: { descartar(ids: string[]): Promise<void> } };
+        const x = g.__cabala.sesion.partida as unknown as { oro: number; combate: { mano: { id: string }[] } };
+        const ids = g.__mesa.mano.seleccion();
+        const id = ids[0] ?? x.combate.mano[0]?.id;
+        if (!id) return 'sin carta para descartar';
+        (window as unknown as { __oroAntes: number }).__oroAntes = x.oro;
+        g.__mesa.mano.elegir([id]);
+        return true;
+      });
+      if (sol !== true) fallos.push(`${w} · sol-descarta: ${sol}`);
+      else {
+        await p.waitForTimeout(300);
+        await p.screenshot({ path: `${SALIDA}/${w}-sol-descarta-00.png` });
+        await p.evaluate(() => {
+          const g = window as unknown as G & { __mesa: { descartar(ids: string[]): Promise<void> } };
+          void g.__mesa.descartar(g.__mesa.mano.seleccion());
+        });
+        await rafaga('sol-descarta', 10, 110, p, true, { sel: '.hud-delta.hd-oro', que: 'el «−N» del descarte pagado, en tu ORO', minimo: 2, anchoMin: 30 });
+        const pago = await p.evaluate(() => {
+          const x = (window as unknown as G).__cabala.sesion.partida as unknown as { oro: number };
+          return (window as unknown as { __oroAntes: number }).__oroAntes - x.oro;
+        });
+        if (!(pago > 0)) fallos.push(`${w} · sol-descarta: el descarte no costó oro (${pago})`);
+      }
+      await libre();
 
       // 6 · el último enemigo de un combate común cae: lo mismo que el Rey, más corto
       await mesa('mesa');

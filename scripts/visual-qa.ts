@@ -12,9 +12,10 @@
 //   npm run qa:visual -- --lang=en         inglés (capturas en artifacts/visual-qa-en/)
 //   npm run qa:visual -- mesa mapa         solo esos estados
 //   npm run qa:visual -- --ventana=390x844 solo esa ventana (también 390x664, la baja del móvil)
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 import { guardian } from './guardian';
+import { manoViva } from './mano-viva';
 import { VENTANAS, conServidor } from './servidor';
 import { ESTADOS } from '../src/client/qa';
 
@@ -656,6 +657,8 @@ await conServidor(5191, async (url) => {
         // (al pasar a mando la mano cambia de ancho y la cuenta se vuelve a pintar: se mide con sus entradas ya posadas)
         await pagina.waitForTimeout(estado.endsWith('-mando') || v.nombre === '1280x800' ? 320 : 120);
         const fallos = await pagina.evaluate(auditar, { esMovil: v.w < 700, idioma: lang, deck: v.nombre === '1280x800' && estado !== 'mesa-arrastrando' });
+        // (0.28) nada vivo se monta, nada tapa la cuenta, la mano se ve entera (también fuera del teléfono)
+        fallos.push(...(await pagina.evaluate(manoViva, {})));
         for (const e of errores) fallos.push({ regla: 'error-js', detalle: e.slice(0, 200) });
         for (const x of flechas) fallos.push({ regla: 'flecha-foco', detalle: x });
         // la mesa no salta al elegir («mesa-quieta»): fuera del teléfono, el naipe del Rey, La Corte y el Bufón quedan
@@ -792,7 +795,29 @@ await conServidor(5191, async (url) => {
 });
 
 const malos = informe.filter((i) => i.fallos.length);
-writeFileSync(`${carpeta}/informe.json`, JSON.stringify(informe, null, 2));
+// (0.28) el informe es de TODAS las ventanas: una corrida de una sola ventana (o de unos estados) reemplaza lo suyo y
+// conserva lo de las demás (antes quedaba solo la última corrida y el Jurado no podía confirmar las otras). Cada
+// entrada lleva cuándo se midió; `informe-resumen.json` dice, por ventana, cuántas capturas y cuántos fallos
+const cuando = new Date().toISOString();
+type Entrada = { estado: string; ventana: string; fallos: Fallo[]; cuando?: string };
+let previo: Entrada[] = [];
+try {
+  if (existsSync(`${carpeta}/informe.json`)) previo = JSON.parse(readFileSync(`${carpeta}/informe.json`, 'utf8')) as Entrada[];
+} catch {
+  previo = [];
+}
+const corridas = new Set(informe.map((i) => `${i.ventana}|${i.estado}`));
+const todo: Entrada[] = [...previo.filter((i) => !corridas.has(`${i.ventana}|${i.estado}`)), ...informe.map((i) => ({ ...i, cuando }))];
+const ordenVentanas = [...VENTANAS, ...VENTANAS_BAJAS].map((v) => v.nombre as string);
+const ordenEstados = ESTADOS as readonly string[];
+todo.sort((a, b) => ordenVentanas.indexOf(a.ventana) - ordenVentanas.indexOf(b.ventana) || ordenEstados.indexOf(a.estado) - ordenEstados.indexOf(b.estado));
+writeFileSync(`${carpeta}/informe.json`, JSON.stringify(todo, null, 2));
+const resumen = ordenVentanas.map((v) => {
+  const de = todo.filter((i) => i.ventana === v);
+  return { ventana: v, capturas: de.length, conFallos: de.filter((i) => i.fallos.length).length, fallos: de.reduce((n, i) => n + i.fallos.length, 0), medido: de.map((i) => i.cuando ?? '').sort().pop() ?? null };
+});
+writeFileSync(`${carpeta}/informe-resumen.json`, JSON.stringify(resumen, null, 2));
+console.log(`informe de todas las ventanas: ${resumen.map((r) => `${r.ventana} ${r.capturas} capturas y ${r.fallos} fallos`).join(' · ')}`);
 for (const i of malos) {
   console.log(`✗ ${i.ventana} · ${i.estado}`);
   const vistos = new Set<string>();

@@ -5065,11 +5065,29 @@ body.mueve-pano [data-cuenta] .cuenta.previa {
   }
   /* si la columna es más alta que el paño: primero las piezas van con su icono y su cifra (sin el nombre), después se
      va la pista del mando y por último el aire */
-  .mesa .cuenta .c-bajo.chico .c-desglose .d-pieza .d-n {
+  /* (0.28) los nombres NO se borran: se acortan («Primera s…», «Taba c…»). Lo que resta conserva su nombre entero */
+  .mesa .cuenta .c-bajo .c-desglose .d-n {
+    display: inline-block;
+    max-width: 11em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+  }
+  .mesa .cuenta .c-bajo.chico .c-desglose .d-t:not(.d-neg) .d-n {
+    max-width: 7.2em;
+  }
+  .mesa .cuenta .c-bajo.chico .c-corta .cc-que {
     display: none;
   }
-  .mesa .cuenta .c-bajo.chico-2 .c-desglose .d-t:not(.d-nombre) .d-n {
-    display: none;
+  .mesa .cuenta .c-bajo.chico-2 .c-desglose .d-t:not(.d-neg) .d-n {
+    max-width: 5.6em;
+  }
+  .mesa .cuenta .c-bajo.chico-4 .c-desglose {
+    font-size: 14px;
+  }
+  .mesa .cuenta .c-bajo.chico-4 .c-desglose .d-t:not(.d-neg) .d-n {
+    max-width: 4.6em;
   }
   .mesa .cuenta .c-bajo.chico-3 .c-pista-pano {
     display: none;
@@ -5447,4 +5465,411 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
   color: var(--oro);
   background: #09070f;
   box-shadow: 0 0 0 2px var(--oro);
+}
+
+/* ───────────── 0.28 · el escritorio cierra con la regla del teléfono ─────────────
+   Nada vivo se monta, nada tapa la cuenta, la mano se ve entera. El reparto vertical es FIJO, con y sin naipes
+   apoyados: la escena del enemigo (un busto sobre su barra), la cuenta en un renglón, la franja de lo jugado (el
+   desglose a la izquierda, el paño con sus naipes enteros a la derecha), la mano entera y el HUD. La mano no se mueve
+   al elegir ni al golpear; lo que cede alto es la escena, nunca la mano ni la cuenta. */
+@media (min-width: 701px) {
+  .mesa .mano {
+    /* la franja de lo jugado: el naipe del paño entero, su ribete y el aire hasta la mano */
+    --franja: calc(140px * var(--k-pano-fijo, 1) + 18px);
+    height: calc(140px * var(--k-naipe) + var(--franja));
+    margin-bottom: 0;
+  }
+  /* la cuenta: un renglón de alto fijo (en reposo dice qué hacer, con la jugada dice la fórmula): la escena no salta */
+  .mesa .cuenta-zona {
+    flex: none;
+    min-height: calc(26px * var(--kd, 2) + 8px);
+    justify-content: center;
+  }
+  /* el desglose cuelga de la cuenta y cae en la franja, a la izquierda del paño (lo ubica `acomodarCuenta`) */
+  .mesa .cuenta .c-bajo {
+    margin-top: 0;
+    gap: 4px;
+  }
+  .mesa .cuenta .c-bajo .c-desglose {
+    /* fondo macizo: la vela y las tablas de la escena no se meten entre las cifras */
+    background: #0b0711;
+    box-shadow: 0 0 0 1px #3a2f4f;
+    font-size: var(--fs-desglose, var(--fs-s));
+  }
+  /* en la columna, cada renglón corre de corrido: su rótulo (DAÑO, MULTI) y, a continuación, sus términos, que parten
+     donde haga falta usando todo el ancho (sin la columna fija del rótulo ni los puntos de separación) */
+  .mesa .cuenta .c-bajo .c-desglose {
+    gap: 3px;
+    line-height: 1.15;
+  }
+  .mesa .cuenta .c-bajo .c-desglose > .d-fila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 0.55em;
+    row-gap: 1px;
+  }
+  .mesa .cuenta .c-bajo .c-desglose > .d-fila > .d-rot {
+    min-width: 0;
+    text-align: left;
+  }
+  .mesa .cuenta .c-bajo .c-desglose > .d-fila > .d-terminos {
+    display: contents;
+  }
+  .mesa .cuenta .c-bajo .c-desglose .d-sep {
+    display: none;
+  }
+  .mesa .cuenta .c-bajo .c-desglose .d-t {
+    gap: 0.2em;
+    white-space: nowrap;
+  }
+  .mesa .cuenta .c-bajo .c-desglose .d-i {
+    margin: -6px -1px;
+  }
+  /* CORTÁS es el primer renglón del desglose, adentro de su caja (no una caja aparte encima de su borde) */
+  .mesa .cuenta .c-bajo .c-desglose > .c-corta {
+    align-self: stretch;
+    flex-wrap: wrap;
+    row-gap: 0;
+    margin: 0 0 2px;
+    padding: 0 4px;
+    white-space: normal;
+  }
+  /* la regla del paño en reposo: a la izquierda del fieltro, en renglones */
+  .mesa .pano-regla.costado {
+    align-items: flex-start;
+    text-align: left;
+    gap: 6px;
+    opacity: 0.85;
+  }
+  /* el paño vacío: sus Postas cosidas, apagadas, sin el fieltro verde (en reposo no hay bloque de color) */
+  .mesa .pano-postas.reservado::before {
+    opacity: 0;
+  }
+  .mesa .pano-postas.reservado {
+    opacity: 0.6;
+  }
+  /* la silueta del naipe que subió: su canto, con el índice a la vista */
+  .mesa .mano .hueco {
+    pointer-events: auto;
+  }
+}
+/* la Deck y el portátil: el paño a 1× (naipes enteros de 100×140) */
+@media (min-width: 701px) and (max-width: 1699px) {
+  .mesa .mano {
+    --k-pano-fijo: 1;
+  }
+}
+/* 1080p: lo jugado a 1× (a 2× la franja se comía la escena: el enemigo quedaba en un busto de 150 px y en reposo el
+   centro de la mesa era un hueco de 300), CENTRADO sobre la mano, con el desglose a su izquierda; la mano, entera
+   sobre el HUD (ya no mete el pie detrás) */
+@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+  .mesa .mano {
+    --k-pano-fijo: 1;
+    --asoma: 0px;
+    margin-bottom: 0;
+  }
+  .mesa .cuenta-zona {
+    min-height: 84px;
+  }
+}
+/* la Deck y el portátil (800 y 768 px de alto): el HUD cede alto antes que la escena. El retrato sigue a 2×, recortado
+   a la franja de la cara (36 de sus 64 celdas de alto) */
+@media (min-width: 1100px) and (max-width: 1699px) {
+  .hud .hud-retrato {
+    height: calc(36px * var(--k-retrato) + 16px * var(--kf));
+  }
+  .hud .hud-cara {
+    top: calc(-13px * var(--k-retrato));
+  }
+  .mesa .mano {
+    --franja: calc(140px * var(--k-pano-fijo, 1) + 14px);
+  }
+  .mesa .cuenta-zona {
+    min-height: 56px;
+  }
+}
+@media (min-width: 1100px) and (max-width: 1699px) {
+  /* (y sus pozos, con el marco hundido a 1×: el alto que ganan es de la escena) */
+  .hud .hud-pozo {
+    --kf: 1;
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+  .hud .hud-pozo > .rotulo {
+    line-height: 1;
+  }
+}
+@media (min-width: 1100px) and (max-width: 1699px) {
+  .hud .hud-tiras .ficha:not(.carga) {
+    width: 38px;
+    height: 38px;
+  }
+  .hud .hud-tiras .ficha.carga {
+    height: 38px;
+  }
+  .hud button.hud-tiras {
+    row-gap: 2px;
+  }
+}
+/* la nota de la Furia: dos renglones bajo su chip; con el rótulo del Rey al lado de la barra, un renglón a la derecha
+   del chip (la causa «21 − 3 ESCUDO» y la nota ya no quedan bajo el borde de nadie) */
+.e-furia-nota .fn-2 {
+  display: block;
+}
+.e-furia-nota .fn-sep {
+  display: none;
+  font-style: normal;
+}
+@media (min-width: 1100px) and (max-width: 1699px) {
+  .mesa .enemigo:has(.e-barras > .e-rasgo) .e-furia {
+    position: relative;
+  }
+  .mesa .enemigo:has(.e-barras > .e-rasgo) .e-furia-nota {
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    translate: 8px -50%;
+    text-align: left;
+    text-shadow: 2px 2px 0 #09070f;
+  }
+  .mesa .enemigo:has(.e-barras > .e-rasgo) .e-furia-nota .fn-2,
+  .mesa .enemigo:has(.e-barras > .e-rasgo) .e-furia-nota .fn-sep {
+    display: inline;
+  }
+  /* La Corte: el busto de lo que viene (su índice y su cabeza), al pie de la escena y bajo la cabecera */
+  .mesa .corte {
+    align-self: end;
+  }
+  .mesa .corte .corte-carta {
+    height: 104px;
+    overflow: hidden;
+  }
+  .mesa .corte .corte-carta + .corte-carta {
+    margin-top: -86px;
+  }
+}
+@media (min-width: 701px) {
+  /* el dial en la columna: el verbo y lo que paga, de corrido (dos renglones como mucho): le deja el alto al desglose */
+  .mesa .cuenta .c-bajo .c-dial-fila {
+    width: 100%;
+  }
+  .mesa .cuenta .c-bajo .c-dial-fila .c-dial {
+    width: 100%;
+    min-height: 46px;
+    padding: 0 8px;
+  }
+  .mesa .cuenta .c-bajo .c-dial .dial-txt {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 10px;
+    row-gap: 0;
+  }
+}
+@media (min-width: 701px) {
+  .mesa .cuenta .c-bajo .c-dial .dial-premio {
+    display: contents;
+  }
+  .mesa .cuenta .c-bajo .c-dial .dial-premio > span,
+  .mesa .cuenta .c-bajo .c-dial .dial-premio > .dial-sep {
+    font-family: var(--cuerpo);
+    font-size: 18px;
+    line-height: 20px;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--oro);
+  }
+  .mesa .cuenta .c-bajo .c-dial .dial-premio > .dial-pierde,
+  .mesa .cuenta .c-bajo .c-dial.dial-maximo .dial-premio > span:not(:first-child) {
+    color: #ff8fa8;
+  }
+  .mesa .cuenta .c-bajo .c-dial .dial-txt {
+    column-gap: 0;
+  }
+  .mesa .cuenta .c-bajo .c-dial .dial-verbo {
+    margin-right: 10px;
+  }
+}
+@media (min-width: 701px) {
+  .mesa .cuenta .c-bajo .c-dial .dial-verbo,
+  .mesa .cuenta .c-bajo .c-dial .dial-premio > span,
+  .mesa .cuenta .c-bajo .c-dial .dial-premio > .dial-sep {
+    line-height: 18px;
+  }
+}
+@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+  /* la cabecera flota sobre la escena (como en la Deck): el alto que deja es del enemigo, que sigue entero */
+  .mesa .mesa-top {
+    position: absolute;
+    left: calc(var(--u) * 2);
+    right: calc(var(--u) * 2);
+    top: var(--u);
+    width: auto;
+    z-index: 4;
+    pointer-events: none;
+  }
+  .mesa .mesa-top > * {
+    pointer-events: auto;
+  }
+  /* (lo que dice el Bufón no trepa a la cabecera) */
+  .mesa .esc-bufon .bocadillo {
+    bottom: min(calc(96px * var(--k-bufon)), calc(100cqh - 5.2em - 18px - 64px));
+  }
+}
+@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+  /* el chip de la Furia no pisa la causa del TE PEGA («21 − 3 ESCUDO») */
+  .mesa .e-ataque .e-furia {
+    margin-top: 10px;
+  }
+}
+/* la escena baja del portátil (768 px de alto: ~140 px de escena): el sello INMUNE va en un renglón (no trepa al turno
+   de la cabecera) y, contra un Rey, la placa del TE PEGA suelta su causa y su Furia a la derecha de la cifra (no bajan
+   hasta el rótulo del Rey) */
+@media (min-width: 701px) {
+  @container escena (max-height: 162px) {
+    .mesa .e-sello {
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
+    }
+    .mesa .e-sello .rotulo {
+      text-align: left;
+    }
+    .mesa .enemigo:has(.e-barras > .e-rasgo) .e-ataque {
+      position: relative;
+    }
+    .mesa .enemigo:has(.e-barras > .e-rasgo) .e-ataque .e-golpe {
+      position: static;
+    }
+    .mesa .enemigo:has(.e-barras > .e-rasgo) .e-ataque .e-neto,
+    .mesa .enemigo:has(.e-barras > .e-rasgo) .e-ataque .e-neto[hidden] {
+      /* (la causa, a la izquierda de la cifra, en dos renglones: a la derecha está JUGADAS) */
+      position: absolute;
+      left: auto;
+      right: calc(50% + 30px);
+      top: 30px;
+      min-height: 0;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0;
+      translate: none;
+    }
+    .mesa .enemigo:has(.e-barras > .e-rasgo) .e-ataque .e-furia {
+      position: absolute;
+      left: calc(50% + 34px);
+      top: 56px;
+    }
+  }
+}
+@media (min-width: 701px) {
+  @container escena (max-height: 162px) {
+    /* (y el busto de La Corte, más bajo: no llega a JUGADAS) */
+    .mesa .corte .corte-carta {
+      height: 86px;
+    }
+  }
+}
+
+/* ───────────── 0.28 · el sello SE PLANTA se ve ─────────────
+   grande, en dos renglones, en su lugar fijo al costado de la barra del Rey (en el teléfono, bajo ella): cae como un
+   sello y queda quieto lo que dura */
+.sello-planta {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  padding: 6px 14px;
+  transform: none;
+  background: #09070f;
+  box-shadow:
+    0 0 0 3px var(--cian),
+    0 0 0 6px #09070f;
+  animation: sello-planta-cae 0.18s steps(3);
+}
+.sello-planta .rotulo {
+  font-size: calc(var(--fr) * 1.15);
+  line-height: 1.15;
+}
+.sello-planta .sp-pierde {
+  font-family: var(--rot);
+  font-size: var(--fr);
+  line-height: 1.15;
+  color: #ff8fa8;
+}
+@keyframes sello-planta-cae {
+  from {
+    scale: 1.5;
+    opacity: 0;
+  }
+}
+@media (max-width: 700px) {
+  .sello-planta {
+    align-items: center;
+    padding: 4px 10px;
+  }
+  .sello-planta .rotulo {
+    font-size: 18px;
+  }
+  .sello-planta .sp-pierde {
+    font-size: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sello-planta {
+    animation: none;
+  }
+}
+
+/* el cartel de la SEGUNDA CARA fuera del teléfono: sobre el paño vacío, del ancho de la franja */
+@media (min-width: 701px) {
+  .cartel-segunda {
+    padding: calc(var(--u) * 0.5) calc(var(--u) * 2);
+  }
+  .cartel-segunda .titulo {
+    font-size: calc(var(--fs-xl) * 1.1);
+  }
+}
+
+/* el canto grande fuera del teléfono: sobre el paño vacío, a la medida de la franja */
+@media (min-width: 701px) {
+  .canto-grande.en-pano {
+    font-size: calc(var(--fs-xl) * 1.35);
+  }
+  .canto-grande.en-pano.menor {
+    font-size: calc(var(--fs-xl) * 1.1);
+  }
+}
+@media (min-width: 701px) {
+  /* (su entrada, a la medida de la franja: cae desde 1,34× —no desde 2,6×—, sin salirse del fieltro) */
+  .canto-grande.en-pano {
+    animation-name: canto-pano;
+  }
+}
+@keyframes canto-pano {
+  0% {
+    opacity: 0;
+    scale: 1.34;
+  }
+  14% {
+    opacity: 1;
+    scale: 0.94;
+  }
+  22% {
+    scale: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: -50% calc(-50% - 8px * var(--k));
+  }
+}
+/* la Deck y el portátil: lo que dice el Bufón cuelga bajo la cabecera y crece hacia ABAJO (tres renglones ya no
+   trepan sobre «EL REÑIDERO · GUARDIA») */
+@media (min-width: 1100px) and (max-width: 1699px) {
+  .mesa .esc-bufon .bocadillo {
+    top: -22px;
+    bottom: auto;
+  }
 }

@@ -1623,3 +1623,42 @@ html[data-entrada='teclado'] .glifo.g-tecla {
     animation: none;
   }
 }
+
+/* ───────────── 0.28 · las placas «−N» del HUD no pisan ninguna cifra ─────────────
+   escritorio: adentro de su caja, sobre el rótulo (ni a caballo del marco ni sobre la cifra). Teléfono: sobre el
+   retrato, cada una en su renglón (las ubica `deltaHud`, que mide a la vecina) */
+.hud-delta {
+  top: 3px;
+}
+.hud-delta.hd-tel {
+  position: fixed;
+  z-index: 80;
+  padding: 0 4px;
+  gap: 2px;
+}
+.hud-delta.hd-tel .hd-i {
+  margin: -2px 0;
+}
+/* (nace con un estirón corto que crece hacia arriba, desde su pie: ni en su primer cuadro llega a la cifra de la caja vecina) */
+.hud-delta:not(.hd-tel) {
+  transform-origin: 50% 100%;
+  animation-name: hud-delta-28;
+}
+@keyframes hud-delta-28 {
+  0% {
+    transform: translateX(-50%) scale(1.3);
+    filter: brightness(2);
+  }
+  12% {
+    transform: translateX(-50%) scale(1);
+    filter: none;
+  }
+  80% {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) translateY(-4px) scale(1);
+    opacity: 0;
+  }
+}

@@ -306,24 +306,46 @@ export function poseRetrato(pose: 'festeja' | 'tiembla' | 'guina', ms = 900): vo
 }
 
 /**
- * (0.27) Lo que le pasa a una cifra tuya se dice ADENTRO de su caja del HUD y ANTES de que la cifra cambie: «−18» sobre
- * tu VIDA, «−5 ESCUDO» sobre tu ESCUDO, «−3 ORO» sobre tu oro (con el ícono de quien lo cobra, si es una maldición).
- * Nace montado en el canto de arriba de su caja (sobre el rótulo; nunca sobre la cifra, la mano ni los botones), salta
- * y se va solo en un segundo: no sigue ahí cuando empieza el turno siguiente.
+ * (0.27) Lo que le pasa a una cifra tuya se dice junto a ella y ANTES de que la cifra cambie: «−18» sobre tu VIDA,
+ * «−5 ESCUDO» sobre tu ESCUDO, «−3 ORO» sobre tu oro (con el ícono de quien lo cobra, si es una maldición).
+ * (0.28) Nunca sobre la cifra que cambia ni una placa sobre otra. En el escritorio nace ADENTRO de su caja, sobre el
+ * rótulo (no a caballo del marco del HUD). En el teléfono las cajas son puro número: las placas nacen sobre el RETRATO
+ * (que no es dato), cada una en su renglón, y miden a la vecina antes de posarse («−4» de Escudo con su ícono arriba,
+ * «−19» de Vida abajo). `ms`: lo que dura (se va antes de que se reparta el turno siguiente).
  */
-export function deltaHud(de: 'vida' | 'escudo' | 'oro', n: number, o: { icono?: string } = {}): void {
+export function deltaHud(de: 'vida' | 'escudo' | 'oro', n: number, o: { icono?: string; ms?: number } = {}): void {
   const caja = $<HTMLElement>(`[data-hud-${de}]`);
   if (!caja || !n || enFoto()) return;
+  const tel = innerWidth <= 700;
   const el = document.createElement('b');
-  el.className = `hud-delta hd-${de}${n > 0 ? ' hd-sube' : ''}`;
+  el.className = `hud-delta hd-${de}${n > 0 ? ' hd-sube' : ''}${tel ? ' hd-tel' : ''}`;
   el.setAttribute('role', 'status');
   const txt = n < 0 ? `-${-n}` : `+${n}`;
   el.setAttribute('aria-label', `${txt} ${t(de)}`);
-  el.innerHTML = `${o.icono ?? ''}${cifra(txt, de === 'vida' ? 'roja' : de === 'escudo' ? 'azul' : 'oro', de === 'vida' && innerWidth > 700 ? 'grande' : '')}${de === 'vida' ? '' : `<span class="hd-que">${t(de)}</span>`}`;
-  // (uno por caja: el que llega reemplaza al anterior)
-  caja.querySelector('.hud-delta')?.remove();
-  caja.append(el);
-  window.setTimeout(() => el.remove(), ajustes.calma ? 1500 : 1050);
+  const tono = de === 'vida' ? 'roja' : de === 'escudo' ? 'azul' : 'oro';
+  // (en el teléfono, sin la palabra: el ícono de la cifra que cambia —o el de quien lo cobra— y el número)
+  const que = de === 'vida' ? '' : tel ? (o.icono ? '' : pxHud(de, 'hd-i')) : `<span class="hd-que">${t(de)}</span>`;
+  el.innerHTML = `${o.icono ?? ''}${tel ? que : ''}${cifra(txt, tono)}${tel ? '' : que}`;
+  const ms = o.ms ?? (ajustes.calma ? 1500 : 1050);
+  el.style.animationDuration = `${ms}ms`;
+  // (uno por cifra: el que llega reemplaza al anterior)
+  document.querySelectorAll(`.hud-delta.hd-${de}`).forEach((x) => x.remove());
+  const retrato = tel ? $<HTMLElement>('.hud .hud-retrato')?.getBoundingClientRect() : undefined;
+  if (!retrato) caja.append(el);
+  else {
+    ($('#capa') ?? document.body).append(el);
+    const h = el.offsetHeight;
+    const w = el.offsetWidth;
+    // los renglones del retrato: arriba, abajo y al medio; se toma el primero que no pisa a otra placa
+    const renglones = de === 'vida' ? [retrato.bottom - h - 4, retrato.top + 4, retrato.top + (retrato.height - h) / 2] : [retrato.top + 4, retrato.bottom - h - 4, retrato.top + (retrato.height - h) / 2];
+    const otras = [...document.querySelectorAll('.hud-delta')].filter((x) => x !== el).map((x) => x.getBoundingClientRect());
+    const y = renglones.find((yy) => !otras.some((r) => r.bottom > yy - 3 && r.top < yy + h + 3)) ?? renglones[0];
+    // (centrada en el retrato; si es más ancha, crece hacia la izquierda: nunca hacia la cifra de la Vida)
+    const x = Math.max(4 + w / 2, Math.min(retrato.left + retrato.width / 2, retrato.right - w / 2 - 2));
+    el.style.left = `${Math.round(x)}px`;
+    el.style.top = `${Math.round(y)}px`;
+  }
+  window.setTimeout(() => el.remove(), ms);
 }
 
 /** La ficha de una pieza en la bandeja pega un brinco (dispara en el conteo). Devuelve su centro, o null si no está a la vista. */

@@ -797,12 +797,15 @@ function mesa(W: number, H: number, palo: Palo | null, kit: Kit, apagada = false
   // la vela (en apaisado, a la izquierda: de ahí viene la luz; en móvil el candil cuelga fuera de cuadro)
   // (en la derrota también en el teléfono: la vela recién apagada, a la derecha del retrato partido)
   const conVela = !vert || apagada;
-  const vx = Math.round(W * (vert ? 0.88 : 0.1));
-  const vy = Math.round(H * (vert ? 0.27 : 0.4));
+  // (0.28) en la mesa de escritorio la vela va a la derecha, sobre la columna de los botones: a la izquierda quedaba
+  // debajo del desglose de la cuenta y le ensuciaba la primera cifra
+  const aLaDerecha = !vert && !apagada;
+  const vx = Math.round(W * (vert ? 0.88 : aLaDerecha ? 0.955 : 0.1));
+  const vy = Math.round(H * (vert ? 0.27 : aLaDerecha ? (H >= 950 ? 0.475 : 0.36) : 0.4));
   const altoVela = 17;
   if (conVela) {
     // el platito de peltre con su sombra, y el cabo de vela: sebo que se enciende hacia la llama
-    P.sombra(vx + 16, vy + 5, 24, 7, 0.6);
+    P.sombra(vx + (aLaDerecha ? -16 : 16), vy + 5, 24, 7, 0.6);
     P.elipse(vx, vy, 14, 4.6, PELTRE, (dx, dy) => (dy < -0.35 ? 1.5 : dx < -0.4 ? 1.25 : dx > 0.5 || dy > 0.5 ? 0.5 : 0.85));
     P.elipse(vx, vy - 1, 9, 2.6, PELTRE, (dx) => (dx < 0 ? 0.6 : 0.95));
     for (let r = 0; r < altoVela; r++) {
