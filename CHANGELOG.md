@@ -3,6 +3,37 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.25.0 · Lo que se paga (2026-11-22)
+
+Las Evoluciones dejan de ser retoques de número: cada una cambia una regla y cobra su precio.
+
+**Reglas**
+- **Cada Evolución trae su maldición**, escrita en su ficha:
+  - el **Facón Maldito** hace que todo golpe Perfore (la sobra pasa ×3), pero el golpe que no abate te corta 3 de Vida;
+  - el **Garrote del Cacique** suma tu Escudo al Daño, pero tus Copas ya no curan: te dan Escudo;
+  - el **Sol de la Timba** paga doble tus Oros, pero cada descarte te cuesta 3 de oro;
+  - el **Brindis de Sangre** cura doble con tus Copas y suma +3 de Multi a cada golpe, pero cada golpe te bebe 2 de Vida.
+  - Las maldiciones de Vida nunca te matan: te dejan en 1.
+- **Sin Perfora, la mesa apoya sola el Golpe exacto** cuando las mismas cartas lo permiten; con Perfora, el dial elige.
+- **Mesa limpia**: en el primer tramo la Escoba arranca cada combate con 10 de Escudo (las caídas del tramo 1 bajan de
+  17,9 % a 8,7 %).
+- El Truco trae más Envido (+40), bravas que pegan más y 56 de Vida.
+
+**La mesa y las pantallas**
+- La MALDICIÓN se lee como costo (bloque carmesí con su rótulo) en la oferta, el jackpot, la bandeja y «Lo que llevás»;
+  la cuenta avisa «−N de Vida» antes de golpear y el cobro nace en su caja del HUD.
+- El dial con Perfora dice qué gana y qué pierde cada lado; va en R3 y la Y es siempre DESCARTAR.
+- En el teléfono la mano en reposo va entera sobre la barra del pulgar y TE PEGA tiene su columna.
+- Las ayudas no tapan al enemigo, TE PEGA ni la cuenta.
+- **Forja Brava**: la apuesta («50 % SE QUEMA») arriba y grande, «×2» en el momento cumbre, el naipe que baja a la fogata
+  que crece y un Doble Filo con dibujo nuevo.
+- Un respiro de ~600 ms tras el golpe grande antes de que pegue el Rey; la letra de lo nuevo a 18 px; el final con
+  «hay más» en el teléfono y «TU ARMADO».
+
+**Medición** · Laboratorio (3000 partidas por celda, sin avisos) · Altar vacío / lleno: Escoba 30,7 / 45,9 · Truco
+28,2 / 48,1 · Chinchón 29,1 / 47,6 · Mentiroso 29,1 / 47,3 · Chancho 29,7 / 49,0 %. Jurado: Claridad 8,2 · Diversión 8,2 ·
+Estética 8,3 · Veredicto 8,2. Panel **simulado** (n = 60, ruido ±10): 70,0 %, dentro del ruido; Deck 78 % (n = 9),
+Móvil 80 % (n = 15); Claridad del panel 6,0.
 ## 0.24.0 · Que se entienda a la primera (2026-11-22)
 
 Ronda de claridad guiada por los P0 y P1 del jurado de la 0.23.

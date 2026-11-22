@@ -487,7 +487,26 @@ piezas con icono de Vida máxima, grito junto al retrato; Vida máxima por Rey p
 
 **Medición.** Jurado 7,6 · 7,5 · 8,0 · 7,6. Panel 70,0 % (IC95 57–80 %); Deck 33 % (n = 9), Móvil 93 % (n = 15).
 
-## 0.24.0 · Que se entienda a la primera (publicada)
+## 0.25.0 · Lo que se paga (publicada)
+
+**Qué se buscó.** El P1 que el jurado de diseño repetía por quinta vez (Evoluciones que eran números) con una maldición
+por Evolución; que DEJALO JUSTO sea una decisión; una red de primer tramo para la Escoba; y los P0/P1 de la 0.24 (mesa
+del teléfono, ayudas que tapaban al enemigo, Forja Brava).
+
+**Lecciones.**
+- Tercera subida seguida (+0,1 en cada columna) y Diseño +0,3 en Diversión: las maldiciones convencen cuando cambian
+  cómo se juega (Facón, Garrote); el Sol y el Brindis siguen leyéndose como números, y meter el premio dentro del bloque
+  MALDICIÓN confunde.
+- Las maldiciones le costaron 3–6 puntos a cada Mazo y al Truco más que a nadie, con la brecha vacío/lleno al borde
+  (≤ 21). Vida y bravas abren la brecha; el Envido es la palanca que mejor la cierra (cambiar Vida por Envido).
+- Mesa limpia en el Truco no sirvió (sus caídas del tramo 1 ya eran bajas y la brecha creció): quedó sólo en la Escoba.
+- Dejar de reservar el paño en el teléfono para mostrar la mano entera en reposo hizo que el primer toque mueva toda la
+  mano (P0 de ux-móvil): el alto lo tiene que ceder el paño, no la mano.
+- La sobra se muestra con dos cifras (24 y 72) porque el ×3 del Facón no aparece: toda cifra que cambia de escala dice
+  por qué.
+
+**Medición.** Jurado 8,2 · 8,2 · 8,3 · 8,2. Panel simulado 70,0 % (n = 60, dentro del ruido); Deck 78 % (n = 9), Móvil 80 %
+(n = 15); Claridad del panel 6,0.## 0.24.0 · Que se entienda a la primera (publicada)
 
 **Qué se buscó.** Los P0 y P1 de la 0.23: ayudas que se abrían solas, el chip EXACTO que se leía como estado, la
 Evolución sin causa, el resumen tapado en el teléfono y la Forja Brava sin suspenso; en reglas, que Perfora respete la
