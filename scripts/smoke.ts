@@ -44,6 +44,13 @@ const consejo = (p: Page): Promise<{ t: string; ids: string[]; engano?: boolean 
     const g = (window as unknown as { __cabala: { sesion: { partida: unknown }; decidir: (p: unknown) => { t: string; ids: string[]; engano?: boolean } | null } }).__cabala;
     return g.decidir(g.sesion.partida);
   });
+/** (0.28) La música, vista desde afuera: qué escena se pidió y cuál suena, el reloj, cuántas veces arrancó y lo que le contó el combate. */
+type Musica = { deseada: string | null; suena: string | null; pasos: number; reloj: number; arranques: number; combate: { tramo: number }; nivel: number; stingers: string[] };
+const musicaDe = (p: Page): Promise<Musica & { acto: number | null }> =>
+  p.evaluate(() => {
+    const g = (window as unknown as { __cabala: { musica: () => Musica; sesion: { partida: null | { acto: number } } } }).__cabala;
+    return { ...g.musica(), acto: g.sesion.partida?.acto ?? null };
+  });
 const libre = (p: Page) => p.waitForFunction(() => !document.querySelector('.mano.bloqueada') && !document.querySelector('.cortina'), undefined, { timeout: 10000 });
 const centro = async (p: Page, sel: string) => {
   const caja = await p.locator(sel).first().boundingBox();
@@ -200,10 +207,24 @@ await conServidor(5192, async (url) => {
     // ───────────── el resto de la partida, con clics ─────────────
     let pasos = 0;
     let arrastres = 0;
+    // (0.28) la música es UNA: mientras la partida pasa de pantalla en pantalla, el reloj nunca vuelve a arrancar ni
+    // retrocede, y el combate le cuenta el tramo de verdad
+    const escenas = new Set<string>();
+    let relojAntes = 0;
+    let combatesOidos = 0;
     for (; pasos < 900; pasos++) {
       await libre(p).catch(() => undefined);
       const x = await estado(p);
       exigir(x, 'la partida desapareció');
+      const mu = await musicaDe(p);
+      if (mu.deseada) escenas.add(mu.deseada);
+      exigir(mu.arranques <= 1, `la música se cortó y volvió a arrancar (${mu.arranques} arranques) al pasar a «${mu.deseada}»`);
+      exigir(mu.reloj >= relojAntes, `el reloj de la música retrocedió (${relojAntes} → ${mu.reloj}) al pasar a «${mu.deseada}»`);
+      relojAntes = mu.reloj;
+      if (x.fase === 'combate' && (mu.deseada === 'mesa' || mu.deseada === 'rey')) {
+        exigir(mu.combate.tramo === mu.acto, `la música cree que el combate es del tramo ${mu.combate.tramo} y es del ${mu.acto}`);
+        combatesOidos++;
+      }
       if (x.fase === 'fin') break;
       if (await p.locator('.velo .reemplazo .opcion').count()) await p.locator('.velo .reemplazo .opcion').first().click();
       else if (await p.locator('.velo .oferta .opcion').count()) await p.locator('.velo .oferta .opcion').first().click();
@@ -269,9 +290,15 @@ await conServidor(5192, async (url) => {
       return { hablaron: g.hablaron, cantos: g.sesion.partida.stats.cantos };
     });
     exigir(dicho.cantos === 0 || dicho.hablaron.includes(mazo), `hubo ${dicho.cantos} cantos y el Personaje no gritó ninguno (hablaron: ${dicho.hablaron.join(' ')})`);
+    const mFin = await musicaDe(p);
+    exigir(mFin.arranques === 1 && mFin.reloj > 16, `con los efectos apagados y la música prendida, la música no sonó (arranques ${mFin.arranques}, reloj ${mFin.reloj})`);
+    exigir(escenas.has('mapa') && escenas.has('mesa') && combatesOidos > 0, `la partida no pasó por el Mapa y la mesa con música (${[...escenas].join(' ')})`);
+    exigir(dicho.cantos === 0 || mFin.stingers.includes(mazo), `hubo ${dicho.cantos} cantos y ningún stinger del Mazo (stingers: ${mFin.stingers.join(' ')})`);
+    exigir(dicho.hablaron.length > 0, 'nadie cantó en toda la partida');
     await p.waitForSelector('.fin .fin-porotos');
     const fin = await p.evaluate(() => ({ titulo: document.querySelector('.fin-titulo')?.textContent ?? '', porotos: document.querySelector('.fin-porotos')?.textContent ?? '' }));
     ok(`partida entera por la interfaz en ${pasos} pasos (${arrastres} golpes arrastrando): «${fin.titulo.trim()}» · ${fin.porotos.trim()}`);
+    ok(`música: un solo reloj de punta a punta (${[...escenas].join(' → ')}; 1 arranque, ${mFin.reloj} semicorcheas), el tramo real llegó en ${combatesOidos} lecturas, stingers ${[...new Set(mFin.stingers)].join(' ') || '—'}, cantaron ${dicho.hablaron.join(' ')}`);
 
     await p.click('[data-accion="portada"]');
     await p.waitForSelector('.portada');
@@ -384,15 +411,22 @@ await conServidor(5192, async (url) => {
     const suena = (pg: Page, pista: string | null): Promise<unknown> =>
       pg.waitForFunction((x) => (window as unknown as { __cabala: { musica: () => Mus } }).__cabala.musica().suena === x, pista, { timeout: 6000 });
     await suena(v, 'portada');
-    const m0 = await musica(v);
+    const m0 = await musicaDe(v);
     await v.waitForFunction((n) => (window as unknown as { __cabala: { musica: () => Mus } }).__cabala.musica().pasos > n + 8, m0.pasos, { timeout: 6000 });
     await v.click('[data-accion="volver"]');
     await v.click('[data-accion="ajustes"]');
+    // (0.28) Ajustes tiene su mezcla (la de la Colección) y entra sin cortar: mismo reloj, un solo arranque
+    await suena(v, 'coleccion');
+    const m1 = await musicaDe(v);
+    exigir(m1.arranques === 1 && m1.reloj > m0.reloj, `al pasar de la portada a Ajustes la música se cortó (arranques ${m1.arranques}, reloj ${m0.reloj} → ${m1.reloj})`);
     await v.click('[data-accion="musica-no"]');
     await suena(v, null);
     await v.click('[data-accion="musica-si"]');
-    await suena(v, 'portada');
-    ok('música: la milonga de la portada suena desde el primer gesto; Ajustes → Música la apaga y la prende');
+    await suena(v, 'coleccion');
+    // el Bufón de la portada cantó lo que dijo (una voz registrada) y el stinger se puede pedir
+    const cantaron = await v.evaluate(() => (window as unknown as { __cabala: { hablaron: string[] } }).__cabala.hablaron);
+    exigir(cantaron.includes('bufon'), `el Bufón habló sin cantar (hablaron: ${cantaron.join(' ')})`);
+    ok('música: la milonga suena desde el primer gesto, pasa de la portada a Ajustes sin cortarse (mismo reloj) y Ajustes → Música la apaga y la prende');
     await vivo.close();
 
     // las voces: el Rey que ofrece su Bendición habla letra por letra con su voz, y la pantalla cambia de pista
