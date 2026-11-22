@@ -148,7 +148,7 @@
   },
   "mazos": {
     "escoba": {
-      "vida": 70,
+      "vida": 72,
       "mano": 3,
       "hasta": 9,
       "comodines": 2,
@@ -158,7 +158,7 @@
       "mesaLimpia": 10
     },
     "truco": {
-      "vida": 56,
+      "vida": 54,
       "mano": 3,
       "hasta": 7,
       "comodines": 2,
@@ -168,27 +168,27 @@
         "S7": 24,
         "D7": 20
       },
-      "envido": 40,
+      "envido": 45,
       "cargaDano": 1,
-      "multiMano": 4
+      "multiMano": 5
     },
     "chinchon": {
-      "vida": 27,
+      "vida": 32,
       "mano": 7,
-      "hasta": 9,
+      "hasta": 8,
       "comodines": 2,
       "cargaDano": 2,
-      "mitiga": 0.3,
-      "multiMano": 3
+      "mitiga": 0,
+      "multiMano": 1
     },
     "mentiroso": {
-      "vida": 18,
+      "vida": 25,
       "mano": 8,
       "hasta": 6,
       "comodines": 3,
       "enganos": 1,
       "furiaFallo": 3,
-      "caraDePiedra": 14,
+      "caraDePiedra": 20,
       "multiMano": 0
     },
     "chancho": {
@@ -197,8 +197,9 @@
       "hasta": 9,
       "comodines": 2,
       "multi": 2,
+      "pierna": 1,
       "aturde": 2,
-      "multiMano": 6
+      "multiMano": 4
     }
   },
   "botin": {
@@ -259,15 +260,16 @@
       "sobra": 3,
       "corta": 3
     },
-    "garrote": 1,
+    "garrote": 2,
+    "gasta": 0.5,
     "sol": {
       "oroDoble": 2,
       "tope": 3,
       "descarte": 3
     },
     "brindis": {
-      "multi": 3,
-      "bebe": 2
+      "cada": 10,
+      "bebe": 1
     }
   },
   "tesoros": {

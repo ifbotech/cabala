@@ -1,6 +1,6 @@
 {
   "fecha": "2026-11-22",
-  "huella": "5dd415e3a28f7702",
+  "huella": "539dec6566722829",
   "rapido": true,
   "partidasPorCelda": 500,
   "objetivos": {
@@ -45,128 +45,130 @@
   "mazos": [
     {
       "mazo": "escoba",
-      "vacio": 31.8,
-      "lleno": 48.4,
-      "reinado8": 22.8,
+      "vacio": 30.8,
+      "lleno": 45.2,
+      "reinado8": 23.4,
       "caidas": [
-        42,
-        168,
-        131
+        38,
+        159,
+        149
       ],
-      "caidaTramo1": 8.4,
+      "caidaTramo1": 7.6,
       "golpesGuardia": 2.8,
-      "golpesRey": 4.7,
+      "golpesRey": 4.8,
       "golpeMedio": [
-        194,
-        594,
-        2107
+        195,
+        586,
+        2143
       ],
       "exactos": 0.5,
-      "cantos": 9.1,
-      "mejorGolpe": 30015,
+      "cantos": 9.5,
+      "mejorGolpe": 32292,
       "porotos": 78,
-      "minutos": 15.4
+      "minutos": 15.5
     },
     {
       "mazo": "truco",
-      "vacio": 26.4,
-      "lleno": 50.4,
-      "reinado8": 22.2,
+      "vacio": 28.2,
+      "lleno": 48,
+      "reinado8": 20.4,
       "caidas": [
-        27,
-        60,
-        281
+        13,
+        49,
+        297
       ],
-      "caidaTramo1": 5.4,
-      "golpesGuardia": 2.4,
-      "golpesRey": 4.1,
+      "caidaTramo1": 2.6,
+      "golpesGuardia": 2.3,
+      "golpesRey": 3.8,
       "golpeMedio": [
-        336,
-        727,
-        1578
+        419,
+        830,
+        1767
       ],
       "exactos": 0.2,
-      "cantos": 23.2,
-      "mejorGolpe": 13650,
-      "porotos": 84,
-      "minutos": 14.4
+      "cantos": 21.8,
+      "mejorGolpe": 25110,
+      "porotos": 88,
+      "minutos": 14.2
     },
     {
       "mazo": "chinchon",
-      "vacio": 30,
-      "lleno": 46.8,
-      "reinado8": 23.4,
+      "vacio": 23,
+      "lleno": 43.6,
+      "reinado8": 21,
       "caidas": [
-        23,
-        66,
-        261
+        13,
+        47,
+        325
       ],
-      "caidaTramo1": 4.6,
+      "caidaTramo1": 2.6,
       "golpesGuardia": 2.4,
-      "golpesRey": 3.9,
+      "golpesRey": 4,
       "golpeMedio": [
-        233,
-        562,
-        1478
+        230,
+        539,
+        1366
       ],
       "exactos": 1.4,
-      "cantos": 7.4,
-      "mejorGolpe": 16632,
-      "porotos": 86,
-      "minutos": 14.4
+      "cantos": 7.2,
+      "mejorGolpe": 11322,
+      "porotos": 84,
+      "minutos": 14.8
     },
     {
       "mazo": "mentiroso",
-      "vacio": 30.8,
-      "lleno": 46.2,
-      "reinado8": 19.8,
+      "vacio": 30.2,
+      "lleno": 49.8,
+      "reinado8": 17.4,
       "caidas": [
-        62,
-        89,
-        195
+        49,
+        75,
+        225
       ],
-      "caidaTramo1": 12.4,
-      "golpesGuardia": 2.2,
+      "caidaTramo1": 9.8,
+      "golpesGuardia": 2.1,
       "golpesRey": 4.1,
       "golpeMedio": [
-        211,
-        600,
-        1789
+        210,
+        585,
+        2017
       ],
       "exactos": 1.8,
-      "cantos": 11.4,
-      "mejorGolpe": 29766,
-      "porotos": 83,
-      "minutos": 14.1
+      "cantos": 11.9,
+      "mejorGolpe": 23256,
+      "porotos": 86,
+      "minutos": 13.9
     },
     {
       "mazo": "chancho",
-      "vacio": 31.2,
-      "lleno": 46,
-      "reinado8": 29.3,
+      "vacio": 29.2,
+      "lleno": 45.8,
+      "reinado8": 27.5,
       "caidas": [
-        17,
-        78,
-        249
+        22,
+        121,
+        211
       ],
-      "caidaTramo1": 3.4,
-      "golpesGuardia": 2.5,
-      "golpesRey": 4,
+      "caidaTramo1": 4.4,
+      "golpesGuardia": 2.7,
+      "golpesRey": 4.6,
       "golpeMedio": [
-        238,
-        604,
-        1661
+        205,
+        502,
+        1479
       ],
-      "exactos": 0.3,
-      "cantos": 1.3,
-      "mejorGolpe": 38160,
-      "porotos": 86,
-      "minutos": 14.5
+      "exactos": 1,
+      "cantos": 6.4,
+      "mejorGolpe": 25920,
+      "porotos": 82,
+      "minutos": 15.2
     }
   ],
   "notas": [],
   "avisos": [
-    "truco: gana 26.4 % con el Altar vacío (objetivo 28–33)",
-    "truco: gana 50.4 % con el Altar lleno (objetivo 45–49)"
+    "chinchon: gana 23 % con el Altar vacío (objetivo 28–33)",
+    "chinchon: gana 43.6 % con el Altar lleno (objetivo 45–49)",
+    "mentiroso: gana 49.8 % con el Altar lleno (objetivo 45–49)",
+    "mentiroso: 13.9 min por partida ganada (objetivo 14–24)"
   ]
 }

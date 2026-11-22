@@ -35,19 +35,19 @@ export const EVOLUCION: Record<EvolucionDe, EvolucionDef> = {
     de: 'poncho',
     palo: 'C',
     nombre: L('GARROTE DEL CACIQUE', "CHIEFTAIN'S CLUB"),
-    desc: fillL(L('Con {e}+ de Escudo, +{m} Multi; tu Escudo entero se suma al Daño. MALDICIÓN: tus Copas no curan, dan Escudo.', 'At {e}+ Shield, +{m} Mult; your whole Shield adds to Damage. CURSE: your Cups give Shield, not Health.'), { e: am.poncho.escudo, m: am.poncho.multi }),
+    desc: fillL(L('Con {e}+ de Escudo, +{m} Multi; tu Escudo suma ×{g} al Daño. MALDICIÓN: golpe que no abate, gasta medio Escudo.', 'At {e}+ Shield, +{m} Mult; your Shield adds ×{g} to Damage. CURSE: a hit that kills nothing spends half your Shield.'), { e: am.poncho.escudo, m: am.poncho.multi, g: ev.garrote }),
   },
   cofre: {
     de: 'cofre',
     palo: 'D',
     nombre: L('SOL DE LA TIMBA', 'SUN OF THE GAMBLING DEN'),
-    desc: fillL(L('Tus Oros pagan doble; +1 Multi cada {k} de oro (tope +{t}). MALDICIÓN: cada descarte, −{o} de oro.', 'Your Coins pay double; +1 Mult per {k} gold (max +{t}). CURSE: each discard costs {o} gold.'), { k: am.cofre.cada, t: ev.sol.tope, o: ev.sol.descarte }),
+    desc: fillL(L('Oros dobles, +1 Multi cada {k} de oro (tope +{t}) y descartes sin fin. MALDICIÓN: cada descarte, −{o} de oro.', 'Double Coins, +1 Mult per {k} gold (max +{t}), endless discards. CURSE: each discard costs {o} gold.'), { k: am.cofre.cada, t: ev.sol.tope, o: ev.sol.descarte }),
   },
   caliz: {
     de: 'caliz',
     palo: 'H',
     nombre: L('BRINDIS DE SANGRE', 'BLOOD TOAST'),
-    desc: fillL(L('Tus Copas curan doble. MALDICIÓN: cada golpe te bebe {v} de Vida, pero suma +{m} de Multi.', 'Your Cups heal double. CURSE: every hit drinks {v} Health, but adds +{m} Mult.'), { v: ev.brindis.bebe, m: ev.brindis.multi }),
+    desc: fillL(L('+1 de Multi por cada {k} % de Vida que te falta. MALDICIÓN: cada golpe te bebe {v} de Vida.', '+1 Mult for every {k}% Health you are missing. CURSE: every hit drinks {v} Health.'), { k: ev.brindis.cada, v: ev.brindis.bebe }),
   },
 };
 

@@ -144,6 +144,15 @@ certificar (la huella del informe tiene que coincidir).
   de otra manera, la mesa las apoya así sola. Con Perfora, la elección queda en el dial (exacto o pegar con todo).
 - **Mesa limpia.** En el primer tramo la Escoba, el Mazo de entrada, arranca cada combate con Escudo: el primer
   contacto no castiga.
+
+### 1.13 Tres Evoluciones rehechas, el Chancho que canta y el Chinchón que cubre (0.26.0)
+
+- **Garrote del Cacique**: tu Escudo suma ×2 al Daño, pero el golpe que no abate gasta la mitad de tu Escudo (las Copas
+  vuelven a curar). **Sol de la Timba**: Oros dobles, Multi por oro y, con oro, los descartes no se acaban; cada
+  descarte cuesta oro. **Brindis de Sangre**: +1 de Multi por cada 10 % de Vida que te falta, y cada golpe te bebe Vida.
+  El premio va en la regla; la MALDICIÓN dice sólo el costo.
+- **Chancho Va**: la Pierna (tres iguales) también canta ¡CHANCHO! y aturde 1 turno; el Póker aturde 2.
+- **Chinchón**: el turno del ¡CHINCHÓN! el enemigo no te pega (antes, la mitad).
 ## 2 · Dirección de arte: «Dark Dithered Lithography»
 
 **La vara es la de los 5 Dorsos.** Vale para todas las pantallas y componentes.

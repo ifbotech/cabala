@@ -42,7 +42,7 @@ export type Ev =
   | { t: 'roba'; ids: string[] }
   | { t: 'descarta'; ids: string[] }
   /** Lo que cobra la maldición de una Evolución (0.25.0): Vida (Facón, Brindis) u oro (el Sol, al descartar). */
-  | { t: 'maldicion'; de: 'lanza' | 'caliz' | 'cofre'; n: number }
+  | { t: 'maldicion'; de: 'lanza' | 'poncho' | 'caliz' | 'cofre'; n: number }
   | { t: 'baraja' }
   | { t: 'sena'; id: string }
   | { t: 'dado'; n: number }
@@ -129,7 +129,8 @@ function hayCanto(p: Partida, ef: readonly Efectiva[], jugada: Jugada, engano: b
     case 'mentiroso':
       return engano;
     case 'chancho':
-      return jugada === 'poker';
+      // (0.26.0) la Pierna también canta; el Póker canta doble
+      return jugada === 'poker' || jugada === 'pierna';
   }
 }
 
@@ -282,10 +283,6 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
   // ── los poderes de palo (también los da una carta que no hace Daño por Inmune)
   let escudo = cuantas('C') * (B.palos.escudoPorBasto * tramoJugador(p) + (nivelBend(p, 'empalizada') ? nivelDe(bn.empalizada, nivelBend(p, 'empalizada')) : 0) + (tieneAmuleto(p, 'rebenque') ? amC.rebenqueEscudo * tramoJugador(p) : 0));
   let cura = cuantas('H') * (B.palos.curaPorCopa * tramoJugador(p) + (nivelBend(p, 'otraronda') ? nivelDe(bn.otraronda, nivelBend(p, 'otraronda')) : 0) + (tieneAmuleto(p, 'mate') ? amC.mateCura * tramoJugador(p) : 0));
-  // el Brindis de Sangre: tus Copas curan el doble
-  if (evoluciono(p, 'caliz')) cura *= 2;
-  // la maldición del Garrote del Cacique: tus Copas no curan, te dan Escudo
-  if (evoluciono(p, 'poncho')) (escudo += cura), (cura = 0);
   const vivasMut = (mu: string) => ef.filter((k) => !k.copia && k.de.mutacion === mu).length;
   // el Sol de la Timba: tus Oros pagan el doble
   const oro = cuantas('D') * B.palos.oroPorOro * (evoluciono(p, 'cofre') ? B.evoluciones.sol.oroDoble : 1) + vivasMut('oro') * B.fogon.chispaOro;
@@ -312,9 +309,9 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
   if (tieneAmuleto(p, 'taba') && c.dado >= am.taba.desde) m('a:taba', am.taba.multi);
   const sol = evoluciono(p, 'cofre');
   if (tieneAmuleto(p, 'cofre')) m(sol ? 'ev:cofre' : 'a:cofre', Math.min(sol ? B.evoluciones.sol.tope : am.cofre.tope, Math.floor(p.oro / am.cofre.cada)));
-  // el Brindis de Sangre: cada golpe te bebe Vida, pero suma Multi siempre (ya no pide la Vida alta)
+  // el Brindis de Sangre (0.26.0): +1 de Multi por cada 10 % de Vida que te falta (y cada golpe te bebe Vida)
   const brindis = evoluciono(p, 'caliz');
-  if (brindis) m('ev:caliz', B.evoluciones.brindis.multi);
+  if (brindis) m('ev:caliz', Math.floor(((p.vidaMax - p.vida) / p.vidaMax) * 100 / B.evoluciones.brindis.cada));
   else if (tieneAmuleto(p, 'caliz') && p.vida >= p.vidaMax * am.caliz.vida) m('a:caliz', am.caliz.multi);
   // el Cascabel cobra su precio: un golpe sin canto va con Multi de menos
   if (tieneAmuleto(p, 'cascabel') && !canto) m('a:cascabel-sin', -B.amuletos.cascabelSinCanto);
@@ -327,7 +324,7 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
 
   // …y al final lo que multiplica
   if (canto && p.mazoId === 'escoba') x('canto', B.mazos.escoba.multi * dob);
-  if (canto && p.mazoId === 'chancho') x('canto', B.mazos.chancho.multi * dob);
+  if (canto && p.mazoId === 'chancho') x('canto', (jugada === 'poker' ? B.mazos.chancho.multi : B.mazos.chancho.pierna) * dob);
   lv = nivelBend(p, 'puntahacha');
   const critico = lv > 0 && (c.golpes + 1) % nivelDe(bn.puntahacha, lv) === 0;
   if (critico) x('b:puntahacha', 2);
@@ -357,7 +354,7 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
   const ejecuta = !abate && !frenaEnMitad && lv > 0 && e.vida - aVida <= Math.floor(e.vidaMax * nivelDe(bn.deguello, lv));
   const sobra = abate && perfora ? (aVida - e.vida) * (evoluciono(p, 'lanza') ? B.evoluciones.facon.sobra : tieneAmuleto(p, 'lanza') ? am.lanza : 1) : 0;
   let aturde = 0;
-  if (canto && p.mazoId === 'chancho') aturde = B.mazos.chancho.aturde * dob;
+  if (canto && p.mazoId === 'chancho') aturde = (jugada === 'poker' ? B.mazos.chancho.aturde : 1) * dob;
   if (!aturde && tieneAmuleto(p, 'boleadoras') && !e.boleado && cuantas('C') >= 2) aturde = 1;
 
   let contra: number | null = null;
@@ -365,7 +362,8 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
     if (e.aturdido > 0 || aturde > 0 || c.caraDePoker) contra = 0;
     else {
       const k = contraataque(p, e, { mitiga: canto && p.mazoId === 'chinchon', sinVida: aVida === 0, repite: repiteJugada(c.ultimaJugada, jugada) });
-      const tuEscudo = Math.min(escudoTope(p), c.escudo + escudo);
+      // la maldición del Garrote: la mitad del Escudo que pega se gasta antes de que te peguen
+      const tuEscudo = Math.min(escudoTope(p), c.escudo - (evoluciono(p, 'poncho') ? Math.ceil(c.escudo * B.evoluciones.gasta) : 0) + escudo);
       contra = k.n - Math.min(tuEscudo, k.n - k.directo);
     }
   }
@@ -734,6 +732,12 @@ export function golpear(p: Partida, ids: readonly string[], postas?: readonly nu
   const jugadaAntes = c.ultimaJugada;
   c.ultimaJugada = q.jugada;
 
+  // la maldición del Garrote del Cacique (0.26.0): el golpe que no abate gasta la mitad del Escudo que pegó
+  const gasta = evoluciono(p, 'poncho') && !q.abate && !q.ejecuta ? Math.ceil(c.escudo * B.evoluciones.gasta) : 0;
+  if (gasta > 0) {
+    evs.push({ t: 'maldicion', de: 'poncho', n: gasta });
+    c.escudo -= gasta;
+  }
   // los poderes de palo
   if (q.escudo) {
     c.escudo = Math.min(escudoTope(p), c.escudo + q.escudo);
@@ -813,7 +817,9 @@ export function puedeDescartar(p: Partida, n: number): 'gratis' | 'descarte' | n
   const c = p.combate;
   if (!c || n < 1) return null;
   if (n === 1 && c.pasar) return 'gratis';
-  return c.descartes > 0 ? 'descarte' : null;
+  if (c.descartes > 0) return 'descarte';
+  // el Sol de la Timba (0.26.0): con oro, los descartes no se acaban
+  return evoluciono(p, 'cofre') && p.oro >= B.evoluciones.sol.descarte ? 'descarte' : null;
 }
 
 /** Descarta esas cartas y roba otras tantas. No gasta el turno. */
@@ -825,7 +831,7 @@ export function descartar(p: Partida, ids: readonly string[]): Ev[] {
   const modo = puedeDescartar(p, sel.length);
   if (!modo) return [];
   if (modo === 'gratis') c.pasar = false;
-  else c.descartes--;
+  else if (c.descartes > 0) c.descartes--;
   const evs: Ev[] = [{ t: 'descarta', ids: [...ids] }];
   // la maldición del Sol de la Timba: cada descarte te cuesta oro (el pase gratis de Chancho Va, no)
   if (modo === 'descarte' && evoluciono(p, 'cofre') && p.oro > 0) {
