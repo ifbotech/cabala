@@ -37,11 +37,17 @@ export const vistaDe = (p: Partida): VistaHud => ({ vida: p.vida, vidaMax: p.vid
 /** Las heridas del retrato según la Vida que queda. */
 export const heridaDe = (vida: number, max: number): Herida => (vida * 3 <= max ? 2 : vida * 3 <= max * 2 ? 1 : 0);
 
+/**
+ * (0.24) El nombre de cada carga en la interfaz. La de Copas se llama TRAGO: «Brindis» se confundía con la Evolución
+ * «Brindis de Sangre» (el motor la sigue llamando Brindis por dentro).
+ */
+export const nombreCarga = (s: Palo): string => (s === 'H' ? t('cargaTrago') : tx(REY_DEF[s].carga));
+
 /** Qué hace una carga ahora, con su cifra: «Filo 2: +2 de Daño en cada golpe». */
 export function cargaQue(p: Partida, s: Palo): string {
   const n = carga(p, s);
   const efecto = t(`cargaEf${s}` as const, { n: s === 'S' ? n * B.cargas.filoDano : n });
-  return t('cargaQue', { carga: tx(REY_DEF[s].carga), n, efecto });
+  return t('cargaQue', { carga: nombreCarga(s), n, efecto });
 }
 
 const AYUDA_CARGA = { S: 'filoAyuda', C: 'coraAyuda', D: 'fortunaAyuda', H: 'brindisAyuda' } as const;
@@ -70,7 +76,7 @@ function tiras(p: Partida): string {
       const regla = ajustes.idioma === 'en' ? `+1 for each enemy you take down with ${PALO_NOMBRE[s].en} in the hit.` : `+1 por cada enemigo que abatís con ${PALO_NOMBRE[s].es} en el golpe.`;
       // (debajo del nombre, lo que da en criollo: «FILO · +3 daño»; la regla entera, en la ayuda)
       const ayuda = t(AYUDA_CARGA[s], { n: s === 'S' ? carga(p, s) * B.cargas.filoDano : carga(p, s) });
-      return `<span class="ficha carga" data-carga="${s}" ${tip(cargaQue(p, s), tx(r.cargaDa), regla)}>${pxPalo(s)}<span class="f-txt"><b class="f-rot">${esc(tx(r.carga))}</b><small class="f-ayuda">${esc(ayuda)}</small></span>${cifra(carga(p, s), 'oro')}</span>`;
+      return `<span class="ficha carga" data-carga="${s}" ${tip(cargaQue(p, s), tx(r.cargaDa), regla)}>${pxPalo(s)}<span class="f-txt"><b class="f-rot">${esc(nombreCarga(s))}</b><small class="f-ayuda">${esc(ayuda)}</small></span>${cifra(carga(p, s), 'oro')}</span>`;
     })
     .join('');
   const bendiciones = (Object.keys(p.bendiciones) as BendicionId[])

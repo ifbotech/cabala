@@ -51,7 +51,7 @@ export const ES = {
   segundaCara: 'SEGUNDA CARA',
   reyEscudo: 'ESCUDO',
   reyDiezmo: 'DIEZMO',
-  reyCura: 'BRINDIS',
+  reyCura: 'TRAGO',
   deOro: 'de oro',
   tajoAviso: 'Repetís la jugada: {nombre}',
   critico: '¡CRÍTICO!',
@@ -270,7 +270,7 @@ export const ES = {
   fortunaAyuda: '+{n} oro',
   brindisAyuda: '+{n} vida',
   // 0.22 · el paño en su fila, las Evoluciones, la Forja Brava, la Cábala Negra y los Tesoros
-  panoEscalon: '3 o más en subida: Escalón +{n}',
+  panoEscalon: '3 o más en subida: Escalón +{n} de Multi',
   chicheUsaMando: 'Pulsá A para usarlo. No gasta el turno.',
   evoluciona: 'EVOLUCIONA',
   evolucionaTip: 'Tomarlo despierta {e}.',
@@ -292,7 +292,7 @@ export const ES = {
   devolver: 'DEVOLVER',
   devolverTip: 'Bajás un nivel y te vuelven {n} Porotos: todo lo que costó.',
   devolverNada: 'Todavía no hay niveles para devolver.',
-  buildEstrella: 'BUILD ESTRELLA',
+  buildEstrella: 'TU MANO ESTRELLA',
   queTeFreno: 'QUÉ TE FRENÓ',
   proximoRecord: 'PRÓXIMO RÉCORD',
   otraManoYa: 'OTRA MANO YA',
@@ -321,6 +321,8 @@ export const ES = {
   fogonUsado: 'El fuego ya se usó',
   evolucionDe: 'Evolución de {a}',
   evolucionCon: 'con tu don de {p}',
+  evolucionConAmuleto: 'con tu {a}',
+  cargaTrago: 'Trago',
   fosforoNada: 'No tenés naipes del palo Inmune: guardalo.',
   negraNoPar: 'No tenés otro {n}',
   negraCosido: '¡COSIDO!',
@@ -370,7 +372,7 @@ export const EN: Record<keyof typeof ES, string> = {
   segundaCara: 'SECOND FACE',
   reyEscudo: 'SHIELD',
   reyDiezmo: 'TITHE',
-  reyCura: 'TOAST',
+  reyCura: 'SWIG',
   deOro: 'gold',
   tajoAviso: 'Same play again: {nombre}',
   critico: 'CRITICAL!',
@@ -581,7 +583,7 @@ export const EN: Record<keyof typeof ES, string> = {
   fortunaAyuda: '+{n} gold',
   brindisAyuda: '+{n} life',
   // 0.22
-  panoEscalon: '3 or more rising: Step +{n}',
+  panoEscalon: '3 or more rising: Step +{n} Mult',
   chicheUsaMando: 'Press A to use it. Does not use your turn.',
   evoluciona: 'EVOLVES',
   evolucionaTip: 'Taking it awakens {e}.',
@@ -603,7 +605,7 @@ export const EN: Record<keyof typeof ES, string> = {
   devolver: 'REFUND',
   devolverTip: 'Drop one level and get back {n} Beans: all it cost.',
   devolverNada: 'No levels to refund yet.',
-  buildEstrella: 'STAR BUILD',
+  buildEstrella: 'YOUR STAR HAND',
   queTeFreno: 'WHAT STOPPED YOU',
   proximoRecord: 'NEXT RECORD',
   otraManoYa: 'ANOTHER HAND NOW',
@@ -632,6 +634,8 @@ export const EN: Record<keyof typeof ES, string> = {
   fogonUsado: 'The fire is spent',
   evolucionDe: 'Evolution of {a}',
   evolucionCon: 'with your {p} gift',
+  evolucionConAmuleto: 'with your {a}',
+  cargaTrago: 'Swig',
   fosforoNada: 'No cards of the Immune suit: keep it.',
   negraNoPar: 'You have no other {n}',
   negraCosido: 'SEWN!',
@@ -757,14 +761,6 @@ export const MUTACION_DESC: Record<'doblefilo' | 'roba' | 'oro', Par> = {
   doblefilo: P(`Al jugarlo: +${B.fogon.dobleFilo.multi} de Multi, y te corta ${B.fogon.dobleFilo.vida} de Vida (nunca te mata).`, `When played: +${B.fogon.dobleFilo.multi} Mult, and it cuts you for ${B.fogon.dobleFilo.vida} Health (never lethal).`),
   roba: P(`Al jugarlo, tu próxima mano trae ${B.fogon.robaCarta} carta de más.`, `When played, your next hand draws ${B.fogon.robaCarta} extra card.`),
   oro: P(`Al jugarlo: +${B.fogon.chispaOro} de oro.`, `When played: +${B.fogon.chispaOro} gold.`),
-};
-
-/** (0.23) Lo que gana cada Evolución, en tres o cuatro palabras: la línea visible bajo el sello «★ EVOLUCIONA». */
-export const EVO_GANA: Record<'lanza' | 'poncho' | 'cofre' | 'caliz', Par> = {
-  lanza: P('Todo golpe Perfora', 'Every hit Pierces'),
-  poncho: P('Escudo suma al Daño', 'Shield adds to Damage'),
-  cofre: P('Cada abatido paga oro', 'Each takedown pays gold'),
-  caliz: P('Multi siempre, y más', 'Mult always, and more'),
 };
 
 /** El nombre corto de cada Chiche, el que se lee bajo su icono en la bandeja de la mesa. */

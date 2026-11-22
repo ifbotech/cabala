@@ -16,7 +16,7 @@ import { bufonCapas, type Expresion } from './pixel/bufon';
 import { REY_PX, reyFondo, reyMapa, type Animo } from './pixel/reyes';
 import { avivar, esfumar } from './bufon-vivo';
 import { px, pxEstrella, pxEvolucion, pxInmune } from './sprites';
-import { EVO_GANA } from './textos';
+import { PALO_NOMBRE } from './textos';
 
 export type Accion = (el: HTMLElement, ev: Event) => void;
 
@@ -417,13 +417,18 @@ export function fichaDe(tipo: TipoOferta, id: string, p?: Partida): FichaPieza {
 /** La etiqueta «★ SINERGIA» de una pieza, con su micro-línea, si potencia tu Mazo o lo que ya llevás (si no, nada). */
 export function sinergiaHtml(tipo: TipoOferta, id: string, p?: Partida): string {
   // (0.22) lo que despierta una Evolución lleva el sello «★ EVOLUCIONA» (manda sobre la sinergia: es más que eso)
+  // (0.24) y dice por qué («con tu don de Copas» / «con tu Cáliz del Bacanal») y qué gana: su regla entera
   const de = p ? despierta(p, tipo, id) : null;
   if (de) {
     const nombre = tx(EVOLUCION[de].nombre);
-    return `<span class="sinergia-caja evoluciona" ${tip(`${t('evolucionTitulo')}: ${nombre}`, tx(EVOLUCION[de].desc), t('evolucionaTip', { e: nombre }))}><span class="chip sello-evo">${pxEstrella()} ${t('evoluciona')}</span><span class="micro">${pxEvolucion(de, 'evo-mini')}${esc(nombre)}</span><b class="micro evo-gana">+ ${esc(tx(EVO_GANA[de]))}</b></span>`;
+    const por = tipo === 'amuleto' ? t('evolucionCon', { p: tx(PALO_NOMBRE[EVOLUCION[de].palo]) }) : t('evolucionConAmuleto', { a: tx(AMULETO[de].nombre) });
+    return `<span class="sinergia-caja evoluciona" ${tip(`${t('evolucionTitulo')}: ${nombre}`, tx(EVOLUCION[de].desc), t('evolucionaTip', { e: nombre }))}><span class="chip sello-evo">${pxEstrella()} ${t('evoluciona')}</span><span class="micro evo-quien">${pxEvolucion(de, 'evo-mini')}<span><b>${esc(nombre)}</b> <span class="evo-por">${esc(por)}</span></span></span><span class="micro evo-gana">${esc(tx(EVOLUCION[de].desc))}</span></span>`;
   }
   const s = p ? sinergia(p, tipo, id) : null;
-  return s ? `<span class="sinergia-caja"><span class="chip sinergia">${pxEstrella()} ${t('sinergia')}</span><span class="micro">${esc(tx(s))}</span></span>` : '';
+  // (la carga de Copas se llama TRAGO en la interfaz: la nota del motor dice «Suma a Brindis»)
+  const viejo = tx(REY_DEF.H.carga);
+  const nota = s ? (ajustes.idioma === 'en' ? tx(s).replace(viejo, t('cargaTrago')) : tx(s).replace(`a ${viejo}`, `al ${t('cargaTrago')}`)) : '';
+  return s ? `<span class="sinergia-caja"><span class="chip sinergia">${pxEstrella()} ${t('sinergia')}</span><span class="micro">${esc(nota)}</span></span>` : '';
 }
 
 /** Espera `ms` milisegundos (0 con «Reducir movimiento» si `saltable`). */

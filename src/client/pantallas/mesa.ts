@@ -24,7 +24,7 @@ import { teclear } from '../habla';
 import { RAMPA_CURA, RAMPA_ESCUDO, RAMPA_GOLPE, RAMPA_PALO, chispas, destello, haloRey, limpiarNumeros, lluviaDeMonedas, medidaNumero, monedas, motas, numero, partirNaipe, quiebre, tajo, tajoDeReves, type Carril } from '../fx/efectos';
 import { alCeder, cajaDe, reservar, soltar as soltarTurno, ubicar } from '../fx/director';
 import { S, congelar, enFoto, fogonazoCandil, ponerClima, sacudir } from '../fx/motor';
-import { actualizarTiras, avivarRetrato, cargaQue, dispararFicha, gestoFijo, gestoRetrato, gritar, hudHtml, mirarHacia, ponerHud, poseRetrato, reubicarGrito, vistaDe, type VistaHud } from '../hud';
+import { actualizarTiras, avivarRetrato, cargaQue, nombreCarga, dispararFicha, gestoFijo, gestoRetrato, gritar, hudHtml, mirarHacia, ponerHud, poseRetrato, reubicarGrito, vistaDe, type VistaHud } from '../hud';
 import { guardar, pintarFase } from '../juego';
 import { crearMano, type Mano, type Zona } from '../mano';
 import type { Expresion } from '../pixel/bufon';
@@ -250,7 +250,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     if (clase === 'a') return fichaDe('amuleto', id).nombre;
     if (clase === 'u') return fichaDe('aumento', id).nombre;
     if (clase === 'b') return fichaDe('bendicion', id).nombre;
-    if (clase === 'r') return tx(REY_DEF[id as Palo].carga);
+    if (clase === 'r') return nombreCarga(id as Palo);
     if (de === 'canto') return tx(MAZO[p.mazoId].canto);
     // (el Dado Cargado se lee como lo que da: «MULTI +3», también en el teléfono)
     if (de === 'prox' && dadoArmado) return t('multi');

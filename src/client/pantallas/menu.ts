@@ -18,6 +18,7 @@ import { refrescarMusica } from '../musica';
 import { enFoto } from '../fx/motor';
 import { numero } from '../fx/efectos';
 import { glifo } from '../nav';
+import { nombreCarga } from '../hud';
 import { continuar, empezar, hayPartida, irAjustes, irAltar, irColeccion, irCronica, irMazo, irPortada, sesion } from '../juego';
 import { CUADRO0 } from '../pixel/personajes';
 import { cifra, pxAmuleto, pxAumento, pxBendicion, pxDorso, pxHud, pxLogo, pxPalo, urlRetrato } from '../sprites';
@@ -307,8 +308,8 @@ export function pantallaColeccion(): Pantalla {
       return `<div class="col-reyes">${PALOS.map((s) => {
         const r = REY_DEF[s];
         const v = visto(`r:${s}`);
-        return `<div class="col-rey ${v ? '' : 'sin-ver'}" ${v ? tip(`${tx(r.nombre)} · ${tx(r.apodo)}`, `${tx(r.rasgo)}: ${tx(r.rasgoDesc)}`, `${tx(r.carga)}: ${tx(r.cargaDa)}`) : tip(t('sinVer'), t('sinVerDesc'))}>
-          ${reyHtml(s, 'calma')}<b>${v ? esc(tx(r.apodo)) : t('sinVer')}</b><span class="sub">${v ? esc(tx(r.nombre)) : esc(t('sinVerDesc'))}</span>${v ? `<span class="chip canto">${esc(tx(r.rasgo))}</span><p class="col-ficha">${esc(tx(r.rasgoDesc))}</p><p class="col-ficha col-carga">${pxPalo(s)} <b>${esc(tx(r.carga))}</b> · ${esc(tx(r.cargaDa))}</p>` : ''}
+        return `<div class="col-rey ${v ? '' : 'sin-ver'}" ${v ? tip(`${tx(r.nombre)} · ${tx(r.apodo)}`, `${tx(r.rasgo)}: ${tx(r.rasgoDesc)}`, `${nombreCarga(s)}: ${tx(r.cargaDa)}`) : tip(t('sinVer'), t('sinVerDesc'))}>
+          ${reyHtml(s, 'calma')}<b>${v ? esc(tx(r.apodo)) : t('sinVer')}</b><span class="sub">${v ? esc(tx(r.nombre)) : esc(t('sinVerDesc'))}</span>${v ? `<span class="chip canto">${esc(tx(r.rasgo))}</span><p class="col-ficha">${esc(tx(r.rasgoDesc))}</p><p class="col-ficha col-carga">${pxPalo(s)} <b>${esc(nombreCarga(s))}</b> ·${esc(tx(r.cargaDa))}</p>` : ''}
         </div>`;
       }).join('')}</div>`;
     if (pestana === 'amuletos') return `<div class="col-rejilla">${AMULETOS.map((id) => item(`a:${id}`, pxAmuleto(id), tx(AMULETO[id].nombre), tx(AMULETO[id].desc), tx(RAREZA_NOMBRE[AMULETO[id].rareza]))).join('')}</div>`;

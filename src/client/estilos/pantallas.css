@@ -4113,15 +4113,41 @@ button.visor-carta:disabled {
 /* «ELEGÍ UNA» se centra en lo que el HUD deja libre (camino.ts, reservarHud): menos aire entre título, voz, naipes y
    SALTAR. El Tesoro, además, suma la cinta del cofre y las opciones lo devuelven (ícono un punto más chico, menos aire
    entre sus partes) */
+/* «★ EVOLUCIONA»: el nombre de la Evolución con por qué despierta («con tu don de Copas») y, debajo, su regla entera */
+.sinergia-caja.evoluciona .micro.evo-quien > span {
+  text-align: center;
+}
+.evo-quien b {
+  font-weight: 400;
+  color: var(--oro);
+}
+.evo-quien .evo-por {
+  color: var(--hueso);
+}
+.sinergia-caja .micro.evo-gana {
+  font-weight: 400;
+  line-height: 1.25;
+}
 @media (min-width: 701px) {
   .velo.sobre-hud .oferta {
     gap: max(12px, calc(var(--u) * 0.7));
   }
 }
-/* (en las ventanas bajas los naipes se ensanchan un poco: «EL CAUDAL · NIVEL 1» entra en un renglón y la carta baja) */
+/* (en las ventanas bajas los naipes se ensanchan: «EL CAUDAL · NIVEL 1» entra en un renglón, la regla de la Evolución
+   en tres y la carta baja; el Bufón del costado va a 1× para dejarles el ancho) */
 @media (min-width: 1100px) and (max-height: 820px) {
   .velo.sobre-hud .opciones > .opcion {
-    width: 280px;
+    width: 330px;
+    gap: calc(var(--u) * 0.3);
+    padding-block: calc(var(--u) * 0.5);
+  }
+  .velo.sobre-hud .oferta-bufon-lado {
+    --k-bufon: 1;
+  }
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  .velo.sobre-hud .opciones > .opcion {
+    width: 380px;
   }
 }
 @media (min-width: 701px) {
