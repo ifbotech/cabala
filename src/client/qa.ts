@@ -41,6 +41,7 @@ export const ESTADOS = [
   'altar-devolver', 'resumen-victoria', 'resumen-derrota', 'mesa-exacto', 'fogon-mutaciones', 'hud-evolucion-foco',
   'mesa-dejalo-justo', 'resumen-derrota-movil', 'forja-brava-eleccion',
   'mesa-pega-todo', 'mesa-maldicion', 'mesa-garrote', 'mesa-limpia',
+  'mesa-sol', 'mesa-chinchon',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
 /** Estados que solo tienen sentido en vivo (`&vivo`, para las secuencias del Jurado): no entran en la QA visual. */
@@ -364,17 +365,37 @@ export function montarQa(estado: string): void {
       if (estado === 'mesa-prenda') void mesa.prenda('dado');
       break;
     }
-    case 'mesa-dejalo-justo':
-    case 'mesa-pega-todo':
     case 'mesa-exacto': {
+      // (0.26) sin Perfora la mesa apoya sola el exacto: la Vida del enemigo es justo lo que pega lo elegido (¡EXACTO!,
+      // NO TE PEGA · LO ABATÍS, sin dial). Antes la búsqueda no encontraba nada y la foto era igual a la de la mesa
+      const p = partida(mazo, (x) => enCombate(x) && x.combate!.fila.length > 1);
+      const c = p.combate!;
+      const e = c.fila[0];
+      const m = c.mano.filter((k) => k.palo !== 'X' && k.palo !== e.palo);
+      const subs: Carta[][] = m.map((k) => [k]);
+      for (let a = 0; a < m.length; a++) for (let b = a + 1; b < m.length; b++) subs.push([m[a], m[b]]);
+      const mejor = subs
+        .map((sel) => ({ sel, q: cuenta(p, sel, mejorAcomodo(p, sel)) }))
+        .filter((x) => x.q.ok && x.q.aVida > 0)
+        .sort((x, y) => y.q.total - x.q.total)[0];
+      if (mejor) {
+        e.vida = mejor.q.aVida;
+        e.vidaMax = Math.max(e.vidaMax, e.vida);
+      }
+      montar(p);
+      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
+      if (mesa && mejor) mesa.mano.elegir(mejor.sel.map((k) => k.id));
+      break;
+    }
+    case 'mesa-dejalo-justo':
+    case 'mesa-pega-todo': {
       // (0.23) el dial del paño: lo elegido, acomodado al máximo, sobra; otra manera de apoyarlo abate justo.
       // (0.25) Sin Perfora la mesa ya lo apoya justo sola (`mesa-exacto`: ¡EXACTO!, sin dial); con Perfora (la Lanza) y
       // alguien detrás, la mesa pega con todo y el dial ofrece DEJALO JUSTO con lo que pierde (`mesa-dejalo-justo`);
       // aplicado, ofrece PEGÁ CON TODO con lo que pasa al siguiente (`mesa-pega-todo`)
       const p = partida(mazo, (x) => enCombate(x) && x.combate!.fila.length > 1);
-      const conPerfora = estado !== 'mesa-exacto';
-      if (conPerfora) darAmuleto(p, 'lanza');
-      const m = p.combate!.mano.filter((k) => conPerfora || k.palo !== 'S');
+      darAmuleto(p, 'lanza');
+      const m = p.combate!.mano;
       const subs: Carta[][] = [];
       for (let a = 0; a < m.length; a++)
         for (let b = a + 1; b < m.length; b++) {
@@ -408,23 +429,28 @@ export function montarQa(estado: string): void {
       const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
       if (mesa && elegidas.length) mesa.mano.elegir(elegidas.map((k) => k.id));
       // (0.25) con el mando: el dial lleva R3 (la Y sigue siendo DESCARTAR); el Bufón lo presenta
-      if (estado !== 'mesa-exacto') document.documentElement.dataset.entrada = 'mando';
+      document.documentElement.dataset.entrada = 'mando';
       if (estado === 'mesa-pega-todo') $<HTMLElement>('[data-accion="dial"]')?.click();
       break;
     }
     case 'mesa-maldicion':
-    case 'mesa-garrote': {
+    case 'mesa-garrote':
+    case 'mesa-sol': {
       // (0.25) la maldición a la vista antes de golpear: con el Facón Maldito, un golpe que no abate avisa «−3 de Vida»;
-      // con el Garrote del Cacique, las Copas elegidas dan Escudo («Copas → Escudo»)
+      // (0.26) con el Garrote del Cacique, el Escudo pega ×2 y el golpe que no abate avisa «−N de Escudo»; con el Sol de
+      // la Timba, sin descartes y con oro, DESCARTAR dice su costo y que no se acaban
       const p = partida(mazo, (x) => enCombate(x));
-      const de = estado === 'mesa-maldicion' ? 'lanza' : 'poncho';
+      const de = estado === 'mesa-maldicion' ? 'lanza' : estado === 'mesa-garrote' ? 'poncho' : 'cofre';
       darAmuleto(p, de);
-      darDon(p, de === 'lanza' ? 'S' : 'C');
+      darDon(p, de === 'lanza' ? 'S' : de === 'poncho' ? 'C' : 'D');
       const c = p.combate!;
-      // (es una foto de QA: si la mano no trae una Copa, la primera carta lo es)
-      if (de === 'poncho' && !c.mano.some((k) => k.palo === 'H')) c.mano[0] = { ...c.mano[0], palo: 'H' };
+      if (de === 'poncho') c.escudo = 10;
+      if (de === 'cofre') {
+        c.descartes = 0;
+        p.oro = Math.max(p.oro, 20);
+      }
       const sola = c.mano
-        .filter((k) => k.palo !== 'X' && (de === 'lanza' || k.palo === 'H'))
+        .filter((k) => k.palo !== 'X')
         .map((k) => [k])
         .find((sel) => {
           const q = cuenta(p, sel);
@@ -433,6 +459,21 @@ export function montarQa(estado: string): void {
       montar(p);
       const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
       if (sola && mesa) mesa.mano.elegir(sola.map((k) => k.id));
+      break;
+    }
+    case 'mesa-chinchon': {
+      // (0.26) el turno del ¡CHINCHÓN! el enemigo no te pega: una Pierna elegida que no lo abate dice «NO TE PEGA ·
+      // ¡CHINCHÓN!» (es una foto de QA: las tres primeras cartas se vuelven un 4 de tres palos)
+      const p = partida('chinchon', (x) => enCombate(x));
+      const c = p.combate!;
+      const e = c.fila[0];
+      e.aturdido = 0;
+      e.vida = e.vidaMax = Math.max(e.vidaMax, 300);
+      const palos = (['S', 'C', 'D', 'H'] as const).filter((x) => x !== e.palo);
+      for (let i = 0; i < 3; i++) c.mano[i] = { ...c.mano[i], n: 4, palo: palos[i] };
+      montar(p);
+      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
+      mesa?.mano.elegir(c.mano.slice(0, 3).map((k) => k.id));
       break;
     }
     case 'mesa-limpia':

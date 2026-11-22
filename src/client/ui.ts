@@ -199,7 +199,9 @@ function mostrarTip(el: HTMLElement): void {
   const titulo = el.dataset.tipT ?? '';
   const cuerpo = el.dataset.tip ?? '';
   // (0.22: una ayuda puede decir otra cosa con el mando —«Pulsá A»— que con el ratón o el dedo)
-  const pie = (document.documentElement.dataset.entrada === 'mando' ? el.dataset.tipPieMando : undefined) ?? el.dataset.tipPie ?? '';
+  // (0.26: y otra con el teclado —«Pulsá Enter»—: el Fósforo ya no dice «Tocalo» a quien no toca)
+  const entrada = document.documentElement.dataset.entrada;
+  const pie = (entrada === 'mando' ? el.dataset.tipPieMando : entrada === 'teclado' ? el.dataset.tipPieTeclado : undefined) ?? el.dataset.tipPie ?? '';
   if (!titulo && !cuerpo) return;
   tipEl = document.createElement('div');
   tipEl.className = 'tip';
@@ -217,7 +219,7 @@ function mostrarTip(el: HTMLElement): void {
  * la propia pieza que se inspecciona). (0.25) Y en la mesa, al enemigo: su naipe, su barra de Vida, su TE PEGA, y la
  * cuenta abierta del golpe.
  */
-export const TAPA_NUNCA = 'button, .titulo, .hud [data-n], .mesa [data-ataque], .mesa .e-barras, .mesa [data-carta], .mesa [data-cuenta] .cuenta:not(.reposo)';
+export const TAPA_NUNCA = 'button, .titulo, .hud [data-n], .mesa [data-ataque], .mesa .e-barras, .mesa [data-carta], .mesa [data-cuenta] .cuenta:not(.reposo), .mesa .e-sellos > *, .esc-bufon .bocadillo, .mesa .e-dice';
 function obstaculos(ancla: HTMLElement): DOMRect[] {
   // (y la pieza misma: la ayuda no tapa lo que se está mirando)
   const out: DOMRect[] = [ancla.getBoundingClientRect()];
@@ -225,9 +227,9 @@ function obstaculos(ancla: HTMLElement): DOMRect[] {
     // (lo que quedó atrás en el Mapa —recorrido, salteado, ESTÁS ACÁ— no se toca más: la ayuda puede pasarle por encima
     // antes que tapar el camino que sigue)
     if (o === ancla || o.contains(ancla) || ancla.contains(o) || o.closest('.tip, .calienta') || o.matches('.nodo.hecho, .nodo.pasado, .nodo.actual')) continue;
-    // (en el teléfono no hay otro lugar libre que el naipe del enemigo: la ayuda larga puede ir sobre él, nunca sobre su
-    // TE PEGA, su barra, la cuenta ni la mano)
-    if (innerWidth <= 700 && o.matches('[data-carta]')) continue;
+    // (0.26: en el teléfono tampoco va sobre el naipe del enemigo —la excepción de la 0.25 lo tapaba—; el globo del
+    // Bufón, que es de paso, sí: es el único hueco entre el enemigo y la mano)
+    if (innerWidth <= 700 && o.matches('.esc-bufon .bocadillo')) continue;
     const r = o.getBoundingClientRect();
     if (r.width < 2 || r.height < 2 || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) continue;
     const s = getComputedStyle(o);

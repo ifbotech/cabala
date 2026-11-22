@@ -1332,6 +1332,16 @@ html[data-entrada='teclado'] .pano-regla .p-mando .g-tecla {
     font-size: calc(var(--fs-xl) * 1.5);
   }
 }
+/* (0.26) la Pierna de Chancho Va canta un escalón menos que el Póker: más chico y en oro viejo */
+.canto-grande.menor {
+  font-size: calc(var(--fs-xl) * 1.6);
+  color: #ffb300;
+}
+@media (max-width: 700px) {
+  .canto-grande.menor {
+    font-size: calc(var(--fs-xl) * 1.15);
+  }
+}
 
 .cuenta .c-chips > * {
   flex: none;
@@ -1884,6 +1894,51 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 }
 .mesa .botones .btn:disabled .b-quedan {
   color: inherit;
+}
+/* (0.26) el Sol de la Timba: DESCARTAR dice su costo («· −3 oro») y que, con oro, no se acaban («∞ con oro») */
+.mesa .botones .b-costo {
+  color: var(--oro);
+  white-space: nowrap;
+}
+.mesa .botones .btn:disabled .b-costo {
+  color: inherit;
+}
+.mesa .botones .b-quedan.b-infinito {
+  font-size: 1em;
+  white-space: nowrap;
+}
+/* en dos renglones: «DESCARTAR ∞» y, debajo, el costo; así el botón no crece a lo ancho (le comía el lugar al dial del
+   paño). «∞ con oro» entero va en su ayuda */
+.mesa .botones .btn[data-accion='descartar'].con-sol {
+  flex-wrap: wrap;
+  align-content: center;
+  row-gap: 0;
+  line-height: 1.05;
+}
+.mesa .botones .con-sol .b-costo {
+  order: 3;
+  flex-basis: 100%;
+  font-family: var(--cuerpo);
+  font-size: max(14px, var(--fs-s));
+  text-transform: none;
+  text-align: center;
+}
+.mesa .botones .con-sol .b-sep,
+.mesa .botones .bq-largo {
+  display: none;
+}
+/* en el teléfono, la letra del costo a su piso de 14 px */
+@media (max-width: 700px) {
+  .mesa .botones .btn[data-accion='descartar'].con-sol {
+    column-gap: 6px;
+  }
+  .mesa .botones .con-sol .b-costo {
+    font-size: 14px;
+  }
+}
+/* (0.26) la placa que no te pega lo dice en celeste: «NO TE PEGA» y su causa */
+.mesa .e-ataque.no-pega .e-pega {
+  color: var(--cian);
 }
 @media (min-width: 701px) {
   /* ENGAÑO es un botón de pleno derecho, del alto de DESCARTAR */
@@ -4258,9 +4313,10 @@ button.chiche:focus-visible {
   position: fixed;
   z-index: 250;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
   padding: 2px 8px;
   transform: translateX(-50%);
   background: rgba(9, 7, 15, 0.9);
@@ -4272,8 +4328,19 @@ button.chiche:focus-visible {
   color: var(--cian);
 }
 .sello-planta .sp-pierde {
-  font-size: 14px;
+  font-size: var(--fr);
   color: var(--hueso-2);
+}
+/* (0.26) en el teléfono el sello entra en un renglón: la letra baja a su piso de 14 px */
+@media (max-width: 700px) {
+  .sello-planta {
+    gap: 4px;
+    padding: 2px 6px;
+  }
+  .sello-planta .rotulo,
+  .sello-planta .sp-pierde {
+    font-size: 14px;
+  }
 }
 /* el teléfono: la bandeja va al borde derecho del renglón de las fichas del HUD, solo con lo que llevás (las fichas le
    dejan su ancho, `--ancho-chiches`, que pone la mesa) */
@@ -4806,8 +4873,18 @@ body.mueve-pano [data-cuenta] .cuenta.previa {
   font-weight: 400;
   color: #ff8fa8;
 }
-.cuenta .c-garrote .d-i {
-  --k: 1;
+/* (0.26) el chip dice qué es: el rótulo MALDICIÓN (en el teléfono, donde no entra, queda en su ayuda y en su nombre
+   para el lector) y se puede mirar con foco */
+.cuenta .c-mal-rot {
+  font-family: var(--rot);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: #ff4d79;
+}
+@media (max-width: 700px) {
+  .mesa .cuenta .c-mal-rot {
+    display: none;
+  }
 }
 .sello-maldicion {
   position: fixed;
@@ -4839,12 +4916,7 @@ body.mueve-pano [data-cuenta] .cuenta.previa {
     animation: none;
   }
 }
-/* (en el teléfono los efectos van sin su nombre; el del Garrote lo conserva: es una regla que cambia, no un número) */
-@media (max-width: 700px) {
-  .mesa .cuenta .c-garrote .c-ef-rot {
-    display: inline;
-  }
-}
+
 /* (0.25) en las ventanas bajas (Steam Deck, 1366 × 768), el desglose con muchos términos (Taba, Sol de la Timba,
    Primera sangre…) no salta a un tercer renglón: los términos van separados por aire, sin el punto, y la mesa no se
    corre al elegir */

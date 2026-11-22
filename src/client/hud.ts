@@ -135,6 +135,13 @@ function tirasTip(p: Partida): string {
   const cargas = evos.length ? [] : PALOS.filter((s) => sirveA(p, s) && carga(p, s) > 0).map((s) => cargaQue(p, s));
   // (cada Evolución en su renglón, arriba de las cargas: el cuerpo de la ayuda corre de corrido)
   // (0.24: con el mando dice «A para leerlas», no «Tocá»)
+  // (0.26) con las reglas enteras la ayuda no tenía dónde ir sin tapar al enemigo, el título, el Bufón o la mano: solo
+  // los nombres de las Evoluciones (sus reglas, al abrir la bandeja, que lo dice el pie)
+  if (evos.length) {
+    const nombres = evoluciones(p).map((de) => `★ ${tx(EVOLUCION[de].nombre)}`);
+    const pieN = (toca: string): string => [...nombres.slice(1), toca].join('\n');
+    return `${tip(`★ ${t('evolucionTitulo')}`, nombres[0], pieN(t('llevasToca')))} data-tip-pie-mando="${esc(pieN(t('llevasTocaMando')))}"`;
+  }
   const pie = (toca: string): string => [...evos.slice(1), ...cargas, toca].join('\n');
   return `${tip(evos.length ? `★ ${t('evolucionTitulo')}` : t('llevas'), evos.length ? evos[0] : t('llevasTip'), pie(t('llevasToca')))} data-tip-pie-mando="${esc(pie(t('llevasTocaMando')))}"`;
 }
