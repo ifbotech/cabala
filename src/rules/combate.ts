@@ -257,7 +257,8 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
     const bravas = B.mazos.truco.bravas as Record<string, number>;
     for (const k of ef) if (!k.copia && !inmune(k.palo)) d('brava', bravas[`${k.palo}${k.n}`] ?? 0);
     if (canto) {
-      d('canto', B.mazos.truco.envido * dob);
+      // (0.28.0) el Envido crece con el tramo, como los poderes de palo: no se apaga en el tramo 3
+      d('canto', B.mazos.truco.envido * tramoJugador(p) * dob);
       d('cantos', p.cantos * B.mazos.truco.cargaDano);
     }
   }
@@ -842,6 +843,7 @@ export function descartar(p: Partida, ids: readonly string[]): Ev[] {
   if (modo === 'descarte' && evoluciono(p, 'cofre') && p.oro > 0) {
     const n = Math.min(p.oro, B.evoluciones.sol.descarte);
     p.oro -= n;
+    p.stats.solOro = (p.stats.solOro ?? 0) + n;
     evs.push({ t: 'maldicion', de: 'cofre', n });
   }
   for (const k of sel) {

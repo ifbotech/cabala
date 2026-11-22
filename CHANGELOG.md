@@ -3,6 +3,34 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.27.0 · Cero P0 (2026-11-22)
+
+Cierre quirúrgico de la 0.26: el único P0 vivo, un premio propio para el Chinchón y un laboratorio que juega el Sol.
+
+**Reglas**
+- **¡CHINCHÓN! corta la mano**: cada carta que te queda sin jugar te da 3 de Escudo (×2 y ×3 en los tramos 2 y 3). Ya
+  no anula el golpe del enemigo (ese premio, Aturdir, es del Chancho Va). El Chinchón baja a 26 de Vida.
+- **Sol de la Timba**: cada descarte cuesta 5 de oro (antes 3), y el bot del laboratorio ahora los paga.
+- **Un golpe no lleva más cartas que Postas tiene el paño**: el bot y el laboratorio ya no juegan 4 o 5 cartas con 3
+  Postas, algo que una persona no podía apoyar.
+- Chancho Va con 47 de Vida; su Pierna ya no promete un «×1 de Multi».
+
+**La mesa y las pantallas**
+- En el teléfono la mano no cede ni salta en ninguna jugada ni ventana (390×844, 390×664, 360×740): cede la cuenta, que
+  se pliega; el paño lleva naipes enteros y una silueta en cada hueco.
+- Causa → efecto: «−5 ESCUDO», «−18» y «−3 ORO» nacen dentro de su caja del HUD y la cifra baja después.
+- Respiro tras todo golpe que no abate (380 ms el chico, 600 ms el grande) con su remate sonoro.
+- El dial lleva verbo y la cuenta nombra el estado; la oferta del teléfono pone SALTAR arriba y «hay más ↓»; el final
+  nombra a quien te llevó; la Forja Brava arde con llama tramada.
+- Las secuencias del jurado salen con 0 solapes.
+
+**Jurado** · Se suma un séptimo juez, de audio. Los seis de siempre: Claridad 8,6 · Diversión 8,5 · Estética 8,5 ·
+Veredicto 8,6 (0 P0; 3 P1: mesa de escritorio con algo apoyado, cuenta plegada del teléfono, sello SE PLANTA que no se
+ve). Audio, línea de base antes de rehacer la música: 6,5 · 5,0 · 4,5 · 5,1. Media de los siete: 8,3 · 8,0 · 7,9 · 8,1.
+
+**Medición** · Laboratorio (3000 partidas por celda, sin avisos) · Altar vacío / lleno: Escoba 29,4 / 45,6 · Truco
+29,4 / 48,2 · Chinchón 28,3 / 45,1 · Mentiroso 28,0 / 48,6 · Chancho 31,4 / 46,6 %. El panel simulado ya no se corre.
+
 ## 0.26.0 · Que cambie cómo se juega (2026-11-22)
 
 Las Evoluciones que el jurado leía como números (Garrote, Sol, Brindis) cambian una regla, y dos Mazos cantan más.

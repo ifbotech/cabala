@@ -2,6 +2,7 @@
 // invariantes y los sondeos rápidos de balance (npx tsx scripts/lab.ts <n> [mazo] [vacio|lleno] [reinado]).
 import { pathToFileURL } from 'node:url';
 import { jugarEntera } from '../src/rules/bot';
+import { EVOLUCIONES, evoluciono } from '../src/rules/evoluciones';
 import type { Oferta } from '../src/rules/estado';
 import { MAZOS } from '../src/rules/mazos';
 import type { MazoId } from '../src/rules/mazos';
@@ -41,6 +42,9 @@ export interface Resultado {
   golpes: number;
   exactos: number;
   cantos: number;
+  /** Partidas que terminaron con alguna Evolución despierta, y oro pagado en descartes del Sol. */
+  evolucion: number;
+  solOro: number;
   mejorGolpe: number;
   porotos: number;
   vidaFinal: number;
@@ -55,7 +59,7 @@ export interface Resultado {
 
 /** Juega una celda entera. */
 export function correr(celda: Celda): Resultado {
-  const r: Resultado = { celda, victorias: 0, caidas: [0, 0, 0], turnos: 0, combates: 0, reyes: 0, golpes: 0, exactos: 0, cantos: 0, mejorGolpe: 0, porotos: 0, vidaFinal: 0, piezas: {}, golpesTramo: [0, 0, 0], danoTramo: [0, 0, 0], golpesTipo: {}, combatesTipo: {} };
+  const r: Resultado = { celda, victorias: 0, caidas: [0, 0, 0], turnos: 0, combates: 0, reyes: 0, golpes: 0, exactos: 0, cantos: 0, evolucion: 0, solOro: 0, mejorGolpe: 0, porotos: 0, vidaFinal: 0, piezas: {}, golpesTramo: [0, 0, 0], danoTramo: [0, 0, 0], golpesTipo: {}, combatesTipo: {} };
   const altar = celda.altar === 'lleno' ? altarLleno() : altarVacio();
   for (let i = celda.desde ?? 0; i < (celda.desde ?? 0) + celda.n; i++) {
     const semilla = `${celda.semilla ?? 'LAB'}${i}`;
@@ -82,6 +86,8 @@ export function correr(celda: Celda): Resultado {
     r.golpes += p.stats.golpes;
     r.exactos += p.stats.exactos;
     r.cantos += p.stats.cantos;
+    if (EVOLUCIONES.some((de) => evoluciono(p, de))) r.evolucion++;
+    r.solOro += p.stats.solOro ?? 0;
     r.mejorGolpe = Math.max(r.mejorGolpe, p.stats.mejorGolpe);
     r.porotos += p.fin?.porotos ?? 0;
     r.vidaFinal += gano ? p.vida / p.vidaMax : 0;

@@ -64,7 +64,7 @@ async function enTrozos(celdas: Celda[], partes: number): Promise<Resultado[]> {
     const mios = porTrozo.filter((r) => r.celda.mazo === c.mazo && r.celda.altar === c.altar && r.celda.reinado === c.reinado && r.celda.semilla === c.semilla);
     const r = mios[0];
     const suma: Resultado = { ...r, celda: c, caidas: [0, 0, 0], golpesTramo: [0, 0, 0], danoTramo: [0, 0, 0], golpesTipo: {}, combatesTipo: {}, piezas: {} };
-    for (const k of ['victorias', 'turnos', 'combates', 'reyes', 'golpes', 'exactos', 'cantos', 'porotos', 'vidaFinal'] as const) suma[k] = mios.reduce((s, x) => s + x[k], 0);
+    for (const k of ['victorias', 'turnos', 'combates', 'reyes', 'golpes', 'exactos', 'cantos', 'evolucion', 'solOro', 'porotos', 'vidaFinal'] as const) suma[k] = mios.reduce((s, x) => s + x[k], 0);
     suma.mejorGolpe = Math.max(...mios.map((x) => x.mejorGolpe));
     for (const x of mios) {
       for (const k of ['caidas', 'golpesTramo', 'danoTramo'] as const) x[k].forEach((v, i) => (suma[k][i] += v));
@@ -159,6 +159,9 @@ const filas = MAZOS.map((mazo) => {
     golpeMedio: v.danoTramo.map((d, i) => (v.golpesTramo[i] ? Math.round(d / v.golpesTramo[i]) : 0)),
     exactos: Math.round((10 * v.exactos) / v.celda.n) / 10,
     cantos: Math.round((10 * v.cantos) / v.celda.n) / 10,
+    // (0.28.0) % de partidas que terminan con una Evolución despierta y oro pagado en descartes del Sol por partida
+    evolucion: Math.round((1000 * v.evolucion) / v.celda.n) / 10,
+    solOro: Math.round((10 * v.solOro) / v.celda.n) / 10,
     mejorGolpe: Math.max(v.mejorGolpe, l.mejorGolpe),
     porotos: Math.round(v.porotos / v.celda.n),
     minutos,
