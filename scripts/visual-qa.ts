@@ -203,6 +203,24 @@ function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[
       if (asoma < 80) fallos.push({ regla: 'solape-enemigo', detalle: `el naipe del enemigo asoma solo ${asoma} px (mínimo 80)` });
     }
   }
+  // (0.21) cada naipe de la mano y del paño deja ver su índice: el de arriba a la izquierda o el de abajo a la derecha
+  // (cabeza abajo). Ni la vecina, ni la carta con el foco, ni los naipes del paño, ni el HUD le tapan los dos
+  if (!document.querySelector('#capa .velo, .cortina, .mesa.cobra')) {
+    for (const el of [...document.querySelectorAll<HTMLElement>('.mesa [data-mano] .carta:not(.volando)')].filter(visible)) {
+      const r = el.getBoundingClientRect();
+      const ci = el.querySelector('.c-indice');
+      const arriba = ci && visible(ci) ? { x: ci.getBoundingClientRect().left + ci.getBoundingClientRect().width / 2, y: ci.getBoundingClientRect().top + ci.getBoundingClientRect().height / 2 } : { x: r.left + r.width * 0.09, y: r.top + r.height * 0.1 };
+      const abajo = { x: r.right - r.width * 0.09, y: r.bottom - r.height * 0.1 };
+      const seVe = (pt: { x: number; y: number }): boolean => pt.x >= 0 && pt.y >= 0 && pt.x < W && pt.y < H && document.elementFromPoint(pt.x, pt.y)?.closest('.carta') === el;
+      // (con naipes en el paño, el índice al pie de la mano también vale)
+      const pie = el.querySelector('.c-pie');
+      const pp = pie && visible(pie) ? pie.getBoundingClientRect() : null;
+      if (!seVe(arriba) && !seVe(abajo) && !(pp && seVe({ x: pp.left + pp.width / 2, y: pp.top + pp.height / 2 }))) {
+        const encima = document.elementFromPoint(arriba.x, arriba.y);
+        fallos.push({ regla: 'indice-tapado', detalle: `el naipe ${el.dataset.id} no deja ver ningún índice (arriba lo tapa ${encima ? nombre(encima) : 'el borde'})` });
+      }
+    }
+  }
   // el grito del Personaje: cerca de su retrato (a no más de 120 px en el teléfono y 280 en el escritorio, hueco entre
   // las dos cajas), dentro de la pantalla, sin tapar controles que se puedan tocar, la mano, la cuenta, las cifras del
   // HUD (Vida, Escudo, oro, Mazo) ni la cabecera

@@ -1042,6 +1042,47 @@
   transform: translateX(-50%);
   --k: 1;
 }
+/* (0.21) el índice al pie: con naipes en el paño (que va encima de la mano y le tapa la parte de arriba), cada naipe
+   de la mano enseña su número abajo a la izquierda, en la franja que queda a la vista bajo las Postas */
+.c-pie {
+  display: none;
+}
+.mano.con-pano .carta:not(.elegida) .c-pie {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: calc(3px * var(--k-naipe, 1));
+  bottom: calc(3px * var(--k-naipe, 1) + var(--pie-oculto, 0px));
+  min-width: calc(14px * var(--k-naipe, 1));
+  height: calc(14px * var(--k-naipe, 1));
+  padding: 0 2px;
+  background: #f4efe2;
+  box-shadow: 0 0 0 2px #0b0711;
+  font-family: var(--cuerpo);
+  font-size: max(16px, calc(13px * var(--k-naipe, 1)));
+  line-height: 1;
+  text-shadow:
+    1px 0 0 currentColor,
+    0 1px 0 currentColor;
+  pointer-events: none;
+  z-index: 2;
+}
+.c-pie[data-palo='S'] {
+  color: #1238a8;
+}
+.c-pie[data-palo='C'] {
+  color: #0a5424;
+}
+.c-pie[data-palo='D'] {
+  color: #7a3300;
+}
+.c-pie[data-palo='H'] {
+  color: #930030;
+}
+.c-pie[data-palo='X'] {
+  color: #7a5a00;
+}
 /* el Comodín lleva su nombre */
 .c-rotulo {
   position: absolute;
@@ -3224,7 +3265,9 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 @media (min-width: 701px) {
   /* el bocadillo del Bufón no sube a la cabecera: su pie se mide contra el alto real de la escena */
   .mesa .esc-bufon .bocadillo {
-    bottom: min(calc(96px * var(--k-bufon)), calc(100cqh - 5.2em));
+    bottom: min(calc(96px * var(--k-bufon)), calc(100cqh - 5.2em - 18px));
+    /* (0.21: 18 px más abajo: la mano ya no se mete bajo el HUD y la escena es más baja) */
+    max-width: min(15em, 34vw);
   }
 }
 @media (min-width: 701px) {
@@ -3493,9 +3536,10 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     --k-bufon: 1;
   }
   .mesa .mano {
-    --asoma: 56px;
-    height: calc(140px * var(--k-naipe) + var(--asoma) + 4px);
-    margin-bottom: calc(-22px * var(--k-naipe));
+    --asoma: 36px;
+    height: calc(140px * var(--k-naipe) + var(--asoma));
+    /* (0.21: la mano ya no se mete detrás del HUD: el pie de cada naipe, con su índice cabeza abajo, se ve bajo el paño) */
+    margin-bottom: 0;
   }
   .mesa .hud {
     position: relative;
@@ -3533,6 +3577,12 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
   .mesa .e-sellos {
     align-self: end;
     margin-bottom: 4px;
+  }
+  /* (0.21: la mano entera sobre el HUD deja la escena más baja: el escudo del INMUNE va a 1×, y la columna de los
+     sellos no trepa hasta el turno de la cabecera) */
+  .mesa .e-sello,
+  .mesa .e-sello .inmune {
+    --k: 1;
   }
   .mesa .e-ataque {
     align-self: start;
@@ -3807,7 +3857,7 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     justify-content: center;
   }
   .mesa .mano {
-    margin-bottom: calc(-16px * var(--k-naipe));
+    margin-bottom: 0;
   }
   .mesa .corte {
     display: grid;
@@ -4024,12 +4074,17 @@ html[data-entrada='mando'] :is(.opcion, button):focus-visible > .op-glifo {
   }
 }
 
-/* ── 0.21: el paño de las Postas en el portátil bajo (1366×768): la fila de la mano se hunde un poco más detrás del
-   HUD (el pie del naipe, con su índice cabeza abajo) para que la escena conserve el alto que tenía sin el paño ── */
+/* ── 0.21: el paño de las Postas en el portátil bajo (1366×768): la mano entera sobre el HUD y el paño más bajo; la
+   escena cede lo que falta ── */
 @media (min-width: 1100px) and (max-width: 1699px) and (max-height: 780px) {
   .mesa .mano {
-    --asoma: 52px;
-    margin-bottom: -56px;
+    --asoma: 36px;
+    margin-bottom: 0;
+  }
+  /* (con la mano entera sobre el HUD la escena es más baja: la nota de la Furia queda en su ayuda, como en el
+     teléfono, y la placa del TE PEGA no trepa hasta el rótulo del Rey) */
+  .mesa .e-furia-nota {
+    display: none;
   }
 }
 /* ── 0.21, el teléfono: el pie de la fila de adelante (su índice cabeza abajo) se mete detrás de la barra del pulgar,

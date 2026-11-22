@@ -233,6 +233,8 @@ export function montarQa(estado: string): void {
       // costura y el naipe del Medio con su «x2 PEGA DOBLE»
       const p = partida('mentiroso', (x) => enCombate(x));
       const c = p.combate!;
+      // (si la mano no trae el Comodín, la foto lo pone en lugar de su primer naipe)
+      if (!c.mano.some((k) => k.palo === 'X')) c.mano[0] = { id: 'qa-comodin', palo: 'X', n: 0 };
       const x = c.mano.find((k) => k.palo === 'X');
       const otra = c.mano.find((k) => k.palo !== 'X' && k.palo !== c.fila[0].palo);
       montar(p);

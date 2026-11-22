@@ -14,6 +14,7 @@ import * as juego from '../../rules/partida';
 import { donesDe, escudoTope } from '../../rules/estado';
 import { ver } from '../../rules/perfil';
 import { REY_DEF } from '../../rules/reyes';
+import { mejorAcomodo } from '../../rules/bot';
 import { CHICHE, huecosChiche, type ChicheId } from '../../rules/chiches';
 import { ajustes, alAzar, guardarPerfil, idioma, perfil, t, tx } from '../almacen';
 import { agacharMusica, nota, sonar, vozBufon } from '../audio';
@@ -1895,6 +1896,11 @@ export function pantallaMesa(p: Partida): Pantalla {
           $('[data-soltar="descarte"]', raiz)?.classList.toggle('apunta', zona === 'descarte');
         },
         zonas: () => ({ enemigo: $('[data-escena]', raiz)?.getBoundingClientRect(), descarte: $('[data-soltar="descarte"]', raiz)?.getBoundingClientRect() }),
+        // (la mesa acomoda sola: la mejor disposición del paño para lo elegido)
+        acomodar: (ids) => {
+          const sel = ids.map((id) => c().mano.find((k) => k.id === id)).filter((k): k is Carta => !!k);
+          return sel.length === ids.length ? mejorAcomodo(p, sel) : null;
+        },
       }, postasDe(p));
       pintarArriba();
       pintarChiches();
