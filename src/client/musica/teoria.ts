@@ -220,7 +220,7 @@ export function mezclaDe(e: EstadoMusical): Mezcla {
       m = { capas: { bajo: 0.75, pad: 0.8, cuerdas: 0.3, bombo: 0.45, madera: 0.6 }, corte: 1700, q: 0.8, sala: 0.6, bajo: 'milonga', guitarra: 'intimo', rasgueo: 'relajado', bateria: 0 };
       break;
     case 'pulperia':
-      // la misma armonía tras el pasabajos de taberna, con rasgueo relajado
+      // la misma armonía tras el pasabajos de la Pulpería, con rasgueo relajado
       m = { capas: { bajo: 0.8, rasgueo: 1, pad: 0.35, bombo: 0.4, madera: 0.35 }, corte: 1300, q: 0.9, sala: 0.25, bajo: 'milonga', guitarra: 'intimo', rasgueo: 'relajado', bateria: 0 };
       break;
     case 'fogon':

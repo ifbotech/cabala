@@ -1,9 +1,12 @@
 // Levanta el servidor de desarrollo de Vite dentro del propio script (sin procesos en segundo plano) y lo cierra al
 // terminar. Lo usan la QA visual, la de humo y la de FPS.
+import { realpathSync } from 'node:fs';
 import { createServer, type ViteDevServer } from 'vite';
 
+// (0.28) `fs.allow` con la ruta real de node_modules: en una copia de trabajo con node_modules enlazado, Vite negaba
+// las fuentes (403) y la QA de humo lo contaba como error de consola.
 export async function conServidor<T>(puerto: number, tarea: (url: string) => Promise<T>): Promise<T> {
-  const servidor: ViteDevServer = await createServer({ server: { port: puerto, strictPort: false, host: '127.0.0.1' }, logLevel: 'error', clearScreen: false });
+  const servidor: ViteDevServer = await createServer({ server: { port: puerto, strictPort: false, host: '127.0.0.1', fs: { allow: [process.cwd(), realpathSync('node_modules')] } }, logLevel: 'error', clearScreen: false });
   await servidor.listen();
   const dir = servidor.resolvedUrls?.local[0] ?? `http://127.0.0.1:${puerto}/`;
   try {

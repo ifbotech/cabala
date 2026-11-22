@@ -122,7 +122,7 @@ describe('la partitura', () => {
     expect(capas({ escena: 'mesa', nivel: 2 })).toEqual(expect.arrayContaining(['bandoneon', 'cuerdas', 'escobillas']));
     expect(capas({ escena: 'mesa', nivel: 1, vidaBaja: true })).toContain('latido');
     expect(capas({ escena: 'rey', rey: 'S' })).toContain('motivo');
-    // el filtro se abre con el tramo, se cierra en la taberna y más con la poca Vida
+    // el filtro se abre con el tramo, se cierra en la Pulpería y más con la poca Vida
     const corte = (e: Partial<T.EstadoMusical>): number => T.mezclaDe({ ...T.ESTADO_INICIAL, ...e }).corte;
     expect(corte({ escena: 'mesa', nivel: 1 })).toBeLessThan(corte({ escena: 'mesa', nivel: 2 }));
     expect(corte({ escena: 'mesa', nivel: 2 })).toBeLessThan(corte({ escena: 'mesa', nivel: 3 }));
