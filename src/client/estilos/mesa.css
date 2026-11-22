@@ -564,6 +564,10 @@
   line-height: 0;
   pointer-events: none;
   filter: drop-shadow(0 0 calc(3px * var(--k)) rgba(255, 213, 0, 0.8));
+}
+/* (el latido va en el sprite, no en la caja: `scale` en la caja escalaba también su translate3d y la Chispa se iba
+   80 px a la derecha de la costura, sobre el naipe del Medio) */
+.posta-chispa > .px {
   animation: chisporrotea 480ms steps(4) infinite;
 }
 @keyframes chisporrotea {
@@ -1404,9 +1408,10 @@
   animation: cuenta-pop 0.16s steps(3);
 }
 @keyframes cuenta-pop {
-  /* solo escala y brillo: la mano coloca cada carta por su cuenta y no hay que pisarle la posición */
+  /* solo un salto y brillo: la mano coloca cada carta por su cuenta y no hay que pisarle la posición (0.21: salto con
+     `translate`, que se suma en pantalla; `scale` multiplicaba también el translate3d de la carta y la corría de lugar) */
   50% {
-    scale: 1.14;
+    translate: 0 calc(-6px * var(--k));
     filter: brightness(1.25);
   }
 }
@@ -3646,6 +3651,11 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
   .c-veredicto {
     font-size: var(--fr);
     padding: 2px 4px;
+    /* (un veredicto largo —«TAKES IT DOWN · THROAT-CUT»— parte en dos renglones antes que salirse de la pantalla) */
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
+    letter-spacing: 0.03em;
   }
 }
 .c-formula > .c-revelado {
@@ -4476,5 +4486,21 @@ button.chiche:focus-visible {
   /* (las llamas de la Furia bajan bajo el rótulo, sobre el emblema: no lo tapan) */
   .mesa .e-ataque > .e-llamas {
     top: 12px;
+  }
+}
+/* el teléfono bajo (Safari con sus barras): la escena no tiene alto para el rótulo; queda la cifra y su causa debajo */
+@container mesa (max-height: 700px) {
+  .mesa .e-ataque > .rotulo.e-pega {
+    display: none;
+  }
+  .mesa .e-ataque > .e-llamas {
+    top: -6px;
+  }
+  .mesa .e-ataque .e-golpe {
+    display: inline;
+  }
+  .mesa .e-ataque .e-neto:not([hidden]) {
+    font-size: 14px;
+    line-height: 16px;
   }
 }

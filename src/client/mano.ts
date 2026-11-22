@@ -145,6 +145,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
   let cursor: { x: number; y: number } | null = null;
   let ultimo = performance.now();
   let posado: { ids: string[]; x: number; y: number } | null = null;
+  /** ¿La mano de ahora va repartida en los claros del paño (y no en su fila de siempre)? */
+  let enClaros = false;
   /** La pose de la QA: una carta del paño a medio camino hacia otra Posta. */
   let haciaPosta: { id: string; posta: number } | null = null;
 
@@ -236,6 +238,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     const paso = n > 1 ? Math.min(w + hueco, (ancho - w) / (n - 1)) : 0;
     const base = alto - h;
     const foco = document.activeElement;
+    enClaros = false;
     /**
      * Una fila centrada. Si una carta tiene el foco y se monta sobre su vecina, la fila le abre lugar: la enfocada se
      * ve entera y las demás se aprietan (cada una conserva su índice a la vista).
@@ -299,7 +302,10 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
           const x0 = Math.max(l, Math.min(r - ancho2, (ancho - w) / 2 - ancho2 / 2));
           for (let q = 0; q < m; q++) out.set(enMano[j++].carta.id, { x: Math.round(x0 + q * pasoT), y: base });
         });
-        if (j === n) return out;
+        if (j === n) {
+          enClaros = true;
+          return out;
+        }
       }
     }
     fila(enMano, base);
@@ -484,7 +490,9 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
         }
         // la carta con el foco del mando o del teclado pasa al frente (con mano de 8, la fila le abre lugar: no tapa a
         // su vecina); la del paño, al frente de su fila
-        if (foco === c.el) z = p >= 0 ? Z.posta + 9 : Z.foco;
+        // (en los claros del paño no hay lugar que abrirle: ahí la enfocada se queda en su capa y su vecina la tapa
+        // apenas, sin perder nadie el índice)
+        if (foco === c.el) z = p >= 0 ? Z.posta + 9 : enClaros ? z : Z.foco;
       }
       if (quieto) {
         c.x = tx;

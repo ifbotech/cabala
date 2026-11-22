@@ -60,8 +60,9 @@ async function puntoDe(p: Page, id: string): Promise<{ x: number; y: number }> {
     const el = document.querySelector<HTMLElement>(`.carta[data-id="${id}"]`);
     if (!el) return null;
     const r = el.getBoundingClientRect();
-    for (const fy of [0.5, 0.3, 0.15, 0.08, 0.7, 0.04])
-      for (const fx of [0.5, 0.3, 0.7]) {
+    // (0.21: el paño va encima de la mano; de una carta de la mano a veces se ve solo un costado o su índice al pie)
+    for (const fy of [0.5, 0.3, 0.15, 0.08, 0.7, 0.04, 0.85, 0.94])
+      for (const fx of [0.5, 0.3, 0.7, 0.12, 0.88]) {
         const x = r.left + r.width * fx;
         const y = r.top + r.height * fy;
         if (y < 0 || y > innerHeight - 2) continue;

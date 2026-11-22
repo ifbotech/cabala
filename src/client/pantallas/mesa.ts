@@ -1745,7 +1745,7 @@ export function pantallaMesa(p: Partida): Pantalla {
       else if (x.de.startsWith('posta:')) {
         // los del paño salen de su lugar: el naipe del Medio, la Chispa (entre el Comodín y su vecino) o el Escalón
         const medio = Math.floor(postasDe(p) / 2);
-        const de = x.de === 'posta:medio' ? $(`[data-mano] .posta[data-posta="${medio}"]`) : x.de === 'posta:chispa' ? $('[data-mano] .posta-chispa:not([hidden])') : $('[data-mano] .posta-escalon');
+        const de = x.de === 'posta:medio' ? $(`[data-mano] .posta[data-posta="${medio}"]`) : x.de === 'posta:chispa' ? $('[data-mano] .posta-chispa:not([hidden])') : ($('[data-mano] .posta-escalon:not([hidden])') ?? [...document.querySelectorAll<HTMLElement>('[data-mano] .posta.llena')].pop() ?? null);
         const rd = de?.getBoundingClientRect();
         if (rd && rd.width) volarCifra(texto, { x: rd.left + rd.width / 2, y: rd.top + Math.min(rd.height / 2, 24) }, termino(x), tono);
         if (x.de === 'posta:escalon') sonar('escalon');
