@@ -7,8 +7,8 @@ import type { Partida } from '../rules/estado';
 import { EVOLUCION, evoluciones, type EvolucionDe } from '../rules/evoluciones';
 import { AMULETO } from '../rules/amuletos';
 import { t, tx } from './almacen';
-import { sonar } from './audio';
 import { bufonDice } from './bufon-vivo';
+import { stinger } from './musica';
 import { RAMPA_PALO, chispas, destello } from './fx/efectos';
 import { enFoto } from './fx/motor';
 import { quieto } from './ritmo';
@@ -80,7 +80,7 @@ export function jackpotEvolucion(de: EvolucionDe): Promise<void> {
   capa.insertAdjacentHTML('beforeend', jackpotHtml(de));
   const el = capa.lastElementChild as HTMLElement;
   if (quieto()) el.classList.add('quieto');
-  sonar('evolucion');
+  stinger('evolucion');
   bufonDice(tx(VOZ.evoluciona[de]));
   const icono = (): DOMRect | undefined => el.querySelector('.evo-icono .px')?.getBoundingClientRect();
   if (!quieto()) {

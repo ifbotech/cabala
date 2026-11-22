@@ -4,11 +4,12 @@
 // fuerte encima de la música no satura, y la música se agacha un instante en cada hitstop.
 //
 //   efectos ─┐
-//            ├─▶ compresor ─▶ maestro ─▶ altavoces
-//   música  ─┘
+//            ├─▶ compresor ─▶ limitador ─▶ maestro ─▶ techo ─▶ altavoces   (0.28: el bus vive en musica/bus.ts)
+//   música  ─┘        ▲ sala (reverb)
 import type { Palo } from '../rules/cartas';
 import type { MazoId } from '../rules/mazos';
 import { ajustes } from './almacen';
+import { crearBus } from './musica/bus';
 
 type Nota = [frecuencia: number, duracion: number, onda?: OscillatorType, volumen?: number, cae?: number];
 
@@ -162,30 +163,20 @@ const VARIA_BASE = 0.3;
 let ctx: AudioContext | null = null;
 let busEfectos: GainNode | null = null;
 let busMusica: GainNode | null = null;
+let busSala: GainNode | null = null;
 let ruidoBlanco: AudioBuffer | null = null;
 const alAbrir: (() => void)[] = [];
-const MAESTRO = 0.9;
 
 /** Crea el contexto y los buses la primera vez (después, siempre los mismos). */
 function abrirContexto(): AudioContext {
   if (ctx) return ctx;
   const c = new AudioContext();
-  // el compresor: deja pasar la música tal cual y achata los picos de los golpes que se apilan
-  const comp = c.createDynamicsCompressor();
-  comp.threshold.value = -16;
-  comp.knee.value = 10;
-  comp.ratio.value = 5;
-  comp.attack.value = 0.004;
-  comp.release.value = 0.18;
-  const maestro = c.createGain();
-  maestro.gain.value = MAESTRO;
-  comp.connect(maestro).connect(c.destination);
-  busEfectos = c.createGain();
+  // (0.28) el bus maestro: compresor suave, limitador, techo de −1 dBFS y la sala (ver musica/bus.ts)
+  const bus = crearBus(c);
+  busEfectos = bus.efectos;
   busEfectos.gain.value = ajustes.sonido ? 1 : 0;
-  busEfectos.connect(comp);
-  busMusica = c.createGain();
-  busMusica.gain.value = 1;
-  busMusica.connect(comp);
+  busMusica = bus.musica;
+  busSala = bus.sala;
   // el ruido blanco, uno solo para todos: cada disparo lo lee desde un punto distinto
   ruidoBlanco = c.createBuffer(1, c.sampleRate, c.sampleRate);
   const d = ruidoBlanco.getChannelData(0);
@@ -198,6 +189,9 @@ function abrirContexto(): AudioContext {
 export const contextoAudio = (): AudioContext | null => (ctx && ctx.state === 'running' ? ctx : null);
 /** El bus de la música (con su compresor y la ganancia maestra), si el audio ya está abierto. */
 export const salidaMusica = (): AudioNode | null => busMusica;
+/** (0.28) El bus de los efectos (por acá cantan las voces y suenan los stingers) y el envío a la sala. */
+export const salidaEfectos = (): AudioNode | null => busEfectos;
+export const salidaSala = (): AudioNode | null => busSala;
 /** Avisa cuando el navegador deja abrir el audio (con el primer gesto). */
 export const alAbrirAudio = (f: () => void): void => void alAbrir.push(f);
 /** Cuántos sonidos se pidieron (para la QA, que no oye). */
@@ -363,40 +357,10 @@ export function sonar(cual: Sonido, o: { retraso?: number; palo?: Palo; altura?:
 /** Quién habla: el Bufón, un Rey (por su palo) o el Personaje de un Mazo. */
 export type VozId = 'bufon' | 'S' | 'C' | 'D' | 'H' | MazoId;
 
-// Cada cual habla con su timbre: un pitido corto por sílaba, con la altura que le toca a esa letra. `cae` tuerce
-// el pitido (menos de 1 baja, más de 1 sube).
-const VOCES: Record<VozId, { onda: OscillatorType; escala: number[]; dur: number; vol: number; cae?: number }> = {
-  bufon: { onda: 'square', escala: [392, 440, 494, 523, 587, 659], dur: 0.045, vol: 0.045 },
-  // los Reyes hablan grave: Espadas seco y cortante, Bastos el más hondo, Oros nasal y apurado, Copas arrastra
-  S: { onda: 'sawtooth', escala: [110, 123, 131, 147], dur: 0.06, vol: 0.05, cae: 0.9 },
-  C: { onda: 'triangle', escala: [65, 73, 78, 87], dur: 0.1, vol: 0.13, cae: 0.9 },
-  D: { onda: 'square', escala: [208, 233, 262, 277, 311], dur: 0.04, vol: 0.035, cae: 1.07 },
-  H: { onda: 'triangle', escala: [147, 165, 185, 196, 220], dur: 0.085, vol: 0.1, cae: 0.78 },
-  // los Personajes: la Barrendera clara, el Paisano ronco, la Timbera rápida, el Chamuyero meloso, el Manotazo bruto
-  escoba: { onda: 'triangle', escala: [523, 587, 659, 698, 784], dur: 0.05, vol: 0.1 },
-  truco: { onda: 'sawtooth', escala: [165, 185, 196, 220, 247], dur: 0.055, vol: 0.05 },
-  chinchon: { onda: 'square', escala: [330, 370, 415, 440, 494], dur: 0.04, vol: 0.04 },
-  mentiroso: { onda: 'triangle', escala: [262, 294, 311, 349, 392], dur: 0.07, vol: 0.1, cae: 1.08 },
-  chancho: { onda: 'square', escala: [131, 147, 165, 175, 196], dur: 0.05, vol: 0.05, cae: 0.85 },
-};
+// (0.28) Las voces ya no son pitidos: cada personaje CANTA lo que dice (`cantar`, en musica.ts), con formantes por
+// vocal, en su tesitura y sobre el acorde del compás (musica/teoria.ts y musica/canto.ts).
 /** Quiénes hablaron (para la QA, que no oye). */
 export const hablaron: VozId[] = [];
-
-/** Una sílaba de la voz de alguien. */
-export function voz(quien: VozId, letra: number): void {
-  if (!hablaron.includes(quien)) hablaron.push(quien);
-  if (!ajustes.sonido || !ctx || ctx.state !== 'running' || !busEfectos) return;
-  try {
-    const v = VOCES[quien];
-    const f = v.escala[letra % v.escala.length];
-    // cada sílaba, un pelito corrida: la voz no suena a sampler
-    tono(ctx, ctx.currentTime, f, v.dur, v.onda, v.vol, v.cae ? f * v.cae : undefined, (Math.random() - 0.5) * 30);
-  } catch {
-    // sin audio: habla en silencio
-  }
-}
-/** La voz del Bufón (habla en chiptune). */
-export const vozBufon = (letra: number): void => voz('bufon', letra);
 
 /** Una nota del conteo del golpe: cada paso sube un semitono. `larga` es la del total. */
 export function nota(semitono: number, larga = false): void {

@@ -6,7 +6,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { ESTADOS } from '../src/client/qa';
 import { EN, ES, JUGADA_COMO, JUGADA_NOMBRE, NODO_DESC, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, RANGO_NOMBRE, TRAMO_NOMBRE } from '../src/client/textos';
 import { ENSENANZA, GRITO, VOZ } from '../src/client/voces';
-import { PISTAS } from '../src/client/musica';
+import { BPM, SECCIONES, SECCION_DE, acordeDeGrado } from '../src/client/musica/teoria';
 import { AMULETO, AMULETOS, RAREZA_NOMBRE, precioBase } from '../src/rules/amuletos';
 import { AUMENTO, AUMENTOS, NIVEL_NOMBRE } from '../src/rules/aumentos';
 import { B } from '../src/rules/balance';
@@ -149,7 +149,7 @@ const datos = {
   ui: { es: ES, en: EN },
   voz: { ensenanza: ENSENANZA, ...VOZ },
   gritos: GRITO,
-  musica: Object.entries(PISTAS).map(([id, p]) => ({ id, bpm: p.bpm, compas: p.pasos === 12 ? '3/4' : '4/4' })),
+  musica: Object.entries(SECCION_DE).map(([id, s]) => ({ id, bpm: BPM, compas: '4/4', tonalidad: 'Re menor', acordes: SECCIONES[s].map((g) => acordeDeGrado(g).nombre) })),
   palos: Object.fromEntries(PALOS.map((s) => [s, { nombre: PALO_NOMBRE[s], poder: PALO_PODER[s] }])),
   rangos: RANGO_NOMBRE,
   jugadas: [...JUGADAS, 'quince' as Jugada, 'envido' as Jugada].map((j) => ({ id: j, nombre: JUGADA_NOMBRE[j], como: JUGADA_COMO[j], d: B.jugadas[j].d, m: B.jugadas[j].m })),

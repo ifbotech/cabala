@@ -18,8 +18,8 @@ import { acomodoExacto, mejorAcomodo } from '../../rules/bot';
 import { CHICHE, huecosChiche, type ChicheId } from '../../rules/chiches';
 import { EVOLUCION, evoluciono, type EvolucionDe } from '../../rules/evoluciones';
 import { ajustes, alAzar, guardarPerfil, idioma, perfil, t, tx } from '../almacen';
-import { agacharMusica, nota, sonar, vozBufon } from '../audio';
-import { estadoMusica, ponerFuego, ponerMusica } from '../musica';
+import { agacharMusica, nota, sonar } from '../audio';
+import { cantar, estadoCombate, estadoMusica, ponerFuego, ponerMusica, stinger } from '../musica';
 import { teclear } from '../habla';
 import { RAMPA_CURA, RAMPA_ESCUDO, RAMPA_GOLPE, RAMPA_PALO, chispas, destello, haloRey, limpiarNumeros, lluviaDeMonedas, monedas, motas, numero, partirNaipe, quiebre, tajo, tajoDeReves, type Carril } from '../fx/efectos';
 import { alCeder, cajaDe, pisan, reservar, soltar as soltarTurno, tomadas, ubicar } from '../fx/director';
@@ -145,7 +145,7 @@ export function pantallaMesa(p: Partida): Pantalla {
         window.setTimeout(() => (b.style.visibility = ''), 1000);
       });
     }
-    if (!enFoto()) for (let i = 0; i < 3; i++) window.setTimeout(() => vozBufon(texto.charCodeAt(i * 3) || 65), i * 70);
+    if (!enFoto()) cantar('bufon', texto);
     gestoBufon($('.esc-bufon')!, gesto);
     if (ms > 0 && !enFoto()) vozReloj = window.setTimeout(() => {
       b.hidden = true;
@@ -862,6 +862,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     const enRacha = (p.racha ?? 0) >= 2;
     $('.mesa')?.classList.toggle('racha', enRacha);
     ponerFuego(enRacha);
+    estadoCombate({ tramo: p.acto, furia, racha: p.racha ?? 0, vidaPct: hud.vida / Math.max(1, hud.vidaMax), rey: enemigo?.jefe ? enemigo.palo : null, segunda: !!enemigo?.segunda });
     if (el) el.innerHTML = `${t('turno', { n: c().turno })}${racha}${c().dado ? ` <span class="dado" ${tip(idioma() === 'en' ? `Die: ${c().dado}` : `Dado: ${c().dado}`)}>${pxHud(`dado${c().dado}` as 'dado1')}</span>` : ''}`;
   }
   /** Pone toda la vista de acuerdo con el estado real (al empezar y al terminar cada acción). */
@@ -1019,7 +1020,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           // Pierna también canta ¡CHANCHO!, un escalón menos (un temblor chico, menos chispas, el canto más chico)
           const chancho = p.mazoId === 'chancho' ? (q?.jugada === 'poker' ? 2 : q?.jugada === 'pierna' ? 1 : 0) : 0;
           cantoMenor = chancho === 1;
-          sonar('canto', chancho === 1 ? { altura: 0.89 } : undefined);
+          stinger(p.mazoId);
           if (chancho && !quieto()) {
             const en = centro(carta());
             if (chancho === 2) fogonazo('oro');
@@ -1086,6 +1087,7 @@ export function pantallaMesa(p: Partida): Pantalla {
         case 'alpelo': {
           // te pasaste por un pelo: no cobra, pero la racha sigue viva. Suena a roce y a risita, no a Escudo
           sonar('alpelo');
+          stinger('alpelo');
           gestoRetrato('feroz', 900);
           gestoBufon($('.esc-bufon')!, 'risa');
           if (!quieto()) {
@@ -1102,7 +1104,7 @@ export function pantallaMesa(p: Partida): Pantalla {
         case 'exacto': {
           const en = centro(carta());
           destello(en.x, en.y, RAMPA_PALO.D, 26);
-          sonar('exacto');
+          stinger('exacto');
           gestoRetrato('festejo', 1300);
           poseRetrato('festeja', 700);
           voz(VOZ.exacto, 'risa');
@@ -1949,6 +1951,7 @@ export function pantallaMesa(p: Partida): Pantalla {
    */
   async function segundaCara(palo: Palo): Promise<void> {
     sonar('segunda', { palo });
+    estadoCombate({ segunda: true });
     if (quieto()) {
       if (enemigo) enemigo.segunda = true;
       pintarEnemigo();

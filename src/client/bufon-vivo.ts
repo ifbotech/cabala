@@ -2,9 +2,10 @@
 // (con su «puf») y reaparece en la siguiente (con su cascabel); flota y parpadea todo el tiempo; cuando habla, el
 // bocadillo se escribe letra por letra con su voz, se queda un rato y se va; y si lo dejás solo, cada tanto tira una
 // de las suyas. Con «Reducir movimiento» y en las capturas de la QA todo esto queda quieto y en su sitio.
-import { sonar, vozBufon } from './audio';
+import { sonar } from './audio';
 import { humo } from './fx/efectos';
 import { enFoto } from './fx/motor';
+import { cantar } from './musica';
 import { quieto } from './ritmo';
 
 let relojesVida: number[] = [];
@@ -68,12 +69,12 @@ function hablar(b: HTMLElement, texto: string): void {
   const dicho = b.firstElementChild as HTMLElement;
   const falta = b.lastElementChild as HTMLElement;
   bufon?.classList.add('habla');
+  cantar('bufon', texto);
   let i = 0;
   const paso = (): void => {
     i = Math.min(texto.length, i + 2);
     dicho.textContent = texto.slice(0, i);
     falta.textContent = texto.slice(i);
-    if (i % 4 === 0 && /\S/.test(texto[i - 1] ?? '')) vozBufon(texto.charCodeAt(i - 1));
     if (i < texto.length) enHabla(32, paso);
     else {
       bufon?.classList.remove('habla');
