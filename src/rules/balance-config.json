@@ -69,7 +69,8 @@
     "oro": 3,
     "multi": 1,
     "rachaTope": 3,
-    "alPelo": 0.05
+    "alPelo": 0.1,
+    "oroAlPelo": 1
   },
   "furia": {
     "mazoAgotado": 3,
@@ -148,12 +149,12 @@
   },
   "mazos": {
     "escoba": {
-      "vida": 72,
+      "vida": 70,
       "mano": 3,
       "hasta": 9,
       "comodines": 2,
       "multi": 3,
-      "cargaDano": 2,
+      "cargaDano": 3,
       "multiMano": 3,
       "mesaLimpia": 10
     },
@@ -168,12 +169,13 @@
         "S7": 24,
         "D7": 20
       },
-      "envido": 11,
+      "envido": 25,
+      "envidoMin": 8,
       "cargaDano": 1,
       "multiMano": 7
     },
     "chinchon": {
-      "vida": 26,
+      "vida": 27,
       "mano": 7,
       "hasta": 8,
       "comodines": 2,
@@ -182,24 +184,24 @@
       "multiMano": 1
     },
     "mentiroso": {
-      "vida": 25,
+      "vida": 29,
       "mano": 8,
       "hasta": 6,
       "comodines": 3,
       "enganos": 1,
       "furiaFallo": 3,
-      "caraDePiedra": 20,
+      "caraDePiedra": 29,
       "multiMano": 0
     },
     "chancho": {
-      "vida": 47,
+      "vida": 45,
       "mano": 4,
       "hasta": 9,
       "comodines": 2,
       "multi": 2,
       "pierna": 1,
       "aturde": 2,
-      "multiMano": 4
+      "multiMano": 5
     }
   },
   "botin": {
@@ -256,6 +258,7 @@
     "robaCarta": 1
   },
   "evoluciones": {
+    "despierta": 4,
     "facon": {
       "sobra": 3,
       "corta": 3

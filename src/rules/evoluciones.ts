@@ -35,7 +35,7 @@ export const EVOLUCION: Record<EvolucionDe, EvolucionDef> = {
     de: 'poncho',
     palo: 'C',
     nombre: L('GARROTE DEL CACIQUE', "CHIEFTAIN'S CLUB"),
-    desc: fillL(L('Con {e}+ de Escudo, +{m} Multi; tu Escudo suma ×{g} al Daño. MALDICIÓN: golpe que no abate, gasta medio Escudo.', 'At {e}+ Shield, +{m} Mult; your Shield adds ×{g} to Damage. CURSE: a hit that kills nothing spends half your Shield.'), { e: am.poncho.escudo, m: am.poncho.multi, g: ev.garrote }),
+    desc: fillL(L('Con {e}+ de Escudo, +{m} Multi; tu Escudo suma ×{g} al Daño. MALDICIÓN: el golpe sin Bastos gasta medio Escudo.', 'At {e}+ Shield, +{m} Mult; your Shield adds ×{g} to Damage. CURSE: a hit with no Clubs spends half your Shield.'), { e: am.poncho.escudo, m: am.poncho.multi, g: ev.garrote }),
   },
   cofre: {
     de: 'cofre',
@@ -47,12 +47,22 @@ export const EVOLUCION: Record<EvolucionDe, EvolucionDef> = {
     de: 'caliz',
     palo: 'H',
     nombre: L('BRINDIS DE SANGRE', 'BLOOD TOAST'),
-    desc: fillL(L('+1 de Multi por cada {k} % de Vida que te falta. MALDICIÓN: cada golpe te bebe {v} de Vida.', '+1 Mult for every {k}% Health you are missing. CURSE: every hit drinks {v} Health.'), { k: ev.brindis.cada, v: ev.brindis.bebe }),
+    desc: fillL(L('+1 de Multi por cada {k} % de Vida que te falta. MALDICIÓN: tus Copas ya no te curan.', '+1 Mult for every {k}% Health you are missing. CURSE: your Cups no longer heal you.'), { k: ev.brindis.cada }),
   },
 };
 
 /** El Amuleto, ¿ya evolucionó? (lo llevás y llevás algún don del Rey de su palo). */
-export const evoluciono = (p: Partida, de: EvolucionDe): boolean => tieneAmuleto(p, de) && donesDe(p, EVOLUCION[de].palo) > 0;
+/** Niveles de dones de ese Rey que llevás (un don de nivel 2 cuenta 2; las Duales cuentan para los dos). */
+export function nivelesDe(p: Partida, palo: Palo): number {
+  let n = 0;
+  for (const id in p.bendiciones) {
+    const d = BENDICION[id as BendicionId];
+    if (d.rey === palo || d.dual === palo) n += p.bendiciones[id as BendicionId] ?? 0;
+  }
+  return n;
+}
+/** (0.29.0) El Amuleto, ¿ya evolucionó? Lo llevás y el Rey de su palo te dio dones por el nivel que pide el despertar. */
+export const evoluciono = (p: Partida, de: EvolucionDe): boolean => tieneAmuleto(p, de) && nivelesDe(p, EVOLUCION[de].palo) >= B.evoluciones.despierta;
 /** Las Evoluciones despiertas de la partida. */
 export const evoluciones = (p: Partida): EvolucionDe[] => EVOLUCIONES.filter((de) => evoluciono(p, de));
 export const esEvolucionable = (id: string): id is EvolucionDe => (EVOLUCIONES as readonly string[]).includes(id);
@@ -62,13 +72,14 @@ export const esEvolucionable = (id: string): id is EvolucionDe => (EVOLUCIONES a
  * Rey ya te dio un don, o un don de un Rey cuyo Épico ya llevás.
  */
 export function despierta(p: Partida, tipo: 'amuleto' | 'bendicion' | 'aumento', id: string): EvolucionDe | null {
-  if (tipo === 'amuleto') return esEvolucionable(id) && !tieneAmuleto(p, id) && donesDe(p, EVOLUCION[id].palo) > 0 ? id : null;
+  if (tipo === 'amuleto') return esEvolucionable(id) && !tieneAmuleto(p, id) && nivelesDe(p, EVOLUCION[id].palo) >= B.evoluciones.despierta ? id : null;
   if (tipo !== 'bendicion') return null;
   const d = BENDICION[id as BendicionId];
   if (!d) return null;
   for (const de of EVOLUCIONES) {
     const palo = EVOLUCION[de].palo;
-    if (tieneAmuleto(p, de as AmuletoId) && donesDe(p, palo) === 0 && (d.rey === palo || d.dual === palo)) return de;
+    // el don que se ofrece suma un nivel: despierta si con él se llega justo al umbral
+    if (tieneAmuleto(p, de as AmuletoId) && nivelesDe(p, palo) === B.evoluciones.despierta - 1 && (d.rey === palo || d.dual === palo)) return de;
   }
   return null;
 }

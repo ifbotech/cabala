@@ -703,11 +703,15 @@ describe('0.22.0: Evoluciones, Forja Brava, Cábala Negra y Tesoros', () => {
       const p = juego.nuevaPartida({ mazo: 'escoba', semilla: 'EVO' });
       p.amuletos = [de];
       expect(evoluciono(p, de)).toBe(false);
+      // (0.29.0) un don de nivel 1 no alcanza: hacen falta dos niveles de dones de ese Rey
+      expect(despierta(p, 'bendicion', donDe(ev.palo))).toBe(null);
+      p.bendiciones = { [donDe(ev.palo)]: B.evoluciones.despierta - 1 };
+      expect(evoluciono(p, de)).toBe(false);
       expect(despierta(p, 'bendicion', donDe(ev.palo))).toBe(de);
-      p.bendiciones = { [donDe(ev.palo)]: 1 };
+      p.bendiciones = { [donDe(ev.palo)]: B.evoluciones.despierta };
       expect(evoluciono(p, de)).toBe(true);
       const q = juego.nuevaPartida({ mazo: 'escoba', semilla: 'EVO' });
-      q.bendiciones = { [donDe(ev.palo)]: 1 };
+      q.bendiciones = { [donDe(ev.palo)]: B.evoluciones.despierta };
       expect(despierta(q, 'amuleto', de)).toBe(de);
     }
   });
@@ -715,7 +719,7 @@ describe('0.22.0: Evoluciones, Forja Brava, Cábala Negra y Tesoros', () => {
     const mano = [c('S', 7), c('C', 7)];
     const p = mesa('chinchon', mano, {}, (x) => (x.amuletos = ['caliz']));
     expect(cuenta(p, mano).pasos.some((x) => x.de === 'a:caliz')).toBe(true);
-    p.bendiciones = { [donDe('H')]: 1 };
+    p.bendiciones = { [donDe('H')]: B.evoluciones.despierta };
     p.vida = Math.round(p.vidaMax * 0.65);
     const q = cuenta(p, mano);
     expect(q.pasos.some((x) => x.de === 'a:caliz')).toBe(false);
@@ -911,7 +915,7 @@ describe('0.25.0: cada Evolución trae su maldición', () => {
     const mano = [c('S', 3), c('D', 2)];
     const p = mesa('chinchon', mano, {}, (x) => {
       x.amuletos = ['lanza'];
-      x.bendiciones = { [donDe('S')]: 1 };
+      x.bendiciones = { [donDe('S')]: B.evoluciones.despierta };
     });
     const q = cuenta(p, [mano[0]]);
     expect(q.abate).toBe(false);
@@ -921,17 +925,19 @@ describe('0.25.0: cada Evolución trae su maldición', () => {
     expect(evs.some((e) => e.t === 'maldicion' && e.de === 'lanza' && e.n === 1)).toBe(true);
     expect(p.vida).toBeGreaterThanOrEqual(0);
   });
-  it('el Brindis de Sangre bebe Vida en cada golpe', () => {
+  it('el Brindis de Sangre (0.29.0): tus Copas ya no te curan', () => {
     const mano = [c('H', 4), c('S', 2)];
     const p = mesa('chinchon', mano, {}, (x) => (x.amuletos = ['caliz']));
-    p.bendiciones = { [donDe('H')]: 1 };
-    expect(cuenta(p, [mano[0]]).maldicion).toBe(B.evoluciones.brindis.bebe);
+    expect(cuenta(p, [mano[0]]).cura).toBeGreaterThan(0);
+    p.bendiciones = { [donDe('H')]: B.evoluciones.despierta };
+    expect(cuenta(p, [mano[0]]).cura).toBe(0);
+    expect(cuenta(p, [mano[0]]).maldicion).toBe(0);
   });
   it('el Garrote del Cacique pega con tu Escudo y el golpe que no abate gasta la mitad', () => {
     const mano = [c('S', 4), c('D', 4)];
     const p = mesa('chinchon', mano, {}, (x) => {
       x.amuletos = ['poncho'];
-      x.bendiciones = { [donDe('C')]: 1 };
+      x.bendiciones = { [donDe('C')]: B.evoluciones.despierta };
     });
     p.combate!.escudo = 12;
     const q = cuenta(p, [mano[0]]);
@@ -948,7 +954,7 @@ describe('0.25.0: cada Evolución trae su maldición', () => {
       x.oro = 10;
     });
     const antes = cuenta(p, mano.slice(0, 2));
-    p.bendiciones = { [donDe('D')]: 1 };
+    p.bendiciones = { [donDe('D')]: B.evoluciones.despierta };
     expect(cuenta(p, mano.slice(0, 2)).oro).toBe(antes.oro * B.evoluciones.sol.oroDoble);
     const evs = descartar(p, [mano[2].id]);
     expect(evs.some((e) => e.t === 'maldicion' && e.de === 'cofre')).toBe(true);
@@ -997,5 +1003,38 @@ describe('0.26.0: el Chancho canta también con la Pierna', () => {
     const poker = [c('S', 6), c('C', 6), c('D', 6), c('H', 6)];
     const r = mesa('chancho', poker);
     expect(cuenta(r, poker).aturde).toBe(B.mazos.chancho.aturde);
+  });
+});
+
+describe('0.29.0: el Envido se canta, el Garrote pide Bastos y el ¡CHANCHO! que abate aturde al que entra', () => {
+  const donDe = (palo: string) => BENDICIONES.find((id) => BENDICION[id].rey === palo && !BENDICION[id].dual)!;
+  it('Truco: dos cartas del mismo palo cantan solo si suman el mínimo', () => {
+    const mano = [c('D', 2), c('D', 3), c('D', 6)];
+    const p = mesa('truco', mano);
+    expect(2 + 3).toBeLessThan(B.mazos.truco.envidoMin);
+    expect(cuenta(p, [mano[0], mano[1]]).canto).toBe(false);
+    expect(cuenta(p, [mano[0], mano[2]]).canto).toBe(true);
+  });
+  it('Garrote del Cacique: el golpe con Bastos no gasta Escudo; el golpe sin Bastos gasta la mitad', () => {
+    const mano = [c('C', 4), c('S', 4)];
+    const p = mesa('chinchon', mano, {}, (x) => {
+      x.amuletos = ['poncho'];
+      x.bendiciones = { [donDe('C')]: B.evoluciones.despierta };
+    });
+    p.combate!.escudo = 12;
+    expect(cuenta(p, [mano[0]]).gasta).toBe(0);
+    expect(cuenta(p, [mano[1]]).gasta).toBe(Math.ceil(12 * B.evoluciones.gasta));
+  });
+  it('Chancho Va: la Pierna que abate deja Aturdido al enemigo que entra', () => {
+    const mano = [c('H', 5), c('C', 5), c('D', 5), c('H', 2)];
+    const p = mesa('chancho', mano, { vida: 5, vidaMax: 500, palo: 'S' });
+    p.combate!.fila[0].golpes = 3; // no es «de un saque»
+    const evs = golpear(p, mano.slice(0, 3).map((k) => k.id));
+    expect(evs.some((e) => e.t === 'cae')).toBe(true);
+    expect(p.combate!.fila[0].aturdido).toBeGreaterThanOrEqual(1);
+  });
+  it('«al pelo» paga su oro', () => {
+    expect(B.exacto.oroAlPelo).toBeGreaterThan(0);
+    expect(B.exacto.alPelo).toBeGreaterThanOrEqual(0.1);
   });
 });

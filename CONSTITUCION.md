@@ -167,6 +167,18 @@ certificar (la huella del informe tiene que coincidir).
 - El informe del laboratorio cuenta, por Mazo, cuántas partidas terminan con una Evolución despierta y cuánto oro se
   paga en descartes del Sol de la Timba.
 
+### 1.16 Evoluciones que se ganan, Envido que se canta y maldiciones distintas (0.29.0)
+
+- **Las Evoluciones despiertan con cuatro niveles de dones** del Rey de su palo (dos dones de nivel 2, uno de nivel 4…):
+  son un premio de media partida, no el estado normal del Épico (el laboratorio mide 47–58 % de partidas con una
+  despierta; antes, 85–94 %).
+- **Cada maldición cobra por algo distinto.** Facón: el golpe que no abate te corta Vida. Garrote: el golpe sin Bastos
+  gasta la mitad de tu Escudo. Sol: cada descarte cuesta oro. Brindis: tus Copas ya no te curan.
+- **Truco**: el ¡ENVIDO! pide dos cartas del mismo palo que sumen 8 o más.
+- **Chancho Va**: el ¡CHANCHO! que abate no pierde su Aturdido (lo recibe el enemigo que entra), y «de un saque» vale
+  también cuando remata el Degüello.
+- **Al pelo**: pasarte por hasta el 10 % de la Vida máxima del enemigo paga 1 de oro y sostiene la racha.
+
 ## 2 · Dirección de arte: «Dark Dithered Lithography»
 
 **La vara es la de los 5 Dorsos.** Vale para todas las pantallas y componentes.
