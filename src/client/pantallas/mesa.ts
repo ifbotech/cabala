@@ -27,6 +27,7 @@ import { S, congelar, enFoto, fogonazoCandil, ponerClima, sacudir } from '../fx/
 import { actualizarTiras, avivarRetrato, cargaQue, deltaHud, nombreCarga, dispararFicha, gestoFijo, gestoRetrato, gritar, hudHtml, mirarHacia, ponerHud, poseRetrato, reubicarGrito, vistaDe, type VistaHud } from '../hud';
 import { guardar, pintarFase } from '../juego';
 import { crearMano, type Mano, type Zona } from '../mano';
+import { encajarDesglose, nombreHtml, terminoVisto } from '../desglose';
 import type { Expresion } from '../pixel/bufon';
 import { cifra, pxChiche, lienzoNaipe, lienzoNaipeSegunda, pxMascara, pxNaipeSegunda, pxAmuleto, pxAumento, pxBendicion, pxEstrella, pxEvolucion, pxHud, pxInmune, pxNaipe, pxNodo, pxPalo } from '../sprites';
 import type { AmuletoId } from '../../rules/amuletos';
@@ -343,24 +344,16 @@ export function pantallaMesa(p: Partida): Pantalla {
     const bajo = zona.querySelector<HTMLElement>('.c-bajo');
     const cu = bajo?.parentElement as HTMLElement | null | undefined;
     if (bajo && cu) {
-      const izq = mano.panoIzq();
-      const x = 8;
-      // (se mide con desplazamientos, no con cajas: la cuenta entra con una animación que la corre unos píxeles)
-      bajo.style.left = `${Math.round(x - cu.offsetLeft - cu.clientLeft)}px`;
-      bajo.style.width = `${Math.max(220, Math.round((izq !== null ? izq - rz.left : rz.width - 8) - x - 12))}px`;
       // (0.28) la columna cae en la franja fija de lo jugado (arriba de la mano, que no se mueve): su techo es el de la
-      // zona de la mano y su alto, el del paño
-      const rc = cu.getBoundingClientRect();
-      bajo.style.top = `${Math.round(zm.getBoundingClientRect().top - rc.top - cu.clientTop)}px`;
-      bajo.classList.remove('chico', 'chico-2', 'chico-3', 'chico-4');
-      // (si el desglose es más alto que el paño, se aprieta por pasos SIN borrar nombres: primero los acorta, después
-      // suelta la pista del mando, después junta los renglones y por último baja un punto la letra)
+      // zona de la mano y su alto, el del paño. (0.29) Si no entra cede por pasos sin cortar un nombre (`desglose.ts`):
+      // la pista, los renglones, los nombres cortos escritos a mano y, al final, «otras +N»; a 1080p va en dos columnas
       const kp = Number(getComputedStyle(zm).getPropertyValue('--k-pano')) || 1;
+      const techo = zm.getBoundingClientRect().top;
       const tope = 140 * kp + 12;
-      for (const nivel of ['chico', 'chico-2', 'chico-3', 'chico-4']) {
-        if (bajo.offsetHeight <= tope) break;
-        bajo.classList.add(nivel);
-      }
+      // (la columna de la derecha llega hasta el borde de la mesa solo si los botones empiezan por debajo de la franja)
+      const rb = $('.mesa .botones')?.getBoundingClientRect();
+      const zonaDer = rb && rb.top < techo + tope - 2 ? Math.min(rz.right, rb.left) : rz.right;
+      encajarDesglose({ bajo, cu, izq: mano.panoIzq(), der: mano.panoDer(), zonaIzq: rz.left, zonaDer, techo, tope });
       filaCuenta = cu.offsetTop + cu.clientTop + bajo.offsetTop;
     }
   }
@@ -620,7 +613,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     // la pieza); el conteo lo enciende con su propio golpe. Nada de chip aparte ni de ×2 estampado sobre el total
     const esCritico = (x: Paso): boolean => q.critico && x.tipo === 'x' && x.de === 'b:puntahacha';
     const termino = (x: Paso, valor: string): string =>
-      `<span class="d-t d-${x.tipo}${x.v < 0 ? ' d-neg' : ''}${/^[aubr]:/.test(x.de) ? ' d-pieza' : x.de.startsWith('j:') || x.de === 'canto' || x.de.startsWith('posta:') || (x.de === 'prox' && dadoArmado) ? ' d-nombre' : ''}${x.de.startsWith('posta:') ? ' d-posta' : ''}${esCritico(x) ? ' d-critico' : ''}" data-paso="${clave(x)}" ${tip(pasoNombre(x.de), pasoAyuda(x.de))}>${pasoIcono(x.de)}<span class="d-n">${esc(pasoNombre(x.de))}</span>${esCritico(x) ? `<b class="d-crit">${t('critico')}</b>` : ''}<b class="d-v">${valor}</b></span>`;
+      `<span class="d-t d-${x.tipo}${x.v < 0 ? ' d-neg' : ''}${/^[aubr]:/.test(x.de) ? ' d-pieza' : x.de.startsWith('j:') || x.de === 'canto' || x.de.startsWith('posta:') || (x.de === 'prox' && dadoArmado) ? ' d-nombre' : ''}${x.de.startsWith('posta:') ? ' d-posta' : ''}${esCritico(x) ? ' d-critico' : ''}" data-paso="${clave(x)}" ${tip(pasoNombre(x.de), pasoAyuda(x.de))}>${pasoIcono(x.de)}${nombreHtml(x.de === 'prox' && dadoArmado ? 'dado' : x.de, pasoNombre(x.de))}${esCritico(x) ? `<b class="d-crit">${t('critico')}</b>` : ''}<b class="d-v">${valor}</b></span>`;
     const cartasD = q.pasos.filter(esCarta);
     const piezasD = q.pasos.filter((x) => x.tipo === 'd' && !esCarta(x) && x.v !== 0);
     const sumanM = q.pasos.filter((x) => x.tipo === 'm' && x.v !== 0);
@@ -2292,7 +2285,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     parte.querySelector('.c-crit-sello')?.remove();
     parte.insertAdjacentHTML('beforeend', `<b class="c-crit-sello" aria-hidden="true">${cifra(`x${v}`, 'oro')}</b>`);
   }
-  const termino = (x: Paso): Element | null | undefined => $('[data-cuenta] .c-desglose')?.querySelector(`[data-paso="${CSS.escape(`${x.tipo}|${x.de}`)}"]`);
+  const termino = (x: Paso): Element | null | undefined => terminoVisto($('[data-cuenta] .c-desglose')?.querySelector(`[data-paso="${CSS.escape(`${x.tipo}|${x.de}`)}"]`));
   /**
    * El conteo congelado a una fracción `f` (para la QA visual, estado «mesa-conteo»): la cuenta como se ve a mitad del
    * golpe, con los términos ya contados encendidos y el total en gris.
@@ -2638,7 +2631,11 @@ export function pantallaMesa(p: Partida): Pantalla {
       observaMano = new ResizeObserver(() => {
         if (zonaMano.clientWidth === anchoMano) return;
         anchoMano = zonaMano.clientWidth;
-        if (!ocupado && mano?.seleccion().length) pintarCuenta();
+        // (0.29: en el cuadro siguiente: repintar la cuenta dentro del propio aviso volvía a cambiar el ancho y el
+        // navegador protestaba «ResizeObserver loop completed with undelivered notifications»)
+        requestAnimationFrame(() => {
+          if (!ocupado && mano?.seleccion().length) pintarCuenta();
+        });
       });
       observaMano.observe(zonaMano);
       const nuevo = c().turno === 1 && c().golpes === 0 && c().descartes >= B.jugador.descartes - (p.reinado >= 5 ? 1 : 0);

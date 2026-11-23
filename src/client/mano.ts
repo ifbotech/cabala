@@ -78,6 +78,8 @@ export interface Mano {
   subir(px: number): void;
   /** (0.27) El borde izquierdo del paño en la pantalla (el desglose de la cuenta llega hasta ahí), o null si no hay paño. */
   panoIzq(): number | null;
+  /** (0.29) El borde derecho del paño en la pantalla (a 1080p, la columna del MULTI arranca ahí), o null si no hay paño. */
+  panoDer(): number | null;
   /** (0.27) Pone YA el alto de la zona según lo apoyado (sin esperar al cuadro): la mesa mide la escena enseguida. */
   ajustar(): void;
   /** Las cartas elegidas vuelan a un punto y desaparecen (el golpe). */
@@ -223,7 +225,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
   /** (0.27) Escritorio: lo que el paño sube por encima de la zona de la mano (a la franja del desglose). */
   let sube = 0;
 
-  let cacheMedidas: { w: number; h: number; k: number; kp: number; tapa: number; clave: string } | null = null;
+  let cacheMedidas: { w: number; h: number; k: number; kp: number; tapa: number; centro: boolean; clave: string } | null = null;
   /** (0.27) Teléfono: la escala del paño que entra a lo alto y lo que la mano de dos filas hunde su pie (fijos por ventana). */
   let kpAlto = 1;
   let hunde = 0;
@@ -246,7 +248,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     raiz.classList.toggle('pano-chico', kp < 0.8);
     // lo que tapa la barra del pulgar al pie de la mano (el margen negativo del teléfono)
     const tapa = Math.max(0, -parseFloat(s.marginBottom) || 0);
-    cacheMedidas = { w: 100 * k, h: 140 * k, k, kp, tapa, clave };
+    // (0.29) a 1080p el paño va SIEMPRE centrado sobre la mano (lo dice el CSS: `--pano-centro`)
+    cacheMedidas = { w: 100 * k, h: 140 * k, k, kp, tapa, centro: s.getPropertyValue('--pano-centro').trim() === '1', clave };
     return cacheMedidas;
   };
   /** La escala a la que las Postas del teléfono entran lado a lado. */
@@ -265,7 +268,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
    * franja del desglose de la cuenta (sube por encima de la zona de la mano), y la mano baja solo lo que haga falta.
    */
   function lugaresPosta(): { xs: number[]; y: number; paso: number; wp: number; hp: number; fin: number; manoY: number } {
-    const { kp } = medidas();
+    const { kp, centro } = medidas();
     const wp = 100 * kp;
     const hp = 140 * kp;
     const ancho = raiz.clientWidth;
@@ -276,7 +279,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     // (0.28) escritorio: centrado sobre la mano si a su izquierda queda una columna cómoda para el desglose (1080p); si
     // no (la Deck, el portátil), arrimado a la derecha
     const centrado = (ancho - total) / 2;
-    const x0 = tel || centrado >= 460 ? Math.round(centrado) : Math.round(ancho - total - 2 * BORDE - 2);
+    const x0 = tel || centro || centrado >= 460 ? Math.round(centrado) : Math.round(ancho - total - 2 * BORDE - 2);
     const aire = tel ? AIRE_TEL : 6;
     // (0.28) escritorio: la zona de la mano trae su franja fija arriba (el paño a la derecha, el desglose a la izquierda)
     const y = tel ? Math.max(BORDE, techoTel() - aire - BORDE - hp) : BORDE;
@@ -1103,6 +1106,11 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       if (!reservaPano()) return null;
       const lp = lugaresPosta();
       return raiz.getBoundingClientRect().left + lp.xs[0] - 2 * BORDE;
+    },
+    panoDer() {
+      if (!reservaPano()) return null;
+      const lp = lugaresPosta();
+      return raiz.getBoundingClientRect().left + lp.xs[nPostas - 1] + lp.wp + 2 * BORDE;
     },
     ajustar() {
       acomodarZona();

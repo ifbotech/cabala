@@ -455,7 +455,8 @@ function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[
     const dano = num(cu.querySelector('[data-cd] [data-v]'));
     const multi = num(cu.querySelector('[data-cm] [data-v]'));
     const total = num(cu.querySelector('[data-total]'));
-    const suma = [...cu.querySelectorAll('.c-desglose .d-fd .d-v')].reduce((s, el) => s + (Number((el.textContent ?? '').trim().replace('−', '-').replace('+', '')) || 0), 0);
+    // (0.29: los términos juntados en «otras +N» ya van en su suma: no se cuentan dos veces)
+    const suma = [...cu.querySelectorAll('.c-desglose .d-fd .d-v')].filter((el) => !el.closest('.d-oculto')).reduce((s, el) => s + (Number((el.textContent ?? '').trim().replace('−', '-').replace('+', '')) || 0), 0);
     if (dano !== null && cu.querySelector('.c-desglose .d-fd .d-v') && suma !== dano) fallos.push({ regla: 'cuenta-incoherente', detalle: `la cuenta dice DAÑO ${dano} y los términos de su desglose suman ${suma}` });
     if (dano !== null && multi !== null && total !== null && dano * multi !== total) fallos.push({ regla: 'cuenta-incoherente', detalle: `la cuenta dice ${dano} × ${multi} = ${total}` });
   }
@@ -489,6 +490,38 @@ function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[
     };
     const nombres = [...previa.querySelectorAll('.c-jugada, .d-t[data-paso*="|j:"] .d-n')].filter(seVe);
     if (!nombres.length) fallos.push({ regla: 'jugada-sin-nombre', detalle: `la cuenta («${(previa.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 40)}») no enseña el nombre de la jugada` });
+  }
+  // (0.29) «bufon-tapado»: en TODAS las pantallas, lo que dice el Bufón no le tapa la figura: su bocadillo no cubre más
+  // de un tercio de su caja ni su cara (la franja del antifaz y la boca: del 30 al 72 % del ancho y del 22 al 52 % del
+  // alto de su dibujo). A 1080p el globo le caía encima y del anfitrión solo se veían el gorro y el cetro
+  for (const b of [...document.querySelectorAll<HTMLElement>('#app .bufon, #capa .bufon')].filter(visible)) {
+    const B = b.getBoundingClientRect();
+    if (B.width < 24 || B.height < 24) continue;
+    const cara = { l: B.left + B.width * 0.3, r: B.left + B.width * 0.72, t: B.top + B.height * 0.22, b: B.top + B.height * 0.52 };
+    for (const g of [...document.querySelectorAll<HTMLElement>('#app .bocadillo, #capa .bocadillo')].filter(visible)) {
+      const G = g.getBoundingClientRect();
+      const ix = Math.min(B.right, G.right) - Math.max(B.left, G.left);
+      const iy = Math.min(B.bottom, G.bottom) - Math.max(B.top, G.top);
+      if (ix <= 0 || iy <= 0) continue;
+      const parte = (ix * iy) / (B.width * B.height);
+      const cx = Math.min(cara.r, G.right) - Math.max(cara.l, G.left);
+      const cy = Math.min(cara.b, G.bottom) - Math.max(cara.t, G.top);
+      if (parte > 1 / 3) fallos.push({ regla: 'bufon-tapado', detalle: `el bocadillo «${(g.textContent ?? '').trim().slice(0, 24)}» cubre el ${Math.round(parte * 100)} % de la figura del Bufón (máximo 33 %)` });
+      else if (cx > 2 && cy > 2) fallos.push({ regla: 'bufon-tapado', detalle: `el bocadillo «${(g.textContent ?? '').trim().slice(0, 24)}» (${Math.round(G.left)},${Math.round(G.top)} → ${Math.round(G.right)},${Math.round(G.bottom)}) tapa la cara del Bufón (${Math.round(cara.l)},${Math.round(cara.t)} → ${Math.round(cara.r)},${Math.round(cara.b)})` });
+    }
+  }
+  // (0.29) «desglose-cortado»: ningún nombre del desglose (ni en la cuenta ni en su hoja) termina en «…» ni va recortado
+  // por su caja: si no entra, la cuenta suelta la pista, junta renglones, pasa a los nombres cortos o junta «otras +N»
+  for (const el of [...document.querySelectorAll<HTMLElement>('.mesa .c-desglose .d-n, .mesa .c-desglose .d-n > *, .mesa .c-corta, .mesa .c-desglose .d-fila')].filter(visible)) {
+    const s = getComputedStyle(el);
+    const txt = (el.textContent ?? '').trim();
+    if (/…$|\.\.\.$/.test(txt)) fallos.push({ regla: 'desglose-cortado', detalle: `«${txt.slice(0, 30)}» termina en puntos suspensivos` });
+    else if (s.display !== 'inline' && s.display !== 'contents' && el.scrollWidth > el.clientWidth + 1 && (s.overflowX !== 'visible' || s.textOverflow === 'ellipsis')) fallos.push({ regla: 'desglose-cortado', detalle: `${nombre(el)} «${txt.slice(0, 30)}» va recortado (pide ${el.scrollWidth} px y enseña ${el.clientWidth})` });
+  }
+  // (y la letra del desglose fuera del teléfono no baja de 16 px)
+  if (W > 700) {
+    const chica = [...document.querySelectorAll<HTMLElement>('.mesa [data-cuenta] .c-bajo :is(.d-n, .d-v, .d-rot, .cc-cuenta, .cc-verbo)')].filter(visible).find((el) => parseFloat(getComputedStyle(el).fontSize) < 16);
+    if (chica) fallos.push({ regla: 'desglose-cortado', detalle: `«${(chica.textContent ?? '').trim().slice(0, 24)}» del desglose va a ${getComputedStyle(chica).fontSize} (piso: 16 px)` });
   }
   // restos de español en la pantalla inglesa
   if (idioma === 'en') {

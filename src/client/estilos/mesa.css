@@ -5063,42 +5063,43 @@ body.mueve-pano [data-cuenta] .cuenta.previa {
   .c-pista-pano b {
     font-weight: 400;
   }
-  /* si la columna es más alta que el paño: primero las piezas van con su icono y su cifra (sin el nombre), después se
-     va la pista del mando y por último el aire */
-  /* (0.28) los nombres NO se borran: se acortan («Primera s…», «Taba c…»). Lo que resta conserva su nombre entero */
+  /* (0.29) si la columna es más alta que el paño cede por pasos (`desglose.ts`), SIN cortar un nombre y sin bajar de
+     16 px: se va la pista del mando, se juntan los renglones, los nombres pasan a su forma corta escrita a mano y, por
+     último, los términos que menos pesan se juntan en «otras +N» */
   .mesa .cuenta .c-bajo .c-desglose .d-n {
-    display: inline-block;
-    max-width: 11em;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
-    vertical-align: bottom;
   }
-  .mesa .cuenta .c-bajo.chico .c-desglose .d-t:not(.d-neg) .d-n {
-    max-width: 7.2em;
-  }
-  .mesa .cuenta .c-bajo.chico .c-corta .cc-que {
+  .mesa .cuenta .c-bajo.sin-pista .c-pista-pano {
     display: none;
   }
-  .mesa .cuenta .c-bajo.chico-2 .c-desglose .d-t:not(.d-neg) .d-n {
-    max-width: 5.6em;
-  }
-  .mesa .cuenta .c-bajo.chico-4 .c-desglose {
-    font-size: 14px;
-  }
-  .mesa .cuenta .c-bajo.chico-4 .c-desglose .d-t:not(.d-neg) .d-n {
-    max-width: 4.6em;
-  }
-  .mesa .cuenta .c-bajo.chico-3 .c-pista-pano {
-    display: none;
-  }
-  .mesa .cuenta .c-bajo.chico-3 {
+  .mesa .cuenta .c-bajo.junto {
     gap: 2px;
   }
-  .mesa .cuenta .c-bajo.chico-3 .c-desglose {
+  .mesa .cuenta .c-bajo.junto .c-desglose {
     padding: 0 6px;
     line-height: 1.05;
+    gap: 1px;
   }
+  .mesa .cuenta .c-bajo.junto .c-corta .cc-que {
+    display: none;
+  }
+}
+/* el nombre de cada término: entero o, si la columna lo pide, su forma corta (nunca puntos suspensivos) */
+.d-n .d-nc,
+.c-bajo.cortos .d-n .d-nl {
+  display: none;
+}
+.c-bajo.cortos .d-n .d-nc {
+  display: inline;
+}
+.c-desglose .d-t.d-oculto {
+  display: none;
+}
+.c-desglose .d-t.d-otras {
+  cursor: help;
+}
+.c-desglose .d-t.d-otras .d-n {
+  color: var(--hueso-2);
 }
 
 @media (max-width: 700px) {
@@ -5560,7 +5561,7 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
    sobre el HUD (ya no mete el pie detrás) */
 @media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
   .mesa .mano {
-    --k-pano-fijo: 1;
+    --k-pano-fijo: 2;
     --asoma: 0px;
     margin-bottom: 0;
   }
@@ -6274,31 +6275,6 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
 .mano.pano-chico .carta.elegida:has(.c-espectro) .c-rotulo {
   display: none;
 }
-@media (min-width: 701px) {
-  /* el orden en que la columna se aprieta: primero suelta la pista del mando (ya la dice la cuenta en reposo), después
-     acorta los nombres en dos pasos y por último baja un punto la letra. Los nombres no se borran nunca */
-  .mesa .cuenta .c-bajo.chico .c-pista-pano {
-    display: none;
-  }
-  .mesa .cuenta .c-bajo.chico:not(.chico-2) .c-desglose .d-t:not(.d-neg) .d-n {
-    max-width: 11em;
-  }
-  .mesa .cuenta .c-bajo.chico:not(.chico-2) .c-corta .cc-que {
-    display: inline;
-  }
-  .mesa .cuenta .c-bajo.chico-2:not(.chico-3) .c-desglose .d-t:not(.d-neg) .d-n {
-    max-width: 7.2em;
-  }
-  .mesa .cuenta .c-bajo.chico-3 .c-desglose .d-t:not(.d-neg) .d-n {
-    max-width: 5.6em;
-  }
-  .mesa .cuenta .c-bajo.chico-4 .c-desglose .d-t:not(.d-neg) .d-n {
-    max-width: 4.6em;
-  }
-  .mesa .cuenta .c-bajo.chico-2 .c-corta .cc-que {
-    display: none;
-  }
-}
 
 /* ───────────── 0.28 · la placa TE PEGA no tapa la cara del enemigo ─────────────
    con la escena baja del teléfono, la placa de un renglón arranca al 70 % del ancho del naipe (pasada la cara, que va
@@ -6412,5 +6388,206 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
     grid-column: 2;
     grid-row: 2;
     text-align: center;
+  }
+}
+
+/* ───────────── 0.29 · la mesa a 1080p, terminada ─────────────
+   El reparto es el de la Deck, a la medida del escritorio: el enemigo en un busto largo (cabeza, pecho y cintura) sobre
+   su barra, la cuenta en su renglón, lo jugado a 2× (naipes del tamaño de los de la mano) CENTRADO sobre la mano, con
+   el desglose en dos columnas a sus costados (DAÑO a la izquierda, MULTI a la derecha: la misma fórmula de arriba,
+   abierta), la mano entera y el HUD. El Bufón va a 2× con lo que dice al costado de su cabeza: se le ve la cara. */
+@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+  .mesa {
+    --k-bufon: 2;
+  }
+  .mesa .mano {
+    --k-pano-fijo: 2;
+    --pano-centro: 1;
+    --franja: calc(140px * var(--k-pano-fijo) + 12px);
+  }
+  .mesa .cuenta-zona,
+  .mesa [data-cuenta] {
+    min-height: 84px;
+  }
+  /* el enemigo, a busto: su naipe a 2× asoma lo que deja la escena por detrás de su barra */
+  .mesa .escena {
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .mesa .enemigo {
+    align-self: stretch;
+    min-height: 0;
+    grid-template-rows: minmax(0, calc(140px * var(--k-enemigo))) auto;
+    align-content: center;
+  }
+  .mesa .e-barras,
+  .mesa .e-barras:has(.e-rasgo) {
+    margin-top: 0;
+  }
+  .mesa .e-centro {
+    height: auto;
+    min-height: 0;
+    align-self: stretch;
+    clip-path: inset(-90px -60vw 0 -60vw);
+  }
+  .mesa .e-pano {
+    display: none;
+  }
+  .mesa .e-sellos {
+    align-self: end;
+    margin-bottom: 6px;
+  }
+  .mesa .e-ataque {
+    align-self: end;
+    margin-bottom: 6px;
+  }
+  .mesa .e-ataque > .icono,
+  .mesa .e-ataque > .e-llamas {
+    display: none;
+  }
+  .mesa .corte {
+    align-self: end;
+    margin-bottom: 6px;
+  }
+  /* el HUD de la mesa cede aire (no cifras): ese alto es del busto */
+  /* (el escudo del INMUNE a 2×: con su rótulo debajo entra en la escena sin trepar a la cabecera) */
+  .mesa .e-sello,
+  .mesa .e-sello .inmune {
+    --k: 2;
+  }
+  /* la nota de la Furia, en un renglón a la derecha de su chip (la placa no crece más que el busto) */
+  .mesa .e-furia {
+    position: relative;
+  }
+  .mesa .e-furia-nota {
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    translate: 8px -50%;
+    text-align: left;
+    white-space: nowrap;
+    text-shadow: 2px 2px 0 #09070f;
+  }
+  .mesa .e-furia-nota .fn-2,
+  .mesa .e-furia-nota .fn-sep {
+    display: inline;
+  }
+  /* el Bufón se arrima al enemigo: su gorro no roza el turno ni el dado de la cabecera */
+  .mesa .esc-bufon {
+    margin-right: -24px;
+  }
+  /* lo que dice: al costado de su cabeza, hacia la izquierda, bajo la cabecera, y crece hacia abajo (nunca sobre su
+     cara: se le ven los ojos y la boca mientras habla) */
+  .mesa .esc-bufon .bocadillo {
+    right: calc(100% - 14px);
+    top: max(34px, calc(268px - 100cqh));
+    bottom: auto;
+    max-width: min(15em, 20vw);
+  }
+  .mesa .esc-bufon .bocadillo::after {
+    display: none;
+  }
+}
+
+/* el desglose a 1080p: dos columnas a los costados del paño (DAÑO a la izquierda, MULTI a la derecha), un término por
+   renglón como en un ticket: su icono, su nombre y, alineada a la derecha, su cifra. La letra la elige `desglose.ts`
+   (30 px si entra; nunca menos de 20) */
+@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+  .mesa .cuenta .c-bajo.dos-col {
+    display: grid;
+    grid-template-columns: var(--col-izq) var(--col-pano) var(--col-der);
+    grid-template-rows: auto auto 1fr;
+    align-items: start;
+    gap: 6px 0;
+    margin-top: 0;
+    pointer-events: none;
+  }
+  .mesa .cuenta .c-bajo.dos-col .c-desglose {
+    display: contents;
+  }
+  .mesa .cuenta .c-bajo.dos-col .d-fila,
+  .mesa .cuenta .c-bajo.dos-col .c-corta,
+  .mesa .cuenta .c-bajo.dos-col .c-dial-fila,
+  .mesa .cuenta .c-bajo.dos-col .c-pista-pano {
+    pointer-events: auto;
+    font-size: var(--fs-desglose, 24px);
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .mesa .cuenta .c-bajo.dos-col .c-desglose > .d-fila {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    row-gap: 2px;
+    width: 100%;
+    padding: 6px 12px 8px;
+    line-height: 1.15;
+    background: #0b0711;
+    box-shadow: 0 0 0 1px #3a2f4f;
+    overflow: hidden;
+  }
+  .mesa .cuenta .c-bajo.dos-col.junto .c-desglose > .d-fila {
+    padding: 2px 10px 4px;
+    row-gap: 0;
+    line-height: 1.08;
+  }
+  .mesa .cuenta .c-bajo.dos-col .d-fd {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+  .mesa .cuenta .c-bajo.dos-col .c-pista-pano {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    align-self: end;
+    font-size: 20px;
+  }
+  .mesa .cuenta .c-bajo.dos-col .c-corta {
+    grid-column: 3;
+    grid-row: 1;
+    margin: 0;
+    padding: 4px 12px;
+    flex-wrap: wrap;
+    row-gap: 0;
+    white-space: normal;
+  }
+  .mesa .cuenta .c-bajo.dos-col .d-fm {
+    grid-column: 3;
+    grid-row: 2;
+  }
+  .mesa .cuenta .c-bajo.dos-col .c-dial-fila {
+    grid-column: 3;
+    grid-row: 3;
+    width: 100%;
+  }
+  .mesa .cuenta .c-bajo.dos-col .c-desglose > .d-fila > .d-rot {
+    font-family: var(--rot);
+    font-size: 0.9em;
+    letter-spacing: 0.08em;
+    padding-bottom: 2px;
+    margin-bottom: 2px;
+    box-shadow: 0 2px 0 -1px currentColor;
+  }
+  .mesa .cuenta .c-bajo.dos-col .c-desglose .d-t {
+    display: flex;
+    align-items: center;
+    gap: 0.35em;
+    min-width: 0;
+  }
+  .mesa .cuenta .c-bajo.dos-col .c-desglose .d-t .d-n {
+    flex: 1 1 auto;
+  }
+  .mesa .cuenta .c-bajo.dos-col .c-desglose .d-t .d-v {
+    flex: none;
+    margin-left: auto;
+    text-align: right;
+  }
+  .mesa .cuenta .c-bajo.dos-col .c-desglose .d-cartas {
+    font-size: 1.1em;
+  }
+  .mesa .cuenta .c-bajo.dos-col .c-desglose .d-i {
+    --k: 1;
+    margin: -4px 0;
+    flex: none;
   }
 }
