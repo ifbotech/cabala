@@ -9,7 +9,7 @@
 // intervalo se apaga: cero trabajo.
 import type { Palo } from '../rules/cartas';
 import { ajustes, idioma } from './almacen';
-import { alAbrirAudio, contextoAudio, despertarAudio, hablaron, ponerAfinador, salidaEfectos, salidaMusica, salidaSala, type VozId } from './audio';
+import { alAbrirAudio, contextoAudio, despertarAudio, hablaron, ponerAfinador, ponerOyente, salidaEfectos, salidaMusica, salidaSala, type VozId } from './audio';
 import { INTERVALO, Motor } from './musica/motor';
 import { nivelDe, type Acorde, type EscenaId, type PaloRey, type StingerId } from './musica/teoria';
 
@@ -162,10 +162,22 @@ export const refrescarMusica = (): void => {
   } else tic();
 };
 
-// los efectos melódicos (el oro, el conteo del golpe, la llegada del Rey…) se afinan al acorde que suena
-ponerAfinador(() => {
-  const a = motor?.armonia().acorde;
-  return a ? { tonos: a.tonos, escala: a.escala } : null;
+// los efectos melódicos (el oro, el conteo del golpe, la llegada del Rey…) se escriben sobre el acorde que suena
+ponerAfinador(() => motor?.armonia().acorde ?? null);
+
+// (0.29) La Forja Brava tiene su stinger, sin tocar la pantalla del Fogón: el suspenso de la tercera pasada es el
+// único que suena «forjaSube»; lo que venga después lo cierra: si el naipe sale (suena «forja»), el stinger del ×2;
+// si se quema (suena «ceniza»), el fuelle que baja y se apaga.
+let forjaBrava = false;
+ponerOyente((cual) => {
+  if (cual === 'forjaSube') forjaBrava = true;
+  else if (cual === 'forja') {
+    forjaBrava = false;
+    stinger('brava');
+  } else if (cual === 'ceniza') {
+    if (forjaBrava) stinger('quema');
+    forjaBrava = false;
+  } else if (cual === 'canto' || cual === 'suspenso') forjaBrava = false;
 });
 
 /** Para la QA: qué escena se pidió, cuál suena y cuántas semicorcheas lleva programadas. */
@@ -181,4 +193,4 @@ export const estadoMusica = (): { deseada: PistaId | null; suena: PistaId | null
   stingers: [...stingersPedidos],
 });
 /** El acorde y la escala del compás que suena ahora (lo que leen las voces), o `null` si el audio no está abierto. */
-export const armoniaActual = (): { acorde: Acorde; compas: number; paso: number } | null => motor?.armonia() ?? null;
+export const armoniaActual = (): { acorde: Acorde; siguiente: Acorde; compas: number; paso: number } | null => motor?.armonia() ?? null;

@@ -2005,6 +2005,7 @@ export function pantallaMesa(p: Partida): Pantalla {
   let plantaViva: { el: HTMLElement; id: number; t: number } | null = null;
   function selloPlanta(pierde: number): void {
     if (enFoto()) return;
+    sonar('planta', { palo: enemigo?.palo });
     plantaViva?.el.remove();
     const s = document.createElement('div');
     s.className = 'sello-planta';
