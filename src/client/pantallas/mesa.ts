@@ -2090,8 +2090,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     haloRey(r.left + r.width / 2, r.top + r.height / 2, AURA[palo], 150);
     sacudir($('.mesa'), 3);
     congelar(70);
-    // (el tope seco: mientras no exista el sonido propio «planta», suena el freno)
-    sonar('frena');
+    // (el tope seco lo suena `selloPlanta` con el sonido propio «planta», afinado al motivo del Rey)
     // lo que se pierde: nace grande contra su pecho, rebota y cae partido hacia el sello
     const sello = plantaViva?.el.getBoundingClientRect();
     const de = { x: r.left + r.width / 2, y: r.top + Math.min(r.height * 0.45, 90) };

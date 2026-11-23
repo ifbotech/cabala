@@ -477,7 +477,7 @@ export const EN: Record<keyof typeof ES, string> = {
   envidoFaltaTip: 'Two cards of one suit call ENVIDO! if they add up to {m} or more.',
   gAlPeloOro: 'You went over by a hair (up to {p}% of its Health): it pays {o} gold and your streak stays alive.',
   cerrarCuenta: 'TAP TO CLOSE',
-  sePlantaTip: 'A King on his first face holds at half his Life: the excess is lost and he turns to his second face.',
+  sePlantaTip: 'A King on his first face holds at half his Health: the excess is lost and he turns to his second face.',
   noLoAbatis: 'NOT ENOUGH',
   copia: 'Copies',
   comodin: 'JOKER',

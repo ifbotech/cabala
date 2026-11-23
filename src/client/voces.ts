@@ -116,7 +116,7 @@ export const GRITO: Record<MazoId, { exacto: Par[]; dolor: Par[]; rey: Par; gana
     gana: P('Y eso que mentí.', 'And I was lying.'),
   },
   chancho: {
-    canto: [P('¡Cuatro iguales!', 'Four of a kind!'), P('¡Oinc, oinc!', 'Oink, oink!')],
+    canto: [P('¡Todos iguales!', 'All the same!'), P('¡Oinc, oinc!', 'Oink, oink!')],
     exacto: [P('¡Mano!', 'Hand!'), P('¡Primero yo!', 'Me first!')],
     dolor: [P('¡Auch!', 'Ouch!'), P('¡Ojo con los dedos!', 'Mind the fingers!')],
     rey: P('¡Chancho va!', 'Pig goes!'),
