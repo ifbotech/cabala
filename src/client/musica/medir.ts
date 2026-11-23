@@ -305,6 +305,7 @@ export async function medir(p: Pedido): Promise<Medida> {
         if (x.compas === c && x.paso === k) {
           const ar = m.armonia(ahora);
           const notas = m.stinger(x.id, ahora);
+          ventanas.push({ id: 'stinger:' + x.id, t: ahora, dur: 2, auto: true });
           sonados.push(`${x.id} en c${c + 1}:${k} sobre ${ar.acorde.nombre} (viene ${ar.siguiente.nombre}) → ${notas.map((n) => T.nombreNota(n.midi)).join(' ')}`);
         }
       for (const x of p.vocales ?? [])

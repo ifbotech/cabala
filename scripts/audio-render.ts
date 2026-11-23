@@ -220,6 +220,8 @@ const pedidos: Pedido[] = [
       return { id: `${q}:${vocal}:${midi}`, quien: q, vocal, midi, compas: Math.floor(k / T.PASOS), paso: k % T.PASOS, dur: 0.45 };
     }))),
   },
+  // cada stinger a solas, sobre la tónica (su nivel contra la música)
+  { id: 'stingers-solos', tipo: 'stinger', que: 'Los diez stingers a solas, uno por compás', compases: 11, estado: mesa(2), sinMusica: true, stingers: (Object.keys(T.STINGERS) as T.StingerId[]).map((id, k) => ({ compas: k + 1, paso: 0, id })) },
   // los stingers, sobre la forma entera de la mesa: en la tónica y, sobre todo, en los compases de tensión (La7(b9) y Mim7(b5))
   {
     id: 'stingers',
@@ -265,12 +267,19 @@ await conServidor(5197, async (url) => {
       id: 'fx-banco',
       tipo: 'fx',
       que: `La paleta entera (${catalogo.length} efectos), uno cada medio compás, a solas`,
-      compases: Math.ceil(catalogo.length / 2) + 1,
+      compases: Math.ceil(catalogo.length / 2) + 4,
       estado: mesa(2),
       sinMusica: true,
-      wav: (Math.ceil(catalogo.length / 2) + 1) * T.SEG_COMPAS + 1,
+      wav: (Math.ceil(catalogo.length / 2) + 4) * T.SEG_COMPAS + 1,
       // (el primer compás queda vacío: nada se mide en el arranque del contexto)
-      efectos: catalogo.map((f, k) => ({ compas: 1 + Math.floor(k / 2), paso: (k % 2) * 8, cual: f.id as never, palo: 'S', mide: true })),
+      efectos: [
+        ...catalogo.map((f, k) => ({ compas: 1 + Math.floor(k / 2), paso: (k % 2) * 8, cual: f.id as never, palo: 'S' as const, mide: true })),
+        // y, para escuchar (no se miden): el Rey que se planta y la segunda cara de los otros tres Reyes
+        ...(['C', 'D', 'H'] as const).flatMap((palo, k) => [
+          { compas: 1 + Math.ceil(catalogo.length / 2) + k, paso: 0, cual: 'planta' as never, palo },
+          { compas: 1 + Math.ceil(catalogo.length / 2) + k, paso: 8, cual: 'segunda' as never, palo },
+        ]),
+      ],
     });
     let cola = pedidos.filter((p) => (calibrar ? p.id === 'fx-banco' || p.id === 'mesa-2' : !solo || solo.some((x) => p.id.startsWith(x))));
     // los renders largos primero: así los cuatro obreros terminan parejos
@@ -370,6 +379,10 @@ if (fxM && fxS)
     balance.push(`${v.id} (con hitstop): efecto ${v.rms} dBFS, música agachada ${mus.rms} dBFS → +${dif} dB`);
     if (dif < FX_SOBRE[0] || dif > FX_SOBRE[1]) fallos.push(`balance: «${v.id}» queda ${dif} dB sobre la música (tiene que estar entre ${FX_SOBRE[0]} y ${FX_SOBRE[1]})`);
   }
+// los stingers, uno por uno: como los premios de la paleta, 4–8 dB sobre la música de la mesa
+const stSolos = de('stingers-solos');
+const stUno = stSolos && mesa2 ? (Object.keys(T.STINGERS) as T.StingerId[]).map((id) => ({ id, m: stSolos.momentos.find((x) => x.id === `stinger:${id}`)! })).map((x) => ({ ...x, dif: red(x.m.rms - mesa2.mediana) })) : [];
+for (const x of stUno) if (x.dif < FX_SOBRE[0] || x.dif > FX_SOBRE[1]) fallos.push(`stinger «${x.id}»: ${x.dif} dB sobre la música de la mesa (tiene que estar entre ${FX_SOBRE[0]} y ${FX_SOBRE[1]})`);
 // la paleta, uno por uno
 for (const f of fxUno) if (!CON_HITSTOP.includes(f.id) && (f.dif < FX_SOBRE[0] || f.dif > FX_SOBRE[1])) fallos.push(`efecto «${f.id}»: ${f.dif} dB sobre la música de la mesa (tiene que estar entre ${FX_SOBRE[0]} y ${FX_SOBRE[1]}; corré --calibrar)`);
 // la respuesta en vivo: medio segundo después de pedirlo (sin esperar al compás) la mezcla ya cambió
@@ -438,6 +451,7 @@ for (const l of [...balance, ...vivo]) console.log(`  ${l}`);
 if (real) console.log(`  peor caso real: compresor + limitador −${real.dinamica.reduccion} dB · el techo le saca ${real.dinamica.techoDb} dB al pico (${real.dinamica.picoPreTecho} → ${real.dinamica.picoSalida} dBFS) · ${(real.dinamica.sobreRodilla * 100).toFixed(3)} % de las muestras sobre la rodilla · cresta ${real.dinamica.cresta} dB`);
 for (const v of vozMusica) console.log(`  voz ${v.q.padEnd(9)} ${v.voz} dBFS · música ${v.musica} dBFS → +${v.dif} dB (en la banda de la voz, +${v.difBanda})`);
 for (const v of porVocal) console.log(`  vocales ${v.q.padEnd(9)} ${VOCALES.map((x, k) => `${x} ${v.medias[k]}`).join(' · ')} → ${v.dif} dB entre vocales (peor nota contra mejor: ${v.peor})`);
+if (stUno.length) console.log(`  stingers: ${stUno.map((x) => `${x.id} +${x.dif}`).join(' · ')} dB sobre la música`);
 if (banco) console.log(`  paleta: ${fxUno.length} efectos, de +${Math.min(...fxUno.map((f) => f.dif))} a +${Math.max(...fxUno.map((f) => f.dif))} dB sobre la música (mediana de la mesa 2: ${mesa2?.mediana} dBFS); 2,5–5 kHz ${(banco.banda * 100).toFixed(2)} %`);
 if (latido && poca) console.log(`  latido en 120–300 Hz: ${latido.b120a300} dBFS a solas; toda la mezcla de poca Vida, ${poca.b120a300} dBFS`);
 if (solo) {
@@ -466,7 +480,7 @@ const resumen = [
   '',
   `Render con \`OfflineAudioContext\` a 48 kHz del mismo motor y el mismo bus maestro del juego. ${medidas.length} renders. ${hayFallos ? `**${fallos.length} FALLOS.**` : '**Sin recortes, ninguna nota cantada fuera del acorde, y todas las puertas de mezcla en su sitio.**'}`,
   '',
-  `Para ESCUCHAR: en esta misma carpeta hay ${wavs.length} archivos WAV (16 bits, estéreo, 48 kHz): uno de ${ESCENA_S} s por escena y otro por voz (cada una cantando sobre su música), la forma entera de la mesa y de la portada (74 s), la paleta de efectos entera (\`fx-banco.wav\`, un efecto cada 1,15 s en el orden de la tabla), los golpes sobre la mesa, los stingers sobre la forma y el peor caso real.`,
+  `Para ESCUCHAR: en esta misma carpeta hay ${wavs.length} archivos WAV (16 bits, estéreo, 48 kHz): uno de ${ESCENA_S} s por escena y otro por voz (cada una cantando sobre su música), la forma entera de la mesa y de la portada (74 s), la paleta de efectos entera (\`fx-banco.wav\`: tras un compás de silencio, un efecto cada 1,15 s en el orden de la tabla y, al final, el Rey que se planta y la segunda cara de Bastos, Oros y Copas), los golpes sobre la mesa, los stingers sobre la forma y el peor caso real.`,
   '',
   '## La cadena, en números',
   '',
@@ -574,7 +588,15 @@ const resumen = [
   '',
   latido && poca ? `El latido a solas deja **${n(latido.b120a300)} dBFS entre 120 y 300 Hz** (toda la mezcla de poca Vida, en esa banda: ${n(poca.b120a300)} dBFS). Reparto de su energía: < 120 Hz ${n(latido.bandas[0] * 100)} %, 120–500 Hz ${n(latido.bandas[1] * 100)} %, 500–2500 Hz ${n(latido.bandas[2] * 100)} %. En la 0.28 era un seno puro de 44–72 Hz: nada por encima de 120 Hz.` : '—',
   '',
-  '## Stingers (sobre la forma de la mesa)',
+  '## Stingers',
+  '',
+  `Cada stinger a solas contra la mediana de la mesa del tramo 2 (misma vara que la paleta: ${FX_SOBRE[0]}–${FX_SOBRE[1]} dB; mientras suena, la música además se hunde ${AGACHE.stinger} dB en la banda de la voz).`,
+  '',
+  '| stinger | timbre | premio | nivel (dBFS) | ventana (ms) | sobre la música (dB) |',
+  '|---|---|---|---:|---:|---:|',
+  ...stUno.map((x) => `| ${x.id} | ${T.STINGERS[x.id].timbre} | ${T.STINGERS[x.id].premio ? 'sí' : 'no'} | ${n(x.m.rms)} | ${Math.round(x.m.dur * 1000)} | +${n(x.dif)} |`),
+  '',
+  'Sobre la forma de la mesa (las notas de cada uno, con el acorde que suena y el que viene, están en la partitura de `stingers`):',
   '',
   ...tabla('stinger'),
   '',
@@ -587,7 +609,7 @@ const resumen = [
 ];
 
 mkdirSync(DIR, { recursive: true });
-writeFileSync(`${DIR}/medidas.json`, JSON.stringify({ fs: 48000, bpm: T.BPM, tonalidad: 'Re menor', picoMax: PICO_MAX, bus: BUS, nivel: NIVEL, balance, vivo, formas, fxUno, vozMusica, porVocal, wavs, fallos, medidas }, null, 2));
+writeFileSync(`${DIR}/medidas.json`, JSON.stringify({ fs: 48000, bpm: T.BPM, tonalidad: 'Re menor', picoMax: PICO_MAX, bus: BUS, nivel: NIVEL, balance, vivo, formas, fxUno, stUno, vozMusica, porVocal, wavs, fallos, medidas }, null, 2));
 writeFileSync(`${DIR}/RESUMEN.md`, resumen.join('\n'));
 console.log(`\n${DIR}/medidas.json, RESUMEN.md y ${wavs.length} WAV escritos (${medidas.length} renders).`);
 if (hayFallos) {

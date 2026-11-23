@@ -789,7 +789,8 @@ export class Motor {
     this.stingersSonados.push(id);
     if (this.stingersSonados.length > 40) this.stingersSonados.shift();
     let largo = 0;
-    notas.forEach((n, k) => {
+    notas.forEach((nota, k) => {
+      const n = { ...nota, vel: nota.vel * s.nivel };
       const t = t0 + n.paso * medio;
       const dur = n.dur * medio;
       largo = Math.max(largo, n.paso * medio + dur);

@@ -514,6 +514,31 @@ describe('los stingers (0.29): un premio resuelve siempre', () => {
     }
   });
 
+  it('el Rey se planta con un acorde grave de su motivo: la tónica abajo y nada que choque con el bajo', () => {
+    const firmas = new Set<string>();
+    for (const rey of REYES) {
+      for (const tonica of [T.TONICA, T.TONICA_SEGUNDA])
+        for (const g of Object.keys(T.MOLDES) as T.Grado[]) {
+          const a = T.acordeDeGrado(g, tonica);
+          const notas = T.acordePlanta(rey, a);
+          expect(notas.length, `${rey} sobre ${a.nombre}`).toBeGreaterThanOrEqual(2);
+          expect(notas.length).toBeLessThanOrEqual(3);
+          expect(notas[0] % 12).toBe(a.raiz);
+          expect(notas[0]).toBeGreaterThanOrEqual(32);
+          expect(notas[0]).toBeLessThanOrEqual(44);
+          // abierto: la segunda nota queda al menos una octava arriba del bajo
+          expect(notas[1] - notas[0]).toBeGreaterThanOrEqual(12);
+          for (const m of notas) {
+            expect(T.enAcorde(m, a)).toBe(true);
+            expect(T.choca(m, a.raiz)).toBe(false);
+          }
+        }
+      firmas.add(T.acordePlanta(rey, T.acordeDeGrado('i')).join());
+    }
+    // no suenan los cuatro igual
+    expect(firmas.size).toBeGreaterThanOrEqual(3);
+  });
+
   it('el conteo del golpe sube por la escala del compás y el total se posa en la tónica o la quinta', () => {
     for (const g of Object.keys(T.MOLDES) as T.Grado[]) {
       const a = T.acordeDeGrado(g);

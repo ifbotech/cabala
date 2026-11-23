@@ -364,13 +364,20 @@ const SONIDO = {
   },
   /**
    * (0.29) El Rey se planta: un golpe seco de parche (el tope contra el que choca tu número) y, abajo, el acorde grave
-   * de SU motivo (la tónica y los peldaños de la cabeza del motivo, sobre el acorde que suena), en bordonas.
+   * de SU motivo (`teoria.acordePlanta`: la tónica del acorde que suena y las notas de la cabeza de su motivo), en
+   * bordonas, con la nota de arriba en el timbre de ese Rey (fuelle, grave, campana o cuerda). Seco: se apaga en 350 ms.
    */
   planta: (k) => {
     k.parche(0, 118, 1, 0.09, 1);
     k.madera(0, 300, 0.7, 0.04);
     k.soplo(0, { dur: 0.035, vol: 0.8, filtro: 'bandpass', corte: 900, q: 0.9 });
-    k.acordeRey().forEach((m, n) => k.bordona(0.012 + n * 0.012, m, 0.9 - n * 0.1, 0.34));
+    const notas = k.acordeRey();
+    notas.forEach((m, n) => k.bordona(0.012 + n * 0.012, m, 0.9 - n * 0.1, 0.34));
+    const alta = notas[notas.length - 1];
+    if (k.palo === 'S') k.fuelle(0.03, alta + 12, 0.5, 0.12);
+    else if (k.palo === 'D') k.campanita(0.03, alta + 24, 0.5, 0.25);
+    else if (k.palo === 'H') k.cuerda(0.03, alta + 12, 0.6, 0.3);
+    else k.bordona(0.03, notas[0] - 12 < 28 ? notas[0] : notas[0] - 12, 0.7, 0.4);
   },
 } satisfies Record<string, (k: Kit & { acordeRey(): number[] }) => void>;
 
@@ -389,7 +396,7 @@ export const familiaDe = (s: Sonido): Familia => (GOLPES.includes(s) ? 'golpe' :
  * cada efecto queda `SOBRE[familia]` dB por encima de la música de la mesa (tramo 2) en su momento.
  */
 export const NIVEL_FX: Record<Sonido, number> = {
-  clic: 0.239, carta: 0.316, suelta: 0.327, error: 0.155, paso: 0.182, brota: 0.13, ficha: 0.175, chispa: 0.245, escalon: 0.128, chiche: 0.136, prenda: 0.168, 'ch-ginebra': 0.209, 'ch-dado': 0.239, 'ch-fosforo': 0.706, 'ch-tiza': 0.229, 'ch-poroto': 0.158, evolucion: 0.127, forja: 0.111, tesoro: 0.19, coser: 0.141, golpe: 0.17, fuerte: 0.12, remateChico: 0.123, corta: 0.146, exacto: 0.132, canto: 0.135, contra: 0.155, frena: 0.186, oro: 0.193, cura: 0.11, cae: 0.146, rey: 0.157, puf: 0.312, bufon: 0.221, fuego: 0.757, suspenso: 0.16, forjaSube: 0.192, ceniza: 0.112, victoria: 0.146, derrota: 0.111, alpelo: 0.176, deguello: 0.253, remate: 0.119, fortin: 0.166, diezmo: 0.281, brindis: 0.278, despeja: 0.298, tintin: 0.213, mascara: 0.168, grieta: 0.184, maldicion: 0.117, revela: 0.097, critico: 0.144, paloS: 0.371, paloC: 0.092, paloD: 0.242, paloH: 0.206, segunda: 0.145, planta: 0.127,
+  clic: 0.239, carta: 0.316, suelta: 0.327, error: 0.157, paso: 0.182, brota: 0.13, ficha: 0.175, chispa: 0.242, escalon: 0.128, chiche: 0.136, prenda: 0.168, 'ch-ginebra': 0.209, 'ch-dado': 0.239, 'ch-fosforo': 0.706, 'ch-tiza': 0.229, 'ch-poroto': 0.156, evolucion: 0.127, forja: 0.111, tesoro: 0.19, coser: 0.141, golpe: 0.17, fuerte: 0.12, remateChico: 0.123, corta: 0.144, exacto: 0.132, canto: 0.135, contra: 0.155, frena: 0.186, oro: 0.193, cura: 0.11, cae: 0.146, rey: 0.157, puf: 0.312, bufon: 0.218, fuego: 0.757, suspenso: 0.16, forjaSube: 0.192, ceniza: 0.112, victoria: 0.146, derrota: 0.111, alpelo: 0.174, deguello: 0.253, remate: 0.119, fortin: 0.166, diezmo: 0.281, brindis: 0.278, despeja: 0.298, tintin: 0.213, mascara: 0.168, grieta: 0.184, maldicion: 0.117, revela: 0.097, critico: 0.144, paloS: 0.371, paloC: 0.092, paloD: 0.239, paloH: 0.206, segunda: 0.145, planta: 0.119,
 };
 /** El nivel de las notas del conteo del golpe (`nota`). */
 export const NIVEL_CONTEO = 0.12;
@@ -582,12 +589,7 @@ function armarKit(c: BaseAudioContext, a: AudioNode, w: Ondas, ruido: AudioBuffe
     altura: o.altura,
     p: (i, piso) => T.notaPremio(ac, piso, i),
     e: (n, piso) => T.escalera(ac.escala, T.desde(ac.raiz, piso), T.desde(ac.raiz, piso) + 36)[n] ?? T.desde(ac.raiz, piso),
-    acordeRey: () => {
-      const rey = o.palo === 'S' || o.palo === 'C' || o.palo === 'D' || o.palo === 'H' ? o.palo : 'S';
-      const raiz = T.raizCerca(ac, 38);
-      const peld = [...new Set([0, ...T.cabezaMotivo(rey).map((i) => ((i % 5) + 5) % 5)])].sort((x, y) => x - y).slice(0, 3);
-      return peld.map((i) => T.notaPeldano(ac, raiz, i));
-    },
+    acordeRey: () => T.acordePlanta(o.palo === 'S' || o.palo === 'C' || o.palo === 'D' || o.palo === 'H' ? o.palo : 'S', ac),
     madera(tr, f, vol = 1, cae = 0.04) {
       const t = t0 + tr;
       const g = gan();

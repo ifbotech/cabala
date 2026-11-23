@@ -782,6 +782,8 @@ export interface Stinger {
   desliza?: boolean;
   /** Es un premio (todos menos la quema de la Forja Brava). */
   premio: boolean;
+  /** El nivel de este stinger (calibrado con la medición: cada uno queda 4–8 dB sobre la música de la mesa). */
+  nivel: number;
 }
 /**
  * Los stingers. (0.29) Un premio RESUELVE siempre: se escriben sobre la tríada consonante del acorde (tónica, 3.ª y
@@ -790,25 +792,25 @@ export interface Stinger {
  */
 export const STINGERS: Record<StingerId, Stinger> = {
   // ¡ESCOBA!: una barrida que sube dos octavas por la tríada
-  escoba: { piso: 50, timbre: 'cuerda', premio: true, notas: [[0, 2, 0, 0.7], [1, 2, 1, 0.7], [2, 2, 2, 0.75], [3, 2, 3, 0.8], [4, 2, 4, 0.85], [5, 2, 5, 0.9], [6, 10, 6, 1, 'remate']] },
+  escoba: { piso: 50, timbre: 'cuerda', premio: true, nivel: 1.68, notas: [[0, 2, 0, 0.7], [1, 2, 1, 0.7], [2, 2, 2, 0.75], [3, 2, 3, 0.8], [4, 2, 4, 0.85], [5, 2, 5, 0.9], [6, 10, 6, 1, 'remate']] },
   // ¡ENVIDO!: la quinta que llama dos veces y la tónica que planta
-  truco: { piso: 57, timbre: 'fuelle', premio: true, notas: [[0, 3, 2, 0.9], [3, 3, 2, 0.8], [6, 10, 3, 1, 'remate']] },
+  truco: { piso: 57, timbre: 'fuelle', premio: true, nivel: 1.5, notas: [[0, 3, 2, 0.9], [3, 3, 2, 0.8], [6, 10, 3, 1, 'remate']] },
   // ¡CHINCHÓN!: dos escaleritas de tres y el remate arriba
-  chinchon: { piso: 57, timbre: 'campana', premio: true, notas: [[0, 2, 0, 0.7], [1, 2, 1, 0.7], [2, 2, 2, 0.8], [4, 2, 1, 0.7], [5, 2, 2, 0.75], [6, 2, 3, 0.8], [8, 10, 4, 1, 'remate']] },
+  chinchon: { piso: 57, timbre: 'campana', premio: true, nivel: 1.4, notas: [[0, 2, 0, 0.7], [1, 2, 1, 0.7], [2, 2, 2, 0.8], [4, 2, 1, 0.7], [5, 2, 2, 0.75], [6, 2, 3, 0.8], [8, 10, 4, 1, 'remate']] },
   // ¡MENTIRA!: baja por la tríada y resbala, socarrona, hasta la tónica
-  mentiroso: { piso: 57, timbre: 'fuelle', premio: true, desliza: true, notas: [[0, 3, 4, 0.8], [3, 3, 2, 0.8], [6, 10, 0, 1, 'remate']] },
+  mentiroso: { piso: 57, timbre: 'fuelle', premio: true, nivel: 1.68, desliza: true, notas: [[0, 3, 4, 0.8], [3, 3, 2, 0.8], [6, 10, 0, 1, 'remate']] },
   // ¡CHANCHO!: dos gruñidos abajo y la quinta con su octava que rematan
-  chancho: { piso: 38, timbre: 'grave', premio: true, notas: [[0, 2, 0, 1], [2, 2, 0, 0.9], [4, 8, 2, 1, 'remate'], [4, 8, 3, 0.6, 'sosten']] },
+  chancho: { piso: 38, timbre: 'grave', premio: true, nivel: 0.73, notas: [[0, 2, 0, 1], [2, 2, 0, 0.9], [4, 8, 2, 1, 'remate'], [4, 8, 3, 0.6, 'sosten']] },
   // «¡AL PELO!»: dos toquecitos, quinta y tónica de arriba
-  alpelo: { piso: 62, timbre: 'campana', premio: true, notas: [[0, 1, 2, 0.7], [1, 6, 3, 0.9, 'remate']] },
+  alpelo: { piso: 62, timbre: 'campana', premio: true, nivel: 1.57, notas: [[0, 1, 2, 0.7], [1, 6, 3, 0.9, 'remate']] },
   // Golpe exacto: tónica, quinta y octava, limpias
-  exacto: { piso: 62, timbre: 'campana', premio: true, notas: [[0, 2, 0, 0.8], [1, 2, 2, 0.85], [2, 10, 3, 1, 'remate'], [2, 10, 2, 0.5, 'sosten']] },
+  exacto: { piso: 62, timbre: 'campana', premio: true, nivel: 1.24, notas: [[0, 2, 0, 0.8], [1, 2, 2, 0.85], [2, 10, 3, 1, 'remate'], [2, 10, 2, 0.5, 'sosten']] },
   // el jackpot de una Evolución: la tríada que trepa dos octavas y media y se queda sonando entera
-  evolucion: { piso: 45, timbre: 'cuerda', premio: true, notas: [[0, 2, 0, 0.7], [1, 2, 1, 0.7], [2, 2, 2, 0.75], [3, 2, 3, 0.75], [4, 2, 4, 0.8], [5, 2, 5, 0.8], [6, 2, 6, 0.85], [7, 2, 7, 0.9], [8, 14, 6, 1, 'remate'], [8, 14, 8, 0.6, 'sosten'], [8, 14, 7, 0.6, 'sosten'], [8, 14, 3, 0.5, 'sosten']] },
+  evolucion: { piso: 45, timbre: 'cuerda', premio: true, nivel: 1.41, notas: [[0, 2, 0, 0.7], [1, 2, 1, 0.7], [2, 2, 2, 0.75], [3, 2, 3, 0.75], [4, 2, 4, 0.8], [5, 2, 5, 0.8], [6, 2, 6, 0.85], [7, 2, 7, 0.9], [8, 14, 6, 1, 'remate'], [8, 14, 8, 0.6, 'sosten'], [8, 14, 7, 0.6, 'sosten'], [8, 14, 3, 0.5, 'sosten']] },
   // (0.29) la Forja Brava sale (×2): tónica, quinta y octava a martillazos, y el acorde abierto que queda vibrando
-  brava: { piso: 50, timbre: 'cuerda', premio: true, notas: [[0, 2, 0, 0.9], [1, 2, 2, 0.85], [2, 2, 3, 0.9], [3, 10, 5, 1, 'remate'], [3, 10, 3, 0.6, 'sosten']] },
+  brava: { piso: 50, timbre: 'cuerda', premio: true, nivel: 1.5, notas: [[0, 2, 0, 0.9], [1, 2, 2, 0.85], [2, 2, 3, 0.9], [3, 10, 5, 1, 'remate'], [3, 10, 3, 0.6, 'sosten']] },
   // (0.29) la Forja Brava quema: el fuelle baja por la tríada y se apaga en la tónica (no es premio, pero no desafina)
-  quema: { piso: 45, timbre: 'fuelle', premio: false, notas: [[0, 3, 5, 0.8], [3, 3, 4, 0.75], [6, 10, 3, 0.9, 'remate']] },
+  quema: { piso: 45, timbre: 'fuelle', premio: false, nivel: 1.57, notas: [[0, 3, 5, 0.8], [3, 3, 4, 0.75], [6, 10, 3, 0.9, 'remate']] },
 };
 
 /** ¿Esa nota hace tritono o novena menor contra un bajo? (lo que un premio no puede tener nunca). */
@@ -869,6 +871,20 @@ export function notasStinger(id: StingerId, a: Acorde, sig: Acorde = a, pasoEnCo
     if (papel) usadas.set(paso, [...fuera, midi]);
     return { paso, dur, midi, vel };
   });
+}
+
+/**
+ * (0.29) El acorde con el que un Rey «se planta»: la tónica del acorde que suena, bien abajo (cerca de Re2), y encima,
+ * abiertas una octava más arriba, las notas de la cabeza de SU motivo que caen en la tríada de premio (si la cabeza
+ * no trae ninguna, la quinta). Dos o tres notas, nunca un tritono ni una novena menor contra el bajo: es un tope, no
+ * una disonancia.
+ */
+export function acordePlanta(rey: PaloRey, a: Acorde): number[] {
+  const raiz = raizCerca(a, 38);
+  const triada = premio(a);
+  const arriba = [...new Set(cabezaMotivo(rey).map((i) => notaPeldano(a, raiz, modulo(i, 5))))].filter((m) => m !== raiz && triada.includes(mod12(m))).map((m) => m + 12);
+  if (!arriba.length) arriba.push(desde(triada[2], raiz + 12));
+  return [raiz, ...arriba.sort((x, y) => x - y).slice(0, 2)];
 }
 
 /** Hasta cuántos grados sube el conteo del golpe (dos octavas: arriba de eso la cuerda ya chilla). */
