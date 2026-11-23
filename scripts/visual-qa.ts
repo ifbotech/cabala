@@ -407,7 +407,7 @@ function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[
     // (0.25: y en la mesa, lo del enemigo —su TE PEGA, su barra y, fuera del teléfono, su naipe— y la cuenta abierta)
     // (0.28: y, fuera del teléfono, el texto vivo que la ayuda del foco tapaba con mando: el desglose de la cuenta, el
     // naipe de La Corte, el renglón de botones y el Bufón con su globo)
-    const vivo = W > 700 ? ', #app .mesa [data-cuenta] .c-bajo, #app .mesa [data-cuenta] .cuenta.reposo .pista, #app .mesa .corte .corte-carta, #app .anfitrion .bufon, #app .anfitrion .bocadillo, #app .esc-bufon .bufon, #app .esc-bufon .bocadillo' : '';
+    const vivo = W > 700 ? ', #app .mesa .chiches .ch-rot, #app .mesa [data-cuenta] .c-bajo, #app .mesa [data-cuenta] .cuenta.reposo .pista, #app .mesa .corte .corte-carta, #app .anfitrion .bufon, #app .anfitrion .bocadillo, #app .esc-bufon .bufon, #app .esc-bufon .bocadillo' : '';
     const enemigo = `, #app .mesa [data-ataque], #app .mesa .e-barras, #app .mesa [data-cuenta] .cuenta:not(.reposo)${W > 700 ? ', #app .mesa [data-carta]' : ''}${vivo}`;
     for (const o of [...document.querySelectorAll(`#app button:not(.nodo.hecho, .nodo.pasado, .nodo.actual), #capa button, #app .titulo, #capa .titulo, #app .hud [data-n]${enemigo}`)].filter(visible)) {
       if (ancla && (o === ancla || o.contains(ancla) || ancla.contains(o))) continue;
@@ -525,6 +525,17 @@ function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[
   if (W > 700) {
     const chica = [...document.querySelectorAll<HTMLElement>('.mesa [data-cuenta] .c-bajo :is(.d-n, .d-v, .d-rot, .cc-cuenta, .cc-verbo)')].filter(visible).find((el) => parseFloat(getComputedStyle(el).fontSize) < 16);
     if (chica) fallos.push({ regla: 'desglose-cortado', detalle: `«${(chica.textContent ?? '').trim().slice(0, 24)}» del desglose va a ${getComputedStyle(chica).fontSize} (piso: 16 px)` });
+  }
+  // (0.29) «chip-suerte»: el chip «A la suerte: 60 %» de la Cábala enseña su «%» (entero dentro de su tarjeta y sin el
+  // glifo del mando ni nada encima de su última letra)
+  for (const ch of [...document.querySelectorAll<HTMLElement>('.cabala .opcion > .chip.canto')].filter(visible)) {
+    const C = ch.getBoundingClientRect();
+    const O = ch.closest('.opcion')!.getBoundingClientRect();
+    const txt = (ch.textContent ?? '').trim();
+    const fin = document.elementFromPoint(C.right - 10, C.top + C.height / 2);
+    if (!txt.includes('%')) fallos.push({ regla: 'chip-suerte', detalle: `«${txt}» no dice el %` });
+    else if (C.right > O.right + 1 || C.left < O.left - 1 || ch.scrollWidth > ch.clientWidth + 1) fallos.push({ regla: 'chip-suerte', detalle: `«${txt}» no entra en su tarjeta (${Math.round(C.left)} → ${Math.round(C.right)} en ${Math.round(O.left)} → ${Math.round(O.right)}; pide ${ch.scrollWidth} px y enseña ${ch.clientWidth})` });
+    else if (fin && !ch.contains(fin) && !fin.contains(ch)) fallos.push({ regla: 'chip-suerte', detalle: `el final de «${txt}» queda bajo ${nombre(fin)}` });
   }
   // restos de español en la pantalla inglesa
   if (idioma === 'en') {

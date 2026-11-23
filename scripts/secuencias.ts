@@ -70,7 +70,8 @@ const fallos: string[] = [];
 await conServidor(5198, async (url) => {
   const navegador = await chromium.launch();
   try {
-    for (const [w, h] of ([[1280, 800], [390, 844]] as const).filter(([ancho]) => !soloVentana || ancho === soloVentana)) {
+    // (0.29) `--ventana=1920` filma la mesa a 1080p en una secuencia de golpe (sola: no entra en la corrida de las otras dos)
+    for (const [w, h] of ([[1280, 800], [390, 844], [1920, 1080]] as const).filter(([ancho]) => (soloVentana ? ancho === soloVentana : ancho !== 1920))) {
       const ctx = await navegador.newContext({ viewport: { width: w, height: h }, hasTouch: w < 500, locale: 'es-AR' });
       await ctx.addInitScript('globalThis.__name = (f) => f');
       // en Steam Deck todo se graba con el mando (los glifos y el foco que vería quien juega con él)
@@ -193,6 +194,34 @@ await conServidor(5198, async (url) => {
       };
       const libre = (pg: Page = p): Promise<unknown> => pg.waitForFunction(() => !(window as unknown as G).__mesa?.ocupado?.(), undefined, { timeout: 12000 });
 
+      if (w === 1920) {
+        // la mesa a 1080p, en movimiento: elegir, el conteo en cadena, el daño y el contragolpe; y el Rey que se planta
+        await mesa('mesa');
+        await p.waitForTimeout(700);
+        await p.evaluate(() => {
+          const g = window as unknown as G;
+          const m = g.__cabala.mejorGolpe(g.__cabala.sesion.partida);
+          if (m) g.__mesa.mano.elegir(m.ids, m.postas);
+        });
+        await p.waitForTimeout(300);
+        await p.screenshot({ path: `${SALIDA}/${w}-golpe-00.png` });
+        await p.evaluate(() => {
+          const g = window as unknown as G;
+          g.__mesa.golpear(g.__mesa.mano.seleccion());
+        });
+        await rafaga('golpe', 18, 170);
+        await libre();
+        await mesa('mesa-chinchon');
+        await p.waitForTimeout(600);
+        await p.evaluate(() => {
+          const g = window as unknown as G;
+          g.__mesa.golpear(g.__mesa.mano.seleccion());
+        });
+        await p.waitForSelector('.escudo-vuela', { timeout: 9000 }).catch(() => undefined);
+        await rafaga('chinchon-corta', 8, 70, p, true, { sel: '.escudo-vuela', que: 'un escudito «+N» en vuelo de la mano al ESCUDO', minimo: 1, anchoMin: 16 });
+        await ctx.close();
+        continue;
+      }
       // 1 · el Rey irrumpe: el duelo abierto, con la Corte reducida a su último naipe y con 1 de Vida; se lo abate y la
       // ráfaga filma al Rey entrando a la mesa (su halo, su cortina y su naipe), no a la Sota que lo precede
       await mesa('rey-abre');
@@ -478,7 +507,7 @@ await conServidor(5198, async (url) => {
       });
       // (el conteo dura ~1,5 s; los escuditos salen después del número, uno cada 70 ms)
       await p.waitForSelector('.escudo-vuela', { timeout: 9000 }).catch(() => undefined);
-      await rafaga('chinchon-corta', 10, 70, p, true, { sel: '.escudo-vuela', que: 'un escudito «+N» en vuelo de la mano al ESCUDO', minimo: 1, anchoMin: 16 });
+      await rafaga('chinchon-corta', 12, 60, p, true, { sel: '.escudo-vuela', que: 'un escudito «+N» en vuelo de la mano al ESCUDO', minimo: 1, anchoMin: 16 });
       await libre();
 
       // 5f · (0.28) ¡CHANCHO! con la Pierna: tres del mismo número cantan (un escalón menos que el Póker) y aturden
@@ -509,6 +538,39 @@ await conServidor(5198, async (url) => {
         await p.screenshot({ path: `${SALIDA}/${w}-chancho-canta-00.png` });
         await p.evaluate(() => void (window as unknown as G).__mesa.golpear((window as unknown as { __pierna: string[] }).__pierna));
         await rafaga('chancho-canta', 16, 170, p, true, { sel: '.canto-grande', que: 'el canto grande «¡CHANCHO!»', minimo: 1, anchoMin: 80 });
+      }
+      await libre();
+
+      // 5f bis · (0.29) el aturdido del ¡CHANCHO!, filmado: la misma Pierna contra un enemigo que la aguanta (sin Degüello
+      // que lo remate): el sello ATURDIDO tiene que verse caer y quedar
+      await mesa('mesa-chancho');
+      await p.waitForTimeout(600);
+      const aturde = await p.evaluate(() => {
+        const g = window as unknown as G;
+        const x = g.__cabala.sesion.partida;
+        const e = x.combate.fila[0];
+        delete x.bendiciones.deguello;
+        e.aturdido = 0;
+        e.escudo = 0;
+        e.vida = e.vidaMax = Math.max(e.vidaMax, 6000);
+        const mano = x.combate.mano as { id: string; palo: string; n: number }[];
+        const palos = ['S', 'C', 'D', 'H'].filter((k) => k !== e.palo);
+        mano.splice(0, 3, ...palos.slice(0, 3).map((palo, i) => ({ id: `qa-aturde-${i}`, palo, n: 5 })));
+        g.__mesa.sincronizar();
+        const ids = mano.slice(0, 3).map((k) => k.id);
+        const q = g.__mesa.cuenta(ids) as Q & { canto?: boolean; aturde?: number };
+        if (!q.ok || !q.canto) return `la Pierna no canta (${q.jugada})`;
+        if (q.abate || q.ejecuta) return 'la Pierna abate aun con 6000 de Vida';
+        if (!q.aturde) return 'la Pierna no aturde';
+        g.__mesa.mano.elegir(ids);
+        (window as unknown as { __aturde: string[] }).__aturde = ids;
+        return true;
+      });
+      if (aturde !== true) fallos.push(`${w} · chancho-aturde: ${aturde}`);
+      else {
+        await p.waitForTimeout(350);
+        await p.evaluate(() => void (window as unknown as G).__mesa.golpear((window as unknown as { __aturde: string[] }).__aturde));
+        await rafaga('chancho-aturde', 20, 170, p, true, { sel: '[data-enemigo] .e-sellos .e-sello:not(.e-inmune)', que: 'el sello ATURDIDO del enemigo que aguantó el ¡CHANCHO!', minimo: 2, anchoMin: 24 });
       }
       await libre();
 

@@ -132,7 +132,8 @@ export function textoGlosario(e: EntradaGlosario): string {
     case 'exacto':
       return t('gExacto', { o: B.exacto.oro });
     case 'alpelo':
-      return t('gAlPelo', { p: Math.round(B.exacto.alPelo * 100) });
+      // (0.29: si el motor ya lo paga —`oroAlPelo`—, el glosario lo dice)
+      return (B.exacto as { oroAlPelo?: number }).oroAlPelo ? t('gAlPeloOro', { p: Math.round(B.exacto.alPelo * 100), o: (B.exacto as { oroAlPelo?: number }).oroAlPelo ?? 0 }) : t('gAlPelo', { p: Math.round(B.exacto.alPelo * 100) });
     case 'racha':
       return t('gRacha', { lista: Array.from({ length: B.exacto.rachaTope }, (_, i) => `+${(i + 1) * B.exacto.multi}`).join(', ') });
     case 'segunda':

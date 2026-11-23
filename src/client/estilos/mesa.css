@@ -6611,3 +6611,203 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
     padding: 3px 1px;
   }
 }
+
+/* (0.29) la barra del que cae rematado barre hasta 0 antes de que su naipe se parta */
+.e-vida .b-vida.barre {
+  transition: width 0.15s steps(5);
+}
+
+/* ───────────── 0.29 · el Rey se planta, con el cuerpo ─────────────
+   un pisotón seco del naipe, el escudo de su palo que se cierra sobre él y lo que se pierde del golpe, que choca, se
+   pone gris, se parte en dos y cae deshecho hacia su sello (que va en el centro del paño: no tapa el rasgo ni la FURIA) */
+.mesa .e-centro.se-planta .e-carta {
+  animation: rey-se-planta 0.42s steps(6);
+}
+@keyframes rey-se-planta {
+  0% {
+    transform: translateY(calc(-6px * var(--k-enemigo))) scale(1.06);
+  }
+  30% {
+    transform: translateY(calc(3px * var(--k-enemigo))) scale(1.04, 0.97);
+  }
+  55% {
+    transform: translateY(calc(-1px * var(--k-enemigo)));
+  }
+  100% {
+    transform: none;
+  }
+}
+.planta-escudo {
+  position: absolute;
+  inset: calc(-3px * var(--k-enemigo));
+  z-index: 3;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--aura) 30%, transparent);
+  box-shadow:
+    0 0 0 calc(2px * var(--k-enemigo)) var(--aura),
+    0 0 0 calc(4px * var(--k-enemigo)) #09070f,
+    0 0 0 calc(5px * var(--k-enemigo)) var(--aura);
+  animation: planta-escudo 0.66s steps(7) forwards;
+}
+@keyframes planta-escudo {
+  0% {
+    scale: 1.35;
+    opacity: 0;
+  }
+  18% {
+    scale: 1;
+    opacity: 1;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.planta-pierde {
+  position: fixed;
+  z-index: 70;
+  pointer-events: none;
+  line-height: 0;
+  transform: translate(-50%, -50%);
+}
+.planta-pierde.pp-arriba {
+  clip-path: polygon(0 0, 100% 0, 100% 42%, 0 58%);
+}
+.planta-pierde.pp-abajo {
+  clip-path: polygon(0 58%, 100% 42%, 100% 100%, 0 100%);
+}
+.mesa.planta-viva .cuenta .c-veredicto.v-planta {
+  visibility: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mesa .e-centro.se-planta .e-carta,
+  .planta-escudo {
+    animation: none;
+  }
+}
+
+/* (0.29) el sello ATURDIDO cae con su golpe (también sobre el que recién entra, tras un ¡CHANCHO! que abate) */
+.mesa .e-sello.nace {
+  animation: sello-nace 0.4s steps(5);
+}
+@keyframes sello-nace {
+  0% {
+    scale: 1.8;
+    opacity: 0;
+  }
+  35% {
+    scale: 0.92;
+    opacity: 1;
+  }
+  100% {
+    scale: 1;
+  }
+}
+/* (0.29) «COPAS NO CURAN» (el Brindis de Sangre) y «ENVIDO: faltan N» (el Truco), en la cuenta */
+.cuenta .chip.c-sin-cura {
+  color: #ff8fa8;
+  box-shadow: 0 0 0 1px #ff1453;
+}
+.cuenta .chip.c-sin-cura .c-sin-cura-rot {
+  display: inline;
+}
+.cuenta .chip.c-falta {
+  color: var(--hueso-2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .mesa .e-sello.nace {
+    animation: none;
+  }
+}
+
+.mesa .e-ataque.se-va {
+  visibility: hidden;
+}
+/* el sello SE PLANTA sobre el paño angosto de la Deck: parte en renglones, no se sale del fieltro */
+@media (min-width: 701px) {
+  .sello-planta.en-pano {
+    align-items: center;
+    text-align: center;
+  }
+  .sello-planta.en-pano .rotulo {
+    white-space: normal;
+  }
+}
+
+/* (0.29) dos sellos a la vez (INMUNE y ATURDIDO) fuera del teléfono: cada uno en un renglón (su ícono y, al lado, su
+   rótulo): la columna no trepa al turno ni al dado de la cabecera */
+@media (min-width: 701px) {
+  .mesa .e-sellos:has(> :nth-child(2)) .e-sello {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+  }
+  .mesa .e-sellos:has(> :nth-child(2)) .e-sello .rotulo {
+    text-align: left;
+  }
+  .mesa .e-sellos:has(> :nth-child(2)) .e-sello,
+  .mesa .e-sellos:has(> :nth-child(2)) .e-sello .inmune {
+    --k: 1;
+  }
+}
+
+/* ───────────── 0.29 · un solo lenguaje de foco ─────────────
+   En todo el juego, con mando o teclado, el foco es el MISMO: marco celeste que late, separado por un filo de tinta, y
+   su flecha ▼ clavada arriba. Ya no hay marco hueso con halo dorado (botones sueltos), ni dorado sin flecha (la bandeja
+   del HUD), ni blanco (las fichas de «Lo que llevás»): en la Deck el foco es el puntero y se busca una sola vez. */
+:focus-visible,
+.foco {
+  outline: calc(2px * var(--k)) solid var(--foco);
+  outline-offset: calc(2px * var(--k));
+  box-shadow:
+    0 0 0 calc(2px * var(--k)) #09070f,
+    0 0 0 calc(5px * var(--k)) #09070f;
+  animation: foco-ui-late 0.8s steps(1) infinite;
+}
+:is(.btn, button.chiche, button.hud-tiras, button.hud-pozo, .al-ofrenda):focus-visible {
+  position: relative;
+}
+button.hud-tiras:focus-visible,
+button.hud-pozo:focus-visible,
+button.chiche:focus-visible,
+.al-ofrenda:focus-visible {
+  outline: calc(2px * var(--k)) solid var(--foco);
+  outline-offset: calc(2px * var(--k));
+  border-image-source: var(--m-hundido);
+}
+button.hud-tiras:focus-visible .ficha {
+  box-shadow: none;
+}
+:is(.btn, .opcion, .nodo.abierto, .visor-carta, .fin-pieza, button.chiche, button.hud-tiras, button.hud-pozo, .al-ofrenda):focus-visible::before {
+  content: '';
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  top: calc(-12px * var(--k));
+  width: calc(11px * var(--k) * 2);
+  height: calc(7px * var(--k) * 2);
+  translate: -50% 0;
+  background: var(--flecha-foco) 0 0 / 100% 100%;
+  image-rendering: pixelated;
+  pointer-events: none;
+  animation: foco-ui-flecha 0.8s steps(1) infinite;
+}
+/* (la bandeja y las cajas del HUD recortan lo que sale de ellas: su flecha va adentro, en el canto de arriba) */
+:is(button.hud-tiras, button.hud-pozo):focus-visible::before {
+  top: calc(-1px * var(--k));
+}
+/* (los naipes llevan su propio marco y su propia flecha, del mismo celeste: no se les suma otro) */
+.carta:focus-visible,
+.corte-carta:focus-visible,
+.negra-naipe:focus-visible {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :focus-visible,
+  .foco,
+  :is(.btn, .opcion, .nodo.abierto, .visor-carta, .fin-pieza, button.chiche, button.hud-tiras, button.hud-pozo, .al-ofrenda):focus-visible::before {
+    animation: none;
+  }
+}

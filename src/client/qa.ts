@@ -22,8 +22,16 @@ import { t } from './almacen';
 
 /** (0.22) Un don del Rey de ese palo, para despertar su Evolución en las fotos. */
 function darDon(p: Partida, palo: Palo): void {
-  const id = BENDICIONES.find((b) => BENDICION[b as BendicionId].rey === palo) as BendicionId | undefined;
-  if (id) p.bendiciones[id] = 1;
+  // (0.29) cuatro niveles de dones de ese Rey, repartidos entre sus dones sin pasar del tope de ninguno: despierta la
+  // Evolución con las reglas de la 0.28 (un don) y con las de la 0.29 (cuatro niveles)
+  let faltan = 4;
+  for (const b of BENDICIONES as readonly BendicionId[]) {
+    const d = BENDICION[b];
+    if (d.rey !== palo || d.dual || faltan <= 0) continue;
+    const n = Math.min(d.niveles, faltan);
+    p.bendiciones[b] = Math.max(p.bendiciones[b] ?? 0, n);
+    faltan -= n;
+  }
 }
 /** Y el Amuleto Épico (dejando lugar si hace falta). */
 function darAmuleto(p: Partida, id: Partida['amuletos'][number]): void {

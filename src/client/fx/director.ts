@@ -25,7 +25,7 @@ export const ZONAS_PROHIBIDAS =
   '#app .mesa .e-sellos > *, #app [data-cuenta] .cuenta:not(.reposo) [data-total], #app [data-hud-vida] .valor, #app [data-hud-escudo] .valor, ' +
   // (0.21: tampoco los botones de la mesa que se pueden tocar —con el golpe en el aire están apagados, como para el
   // grito—, la bandeja de Amuletos y la de Chiches y la cifra del TE PEGA)
-  '#app .mesa .botones .btn:not(:disabled), #app .mesa .hud-tiras, #app .mesa .chiches, #app .mesa .e-ataque .e-golpe';
+  '#app .mesa .botones .btn:not(:disabled), #app .mesa .hud-tiras, #app .mesa .chiches, #app .mesa .e-ataque .e-golpe [data-n]';
 
 interface Turno {
   id: number;

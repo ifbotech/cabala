@@ -5122,17 +5122,18 @@ main.fogon.forjando [data-accion='seguir'] {
     --k-bufon: 2;
   }
 }
-/* (0.28) la Cábala: el chip «A la suerte: 60 %» le deja su esquina al glifo A (le tapaba el «%») */
-@media (min-width: 701px) {
-  .cabala .opcion > .chip.canto {
-    margin-right: calc(26px * var(--k));
-    margin-left: calc(26px * var(--k));
-  }
+/* (0.29) la Cábala: el glifo A de la opción con el foco va a su esquina de ARRIBA (como en DESCANSAR del Fogón): abajo
+   tapaba el «%» del chip «A la suerte: 60 %», que además no se sale de su tarjeta */
+.cabala .opcion > .op-glifo {
+  bottom: auto;
+  top: calc(4px * var(--k));
 }
-@media (min-width: 701px) {
-  .cabala .opcion > .chip.canto {
-    margin-left: 0;
-    margin-right: 0;
-    padding-right: calc(24px * var(--k));
-  }
+.cabala .opcion > .chip.canto {
+  max-width: 100%;
+  box-sizing: border-box;
+  white-space: nowrap;
+  font-size: min(var(--fr), 20px);
+  letter-spacing: 0.02em;
+  padding-left: 6px;
+  padding-right: 6px;
 }

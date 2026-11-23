@@ -159,6 +159,7 @@ export function letraChica(o: { persiste?: number } = {}): { regla: string; deta
     if (o.persiste && t0 - desde < o.persiste) return;
     out.push({ regla: 'letra-chica', detalle: `${nombre(el)} «${que.slice(0, 28)}» se ve a ${px.toFixed(1)} px (mínimo 14)` });
   };
+  const velo = document.querySelector('#capa .velo');
   for (const el of document.querySelectorAll<HTMLElement>('body *')) {
     const propio = [...el.childNodes].some((n) => n.nodeType === 3 && (n.textContent ?? '').trim().length > 0);
     const esCifra = el.classList.contains('cf') && !!el.closest('.cifra');
@@ -166,6 +167,11 @@ export function letraChica(o: { persiste?: number } = {}): { regla: string; deta
     const r = el.getBoundingClientRect();
     if (r.width < 1 || r.height < 1 || r.right < 0 || r.bottom < 0 || r.left > W || r.top > H) continue;
     if (!seVe(el)) continue;
+    // (lo de la pantalla que quedó tapado por un modal no se lee: no cuenta)
+    if (velo && !velo.contains(el) && el.closest('#app')) {
+      const hit = document.elementFromPoint(Math.max(0, Math.min(W - 1, r.left + r.width / 2)), Math.max(0, Math.min(H - 1, r.top + r.height / 2)));
+      if (hit && velo.contains(hit)) continue;
+    }
     if (esCifra) {
       // (los signos «−», «+», «=», «×» ocupan su celda entera: se mide la celda)
       if (r.height < 13.5) falla(el, r.height, el.closest('.cifra')?.getAttribute('aria-label') ?? 'cifra');

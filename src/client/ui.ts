@@ -222,7 +222,7 @@ function mostrarTip(el: HTMLElement): void {
 export const TAPA_NUNCA = 'button, .titulo, .hud [data-n], .mesa [data-ataque], .mesa .e-barras, .mesa [data-carta], .mesa [data-cuenta] .cuenta:not(.reposo), .mesa .e-sellos > *, .esc-bufon .bocadillo, .mesa .e-dice, ' +
   // (0.28) con mando la ayuda está siempre abierta: tampoco pisa el desglose de la cuenta, el naipe de La Corte, el
   // renglón de botones, el rótulo de la bandeja de Chiches, los naipes de la mano ni al Bufón con su globo
-  '.mesa [data-cuenta] .c-bajo, .mesa [data-cuenta] .cuenta.reposo .pista, .mesa .corte .corte-carta, .mesa [data-mano] .carta, .anfitrion .bufon, .anfitrion .bocadillo, .esc-bufon .bufon';
+  '.mesa .chiches .ch-rot, .mesa [data-cuenta] .c-bajo, .mesa [data-cuenta] .cuenta.reposo .pista, .mesa .corte .corte-carta, .mesa [data-mano] .carta, .anfitrion .bufon, .anfitrion .bocadillo, .esc-bufon .bufon';
 function obstaculos(ancla: HTMLElement): DOMRect[] {
   // (y la pieza misma: la ayuda no tapa lo que se está mirando)
   const out: DOMRect[] = [ancla.getBoundingClientRect()];
@@ -256,7 +256,7 @@ function ubicarTip(el: HTMLElement): void {
  * (0.24) Arriba, abajo, a un costado o al otro y, si todo eso pisa algo, corrida de a poco: gana el primer lugar que no
  * tapa un botón, un título ni una cifra del HUD (si no hay ninguno, el que menos tapa).
  */
-function ubicarTipLibre(el: HTMLElement, r: DOMRect, ancha: boolean): void {
+function ubicarTipLibre(el: HTMLElement, r: DOMRect, ancha: boolean, angosta = 0): void {
   if (!tipEl) return;
   const w = tipEl.offsetWidth;
   const h = tipEl.offsetHeight;
@@ -307,6 +307,14 @@ function ubicarTipLibre(el: HTMLElement, r: DOMRect, ancha: boolean): void {
         }
       }
     // (y si ni así, más ancha y más baja: en el teléfono, a todo el ancho)
+    // (0.29) fuera del teléfono, antes de ensancharse prueba ANGOSTA y más alta: la ayuda de un Chiche entra en el hueco
+    // entre la mano y la bandeja sin tapar su rótulo «L3 CHICHES»
+    const ANGOSTAS = [264, 228, 200];
+    if (cerca === Infinity && !ancha && angosta < ANGOSTAS.length && innerWidth > 700 && w > ANGOSTAS[angosta] + 12) {
+      tipEl.style.maxWidth = `${ANGOSTAS[angosta]}px`;
+      ubicarTipLibre(el, r, false, angosta + 1);
+      return;
+    }
     if (cerca === Infinity && !ancha) {
       tipEl.style.maxWidth = `${Math.min(innerWidth - 8, Math.max(w, 560))}px`;
       ubicarTipLibre(el, r, true);
