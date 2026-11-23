@@ -7141,3 +7141,13 @@ button.hud-tiras:focus-visible .ficha {
 .pano-regla.corta .p-corto {
   display: inline;
 }
+/* (el sello sobre el paño cae desde 1,1×, no desde 1,5×: en su primer cuadro no llega a la bandeja de Chiches) */
+.sello-planta.en-pano {
+  animation-name: sello-planta-pano;
+}
+@keyframes sello-planta-pano {
+  from {
+    scale: 1.1;
+    opacity: 0;
+  }
+}

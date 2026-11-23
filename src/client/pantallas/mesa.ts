@@ -2028,7 +2028,9 @@ export function pantallaMesa(p: Partida): Pantalla {
       if (panoE && panoE.width > 0) {
         // (0.29) escritorio: en el centro del paño, que a esa altura del golpe está vacío. Al costado de la barra tapaba
         // el rasgo del Rey y su FURIA, que son justo lo que hay que leer
-        x = panoE.left + (panoE.width - w) / 2;
+        // (sin llegar a la bandeja de Chiches ni a los botones)
+        const topeB = ($('.mano-zona .botones')?.getBoundingClientRect().left ?? innerWidth) - 30;
+        x = Math.min(panoE.left + (panoE.width - w) / 2, topeB - w);
         y = panoE.top + (panoE.height - h) / 2;
       } else if (innerWidth > 700) {
         x = barra.right + 12;
@@ -2292,7 +2294,7 @@ export function pantallaMesa(p: Partida): Pantalla {
       if (!r || !r.width) return pon(0.5, 0)();
       const gw = g.offsetWidth;
       // (sin llegar a la bandeja de Chiches ni a los botones)
-      const tope = ($('.mano-zona .botones')?.getBoundingClientRect().left ?? innerWidth) - 16;
+      const tope = ($('.mano-zona .botones')?.getBoundingClientRect().left ?? innerWidth) - 30;
       // (0.29) su borde izquierdo no pasa del borde del fieltro: a su izquierda está el desglose, que sigue encendido
       // (tapaba su final: «Taba +1»). Si no entra entre el paño y los botones, su regla parte en dos renglones
       const lugar = Math.max(160, tope - r.left);
