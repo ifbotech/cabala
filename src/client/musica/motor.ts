@@ -27,7 +27,7 @@
 // un acorde del pad, 4; una nota de fuelle o de cuerdas, 3 (dos lengüetas, una ganancia). Con todo al máximo (mesa 3,
 // segunda cara) son 40–46 nodos por segundo, medidos (la 0.28, con dos nodos por nota y sin filtros, andaba en 40–57).
 // Una voz que canta son 21 nodos por frase; un efecto de la paleta, entre 3 y 40 que se sueltan al terminar.
-import { crearRuido } from './bus';
+import { BUS, crearRuido } from './bus';
 import { crearCantor, NODOS_CANTOR, type Cantor } from './canto';
 import { ondasDe, type Ondas } from './ondas';
 import * as T from './teoria';
@@ -227,13 +227,23 @@ export class Motor {
         g.connect(caja2).connect(this.conPan(PAN.rasgueo ?? 0, this.agache));
       } else g.connect(this.conPan(PAN[id] ?? 0, T.MELODICAS.includes(id) ? this.agache : this.bateria));
     }
-    // los stingers: a los efectos (obedecen al ajuste de sonido) y a la sala
+    // los stingers: a los efectos (obedecen al ajuste de sonido) y a la sala. (0.29) Con el mismo cuidado que la
+    // paleta: su pasabajos y su campana en la banda que cansa (las campanas de «exacto» y «¡AL PELO!» viven ahí)
     this.stingers = c.createGain();
     this.stingers.gain.value = NIVEL_STINGER;
-    this.stingers.connect(this.sal.efectos);
+    const stBajos = c.createBiquadFilter();
+    stBajos.type = 'lowpass';
+    stBajos.frequency.value = BUS.fx.corte;
+    stBajos.Q.value = BUS.fx.q;
+    const stCampana = c.createBiquadFilter();
+    stCampana.type = 'peaking';
+    stCampana.frequency.value = BUS.fx.campana.hz;
+    stCampana.Q.value = BUS.fx.campana.q;
+    stCampana.gain.value = BUS.fx.campana.db;
+    this.stingers.connect(stBajos).connect(stCampana).connect(this.sal.efectos);
     const envioSt = c.createGain();
     envioSt.gain.value = 0.35;
-    this.stingers.connect(envioSt).connect(this.sal.sala);
+    stCampana.connect(envioSt).connect(this.sal.sala);
     // el remate va derecho al bus de la música (no pasa por el volumen, que se agacha mientras suena)
     this.remates = c.createGain();
     this.remates.gain.value = REMATE.nivel;

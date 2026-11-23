@@ -356,7 +356,7 @@ for (const [id, minimo] of [['mesa-1', 0.25], ['mesa-3', 0.35]] as const) {
   if (m && sobre500(m) < minimo) fallos.push(`${id}: solo el ${(sobre500(m) * 100).toFixed(1)} % de la energía por encima de 500 Hz (mínimo ${minimo * 100} %)`);
 }
 for (const m of medidas) if (CON_BRILLO.test(m.id) && (m.banda < BANDA_MESA[0] || m.banda > BANDA_MESA[1])) fallos.push(`${m.id}: ${(m.banda * 100).toFixed(2)} % en 2,5–5 kHz (tiene que estar entre ${BANDA_MESA[0] * 100} y ${BANDA_MESA[1] * 100} %)`);
-for (const id of ['fx-solos', 'fx-banco']) {
+for (const id of ['fx-solos', 'fx-banco', 'stingers-solos']) {
   const m = de(id);
   if (m && m.banda > BANDA_FX) fallos.push(`${id}: los efectos dejan el ${(m.banda * 100).toFixed(2)} % de su energía en 2,5–5 kHz (tope ${BANDA_FX * 100} %)`);
 }
