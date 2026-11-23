@@ -698,9 +698,10 @@ export function sonarEn(c: BaseAudioContext, a: AudioNode, ruido: AudioBuffer | 
   salida.connect(a);
   const fuentes: { n: AudioScheduledSourceNode; fin: number }[] = [];
   const kit = armarKit(c, g, ondasDe(c), ruido, t0, o.acorde ?? ACORDE_BASE, {
-    // lo que no es melódico se corre con la altura pedida y con la variación al azar; lo melódico, solo en semitonos enteros
+    // lo que no es melódico se corre con la altura pedida y con la variación al azar; lo melódico, solo por octavas
+    // enteras (0.29: en semitonos sueltos una altura de 0,85 bajaba el rasgueo una tercera menor y lo sacaba del acorde)
     alt: (paso ? 1 : altura) * 2 ** ((o.varia ?? 0) / 12),
-    corre: paso ? 0 : Math.round(12 * Math.log2(altura)),
+    corre: paso ? 0 : 12 * Math.round(Math.log2(altura)),
     sube: o.sube ?? (paso ? Math.max(0, Math.round((altura - 1) / paso)) : 0),
     altura,
     palo: o.palo ?? 'S',
