@@ -1286,6 +1286,8 @@ export function pantallaMesa(p: Partida): Pantalla {
           break;
         case 'aturde':
           if (enemigo) enemigo.aturdido = ev.turnos;
+          // (0.29) el número del golpe que lo trajo se va antes: el sello no nace debajo de una cifra
+          limpiarNumeros(true);
           pintarEnemigo();
           // (0.29) que se vea: el sello ATURDIDO cae con su golpe y sus estrellas (también sobre el que recién entra)
           if (!quieto()) {
@@ -1986,9 +1988,24 @@ export function pantallaMesa(p: Partida): Pantalla {
     rotulo.style.left = `${Math.round(de.x)}px`;
     rotulo.style.top = `${Math.round(de.y)}px`;
     $('#capa')?.append(rotulo);
+    // (0.29) si ahí vuela el número del golpe, el sello se corre: arriba, bien abajo o al costado del naipe
     ubicar(rotulo, 'rotulo', 900, [
       () => {
         rotulo.style.top = `${Math.round(de.y - 40)}px`;
+      },
+      () => {
+        rotulo.style.top = `${Math.round(de.y + 96)}px`;
+      },
+      () => {
+        rotulo.style.top = `${Math.round(de.y + 140)}px`;
+      },
+      () => {
+        rotulo.style.top = `${Math.round(de.y - 96)}px`;
+      },
+      () => {
+        if (innerWidth <= 700) return;
+        rotulo.style.top = `${Math.round(de.y)}px`;
+        rotulo.style.left = `${Math.round(de.x + 190)}px`;
       },
     ]);
     window.setTimeout(() => rotulo.remove(), quieto() ? 1400 : 900);

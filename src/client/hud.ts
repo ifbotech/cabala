@@ -342,7 +342,7 @@ export function deltaHud(de: 'vida' | 'escudo' | 'oro', n: number, o: { icono?: 
     const y = Math.min(innerHeight - h - 6, rc.bottom + 5);
     let x = Math.max(6 + w / 2, Math.min(innerWidth - 6 - w / 2, rc.left + rc.width / 2));
     const otras = [...document.querySelectorAll('.hud-delta')].filter((o2) => o2 !== el).map((o2) => o2.getBoundingClientRect());
-    for (const r of otras) if (r.bottom > y - 3 && r.top < y + h + 3 && r.right > x - w / 2 - 6 && r.left < x + w / 2 + 6) x = x < r.left + r.width / 2 ? r.left - w / 2 - 8 : r.right + w / 2 + 8;
+    for (const r of otras) if (r.bottom > y - 3 && r.top < y + h + 3 && r.right > x - w / 2 - 16 && r.left < x + w / 2 + 16) x = x < r.left + r.width / 2 ? r.left - w / 2 - 18 : r.right + w / 2 + 18; // (margen ancho: la vecina se mide a media animación y todavía crece)
     el.style.left = `${Math.round(Math.max(6 + w / 2, Math.min(innerWidth - 6 - w / 2, x)))}px`;
     el.style.top = `${Math.round(y)}px`;
   }
