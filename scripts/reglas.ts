@@ -61,7 +61,7 @@ tabla(['Chiche', 'Efecto'], CHICHES.map((id) => [`**${CHICHE[id].nombre.es}**`, 
 
 p('### Evoluciones, Forja Brava, Cábala Negra y Tesoros');
 p(
-  `- **Evoluciones.** Si llevás uno de los cuatro Amuletos de palo de rareza épica y además un don del Rey de su palo, el Amuleto evoluciona solo (siguen siendo 15 Amuletos). La pieza que despierta una lleva el sello **★ EVOLUCIONA**.`,
+  `- **Evoluciones.** Si llevás uno de los cuatro Amuletos de palo de rareza épica y además juntás **${B.evoluciones.despierta} niveles de dones** del Rey de su palo (cada nivel de cada don suyo cuenta uno), el Amuleto evoluciona solo (siguen siendo 15 Amuletos). La pieza que despierta una lleva el sello **★ EVOLUCIONA**.`,
 );
 tabla(['Amuleto', 'Evoluciona en', 'Qué hace'], EVOLUCIONES.map((de) => [`**${AMULETO[de].nombre.es}**`, `**${EVOLUCION[de].nombre.es}**`, EVOLUCION[de].desc.es]));
 p(
@@ -73,7 +73,7 @@ p(
 p('### Inmune');
 p('Una sola regla: **cada enemigo es Inmune a su propio palo**: las cartas de ese palo no le hacen Daño. En tu mano se ven oscurecidas mientras ese enemigo está activo, y el Mapa te muestra de antemano los palos que te esperan.');
 p('### Golpe exacto');
-p(`**Al pelo:** si te pasás por muy poco (hasta el ${Math.round(B.exacto.alPelo * 100)} % de la Vida máxima del enemigo), no cobrás el premio, pero la racha no se corta y el Cetro del Bufón se recarga.`);
+p(`**Al pelo:** si te pasás por muy poco (hasta el ${Math.round(B.exacto.alPelo * 100)} % de la Vida máxima del enemigo), cobrás **${B.exacto.oroAlPelo} de oro**, la racha no se corta y el Cetro del Bufón se recarga.`);
 p(`Abatir a un enemigo con un TOTAL **igual a su Vida** es ¡EXACTO!: cobrás **${B.exacto.oro} de oro** y tu próximo golpe lleva **+${B.exacto.multi} de Multi**. La mesa te dice cuánto le queda al enemigo o cuánto te sobra. **Racha:** cada exacto seguido sube el premio (+2 con el segundo, +${B.exacto.rachaTope} con el tercero, que es el tope); se corta al abatir a un enemigo sin exactitud.`);
 p('### Aturdido y Furia');
 p(`Un enemigo **Aturdido** se salta su próximo Contraataque. La **Furia** es Ataque de más de la Corte durante un combate, y se ve sumada junto al Ataque del enemigo. Sube por dos motivos: **+${B.furia.reyPorTurno}** cada turno que un Rey sigue en pie, y **+${B.furia.mazoAgotado}** cada vez que se te acaba el Mazo y se baraja el Descarte.`);

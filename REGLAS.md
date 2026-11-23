@@ -68,7 +68,7 @@ Consumibles de un solo uso que se apoyan **sobre la madera, a la derecha de la m
 
 ### Evoluciones, Forja Brava, Cábala Negra y Tesoros
 
-- **Evoluciones.** Si llevás uno de los cuatro Amuletos de palo de rareza épica y además un don del Rey de su palo, el Amuleto evoluciona solo (siguen siendo 15 Amuletos). La pieza que despierta una lleva el sello **★ EVOLUCIONA**.
+- **Evoluciones.** Si llevás uno de los cuatro Amuletos de palo de rareza épica y además juntás **4 niveles de dones** del Rey de su palo (cada nivel de cada don suyo cuenta uno), el Amuleto evoluciona solo (siguen siendo 15 Amuletos). La pieza que despierta una lleva el sello **★ EVOLUCIONA**.
 
 | Amuleto | Evoluciona en | Qué hace |
 |---|---|---|
@@ -87,7 +87,7 @@ Una sola regla: **cada enemigo es Inmune a su propio palo**: las cartas de ese p
 
 ### Golpe exacto
 
-**Al pelo:** si te pasás por muy poco (hasta el 10 % de la Vida máxima del enemigo), no cobrás el premio, pero la racha no se corta y el Cetro del Bufón se recarga.
+**Al pelo:** si te pasás por muy poco (hasta el 10 % de la Vida máxima del enemigo), cobrás **1 de oro**, la racha no se corta y el Cetro del Bufón se recarga.
 
 Abatir a un enemigo con un TOTAL **igual a su Vida** es ¡EXACTO!: cobrás **3 de oro** y tu próximo golpe lleva **+1 de Multi**. La mesa te dice cuánto le queda al enemigo o cuánto te sobra. **Racha:** cada exacto seguido sube el premio (+2 con el segundo, +3 con el tercero, que es el tope); se corta al abatir a un enemigo sin exactitud.
 

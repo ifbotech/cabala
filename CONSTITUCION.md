@@ -169,7 +169,7 @@ certificar (la huella del informe tiene que coincidir).
 
 ### 1.16 Evoluciones que se ganan, Envido que se canta y maldiciones distintas (0.29.0)
 
-- **Las Evoluciones despiertan con cuatro niveles de dones** del Rey de su palo (dos dones de nivel 2, uno de nivel 4…):
+- **Las Evoluciones despiertan con cuatro niveles de dones** del Rey de su palo (cada nivel de cada don suyo cuenta uno: dos dones de nivel 2, o uno de nivel 3 y otro de nivel 1):
   son un premio de media partida, no el estado normal del Épico (el laboratorio mide 47–58 % de partidas con una
   despierta; antes, 85–94 %).
 - **Cada maldición cobra por algo distinto.** Facón: el golpe que no abate te corta Vida. Garrote: el golpe sin Bastos
