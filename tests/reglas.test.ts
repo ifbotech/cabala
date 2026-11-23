@@ -705,13 +705,13 @@ describe('0.22.0: Evoluciones, Forja Brava, Cábala Negra y Tesoros', () => {
       expect(evoluciono(p, de)).toBe(false);
       // (0.29.0) un don de nivel 1 no alcanza: hacen falta dos niveles de dones de ese Rey
       expect(despierta(p, 'bendicion', donDe(ev.palo))).toBe(null);
-      p.bendiciones = { [donDe(ev.palo)]: 1 };
+      p.bendiciones = { [donDe(ev.palo)]: B.evoluciones.despierta - 1 };
       expect(evoluciono(p, de)).toBe(false);
       expect(despierta(p, 'bendicion', donDe(ev.palo))).toBe(de);
-      p.bendiciones = { [donDe(ev.palo)]: 2 };
+      p.bendiciones = { [donDe(ev.palo)]: B.evoluciones.despierta };
       expect(evoluciono(p, de)).toBe(true);
       const q = juego.nuevaPartida({ mazo: 'escoba', semilla: 'EVO' });
-      q.bendiciones = { [donDe(ev.palo)]: 2 };
+      q.bendiciones = { [donDe(ev.palo)]: B.evoluciones.despierta };
       expect(despierta(q, 'amuleto', de)).toBe(de);
     }
   });
@@ -719,7 +719,7 @@ describe('0.22.0: Evoluciones, Forja Brava, Cábala Negra y Tesoros', () => {
     const mano = [c('S', 7), c('C', 7)];
     const p = mesa('chinchon', mano, {}, (x) => (x.amuletos = ['caliz']));
     expect(cuenta(p, mano).pasos.some((x) => x.de === 'a:caliz')).toBe(true);
-    p.bendiciones = { [donDe('H')]: 2 };
+    p.bendiciones = { [donDe('H')]: B.evoluciones.despierta };
     p.vida = Math.round(p.vidaMax * 0.65);
     const q = cuenta(p, mano);
     expect(q.pasos.some((x) => x.de === 'a:caliz')).toBe(false);
@@ -915,7 +915,7 @@ describe('0.25.0: cada Evolución trae su maldición', () => {
     const mano = [c('S', 3), c('D', 2)];
     const p = mesa('chinchon', mano, {}, (x) => {
       x.amuletos = ['lanza'];
-      x.bendiciones = { [donDe('S')]: 2 };
+      x.bendiciones = { [donDe('S')]: B.evoluciones.despierta };
     });
     const q = cuenta(p, [mano[0]]);
     expect(q.abate).toBe(false);
@@ -929,7 +929,7 @@ describe('0.25.0: cada Evolución trae su maldición', () => {
     const mano = [c('H', 4), c('S', 2)];
     const p = mesa('chinchon', mano, {}, (x) => (x.amuletos = ['caliz']));
     expect(cuenta(p, [mano[0]]).cura).toBeGreaterThan(0);
-    p.bendiciones = { [donDe('H')]: 2 };
+    p.bendiciones = { [donDe('H')]: B.evoluciones.despierta };
     expect(cuenta(p, [mano[0]]).cura).toBe(0);
     expect(cuenta(p, [mano[0]]).maldicion).toBe(0);
   });
@@ -937,7 +937,7 @@ describe('0.25.0: cada Evolución trae su maldición', () => {
     const mano = [c('S', 4), c('D', 4)];
     const p = mesa('chinchon', mano, {}, (x) => {
       x.amuletos = ['poncho'];
-      x.bendiciones = { [donDe('C')]: 2 };
+      x.bendiciones = { [donDe('C')]: B.evoluciones.despierta };
     });
     p.combate!.escudo = 12;
     const q = cuenta(p, [mano[0]]);
@@ -954,7 +954,7 @@ describe('0.25.0: cada Evolución trae su maldición', () => {
       x.oro = 10;
     });
     const antes = cuenta(p, mano.slice(0, 2));
-    p.bendiciones = { [donDe('D')]: 2 };
+    p.bendiciones = { [donDe('D')]: B.evoluciones.despierta };
     expect(cuenta(p, mano.slice(0, 2)).oro).toBe(antes.oro * B.evoluciones.sol.oroDoble);
     const evs = descartar(p, [mano[2].id]);
     expect(evs.some((e) => e.t === 'maldicion' && e.de === 'cofre')).toBe(true);
@@ -1019,7 +1019,7 @@ describe('0.29.0: el Envido se canta, el Garrote pide Bastos y el ¡CHANCHO! que
     const mano = [c('C', 4), c('S', 4)];
     const p = mesa('chinchon', mano, {}, (x) => {
       x.amuletos = ['poncho'];
-      x.bendiciones = { [donDe('C')]: 2 };
+      x.bendiciones = { [donDe('C')]: B.evoluciones.despierta };
     });
     p.combate!.escudo = 12;
     expect(cuenta(p, [mano[0]]).gasta).toBe(0);
