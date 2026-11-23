@@ -572,6 +572,13 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       regla.classList.toggle('costado', !tel);
       if (!tel) regla.style.maxWidth = `${Math.max(120, izq - 24)}px`;
       regla.hidden = bloqueada || raiz.classList.contains('arrastrando') || (tel ? techoTel() : raiz.clientHeight - h) < 24;
+      // (0.29) escritorio: si la regla no entra en el alto de la franja (la columna angosta junto al paño de 5 Postas),
+      // primero pasa a su forma corta y después cede el renglón del Comodín
+      regla.classList.remove('corta');
+      if (!regla.hidden && !tel) {
+        if (regla.offsetHeight > lp.hp - 8) regla.classList.add('corta');
+        if (regla.offsetHeight > lp.hp - 8) regla.classList.remove('con-comodin');
+      }
       // (0.29: en el teléfono, si con el renglón del Comodín no entra arriba de la mano, ese renglón cede)
       if (!regla.hidden && tel && regla.offsetHeight > techoTel() - 6) regla.classList.remove('con-comodin');
       // (0.28) escritorio: a la izquierda del paño, centrada en su franja (donde después va el desglose)

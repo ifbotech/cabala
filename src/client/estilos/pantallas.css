@@ -2790,15 +2790,15 @@ button.visor-carta:disabled {
 /* con cuatro piezas o más, cada pieza se angosta (y su dibujo baja a 2×): el panel deja su columna al Bufón y a su
    bocadillo, que no quedan tapados */
 @media (min-width: 701px) {
-  .botin:not(.directo) .botin-lista:has(> :nth-child(4)) {
+  .botin:not(.directo) .botin-lista:has(> .botin-fila:nth-of-type(4)) {
     gap: calc(var(--u) * 1.25);
   }
-  .botin:not(.directo) .botin-lista:has(> :nth-child(4)) > .botin-fila.bp {
+  .botin:not(.directo) .botin-lista:has(> .botin-fila:nth-of-type(4)) > .botin-fila.bp {
     --kp: 2;
     width: calc(var(--fr) * 6.8);
   }
   /* (con el glifo A del mando delante, «CHOOSE» se arrima a su glifo y no se sale de su pieza) */
-  .botin:not(.directo) .botin-lista:has(> :nth-child(4)) > .botin-fila.bp > .btn {
+  .botin:not(.directo) .botin-lista:has(> .botin-fila:nth-of-type(4)) > .botin-fila.bp > .btn {
     padding-left: 4px;
     padding-right: 4px;
     gap: 4px;
@@ -2807,7 +2807,7 @@ button.visor-carta:disabled {
     position: relative;
   }
   /* (y el glifo va clavado en la esquina del botón, como una insignia: «CHOOSE» conserva todo su ancho) */
-  .botin:not(.directo) .botin-lista:has(> :nth-child(4)) > .botin-fila.bp > .btn > .glifo {
+  .botin:not(.directo) .botin-lista:has(> .botin-fila:nth-of-type(4)) > .botin-fila.bp > .btn > .glifo {
     position: absolute;
     left: 0;
     top: 0;
@@ -2816,15 +2816,15 @@ button.visor-carta:disabled {
   }
 }
 @media (min-width: 1700px) and (min-height: 950px) {
-  .botin:not(.directo) .botin-lista:has(> :nth-child(4)) {
+  .botin:not(.directo) .botin-lista:has(> .botin-fila:nth-of-type(4)) {
     /* (más juntas: en inglés, las 5 piezas pedían 2 px más de lo que deja el Bufón) */
     gap: var(--u);
   }
-  .botin:not(.directo) .botin-lista:has(> :nth-child(4)) > .botin-fila.bp {
+  .botin:not(.directo) .botin-lista:has(> .botin-fila:nth-of-type(4)) > .botin-fila.bp {
     --kp: 4;
   }
   /* (y ELEGIR, con menos aire y un punto menos de letra: «CHOOSE» cabe en su pieza) */
-  .botin:not(.directo) .botin-lista:has(> :nth-child(4)) > .botin-fila.bp > .btn {
+  .botin:not(.directo) .botin-lista:has(> .botin-fila:nth-of-type(4)) > .botin-fila.bp > .btn {
     padding-left: 4px;
     padding-right: 4px;
     max-width: 100%;
@@ -5196,5 +5196,93 @@ main.fogon.forjando [data-accion='seguir'] {
   }
   .nodo.lejos:not(.pasado) {
     opacity: 0.82;
+  }
+}
+
+/* ───────────── 0.29 · el Botín a 1080p es una mesa servida ─────────────
+   las piezas, a vez y media, apoyadas en un paño de fieltro con su ribete, y las monedas del cobro volcadas en sus
+   esquinas (escena y escala: ni un texto más) */
+.botin-monedas {
+  display: none;
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  .botin:not(.directo) .botin-panel {
+    --kp: 6;
+    gap: calc(var(--u) * 2);
+    width: max-content;
+    max-width: none;
+    padding: 0 calc(var(--u) * 2);
+    overflow: visible;
+  }
+  .botin:not(.directo) .botin-panel > .titulo {
+    font-size: calc(var(--fs-xl) * 1.5);
+    padding: calc(var(--u) * 0.5) calc(var(--u) * 3.5);
+  }
+  .botin:not(.directo) .botin-lista {
+    position: relative;
+    gap: calc(var(--u) * 3);
+    padding: calc(var(--u) * 2.5) calc(var(--u) * 4);
+    border: 16px solid transparent;
+    border-image: var(--m-fieltro) 8 fill / 16px / 0 repeat;
+    image-rendering: pixelated;
+    box-shadow: 10px 12px 0 rgba(9, 7, 15, 0.55);
+  }
+  .botin-fila.bp {
+    width: calc(var(--fr) * 13.5);
+    min-height: 430px;
+    padding: calc(var(--u) * 1.5) calc(var(--u) * 0.75);
+    gap: calc(var(--u) * 1.25);
+  }
+  .botin-fila.bp .bp-nombre {
+    font-size: calc(var(--fr) * 1.25);
+  }
+  .botin-fila.bp .btn {
+    font-size: calc(var(--fr) * 1.15);
+    min-height: 64px;
+  }
+  .botin:not(.directo) .botin-panel > [data-accion='seguir'] {
+    min-width: calc(var(--fr) * 16);
+    min-height: 72px;
+  }
+  .botin-monedas {
+    display: block;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    --k: 2;
+  }
+  .botin-monedas .bm {
+    position: absolute;
+    line-height: 0;
+    filter: drop-shadow(3px 4px 0 rgba(9, 7, 15, 0.6));
+  }
+  .botin-monedas .bm-0 { left: -8px; bottom: 44px; }
+  .botin-monedas .bm-1 { left: 6px; bottom: -8px; --k: 3; }
+  .botin-monedas .bm-2 { left: 66px; bottom: -6px; }
+  .botin-monedas .bm-3 { right: 0; top: 36px; --k: 3; }
+  .botin-monedas .bm-4 { right: 40px; top: -10px; }
+  .botin-monedas .bm-5 { right: 2px; bottom: 84px; }
+  .botin-monedas .bm-6 { left: 46%; bottom: -10px; }
+  .botin:not(.directo) > .cuerpo > .anfitrion {
+    --k-bufon: 4;
+  }
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  /* (con cuatro piezas o más, la mesa servida las lleva más angostas: entran las cinco del botín de un Rey) */
+  .botin:not(.directo) .botin-lista:has(> .botin-fila:nth-of-type(4)) {
+    gap: calc(var(--u) * 1.5);
+    padding: calc(var(--u) * 2) calc(var(--u) * 2.5);
+  }
+  .botin:not(.directo) .botin-lista:has(> .botin-fila:nth-of-type(4)) > .botin-fila.bp {
+    --kp: 4;
+    width: calc(var(--fr) * 9.6);
+    min-height: 400px;
+  }
+  .botin:not(.directo) .botin-lista:has(> .botin-fila:nth-of-type(4)) > .botin-fila.bp .bp-nombre {
+    font-size: var(--fr);
+  }
+  .botin:not(.directo) .botin-lista:has(> .botin-fila:nth-of-type(4)) > .botin-fila.bp > .btn {
+    font-size: 20px;
+    min-height: 56px;
   }
 }

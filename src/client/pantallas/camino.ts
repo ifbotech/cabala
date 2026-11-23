@@ -621,7 +621,7 @@ export function pantallaBotin(p: Partida, desdeMesa = false): Pantalla {
         ${anfitrion(tx(alAzar(VOZ.botin, fijo())), 'risa')}
         <section class="panel botin-panel">
           <h1 class="titulo">${t('botin')}</h1>
-          <div class="botin-lista">${botin.items.map(fila).join('')}</div>
+          <div class="botin-lista">${botin.items.map(fila).join('')}<i class="botin-monedas" aria-hidden="true">${[0, 1, 2, 3, 4, 5, 6].map((n) => `<i class="bm bm-${n}">${pxHud('oro')}</i>`).join('')}</i></div>
           <button class="btn marco ${pendiente() < 0 ? 'oro' : 'hierro'} grande" data-accion="seguir" data-foco="seguir" ${pendiente() < 0 ? 'data-inicio' : ''}>${t(pendiente() < 0 ? 'seguir' : 'seguirSinElegir')}</button>
         </section>
       </div>

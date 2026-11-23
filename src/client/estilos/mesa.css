@@ -7134,3 +7134,10 @@ button.hud-tiras:focus-visible .ficha {
     }
   }
 }
+
+.pano-regla.corta .p-largo {
+  display: none;
+}
+.pano-regla.corta .p-corto {
+  display: inline;
+}
