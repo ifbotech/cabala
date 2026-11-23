@@ -102,3 +102,78 @@ export function placasHud(): { regla: string; detalle: string }[] {
   for (let i = 0; i < placas.length; i++) for (let j = i + 1; j < placas.length; j++) if (cruzan(placas[i].r, placas[j].r)) out.push({ regla: 'placa-pisa', detalle: `la placa «${placas[i].el.getAttribute('aria-label')}» (${donde(placas[i].r)}) se monta sobre «${placas[j].el.getAttribute('aria-label')}» (${donde(placas[j].r)})` });
   return out.slice(0, 1);
 }
+
+/**
+ * (0.29) «letra-chica»: la letra mínima de 14 px medida DE VERDAD, también en lo efímero. Cuenta lo que se ve en la
+ * pantalla, no lo que dice la hoja de estilos: el cuerpo de cada texto por la escala de sus transformaciones (una placa
+ * que nace a 0,8× ya no mide lo que declara) y el alto dibujado de cada cifra de sprites (los números del juego no son
+ * texto: una cifra a escala 1 achicada mide menos de lo que parece). Mira toda la página y la capa de efectos: placas
+ * «−N» del HUD, números que flotan, sellos, cantos, carteles, ayudas y bocadillos. No cuenta lo que se está yendo
+ * (opacidad bajo 0,35) ni lo que queda fuera de la ventana. La llaman la QA visual (cada estado quieto) y las
+ * secuencias (cada cuadro).
+ */
+export function letraChica(o: { persiste?: number } = {}): { regla: string; detalle: string }[] {
+  const out: { regla: string; detalle: string }[] = [];
+  const vistos = new Set<string>();
+  // (`persiste`: en una ráfaga, lo que entra creciendo —un cartel que nace a 0,6× y llega a 1× en dos cuadros— no
+  // cuenta: solo lo que sigue chico pasados esos milisegundos)
+  const g = window as unknown as { __letraAntes?: Map<string, number> };
+  const antes = g.__letraAntes ?? new Map<string, number>();
+  const ahora = new Map<string, number>();
+  const t0 = performance.now();
+  const W = innerWidth;
+  const H = innerHeight;
+  /** La opacidad con la que de verdad se ve (la suya por la de sus ancestros) y si algo lo esconde. */
+  const seVe = (el: Element): boolean => {
+    let op = 1;
+    for (let a: Element | null = el; a; a = a.parentElement) {
+      const s = getComputedStyle(a);
+      if (s.display === 'none' || s.visibility === 'hidden') return false;
+      op *= Number(s.opacity);
+      if (op < 0.35) return false;
+    }
+    return true;
+  };
+  /** La escala vertical con la que se dibuja (el producto de las transformaciones de él y de sus ancestros). */
+  const escala = (el: Element): number => {
+    let k = 1;
+    for (let a: Element | null = el; a; a = a.parentElement) {
+      const s = getComputedStyle(a);
+      const m = /^matrix\(([^)]+)\)/.exec(s.transform);
+      if (m) {
+        const [, b, , d] = m[1].split(',').map(Number);
+        k *= Math.hypot(b, d);
+      }
+      const sc = s.scale && s.scale !== 'none' ? s.scale.split(' ').map(Number) : null;
+      if (sc) k *= sc[1] ?? sc[0];
+    }
+    return k;
+  };
+  const nombre = (el: Element): string => `${el.tagName.toLowerCase()}${typeof el.className === 'string' && el.className ? `.${el.className.trim().split(/\s+/).slice(0, 2).join('.')}` : ''}`;
+  const falla = (el: Element, px: number, que: string): void => {
+    const clave = `${nombre(el)}|${que.slice(0, 12)}`;
+    if (vistos.has(clave) || out.length >= 6) return;
+    vistos.add(clave);
+    const desde = antes.get(clave) ?? t0;
+    ahora.set(clave, desde);
+    if (o.persiste && t0 - desde < o.persiste) return;
+    out.push({ regla: 'letra-chica', detalle: `${nombre(el)} «${que.slice(0, 28)}» se ve a ${px.toFixed(1)} px (mínimo 14)` });
+  };
+  for (const el of document.querySelectorAll<HTMLElement>('body *')) {
+    const propio = [...el.childNodes].some((n) => n.nodeType === 3 && (n.textContent ?? '').trim().length > 0);
+    const esCifra = el.classList.contains('cf') && !!el.closest('.cifra');
+    if (!propio && !esCifra) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width < 1 || r.height < 1 || r.right < 0 || r.bottom < 0 || r.left > W || r.top > H) continue;
+    if (!seVe(el)) continue;
+    if (esCifra) {
+      // (los signos «−», «+», «=», «×» ocupan su celda entera: se mide la celda)
+      if (r.height < 13.5) falla(el, r.height, el.closest('.cifra')?.getAttribute('aria-label') ?? 'cifra');
+      continue;
+    }
+    const px = parseFloat(getComputedStyle(el).fontSize) * escala(el);
+    if (px < 13.5) falla(el, px, (el.textContent ?? '').trim());
+  }
+  g.__letraAntes = ahora;
+  return out;
+}

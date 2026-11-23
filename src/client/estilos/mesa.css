@@ -6591,3 +6591,23 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
     flex: none;
   }
 }
+
+/* ───────────── 0.29 · el rótulo COMODÍN se lee ─────────────
+   en el paño va de canto por el borde derecho, a 16 px a 1× y a 24 px en el paño a 2× (nunca a 14); el naipe que va
+   achicado bajo el dedo lo lleva un escalón más grande */
+.mano .carta.elegida:has(.c-espectro) .c-rotulo {
+  font-size: calc(8px + 8px * var(--k-pano, 1));
+  padding: 4px 2px;
+  background: #09070f;
+  color: var(--oro);
+}
+.mano .carta.achicada .c-rotulo,
+.mano .carta.achicada.rotulo-canto:not(.elegida) .c-rotulo {
+  font-size: 18px;
+}
+@media (max-width: 700px) {
+  .mano .carta.elegida:has(.c-espectro) .c-rotulo {
+    font-size: 14px;
+    padding: 3px 1px;
+  }
+}

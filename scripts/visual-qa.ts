@@ -15,7 +15,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 import { guardian } from './guardian';
-import { manoViva } from './mano-viva';
+import { letraChica, manoViva } from './mano-viva';
 import { VENTANAS, conServidor } from './servidor';
 import { ESTADOS } from '../src/client/qa';
 
@@ -500,6 +500,9 @@ function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[
     const cara = { l: B.left + B.width * 0.3, r: B.left + B.width * 0.72, t: B.top + B.height * 0.22, b: B.top + B.height * 0.52 };
     for (const g of [...document.querySelectorAll<HTMLElement>('#app .bocadillo, #capa .bocadillo')].filter(visible)) {
       const G = g.getBoundingClientRect();
+      // (el globo que quedó detrás de una cortina a pantalla entera no tapa a nadie)
+      const arriba = document.elementFromPoint(G.left + G.width / 2, G.top + G.height / 2);
+      if (arriba && !g.contains(arriba) && !arriba.contains(g)) continue;
       const ix = Math.min(B.right, G.right) - Math.max(B.left, G.left);
       const iy = Math.min(B.bottom, G.bottom) - Math.max(B.top, G.top);
       if (ix <= 0 || iy <= 0) continue;
@@ -740,6 +743,8 @@ await conServidor(5191, async (url) => {
         const fallos = await pagina.evaluate(auditar, { esMovil: v.w < 700, idioma: lang, deck: v.nombre === '1280x800' && estado !== 'mesa-arrastrando' });
         // (0.28) nada vivo se monta, nada tapa la cuenta, la mano se ve entera (también fuera del teléfono)
         fallos.push(...(await pagina.evaluate(manoViva, {})));
+        // (0.29) la letra mínima medida de verdad: el cuerpo por su escala y el alto dibujado de las cifras de sprites
+        fallos.push(...(await pagina.evaluate(letraChica, {})));
         for (const e of errores) fallos.push({ regla: 'error-js', detalle: e.slice(0, 200) });
         for (const x of flechas) fallos.push({ regla: 'flecha-foco', detalle: x });
         // la mesa no salta al elegir («mesa-quieta»): fuera del teléfono, el naipe del Rey, La Corte y el Bufón quedan

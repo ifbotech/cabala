@@ -309,9 +309,8 @@ export function poseRetrato(pose: 'festeja' | 'tiembla' | 'guina', ms = 900): vo
  * (0.27) Lo que le pasa a una cifra tuya se dice junto a ella y ANTES de que la cifra cambie: «−18» sobre tu VIDA,
  * «−5 ESCUDO» sobre tu ESCUDO, «−3 ORO» sobre tu oro (con el ícono de quien lo cobra, si es una maldición).
  * (0.28) Nunca sobre la cifra que cambia ni una placa sobre otra. En el escritorio nace ADENTRO de su caja, sobre el
- * rótulo (no a caballo del marco del HUD). En el teléfono las cajas son puro número: las placas nacen sobre el RETRATO
- * (que no es dato), cada una en su renglón, y miden a la vecina antes de posarse («−4» de Escudo con su ícono arriba,
- * «−19» de Vida abajo). `ms`: lo que dura (se va antes de que se reparta el turno siguiente).
+ * rótulo (no a caballo del marco del HUD). (0.29) En el teléfono nace pegada BAJO su caja: ni sobre la cifra ni sobre el
+ * retrato, que hace su mueca a la vista. `ms`: lo que dura (se va antes de que se reparta el turno siguiente).
  */
 export function deltaHud(de: 'vida' | 'escudo' | 'oro', n: number, o: { icono?: string; ms?: number } = {}): void {
   const caja = $<HTMLElement>(`[data-hud-${de}]`);
@@ -330,19 +329,21 @@ export function deltaHud(de: 'vida' | 'escudo' | 'oro', n: number, o: { icono?: 
   el.style.animationDuration = `${ms}ms`;
   // (uno por cifra: el que llega reemplaza al anterior)
   document.querySelectorAll(`.hud-delta.hd-${de}`).forEach((x) => x.remove());
-  const retrato = tel ? $<HTMLElement>('.hud .hud-retrato')?.getBoundingClientRect() : undefined;
-  if (!retrato) caja.append(el);
+  // (0.29) en el teléfono la placa nace PEGADA BAJO SU CAJA (sobre el renglón de las fichas, que no es dato): el
+  // retrato queda libre y su mueca se ve entera, y la cifra que cambia sigue a la vista justo encima. La de Vida va al
+  // doble (es lo que más importa leer); si otra placa ya está ahí, se corre a su costado
+  const rc = tel ? caja.getBoundingClientRect() : undefined;
+  if (!rc) caja.append(el);
   else {
+    if (de === 'vida') el.classList.add('hd-grande');
     ($('#capa') ?? document.body).append(el);
     const h = el.offsetHeight;
     const w = el.offsetWidth;
-    // los renglones del retrato: arriba, abajo y al medio; se toma el primero que no pisa a otra placa
-    const renglones = de === 'vida' ? [retrato.bottom - h - 4, retrato.top + 4, retrato.top + (retrato.height - h) / 2] : [retrato.top + 4, retrato.bottom - h - 4, retrato.top + (retrato.height - h) / 2];
-    const otras = [...document.querySelectorAll('.hud-delta')].filter((x) => x !== el).map((x) => x.getBoundingClientRect());
-    const y = renglones.find((yy) => !otras.some((r) => r.bottom > yy - 3 && r.top < yy + h + 3)) ?? renglones[0];
-    // (centrada en el retrato; si es más ancha, crece hacia la izquierda: nunca hacia la cifra de la Vida)
-    const x = Math.max(4 + w / 2, Math.min(retrato.left + retrato.width / 2, retrato.right - w / 2 - 2));
-    el.style.left = `${Math.round(x)}px`;
+    const y = Math.min(innerHeight - h - 6, rc.bottom + 5);
+    let x = Math.max(6 + w / 2, Math.min(innerWidth - 6 - w / 2, rc.left + rc.width / 2));
+    const otras = [...document.querySelectorAll('.hud-delta')].filter((o2) => o2 !== el).map((o2) => o2.getBoundingClientRect());
+    for (const r of otras) if (r.bottom > y - 3 && r.top < y + h + 3 && r.right > x - w / 2 - 6 && r.left < x + w / 2 + 6) x = x < r.left + r.width / 2 ? r.left - w / 2 - 8 : r.right + w / 2 + 8;
+    el.style.left = `${Math.round(Math.max(6 + w / 2, Math.min(innerWidth - 6 - w / 2, x)))}px`;
     el.style.top = `${Math.round(y)}px`;
   }
   window.setTimeout(() => el.remove(), ms);

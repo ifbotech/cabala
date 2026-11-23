@@ -496,6 +496,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     puesto.set(c.el, clave);
     c.el.style.transform = tr;
     c.el.style.zIndex = String(z);
+    // (0.29: el naipe que va achicado bajo el dedo lleva su rótulo un escalón más grande: se sigue leyendo a 14 px)
+    c.el.classList.toggle('achicada', c.esc < 0.95);
     // (el recorte deja aire arriba y a los costados: la flecha del foco y el canto dorado no se cortan)
     c.el.style.clipPath = corte > 0 ? `inset(-64px -64px ${corte}px -64px)` : '';
   }

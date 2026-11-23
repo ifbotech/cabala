@@ -1662,3 +1662,12 @@ html[data-entrada='teclado'] .glifo.g-tecla {
     opacity: 0;
   }
 }
+
+/* (0.29) la placa de Vida del teléfono, al doble: es el número que más importa leer cuando te pegan */
+.hud-delta.hd-tel {
+  padding: 2px 6px;
+  gap: 3px;
+}
+.hud-delta.hd-tel.hd-grande .cifra {
+  --kc: 2;
+}

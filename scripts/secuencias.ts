@@ -9,7 +9,7 @@
 import { mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { chromium, type Page } from 'playwright';
 import { guardian } from './guardian';
-import { manoViva, placasHud } from './mano-viva';
+import { letraChica, manoViva, placasHud } from './mano-viva';
 import { conServidor } from './servidor';
 
 guardian('secuencias', 290);
@@ -173,8 +173,8 @@ await conServidor(5198, async (url) => {
           await pg.screenshot({ path: `${SALIDA}/${w}-${nombre}-${String(i + 1).padStart(2, '0')}.png` });
           // (0.28) y en cada cuadro: ningún naipe posado tapa la cuenta ni queda cortado por el HUD
           if (mide)
-            for (const x of [...(await pg.evaluate(manoViva, { quietas: true })), ...(await pg.evaluate(placasHud))]) {
-              const clave = `${nombre}|${x.regla}`;
+            for (const x of [...(await pg.evaluate(manoViva, { quietas: true })), ...(await pg.evaluate(placasHud)), ...(await pg.evaluate(letraChica, { persiste: 240 }))]) {
+              const clave = x.regla === 'letra-chica' ? `${x.regla}|${x.detalle.split(' se ve a ')[0]}` : `${nombre}|${x.regla}`;
               if (manoVista.has(clave)) continue;
               manoVista.add(clave);
               fallos.push(`${w} · ${nombre} (cuadro ${i + 1}): ${x.regla}: ${x.detalle}`);
