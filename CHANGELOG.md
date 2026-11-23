@@ -3,6 +3,44 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.29.0 · Lo que se gana (2026-11-23)
+
+Primera versión sin ningún P0 ni P1 abierto en los siete jurados.
+
+**Reglas**
+- **Las Evoluciones se ganan**: despiertan con cuatro niveles de dones del Rey de su palo (antes, con un don). Pasan de
+  despertar en el 85–94 % de las partidas a alrededor del 50–60 %.
+- **Cada maldición cobra por algo distinto**: el Garrote, el golpe sin Bastos (gasta medio Escudo); el Brindis, que tus
+  Copas ya no te curan (ya no bebe Vida). Facón y Sol siguen igual.
+- **Truco**: el ¡ENVIDO! pide dos cartas del mismo palo que sumen 8 o más (de ~21 a ~15 cantos por partida).
+- **Chancho Va**: el ¡CHANCHO! que abate deja Aturdido al enemigo que entra, y «de un saque» vale con el Degüello.
+- **Al pelo**: pasarte por hasta el 10 % de la Vida máxima paga 1 de oro y sostiene la racha.
+- Mazos reajustados y balance recertificado.
+
+**Audio**
+- Los 59 efectos rehechos con el material de la música (madera, cuerda pulsada, parche, campanitas, fuelle), afinados al
+  acorde que suena; las monedas, en un arpegio.
+- Las voces articulan una consonante por sílaba, cantan parejo entre vocales y van 4 dB sobre la música; el Bufón canta
+  más lento y con saltos más chicos. Estéreo: Bufón a un lado, Reyes al otro.
+- Los remates de premio siempre resuelven (ni tritono ni novena menor).
+- Cada escena tiene cuatro secciones (unos 74 s antes de repetir) y el bandoneón, un tema escrito.
+- Sonido propio para el Rey que se planta y para la Forja Brava.
+- `npm run qa:audio` escribe archivos WAV de cada escena y cada voz para escucharlos. Sigue sin pasar por un oído humano.
+
+**La mesa y las pantallas**
+- Mesa a 1080p: el paño al tamaño de la mano, el desglose en dos columnas con letra grande y el Bufón con la cara libre.
+- El desglose ya no corta nombres: nombres cortos y «otras +N».
+- Teléfono: la cuenta siempre plegada con su hoja de detalle; busto del enemigo; placas «−N» bajo su caja; nada bajo 14 px
+  (la QA mide ahora también los textos efímeros).
+- Un solo color de foco con mando; el golpe que abate sostiene «NO TE PEGA · LO ABATÍS»; el Rey que se planta tiene gesto.
+- Botín, Forja Brava, Mapa, Pulpería y Colección rehechos a 1080p.
+
+**Jurado** (siete) · Claridad 8,9 · Diversión 8,7 · Estética 8,7 · Veredicto 8,8. 0 P0 y 0 P1; 21 P2. Audio pasó de 7,6
+a 8,3. La meta de 9,1 la alcanzan Claridad en novato (9,2) y móvil (9,1).
+
+**Medición** · Laboratorio (3000 partidas por celda, sin avisos) · Altar vacío / lleno: Escoba 31,3 / 46,7 · Truco
+28,2 / 48,6 · Chinchón 29,1 / 48,4 · Mentiroso 28,4 / 48,4 · Chancho 33,0 / 48,9 %.
+
 ## 0.28.0 · La milonga de la Corte (2026-11-22)
 
 La música y las voces se rehacen enteras, y la mesa cierra los tres P1 del jurado de la 0.27.

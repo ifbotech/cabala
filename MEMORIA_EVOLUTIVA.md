@@ -487,6 +487,36 @@ piezas con icono de Vida máxima, grito junto al retrato; Vida máxima por Rey p
 
 **Medición.** Jurado 7,6 · 7,5 · 8,0 · 7,6. Panel 70,0 % (IC95 57–80 %); Deck 33 % (n = 9), Móvil 93 % (n = 15).
 
+## 0.29.0 · Lo que se gana (publicada)
+
+**Qué se buscó.** Cerrar el P1 de la mesa a 1080p y todos los P2 de la 0.28 en tres frentes a la vez (interfaz, audio
+y reglas, cada uno en su copia de trabajo), y los tres P2 de reglas que diseño repetía: Envido, Evoluciones, exacto.
+
+**Lecciones.**
+- Séptima subida seguida y primera versión con 0 P0 y 0 P1 en los siete jurados: 8,9 · 8,7 · 8,7 · 8,8. Claridad llega
+  a la meta en novato (9,2) y móvil (9,1); ninguna otra columna pasa de 9,0. Quedan 21 P2: a esta altura cada décima
+  cuesta una pantalla entera pulida.
+- Tres copias de trabajo en paralelo funcionan si cada frente tiene sus archivos; lo que se rompe aparece al fusionar
+  (un botón que no entraba a 360 px, un sello bajo un número, dos placas que se montaban) y no en el informe de ningún
+  agente: las puertas se corren SIEMPRE sobre el conjunto.
+- El humo intermitente era el guion (insistía en un Tesoro con candado que no podía pagar), no el juego.
+- Guardé el balance con siete pruebas en rojo por cambiar el umbral de las Evoluciones después de escribirlas: las
+  pruebas leen el número de la configuración, no lo repiten.
+- Con un umbral de 2 o 3 niveles de dones las Evoluciones seguían despertando en 63–89 % de las partidas; hicieron
+  falta 4. Y cambiarlo sin tocar los textos dejó reglas escritas falsas («un don», «no cobrás el premio»): lo cazó el
+  jurado de diseño. Todo texto que cita una regla sale del número de la configuración.
+- El laboratorio completo no entra en 300 s con agentes corriendo en la misma máquina: se certifica con la máquina libre.
+- Audio: el juez no pone un 9 a una mezcla que nadie oyó. Encontró un error real con cuentas a mano (una «altura» de
+  0,85 bajaba un rasgueo una tercera menor en cada golpe que no abate); ninguna medición lo veía porque medía con
+  altura 1. Abiertos: las voces (la compensación empareja el volumen, no el timbre; siguen entrando hasta 144 ms tarde),
+  y el duelo con un Rey, que es un loop de dos compases.
+- La QA visual no fotografía varias reglas nuevas («ENVIDO: faltan N», «COPAS NO CURAN», El Soplo, la ayuda de primera
+  vez, el progreso de la Evolución): tres jurados no pudieron juzgarlas.
+- Unificar la cuenta del teléfono le costó la escalada del conteo (los términos ya no se encienden).
+
+**Medición.** Jurado de siete 8,9 · 8,7 · 8,7 · 8,8 (0 P0, 0 P1). Laboratorio sin avisos; Evoluciones despiertas en
+~50–60 % de las partidas.
+
 ## 0.28.0 · La milonga de la Corte (publicada)
 
 **Qué se buscó.** Segundo salto del mandato de obra maestra: música adaptativa sobre un reloj único y personajes que
