@@ -7151,3 +7151,12 @@ button.hud-tiras:focus-visible .ficha {
     opacity: 0;
   }
 }
+
+/* (0.29) teléfono angosto (360 px): «DESCARTAR (N)» entra entero en su botón */
+@media (max-width: 379px) {
+  .mesa .botones .btn[data-accion='descartar'] {
+    padding: 0;
+    gap: 1px;
+    letter-spacing: -0.5px;
+  }
+}
