@@ -63,9 +63,9 @@ const escena = (id: string, que: string, estado: Partial<T.EstadoMusical>, furia
 
 /** Lo que canta cada voz en su render. */
 const cantosDe = (q: T.VozId): NonNullable<Pedido['cantos']> => {
-  if (q === 'bufon') return [{ compas: 1, paso: 0, quien: q, texto: VOZ.portada[0].es }, { compas: 3, paso: 0, quien: q, texto: VOZ.exacto[0].es }];
-  if (q === 'S' || q === 'C' || q === 'D' || q === 'H') return [{ compas: 1, paso: 0, quien: q, texto: REY_DEF[q].voz.aliado.es }, { compas: 3, paso: 8, quien: q, texto: REY_DEF[q].voz.cae.es }];
-  return [{ compas: 1, paso: 0, quien: q, texto: GRITO[q].canto[0].es, breve: true }, { compas: 1, paso: 12, quien: q, texto: GRITO[q].exacto[0].es, breve: true }, { compas: 3, paso: 0, quien: q, texto: GRITO[q].rey.es }];
+  if (q === 'bufon') return [{ compas: 1, paso: 0, quien: q, texto: VOZ.portada[0].es }, { compas: 3, paso: 0, quien: q, texto: VOZ.exacto[0].es }, { compas: 4, paso: 8, quien: q, texto: VOZ.canto[0].es }, { compas: 6, paso: 0, quien: q, texto: VOZ.pocaVida[1].es }];
+  if (q === 'S' || q === 'C' || q === 'D' || q === 'H') return [{ compas: 1, paso: 0, quien: q, texto: REY_DEF[q].voz.aliado.es }, { compas: 3, paso: 8, quien: q, texto: REY_DEF[q].voz.pega[0].es }, { compas: 5, paso: 0, quien: q, texto: REY_DEF[q].voz.duele.es }, { compas: 6, paso: 8, quien: q, texto: REY_DEF[q].voz.cae.es }];
+  return [{ compas: 1, paso: 0, quien: q, texto: GRITO[q].canto[0].es, breve: true }, { compas: 1, paso: 12, quien: q, texto: GRITO[q].exacto[0].es, breve: true }, { compas: 3, paso: 0, quien: q, texto: GRITO[q].rey.es }, { compas: 5, paso: 0, quien: q, texto: GRITO[q].dolor[0].es, breve: true }, { compas: 6, paso: 4, quien: q, texto: GRITO[q].gana.es }];
 };
 const estadoDe = (q: T.VozId): Partial<T.EstadoMusical> => (q === 'S' || q === 'C' || q === 'D' || q === 'H' ? { escena: 'rey', nivel: 2, rey: q } : mesa(2));
 const golpes = (modo: 'musica' | 'solos' | 'mezcla'): Pedido['efectos'] => [
@@ -199,9 +199,9 @@ const pedidos: Pedido[] = [
   })),
   // las voces: cada una canta lo suyo sobre su música (el WAV), a solas (su nivel) y «muda» (la música con el agache, sola)
   ...VOCES.flatMap((q): Pedido[] => {
-    const base = { tipo: 'voz' as const, compases: 5, estado: estadoDe(q), cantos: cantosDe(q) };
+    const base = { tipo: 'voz' as const, compases: 8, estado: estadoDe(q), cantos: cantosDe(q) };
     return [
-      { ...base, id: `voz-${q}`, que: `${q} (${T.VOCES[q].cuerda}) cantando sobre su música`, wav: 12 },
+      { ...base, id: `voz-${q}`, que: `${q} (${T.VOCES[q].cuerda}) cantando sobre su música`, wav: ESCENA_S },
       { ...base, id: `vozsola-${q}`, que: `${q} a solas (música apagada)`, sinMusica: true },
       { ...base, id: `vozmuda-${q}`, que: `La música de ${q} con el agache, sin la voz`, cantosMudos: true },
     ];
@@ -466,7 +466,7 @@ const resumen = [
   '',
   `Render con \`OfflineAudioContext\` a 48 kHz del mismo motor y el mismo bus maestro del juego. ${medidas.length} renders. ${hayFallos ? `**${fallos.length} FALLOS.**` : '**Sin recortes, ninguna nota cantada fuera del acorde, y todas las puertas de mezcla en su sitio.**'}`,
   '',
-  `Para ESCUCHAR: en esta misma carpeta hay ${wavs.length} archivos WAV (16 bits, estéreo, 48 kHz): uno de ${ESCENA_S} s por escena, la forma entera de la mesa y de la portada (74 s), cada voz cantando sobre su música, la paleta de efectos entera (\`fx-banco.wav\`, un efecto cada 1,15 s en el orden de la tabla), los golpes sobre la mesa, los stingers sobre la forma y el peor caso real.`,
+  `Para ESCUCHAR: en esta misma carpeta hay ${wavs.length} archivos WAV (16 bits, estéreo, 48 kHz): uno de ${ESCENA_S} s por escena y otro por voz (cada una cantando sobre su música), la forma entera de la mesa y de la portada (74 s), la paleta de efectos entera (\`fx-banco.wav\`, un efecto cada 1,15 s en el orden de la tabla), los golpes sobre la mesa, los stingers sobre la forma y el peor caso real.`,
   '',
   '## La cadena, en números',
   '',

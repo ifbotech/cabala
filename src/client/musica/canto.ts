@@ -46,7 +46,7 @@ export function crearCantor(ctx: BaseAudioContext, v: PerfilVoz, onda: PeriodicW
   // el ruido del cantor: una sola fuente para el aire (por los formantes) y para los soplos de las consonantes
   const src = ruido ? ctx.createBufferSource() : null;
   const aire = ctx.createGain();
-  aire.gain.value = AIRE;
+  aire.gain.value = AIRE * (v.aire ?? 1);
   if (src) {
     src.buffer = ruido;
     src.loop = true;

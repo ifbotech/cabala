@@ -899,6 +899,8 @@ export interface PerfilVoz {
   ritmo?: number[];
   /** (0.29) Dónde se para en el escenario: −1 izquierda, 0 centro, 1 derecha. */
   pan: number;
+  /** (0.29) Cuánto aire lleva la voz (1 = lo normal): las voces de terciopelo soplan más; los bajos, casi nada. */
+  aire?: number;
   /** Cuántas notas canta como mucho una frase (las largas se resumen: se cantan sílabas salteadas y siempre la última). */
   tope: number;
   estilo: 'buffo' | 'recitado' | 'profundo' | 'arpegio' | 'melisma' | 'dulce';
@@ -918,19 +920,19 @@ export const VOCES: Record<VozId, PerfilVoz> = {
   bufon: { cuerda: 'tenor buffo', grave: 50, agudo: 69, paso: 2, ritmo: [2, 1], pan: -0.4, tope: 8, estilo: 'buffo', formante: 1.06, vibrato: [5.8, 28], porta: 0.04, ligado: 0.88, vol: 0.8 },
   // los Reyes cantan desde la derecha (el Bufón, desde la izquierda; los Personajes, al centro)
   // el Rey de Espadas: barítono solemne y cortante, de La2 a Mi4
-  S: { cuerda: 'barítono', grave: 45, agudo: 64, paso: 1, pan: 0.4, tope: 10, estilo: 'recitado', formante: 0.96, vibrato: [5.2, 18], porta: 0.02, ligado: 0.6, vol: 0.93 },
+  S: { cuerda: 'barítono', grave: 45, agudo: 64, paso: 1, pan: 0.4, aire: 0.7, tope: 10, estilo: 'recitado', formante: 0.96, vibrato: [5.2, 18], porta: 0.02, ligado: 0.6, vol: 0.93 },
   // el Rey de Bastos: bajo profundo, de Mi2 a Do4
-  C: { cuerda: 'bajo profundo', grave: 40, agudo: 60, paso: 2, pan: 0.4, tope: 8, estilo: 'profundo', formante: 0.88, vibrato: [5, 22], porta: 0.06, ligado: 0.92, vol: 0.87 },
+  C: { cuerda: 'bajo profundo', grave: 40, agudo: 60, paso: 2, pan: 0.4, aire: 0.6, tope: 8, estilo: 'profundo', formante: 0.88, vibrato: [5, 22], porta: 0.06, ligado: 0.92, vol: 0.87 },
   // el Rey de Oros: tenor lírico brillante, de Mi3 a Si4, con arpegios
-  D: { cuerda: 'tenor lírico', grave: 52, agudo: 71, paso: 1, pan: 0.4, tope: 10, estilo: 'arpegio', formante: 1.04, vibrato: [5.6, 30], porta: 0.035, ligado: 0.9, vol: 0.82 },
+  D: { cuerda: 'tenor lírico', grave: 52, agudo: 71, paso: 1, pan: 0.4, aire: 0.9, tope: 10, estilo: 'arpegio', formante: 1.04, vibrato: [5.6, 30], porta: 0.035, ligado: 0.9, vol: 0.82 },
   // el Rey de Copas: mezzo / contralto aterciopelada, de Sol3 a Mi5, con melismas
-  H: { cuerda: 'mezzo / contralto', grave: 55, agudo: 76, paso: 2, pan: 0.4, tope: 8, estilo: 'melisma', formante: 1.15, vibrato: [5.4, 34], porta: 0.09, ligado: 1, vol: 0.7 },
+  H: { cuerda: 'mezzo / contralto', grave: 55, agudo: 76, paso: 2, pan: 0.4, aire: 1.7, tope: 8, estilo: 'melisma', formante: 1.15, vibrato: [5.4, 34], porta: 0.09, ligado: 1, vol: 0.7 },
   // los Personajes: exclamaciones dulces y breves
-  escoba: { cuerda: 'soprano ligera', grave: 62, agudo: 79, paso: 1, pan: 0, tope: 4, estilo: 'dulce', formante: 1.2, vibrato: [5.8, 24], porta: 0.04, ligado: 0.9, vol: 0.93 },
-  truco: { cuerda: 'barítono', grave: 45, agudo: 64, paso: 1, pan: 0, tope: 4, estilo: 'dulce', formante: 0.95, vibrato: [5.2, 20], porta: 0.04, ligado: 0.9, vol: 0.95 },
-  chinchon: { cuerda: 'mezzo', grave: 57, agudo: 74, paso: 1, pan: 0, tope: 4, estilo: 'dulce', formante: 1.14, vibrato: [5.6, 24], porta: 0.04, ligado: 0.9, vol: 0.83 },
-  mentiroso: { cuerda: 'tenor', grave: 50, agudo: 67, paso: 1, pan: 0, tope: 4, estilo: 'dulce', formante: 1.02, vibrato: [5.4, 26], porta: 0.07, ligado: 1, vol: 0.77 },
-  chancho: { cuerda: 'bajo-barítono', grave: 41, agudo: 60, paso: 1, pan: 0, tope: 4, estilo: 'dulce', formante: 0.9, vibrato: [5, 20], porta: 0.04, ligado: 0.9, vol: 0.9 },
+  escoba: { cuerda: 'soprano ligera', grave: 62, agudo: 79, paso: 1, pan: 0, aire: 1.4, tope: 4, estilo: 'dulce', formante: 1.2, vibrato: [5.8, 24], porta: 0.04, ligado: 0.9, vol: 0.93 },
+  truco: { cuerda: 'barítono', grave: 45, agudo: 64, paso: 1, pan: 0, aire: 0.8, tope: 4, estilo: 'dulce', formante: 0.95, vibrato: [5.2, 20], porta: 0.04, ligado: 0.9, vol: 0.95 },
+  chinchon: { cuerda: 'mezzo', grave: 57, agudo: 74, paso: 1, pan: 0, aire: 1.3, tope: 4, estilo: 'dulce', formante: 1.14, vibrato: [5.6, 24], porta: 0.04, ligado: 0.9, vol: 0.83 },
+  mentiroso: { cuerda: 'tenor', grave: 50, agudo: 67, paso: 1, pan: 0, aire: 1.2, tope: 4, estilo: 'dulce', formante: 1.02, vibrato: [5.4, 26], porta: 0.07, ligado: 1, vol: 0.77 },
+  chancho: { cuerda: 'bajo-barítono', grave: 41, agudo: 60, paso: 1, pan: 0, aire: 0.7, tope: 4, estilo: 'dulce', formante: 0.9, vibrato: [5, 20], porta: 0.04, ligado: 0.9, vol: 0.9 },
 };
 
 /** Los tres primeros formantes de cada vocal (Hz, voz de hombre; `PerfilVoz.formante` los corre). */
