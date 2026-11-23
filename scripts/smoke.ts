@@ -266,7 +266,11 @@ await conServidor(5192, async (url) => {
       }
       if (x.fase === 'fin') break;
       if (await p.locator('.velo .reemplazo .opcion').count()) await p.locator('.velo .reemplazo .opcion').first().click();
-      else if (await p.locator('.velo .oferta .opcion').count()) await p.locator('.velo .oferta .opcion').first().click();
+      else if (await p.locator('.velo .oferta .opcion').count()) {
+        // (0.29) el Tesoro con candado: si el oro no alcanza, sus opciones están apagadas y se deja el cofre
+        if (await p.locator('.velo .oferta .opcion:not(:disabled)').count()) await p.locator('.velo .oferta .opcion:not(:disabled)').first().click();
+        else await p.locator('.velo .oferta [data-accion="saltar"]').click();
+      }
       else if (x.fase === 'combate') {
         const c = await consejo(p);
         if (!c) continue;
