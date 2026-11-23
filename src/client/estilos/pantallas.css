@@ -5137,3 +5137,52 @@ main.fogon.forjando [data-accion='seguir'] {
   padding-left: 6px;
   padding-right: 6px;
 }
+
+/* ───────────── 0.29 · los Reyes del resumen, con cabeza ─────────────
+   en el teléfono, con el cuadro corrido, la Corte de la partida queda arriba en una tira de bustos (corona, cara y
+   pecho) con su nombre: ya no asoma cortada por los pies */
+.fin-tira {
+  display: none;
+}
+@media (max-width: 700px) {
+  .fin-escena {
+    position: relative;
+  }
+  .fin-escena.corrida .fin-tira {
+    display: flex;
+    justify-content: center;
+    gap: calc(var(--u) * 1.5);
+    --k: 1;
+    padding: 4px 0 6px;
+    position: relative;
+    z-index: 3;
+    background: #0d0915;
+    box-shadow: 0 2px 0 #3a2f4f;
+  }
+  .fin-escena.corrida .fin-tira .fin-rey {
+    gap: 2px;
+  }
+  .fin-escena.corrida .fin-tira .fin-rey > :first-child {
+    display: block;
+    height: 66px;
+    overflow: hidden;
+  }
+  .fin-escena.corrida .fin-corte {
+    visibility: hidden;
+  }
+}
+
+@media (max-width: 700px) {
+  /* (0.29) el baúl del Tesoro, montado ARRIBA de su nodo y centrado (colgado de la esquina tapaba media calavera) */
+  .nodo .nodo-tesoro {
+    right: auto;
+    left: 50%;
+    top: -30px;
+    translate: -50% 0;
+  }
+}
+
+.fin-naipe {
+  display: block;
+  line-height: 0;
+}

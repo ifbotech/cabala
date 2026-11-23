@@ -755,7 +755,7 @@ await conServidor(5191, async (url) => {
         // (0.28) nada vivo se monta, nada tapa la cuenta, la mano se ve entera (también fuera del teléfono)
         fallos.push(...(await pagina.evaluate(manoViva, {})));
         // (0.29) la letra mínima medida de verdad: el cuerpo por su escala y el alto dibujado de las cifras de sprites
-        fallos.push(...(await pagina.evaluate(letraChica, {})));
+        fallos.push(...(await pagina.evaluate(letraChica, { sinCortina: true })));
         for (const e of errores) fallos.push({ regla: 'error-js', detalle: e.slice(0, 200) });
         for (const x of flechas) fallos.push({ regla: 'flecha-foco', detalle: x });
         // la mesa no salta al elegir («mesa-quieta»): fuera del teléfono, el naipe del Rey, La Corte y el Bufón quedan
@@ -813,7 +813,7 @@ await conServidor(5191, async (url) => {
         // y ni un naipe de la mano ni GOLPEAR ni DESCARTAR se mueven (±1 px). Otro toque la cierra
         // (no con el golpe en el aire: ahí la mesa no escucha)
         const mesaLibre = await pagina.evaluate(() => !(window as unknown as { __mesa?: { ocupado?: () => boolean } }).__mesa?.ocupado?.());
-        if (v.w < 700 && mesaLibre && (await pagina.locator('.mesa [data-cuenta] .cuenta[data-accion="hoja"]').count())) {
+        if (v.w < 700 && mesaLibre && !(await pagina.locator('#capa .velo, .cortina').count()) && (await pagina.locator('.mesa [data-cuenta] .cuenta[data-accion="hoja"]').count())) {
           const cajasHoja = (): Promise<Record<string, number[]>> =>
             pagina.evaluate(() => {
               const out: Record<string, number[]> = {};

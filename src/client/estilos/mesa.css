@@ -6811,3 +6811,275 @@ button.hud-tiras:focus-visible .ficha {
     animation: none;
   }
 }
+
+/* ───────────── 0.29 · la regla del paño se lee, y dice qué hace el Comodín ─────────────
+   a 18 px (22 a 1080p), en hueso sobre su sombra de tinta (ya no gris sobre madera); con un Comodín en la mano suma un
+   tercer renglón: qué copia y a quién le da su Chispa */
+.pano-regla {
+  font-size: 18px;
+  line-height: 22px;
+  color: var(--hueso);
+  text-shadow:
+    1px 1px 0 #09070f,
+    -1px 1px 0 #09070f,
+    1px -1px 0 #09070f,
+    -1px -1px 0 #09070f;
+  opacity: 1;
+}
+.mesa .pano-regla.costado {
+  opacity: 1;
+}
+.pano-regla .p-com,
+.pano-regla .p-sep-com {
+  display: none;
+}
+.pano-regla.con-comodin .p-com {
+  display: inline-flex;
+}
+.pano-regla.con-comodin:not(.costado) .p-sep-com {
+  display: inline;
+}
+.pano-regla .p-com {
+  color: #ffe9a8;
+}
+@media (max-width: 700px) {
+  .pano-regla {
+    font-size: 16px;
+    line-height: 20px;
+  }
+  /* (en el teléfono la regla va en un renglón: con el Comodín, cede el del Escalón) */
+  .pano-regla.con-comodin .p-esc,
+  .pano-regla.con-comodin .p-sep-com {
+    display: none;
+  }
+}
+@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+  .pano-regla {
+    font-size: 22px;
+    line-height: 28px;
+  }
+  .pano-regla .p-icono {
+    --k: 2;
+  }
+  .mesa .pano-regla.costado {
+    gap: 12px;
+  }
+}
+/* la ayuda de primera vez: tres o cuatro palabras bajo una palabra nueva; se va sola */
+.ayuda-1a {
+  position: fixed;
+  z-index: 75;
+  padding: 2px 10px;
+  font-family: var(--cuerpo);
+  font-size: 18px;
+  line-height: 24px;
+  white-space: nowrap;
+  color: #09070f;
+  background: #7df3ff;
+  box-shadow:
+    0 0 0 2px #09070f,
+    0 0 0 4px #7df3ff;
+  pointer-events: none;
+  animation: ayuda-1a 4.2s steps(20) forwards;
+}
+@keyframes ayuda-1a {
+  0% {
+    opacity: 0;
+    translate: 0 -6px;
+  }
+  5% {
+    opacity: 1;
+    translate: 0 0;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ayuda-1a {
+    animation-timing-function: steps(2);
+  }
+}
+
+/* ───────────── 0.29 · una sola cuenta para todo el teléfono ─────────────
+   El renglón fijo de dos pisos es la forma de siempre (también a 390×844): arriba la jugada, la fórmula y lo que dan
+   los palos; abajo, SIEMPRE en este orden, lo que te pega (o «NO TE PEGA», o «LO ABATÍS»), lo que le queda o sobra y,
+   al final, la maldición con su ícono solo (20 px, sin texto: el texto está en la hoja). Nada se estira ni cambia de
+   casilla con el Garrote, con CARTA SOLA ni con CORTÁS. La hoja con nombres abre desde cualquier jugada. */
+@media (max-width: 700px) {
+  .mesa .cuenta-zona > .cuenta.plegada-2:not(.reposo):not(.invalida) {
+    justify-content: center;
+    column-gap: 8px;
+  }
+  .mesa .cuenta.plegada-2 .c-formula,
+  .mesa .cuenta.plegada-2 .c-numeros {
+    justify-content: flex-start;
+  }
+  .mesa .cuenta.plegada-2 .c-formula {
+    flex-basis: 100%;
+    justify-content: center;
+  }
+  /* el orden de las casillas del segundo piso no cambia nunca */
+  .mesa .cuenta.plegada-2 .c-chips > .rojo,
+  .mesa .cuenta.plegada-2 .c-chips > .c-nopega,
+  .mesa .cuenta.plegada-2 .c-chips > .c-veredicto {
+    order: 1;
+  }
+  .mesa .cuenta.plegada-2 .c-chips > .c-queda {
+    order: 2;
+  }
+  .mesa .cuenta.plegada-2 .c-chips > .c-maldicion {
+    order: 3;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+  .mesa .cuenta.plegada-2 .c-chips > .c-falta {
+    order: 4;
+  }
+  .mesa .cuenta.plegada-2 .c-chips > .azul:not(.c-nopega) {
+    display: none;
+  }
+  /* TE PEGA no se va con la maldición ni con CORTÁS (antes cedía su casilla y había que leer el renglón cada vez) */
+  .mesa .cuenta.plegada-2:has(.c-maldicion) .c-chips > .rojo,
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-chips > .rojo,
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-chips > .c-nopega {
+    display: inline-flex;
+  }
+  .mesa .cuenta.plegada-2 .c-chips > .c-maldicion .c-mal-n,
+  .mesa .cuenta.plegada-2 .c-chips > .c-maldicion .c-mal-rot {
+    display: none;
+  }
+  /* CORTÁS, en el piso de la fórmula: su escudo y su cifra (como lo que dan los palos) */
+  .mesa .cuenta.plegada-2 .c-corta {
+    order: 3;
+    padding: 0 2px;
+    background: none;
+    box-shadow: none;
+  }
+  .mesa .cuenta.plegada-2 .c-corta .cc-verbo {
+    font-size: 14px;
+  }
+  .mesa .cuenta.plegada-2 .c-chips {
+    order: 2;
+  }
+  .mesa .cuenta.plegada-2 .c-dial-fila {
+    order: 4;
+  }
+  /* con lugar de sobra (el teléfono alto), el renglón va holgado: las cifras al doble y la letra a 16 px */
+  .mesa .cuenta-zona > .cuenta.plegada-2.holgada:not(.reposo):not(.invalida) {
+    min-height: 68px;
+    row-gap: 2px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+  .mesa .cuenta.plegada-2.holgada .cifra.grande {
+    --kd: 2;
+  }
+  .mesa .cuenta.plegada-2.holgada .c-jugada,
+  .mesa .cuenta.plegada-2.holgada .c-queda,
+  .mesa .cuenta.plegada-2.holgada .c-chips > .chip,
+  .mesa .cuenta.plegada-2.holgada .c-chips > .c-veredicto {
+    font-size: 16px;
+  }
+  .mesa .cuenta.plegada-2.holgada .c-chips > .chip {
+    min-height: 24px;
+    line-height: 20px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  /* su «▾»: más grande, que se vea que el renglón se abre */
+  .mesa .cuenta.holgada:is(.plegada, .plegada-2) .c-abre {
+    right: 4px;
+  }
+}
+
+@media (max-width: 700px) {
+  /* (0.29) con la escena a media altura la placa TE PEGA va donde va con la escena alta: en su columna, a la derecha del
+     naipe y pasada la cara (corrida 140 px se salía de la pantalla) */
+  @container mesa (min-height: 741px) {
+    @container escena (min-height: 177px) and (max-height: 250px) {
+      .mesa .enemigo .e-ataque,
+      .mesa:has(.corte .corte-carta) .enemigo .e-ataque {
+        justify-self: end;
+        translate: none;
+      }
+    }
+  }
+  /* la regla del paño parte en renglones si no entra en uno (con el Comodín en la mano suma el suyo) */
+  .pano-regla:not(.costado) {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 0;
+    white-space: normal;
+  }
+  .pano-regla.con-comodin .p-sep {
+    display: none;
+  }
+  .pano-regla .p-linea {
+    white-space: nowrap;
+  }
+}
+
+.mano .carta.achicada.elegida:has(.c-espectro) .c-rotulo {
+  font-size: 18px;
+}
+@media (max-width: 700px) {
+  /* (el «▾» de 44 px es del canto derecho del renglón: nada de la cuenta queda debajo) */
+  .mesa .cuenta-zona > .cuenta.plegada-2:not(.reposo):not(.invalida) {
+    padding-right: 44px;
+  }
+}
+
+/* ───────────── 0.29 · la mano de dos filas del teléfono, limpia ─────────────
+   los huecos son solo un contorno punteado (sin relleno ni silueta) y solo en la fila de atrás; el sello «+N» de las
+   cartas que pagan (¡CHINCHÓN!) es una pestaña en el canto de arriba a la derecha, fuera de las pintas */
+.mano .hueco.h-contorno {
+  -webkit-mask-image: none;
+  mask-image: none;
+  opacity: 1;
+  outline: 1px dashed rgba(233, 220, 190, 0.5);
+  outline-offset: -3px;
+}
+.mano .hueco.h-contorno .px {
+  visibility: hidden;
+}
+.mano .hueco.h-adelante {
+  outline: none;
+  pointer-events: none;
+}
+@media (max-width: 700px) {
+  .mano.dos-filas .carta .c-paga {
+    left: auto;
+    right: 2px;
+    top: 2px;
+  }
+}
+
+/* la hoja de la cuenta que no entra bajo la barra de Vida del rival la tapa: entonces dice ella su nombre y su Vida */
+.mesa .cuenta-hoja .hoja-rival {
+  display: none;
+}
+.mesa .cuenta-hoja.tapa-barra .hoja-rival {
+  display: block;
+  align-self: center;
+  font-size: 16px;
+  line-height: 1.2;
+  color: #ff9db4;
+}
+
+@media (max-width: 700px) {
+  /* (0.29) con la escena baja, la placa de un renglón que no te pega («0» pelado, sin rótulo) se va: lo dice la cuenta,
+     justo debajo («LO ABATÍS», «NO TE PEGA») */
+  @container escena (max-height: 176px) {
+    .mesa .enemigo .e-ataque.no-pega {
+      visibility: hidden;
+    }
+  }
+  /* el canto grande en la franja del paño: cae en su lugar (no desde 2,6×: no se sale de la pantalla) */
+  .canto-grande.en-franja {
+    animation-name: canto-pano;
+  }
+}

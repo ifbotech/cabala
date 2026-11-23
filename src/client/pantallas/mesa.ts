@@ -35,7 +35,7 @@ import type { AumentoId } from '../../rules/aumentos';
 import type { BendicionId } from '../../rules/reyes';
 import { CHICHE_CORTO, JUGADA_NOMBRE, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_AYUDA, PASO_NOMBRE, RANGO_NOMBRE, RASGO_CORTA, SEGUNDA_BURLA, SEGUNDA_CORTA, TRAMO_NOMBRE } from '../textos';
 import { ENSENANZA, GRITO, VOZ } from '../voces';
-import { $, bufonHtml, esc, fichaDe, gestoBufon, ocultarTip, reubicarTip, reyHtml, tip, type Pantalla } from '../ui';
+import { $, ayudaPrimera, bufonHtml, esc, fichaDe, gestoBufon, ocultarTip, reubicarTip, reyHtml, tip, type Pantalla } from '../ui';
 import { glifo, porTeclado } from '../nav';
 import { pausa, quieto } from '../ritmo';
 import { accionesComunes, calentarOfertas, modalJugadas, textoGlosario } from './camino';
@@ -367,7 +367,7 @@ export function pantallaMesa(p: Partida): Pantalla {
   function apretarCuenta(zona: HTMLElement): void {
     const cu = zona.querySelector<HTMLElement>('.cuenta:not(.reposo):not(.invalida)');
     if (!cu) return;
-    cu.classList.remove('apretada', 'apretada-2', 'apretada-3', 'apretada-4', 'apretada-tel', 'apretada-tel-2', 'desglose-junto', 'plegada', 'plegada-2', 'plegada-3', 'plegada-4');
+    cu.classList.remove('apretada', 'apretada-2', 'apretada-3', 'apretada-4', 'apretada-tel', 'apretada-tel-2', 'desglose-junto', 'plegada', 'plegada-2', 'plegada-3', 'plegada-4', 'holgada');
     // en el teléfono, si el desglose pasa de dos renglones, la cuenta pierde su aire (y sus términos se juntan) para
     // que el naipe del Rey siga asomando por arriba
     if (window.innerWidth <= 700) {
@@ -385,11 +385,13 @@ export function pantallaMesa(p: Partida): Pantalla {
       // (0.27) «el dedo manda»: la mano no cede nunca, así que si la escena queda por debajo de su piso (80 px del naipe
       // del enemigo y su barra) cede la cuenta: se junta, después pliega el desglose (queda a un toque, en su ayuda) y
       // por último va toda en un renglón («66×6=396 · TE PEGA 19»)
+      // (0.29) UNA sola cuenta para todo el teléfono: el renglón fijo de dos pisos (jugada · fórmula · palos / TE PEGA ·
+      // LE QUEDAN) es la forma de siempre, con cualquier alto, y la hoja con nombres está siempre a un toque. Se fue la
+      // cuenta desplegada de iconos mudos; el alto que deja es del enemigo. Con lugar de sobra, el renglón va «holgado»
+      // (cifras al doble)
       const escena = $<HTMLElement>('[data-escena]');
-      for (const nivel of ['apretada-tel', 'plegada', 'plegada-2']) {
-        if (!escena || escena.clientHeight >= 106) break;
-        cu.classList.add(nivel);
-      }
+      cu.classList.add('apretada-tel', 'plegada', 'plegada-2', 'holgada');
+      if (!escena || escena.clientHeight < 150) cu.classList.remove('holgada');
       // (0.28) plegada a su renglón fijo (jugada · fórmula · lo que dan los palos · desenlace), si aun así no entra en dos
       // renglones suelta primero lo que sobra o le queda (está en la hoja) y después lo que dan los palos; el nombre de la
       // jugada no se va nunca
@@ -397,10 +399,13 @@ export function pantallaMesa(p: Partida): Pantalla {
         const fo = cu.querySelector<HTMLElement>('.c-formula');
         const sc = getComputedStyle(cu);
         const ancho = cu.clientWidth - (parseFloat(sc.paddingLeft) || 0) - (parseFloat(sc.paddingRight) || 0);
-        const alta = (): boolean => cu.offsetHeight > 58;
+        // (holgada son dos pisos de cifras al doble: si no entra en dos pisos así, primero deja de ir holgada)
+        const desborda = (el: HTMLElement | null): boolean => !!el && (el.offsetWidth > ancho || el.scrollWidth > el.clientWidth + 1);
+        if (cu.classList.contains('holgada') && (cu.offsetHeight > 88 || desborda(ch) || desborda(fo))) cu.classList.remove('holgada');
+        const alta = (): boolean => cu.offsetHeight > (cu.classList.contains('holgada') ? 88 : 58);
         // (el piso del desenlace no entra: se va lo que sobra o le queda; el de la fórmula no entra: lo que dan los palos)
-        if (alta() || (ch?.offsetWidth ?? 0) > ancho) cu.classList.add('plegada-3');
-        if (alta() || (fo?.offsetWidth ?? 0) > ancho) cu.classList.add('plegada-4');
+        if (alta() || desborda(ch)) cu.classList.add('plegada-3');
+        if (alta() || desborda(fo)) cu.classList.add('plegada-4');
       }
       marcarPlegada(cu);
       return;
@@ -465,19 +470,34 @@ export function pantallaMesa(p: Partida): Pantalla {
     h.dataset.accion = 'hoja';
     h.setAttribute('role', 'dialog');
     h.setAttribute('aria-label', t('verCuenta'));
-    h.innerHTML = `${cuentaHtml(q, sel)}<b class="hoja-cierra rotulo" aria-hidden="true">${esc(t('cerrarCuenta'))}</b>`;
+    h.innerHTML = `<b class="hoja-rival rotulo">${enemigo ? `${esc(nombreEnemigo(enemigo))} · ${enemigo.vida}/${enemigo.vidaMax}` : ''}</b>${cuentaHtml(q, sel)}<b class="hoja-cierra rotulo" aria-hidden="true">${esc(t('cerrarCuenta'))}</b>`;
     if (!vieja) $('.mesa')?.append(h);
     // pegada arriba del renglón plegado: crece hacia la escena (la tapa mientras está abierta). Si entera no entra ahí
     // (el teléfono bajo), cuelga del borde de arriba de la pantalla y baja sobre su renglón y el paño: nunca sobre la mano
-    const r = cu.getBoundingClientRect();
-    h.style.top = '';
+    // (0.29) la hoja nace BAJO la barra de Vida del rival (su nombre, su Vida y los botones «?» y «≡» siguen a la vista) y
+    // baja sobre su renglón y el paño, nunca sobre la mano. Solo si entera no entra ahí sube: primero hasta el pie de
+    // la cabecera y, en el teléfono más bajo, hasta el borde de la pantalla
+    h.style.bottom = 'auto';
     h.style.maxHeight = '';
-    h.style.bottom = `${Math.round(innerHeight - r.top + 4)}px`;
-    if (h.offsetHeight > r.top - 10) {
-      const techoMano = Math.min(innerHeight, ...[...document.querySelectorAll<HTMLElement>('[data-mano] .carta:not(.elegida):not(.volando)')].map((k) => k.getBoundingClientRect().top));
-      h.style.bottom = 'auto';
-      h.style.top = '6px';
-      h.style.maxHeight = `${Math.max(120, Math.round(techoMano - 14))}px`;
+    h.style.top = '0px';
+    const alto = h.offsetHeight;
+    const techoMano = Math.min(innerHeight, ...[...document.querySelectorAll<HTMLElement>('[data-mano] .carta:not(.elegida):not(.volando)')].map((k) => k.getBoundingClientRect().top));
+    const piso = techoMano - 8;
+    const bajoBarra = ($('[data-enemigo] .e-vida')?.getBoundingClientRect().bottom ?? 0) + 6;
+    const bajoCabecera = ($('.mesa .mesa-top')?.getBoundingClientRect().bottom ?? 0) + 4;
+    const top = alto <= piso - bajoBarra ? bajoBarra : alto <= piso - bajoCabecera ? Math.max(bajoCabecera, piso - alto) : 6;
+    h.classList.toggle('tapa-barra', top < bajoBarra - 8);
+    // (con su renglón del rival la hoja es un poco más alta: se vuelve a apoyar en el piso)
+    const top2 = h.classList.contains('tapa-barra') ? Math.max(alto + 22 <= piso - bajoCabecera ? bajoCabecera : 6, Math.min(top, piso - h.offsetHeight)) : top;
+    h.style.top = `${Math.round(top2)}px`;
+    h.style.maxHeight = `${Math.max(120, Math.round(piso - top2))}px`;
+    // (en el teléfono más bajo ni así entra: el renglón del rival cede)
+    if (h.scrollHeight > h.clientHeight + 2 && h.classList.contains('tapa-barra')) {
+      h.classList.remove('tapa-barra');
+      h.style.maxHeight = '';
+      const top3 = Math.max(6, piso - h.offsetHeight);
+      h.style.top = `${Math.round(top3)}px`;
+      h.style.maxHeight = `${Math.max(120, Math.round(piso - top3))}px`;
     }
     cu.setAttribute('aria-expanded', 'true');
     cu.classList.add('abierta');
@@ -758,7 +778,17 @@ export function pantallaMesa(p: Partida): Pantalla {
       fijarAnchos(el);
       mano?.ajustar();
       apretarCuenta(el);
+      // (0.29: en el teléfono las cifras cambian de escala al plegarse: su ancho fijo se mide de nuevo, ya plegada —la
+      // fórmula no queda estirada con huecos entre «×» y el Multi—)
+      if (innerWidth <= 700) fijarAnchos(el);
       acomodarCuenta(el);
+      // (0.29) la primera vez que aparecen, «CORTÁS» y «corre de Posta» llevan su ayuda de tres palabras (una vez y se va)
+      if (!ocupado && q.ok && sel.length) {
+        const corta = el.querySelector<HTMLElement>('.c-corta');
+        const pista = el.querySelector<HTMLElement>('.c-pista-pano');
+        if (corta) ayudaPrimera(corta, 'cortas', t('ayudaCortas'));
+        else if (pista && pista.offsetParent && pista.offsetWidth > 0) ayudaPrimera(pista, 'posta', t('ayudaPosta'));
+      }
       // con la letra recién cargada, se vuelve a medir (la de respaldo es de otro ancho)
       if (document.fonts.status !== 'loaded')
         void document.fonts.ready.then(() => {
@@ -2121,6 +2151,17 @@ export function pantallaMesa(p: Partida): Pantalla {
       const tope = Math.max(150, (pano.width - 24) / 1.34);
       if (g.offsetWidth * 1.06 > tope) g.style.fontSize = `${Math.max(24, Math.floor((parseFloat(getComputedStyle(g).fontSize) * tope) / (g.offsetWidth * 1.06)))}px`;
       alternativas.push(pon(pano.left + pano.width / 2, pano.top + pano.height / 2));
+    }
+    // (0.29) teléfono: el canto cae en la franja entre la cuenta y la mano (donde estaba el paño, que ya voló): arriba
+    // tapaba el título, el turno y los botones «?» y «≡»
+    if (innerWidth <= 700) {
+      const cuB = $('[data-cuenta]')?.getBoundingClientRect().bottom ?? innerHeight * 0.4;
+      const techo = Math.min(innerHeight, ...[...document.querySelectorAll<HTMLElement>('[data-mano] .carta:not(.volando):not(.elegida)')].map((c) => c.getBoundingClientRect().top));
+      g.classList.add('en-franja');
+      const tope = innerWidth - 24;
+      if (g.offsetWidth * 1.06 > tope) g.style.fontSize = `${Math.max(22, Math.floor((parseFloat(getComputedStyle(g).fontSize) * tope) / (g.offsetWidth * 1.06)))}px`;
+      const yFranja = techo - cuB > g.offsetHeight + 8 ? (cuB + techo) / 2 : cuB + g.offsetHeight / 2 + 6;
+      alternativas.push(pon(innerWidth / 2, yFranja));
     }
     for (const fy of [-0.08, 0.14, 0.3, 0.9]) for (const dx of [0, 0.4, -0.4, 0.8, -0.8]) alternativas.push(pon(cx + dx * w, arriba + h * fy));
     const pd = ubicar(g, 'canto', 850, alternativas, 1.06);

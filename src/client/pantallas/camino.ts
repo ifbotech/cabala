@@ -37,7 +37,7 @@ import { resumenDe, type ResumenPartida } from '../../rules/resumen';
 import { VOZ } from '../voces';
 import { bufonDice } from '../bufon-vivo';
 import { glifo } from '../nav';
-import { $, abrirModal, anfitrion, bufonHtml, cerrarModal, conMaldicion, esc, fichaDe, gestoBufon, irASalida, repintar, reyHtml, sinergiaHtml, tip, type Accion, type Pantalla } from '../ui';
+import { $, abrirModal, anfitrion, ayudaPrimera, bufonHtml, cerrarModal, conMaldicion, esc, fichaDe, gestoBufon, irASalida, repintar, reyHtml, sinergiaHtml, tip, type Accion, type Pantalla } from '../ui';
 
 const fijo = (): number | undefined => (enFoto() ? 0 : undefined);
 const expresionDe = (p: Partida): Expresion => (p.afinidad <= -2 ? 'sombria' : p.afinidad >= 2 ? 'brillo' : 'reposo');
@@ -1505,8 +1505,8 @@ export function pantallaFin(p: Partida): Pantalla {
   const naipeRey = (palo: Palo, i: number): string => {
     const nombre = `<b class="fin-rey-nombre rotulo">${esc(tx(REY_DEF[palo].apodo))}</b>`;
     if (reyes[i].vencido) return `<div class="fin-rey caido" style="--i:${i}"><span class="fin-partido">${pxMitades(`naipe:${palo}12`, () => naipeMapa(palo, 12), i + 1, 'naipe')}</span>${nombre}</div>`;
-    if (i === verdugo) return `<div class="fin-rey verdugo" style="--i:${i}">${pxNaipeSegunda(palo)}${nombre}</div>`;
-    return `<div class="fin-rey espera" style="--i:${i}">${pxNaipe({ palo, n: 12 })}${nombre}</div>`;
+    if (i === verdugo) return `<div class="fin-rey verdugo" style="--i:${i}"><span class="fin-naipe">${pxNaipeSegunda(palo)}</span>${nombre}</div>`;
+    return `<div class="fin-rey espera" style="--i:${i}"><span class="fin-naipe">${pxNaipe({ palo, n: 12 })}</span>${nombre}</div>`;
   };
   const heroe = gano
     ? `<div class="fin-heroe"><i class="fin-cara" style="background-image:url(${urlRetrato(p.mazoId, cuadro)})"></i></div>`
@@ -1522,6 +1522,7 @@ export function pantallaFin(p: Partida): Pantalla {
     html: () => `<main class="pantalla fin ${gano ? 'gano' : 'perdio'}">
       <div class="cuerpo fin-escena">
         <h1 class="titulo fin-titulo">${gano ? t('victoria') : esc(tituloDerrota())}</h1>
+        <div class="fin-tira" aria-hidden="true">${reyes.map((r, i) => naipeRey(r.palo, i)).join('')}</div>
         <div class="fin-cuadro">
           ${anfitrion(tx(alAzar(gano ? VOZ.gano : VOZ.perdio, fijo())), gano ? 'risa' : 'sombria', 'fin-bufon')}
           ${heroe}
@@ -1544,12 +1545,20 @@ export function pantallaFin(p: Partida): Pantalla {
     alMontar: () => {
       sonar(gano ? 'victoria' : 'derrota');
       if (gano && !enFoto()) lluviaDeMonedas(0, innerWidth, -10, 60);
+      // (0.29) la primera vez que ganás porotos, tres palabras dicen para qué son
+      window.setTimeout(() => ayudaPrimera($('.fin-porotos'), 'porotos', t('ayudaPorotos')), 900);
       contarRecord();
       // (0.25) en el teléfono el cuadro se desliza: mientras quede algo abajo, la flecha de «hay más» sobre los botones
       const cuadro = $('.fin-cuadro');
       const escena = $('.fin-escena');
       if (cuadro && escena) {
-        const mirar = (): void => void escena.classList.toggle('hay-mas', cuadro.scrollHeight - cuadro.scrollTop - cuadro.clientHeight > 8);
+        const mirar = (): void => {
+          escena.classList.toggle('hay-mas', cuadro.scrollHeight - cuadro.scrollTop - cuadro.clientHeight > 8);
+          // (0.29) con el cuadro corrido, los Reyes de la partida quedan arriba en una tira de BUSTOS (corona y cara):
+          // antes asomaban cortados por los pies
+          const corte = cuadro.querySelector<HTMLElement>('.fin-corte');
+          escena.classList.toggle('corrida', !!corte && corte.getBoundingClientRect().top < cuadro.getBoundingClientRect().top - 8);
+        };
         cuadro.addEventListener('scroll', mirar, { passive: true });
         // (las cifras y los naipes se pintan un poco después: el alto cambia y se vuelve a mirar)
         const panel = cuadro.querySelector('.fin-panel');

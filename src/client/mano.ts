@@ -189,7 +189,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
   raiz.append(pano);
   const regla = document.createElement('span');
   regla.className = 'pano-regla';
-  regla.innerHTML = `<span class="p-linea">${pxHud('medio', 'p-icono')}<b>${esc(t('postaMedioAyuda'))}</b></span><i class="p-sep">·</i><span class="p-linea p-esc">${pxHud('escalon', 'p-icono')}<b class="p-largo">${esc(t('panoEscalon', { n: B.postas.escalon }))}</b><b class="p-corto">${esc(`${tx(PASO_NOMBRE['posta:escalon'])} +${B.postas.escalon}`)}</b></span>`;
+  regla.innerHTML = `<span class="p-linea">${pxHud('medio', 'p-icono')}<b>${esc(t('postaMedioAyuda'))}</b></span><i class="p-sep">·</i><span class="p-linea p-esc">${pxHud('escalon', 'p-icono')}<b class="p-largo">${esc(t('panoEscalon', { n: B.postas.escalon }))}</b><b class="p-corto">${esc(`${tx(PASO_NOMBRE['posta:escalon'])} +${B.postas.escalon}`)}</b></span><i class="p-sep p-sep-com">·</i><span class="p-linea p-com">${pxHud('chispa', 'p-icono')}<b class="p-largo">${esc(t('panoComodin'))}</b><b class="p-corto">${esc(t('panoComodinCorto'))}</b></span>`;
   raiz.append(regla);
   const slots = enPosta.map((_, i) => {
     const el = document.createElement('div');
@@ -563,6 +563,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     // nombra el Medio, la Chispa y el Escalón, y la pista de LB / RB la lleva la cuenta en un renglón que no se parte
     const ancho = raiz.clientWidth;
     regla.classList.remove('costado', 'arma');
+    // (0.29) con un Comodín en la mano, la regla del paño suma su renglón: qué copia y a quién le da su Chispa
+    regla.classList.toggle('con-comodin', naipes.some((c) => c.carta.palo === 'X'));
     if (!conPano) {
       regla.style.maxWidth = `${ancho - 8}px`;
       // (0.27: y calla mientras se juega el golpe: el desglose de la cuenta sigue ahí al lado)
@@ -570,6 +572,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       regla.classList.toggle('costado', !tel);
       if (!tel) regla.style.maxWidth = `${Math.max(120, izq - 24)}px`;
       regla.hidden = bloqueada || raiz.classList.contains('arrastrando') || (tel ? techoTel() : raiz.clientHeight - h) < 24;
+      // (0.29: en el teléfono, si con el renglón del Comodín no entra arriba de la mano, ese renglón cede)
+      if (!regla.hidden && tel && regla.offsetHeight > techoTel() - 6) regla.classList.remove('con-comodin');
       // (0.28) escritorio: a la izquierda del paño, centrada en su franja (donde después va el desglose)
       if (!regla.hidden)
         ponerEn(regla, tel ? Math.round((ancho - regla.offsetWidth) / 2) : Math.max(4, Math.round((izq - regla.offsetWidth) / 2)), tel ? Math.max(2, Math.round(techoTel() - regla.offsetHeight - 4)) : Math.max(2, Math.round(lp.y + (lp.hp - regla.offsetHeight) / 2)), Z.pano);
@@ -634,6 +638,11 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
         huecos.set(id, el);
       }
       ponerEn(el, en.x, en.y, Z.mano + naipes.indexOf(c));
+      // (0.29) en la mano de dos filas del teléfono, el hueco de la fila de adelante no se dibuja (deja ver entero al
+      // naipe de atrás) y el de la fila de atrás es solo su contorno punteado: nada de siluetas encimadas
+      const dos = tel && raiz.classList.contains('dos-filas');
+      el.classList.toggle('h-contorno', dos);
+      el.classList.toggle('h-adelante', dos && en.y > techoTel() + 1);
       // (como la mano: la silueta no asoma por debajo de su zona)
       const piso = tel ? raiz.clientHeight - tapa : raiz.clientHeight;
       const corte = (tel ? hunde > 0 : true) ? Math.max(0, Math.round(en.y + h - piso)) : 0;

@@ -11,7 +11,9 @@ import { BENDICION, REY_DEF } from '../rules/reyes';
 import type { BendicionId } from '../rules/reyes';
 import { sinergia } from '../rules/notas';
 import { EVOLUCION, despierta } from '../rules/evoluciones';
-import { ajustes, t, tx } from './almacen';
+import { ajustes, guardarPerfil, perfil, t, tx } from './almacen';
+import { ver } from '../rules/perfil';
+import { enFoto } from './fx/motor';
 import { bufonCapas, type Expresion } from './pixel/bufon';
 import { REY_PX, reyFondo, reyMapa, type Animo } from './pixel/reyes';
 import { avivar, esfumar } from './bufon-vivo';
@@ -495,3 +497,27 @@ export function sinergiaHtml(tipo: TipoOferta, id: string, p?: Partida): string 
 
 /** Espera `ms` milisegundos (0 con «Reducir movimiento» si `saltable`). */
 export const esperar = (ms: number): Promise<void> => new Promise((ok) => setTimeout(ok, ms));
+
+/**
+ * (0.29) La ayuda de primera vez: tres o cuatro palabras pegadas bajo una palabra del juego que todavía no se explicó
+ * («corre de Posta», «CORTÁS», los porotos). Sale UNA sola vez en la vida del perfil, no frena nada y se va sola.
+ */
+export function ayudaPrimera(el: Element | null | undefined, clave: string, texto: string): void {
+  const k = `ayuda:${clave}`;
+  if (!el || enFoto() || perfil.vistos.includes(k) || document.querySelector('.ayuda-1a')) return;
+  const r = el.getBoundingClientRect();
+  if (r.width < 2 || r.height < 2) return;
+  ver(perfil, k);
+  guardarPerfil();
+  const a = document.createElement('span');
+  a.className = 'ayuda-1a';
+  a.setAttribute('role', 'note');
+  a.textContent = texto;
+  (document.querySelector('#capa') ?? document.body).append(a);
+  const w = a.offsetWidth;
+  const h = a.offsetHeight;
+  const abajo = r.bottom + 6 + h <= innerHeight - 4;
+  a.style.left = `${Math.round(Math.max(4, Math.min(innerWidth - w - 4, r.left + r.width / 2 - w / 2)))}px`;
+  a.style.top = `${Math.round(abajo ? r.bottom + 6 : r.top - h - 6)}px`;
+  window.setTimeout(() => a.remove(), 4200);
+}

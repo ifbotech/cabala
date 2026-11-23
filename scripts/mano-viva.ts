@@ -112,7 +112,7 @@ export function placasHud(): { regla: string; detalle: string }[] {
  * (opacidad bajo 0,35) ni lo que queda fuera de la ventana. La llaman la QA visual (cada estado quieto) y las
  * secuencias (cada cuadro).
  */
-export function letraChica(o: { persiste?: number } = {}): { regla: string; detalle: string }[] {
+export function letraChica(o: { persiste?: number; sinCortina?: boolean } = {}): { regla: string; detalle: string }[] {
   const out: { regla: string; detalle: string }[] = [];
   const vistos = new Set<string>();
   // (`persiste`: en una ráfaga, lo que entra creciendo —un cartel que nace a 0,6× y llega a 1× en dos cuadros— no
@@ -167,6 +167,8 @@ export function letraChica(o: { persiste?: number } = {}): { regla: string; deta
     const r = el.getBoundingClientRect();
     if (r.width < 1 || r.height < 1 || r.right < 0 || r.bottom < 0 || r.left > W || r.top > H) continue;
     if (!seVe(el)) continue;
+    // (la foto quieta de una micro-escena a pantalla entera la toma a mitad de su entrada: ahí manda la ráfaga)
+    if (o.sinCortina && el.closest('.cortina')) continue;
     // (lo de la pantalla que quedó tapado por un modal no se lee: no cuenta)
     if (velo && !velo.contains(el) && el.closest('#app')) {
       const hit = document.elementFromPoint(Math.max(0, Math.min(W - 1, r.left + r.width / 2)), Math.max(0, Math.min(H - 1, r.top + r.height / 2)));
