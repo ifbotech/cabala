@@ -107,6 +107,8 @@ export interface Cuenta {
   maldicion?: number;
   /** (0.27.0) El Escudo que da ¡CHINCHÓN! por cortar la mano (ya sumado en `escudo`). */
   cortaMano?: number;
+  /** (0.29.0) El Escudo que gasta la maldición del Garrote en este golpe. */
+  gasta?: number;
 }
 
 const NULA: Cuenta = {
@@ -125,7 +127,8 @@ function hayCanto(p: Partida, ef: readonly Efectiva[], jugada: Jugada, engano: b
     case 'escoba':
       return suma(ef) === 15;
     case 'truco':
-      return ef.length === 2 && ef[0].palo === ef[1].palo;
+      // (0.29.0) dos cartas del mismo palo que sumen el mínimo: el Envido se canta, no se regala
+      return ef.length === 2 && ef[0].palo === ef[1].palo && suma(ef) >= B.mazos.truco.envidoMin;
     case 'chinchon':
       return jugada === 'pierna' || jugada === 'escalerapalo';
     case 'mentiroso':
@@ -342,7 +345,8 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
 
   const multiFinal = Math.max(1, multi) * por;
   // Falta Envido tiene su precio: las Copas te curan la mitad
-  const curaFinal = tieneAumento(p, 'faltaenvido') ? Math.floor(cura * au.faltaenvido.cura) : cura;
+  // (0.29.0) la maldición del Brindis de Sangre: tus Copas no te curan
+  const curaFinal = brindis ? 0 : tieneAumento(p, 'faltaenvido') ? Math.floor(cura * au.faltaenvido.cura) : cura;
   const total = dano * multiFinal;
 
   // ── contra el enemigo activo
@@ -363,13 +367,15 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
   if (canto && p.mazoId === 'chancho') aturde = (jugada === 'poker' ? B.mazos.chancho.aturde : 1) * dob;
   if (!aturde && tieneAmuleto(p, 'boleadoras') && !e.boleado && cuantas('C') >= 2) aturde = 1;
 
+  // (0.29.0) la maldición del Garrote: el golpe que no lleva Bastos gasta la mitad de tu Escudo
+  const gasta = evoluciono(p, 'poncho') && cuantas('C') === 0 ? Math.ceil(c.escudo * B.evoluciones.gasta) : 0;
   let contra: number | null = null;
   if (!abate && !ejecuta) {
     if (e.aturdido > 0 || aturde > 0 || c.caraDePoker) contra = 0;
     else {
       const k = contraataque(p, e, { sinVida: aVida === 0, repite: repiteJugada(c.ultimaJugada, jugada) });
       // la maldición del Garrote: la mitad del Escudo que pega se gasta antes de que te peguen
-      const tuEscudo = Math.min(escudoTope(p), c.escudo - (evoluciono(p, 'poncho') ? Math.ceil(c.escudo * B.evoluciones.gasta) : 0) + escudo);
+      const tuEscudo = Math.min(escudoTope(p), c.escudo - gasta + escudo);
       contra = k.n - Math.min(tuEscudo, k.n - k.directo);
     }
   }
@@ -377,8 +383,8 @@ export function cuenta(p: Partida, sel: readonly Carta[], postas?: readonly numb
   const roba = vivasMut('roba') * B.fogon.robaCarta;
   const corta = vivasMut('doblefilo') * B.fogon.dobleFilo.vida;
   // las maldiciones de las Evoluciones: el Facón corta si el golpe no abate; el Brindis bebe en cada golpe
-  const maldicion = (evoluciono(p, 'lanza') && !abate && !ejecuta ? B.evoluciones.facon.corta : 0) + (brindis ? B.evoluciones.brindis.bebe : 0);
-  return { ok: true, jugada, ef, dano, multi: multiFinal, total, pasos, canto, critico, perfora, escudo, cura: curaFinal, oro, aEscudo, aVida, abate, exacto, alPelo, ejecuta, sobra, aturde, contra, frenaEnMitad, postas: enPosta, escalon, roba, corta, maldicion, cortaMano };
+  const maldicion = evoluciono(p, 'lanza') && !abate && !ejecuta ? B.evoluciones.facon.corta : 0;
+  return { ok: true, jugada, ef, dano, multi: multiFinal, total, pasos, canto, critico, perfora, escudo, cura: curaFinal, oro, aEscudo, aVida, abate, exacto, alPelo, ejecuta, sobra, aturde, contra, frenaEnMitad, postas: enPosta, escalon, roba, corta, maldicion, cortaMano, gasta };
 }
 
 // ───────────────────────── enemigos ─────────────────────────
@@ -509,7 +515,7 @@ const enMano = (c: Combate, ids: readonly string[]): Carta[] | null => {
 };
 
 /** Un enemigo cae: premios, cargas de los Reyes, y entra el siguiente (con lo que sobró si el golpe Perfora). */
-function abatir(p: Partida, evs: Ev[], o: { exacto: boolean; alPelo?: boolean; ejecutado: boolean; palos: Palo[]; sobra: number; deUnSaque: boolean; canto?: boolean }): void {
+function abatir(p: Partida, evs: Ev[], o: { exacto: boolean; alPelo?: boolean; ejecutado: boolean; palos: Palo[]; sobra: number; deUnSaque: boolean; canto?: boolean; aturde?: number }): void {
   const c = p.combate!;
   const e = c.fila.shift()!;
   // la Prenda de la Corte: abatir con Golpe exacto, al pelo o cantando a veces le roba un Chiche al caído
@@ -535,10 +541,11 @@ function abatir(p: Partida, evs: Ev[], o: { exacto: boolean; alPelo?: boolean; e
     }
   }
   if (o.alPelo) {
-    // al pelo: sin premio, pero la racha sigue viva y el Cetro vuelve a cargarse
+    // al pelo (0.29.0): paga 1 de oro, la racha sigue viva y el Cetro vuelve a cargarse
     if (tieneAmuleto(p, 'cetro')) c.cetro = true;
     p.stats.alPelo = (p.stats.alPelo ?? 0) + 1;
-    evs.push({ t: 'alpelo' });
+    p.oro += B.exacto.oroAlPelo;
+    evs.push({ t: 'alpelo' }, { t: 'oro', n: B.exacto.oroAlPelo });
   } else if (!o.exacto) p.racha = 0;
   // la regla única de las cargas: cada enemigo abatido con el palo de un Rey en el golpe, +1 (si llevás dones suyos)
   for (const palo of o.palos) {
@@ -555,8 +562,10 @@ function abatir(p: Partida, evs: Ev[], o: { exacto: boolean; alPelo?: boolean; e
   const sig = c.fila[0];
   if (!sig) return;
   evs.push({ t: 'entra', palo: sig.palo, rango: sig.rango, jefe: !!sig.jefe });
-  if (p.mazoId === 'chancho' && o.deUnSaque) {
-    sig.aturdido = Math.max(sig.aturdido, 1);
+  // (0.29.0) el ¡CHANCHO! que abate no pierde su Aturdido: lo recibe el que entra
+  const pasa = p.mazoId === 'chancho' ? Math.max(o.deUnSaque ? 1 : 0, o.aturde ?? 0) : 0;
+  if (pasa > 0) {
+    sig.aturdido = Math.max(sig.aturdido, pasa);
     evs.push({ t: 'aturde', turnos: sig.aturdido });
   }
   if (o.sobra > 0) {
@@ -739,7 +748,7 @@ export function golpear(p: Partida, ids: readonly string[], postas?: readonly nu
   c.ultimaJugada = q.jugada;
 
   // la maldición del Garrote del Cacique (0.26.0): el golpe que no abate gasta la mitad del Escudo que pegó
-  const gasta = evoluciono(p, 'poncho') && !q.abate && !q.ejecuta ? Math.ceil(c.escudo * B.evoluciones.gasta) : 0;
+  const gasta = q.gasta ?? 0;
   if (gasta > 0) {
     evs.push({ t: 'maldicion', de: 'poncho', n: gasta });
     c.escudo -= gasta;
@@ -776,7 +785,7 @@ export function golpear(p: Partida, ids: readonly string[], postas?: readonly nu
   if (q.maldicion) {
     const n = Math.min(q.maldicion, Math.max(0, p.vida - 1));
     p.vida -= n;
-    evs.push({ t: 'maldicion', de: evoluciono(p, 'lanza') && !q.abate && !q.ejecuta ? 'lanza' : 'caliz', n });
+    evs.push({ t: 'maldicion', de: 'lanza', n });
   }
   // el daño
   const deUnSaque = e.golpes === 0;
@@ -788,7 +797,7 @@ export function golpear(p: Partida, ids: readonly string[], postas?: readonly nu
   const cae = q.abate || q.ejecuta;
   if (cae) {
     if (q.ejecuta) e.vida = 0;
-    abatir(p, evs, { exacto: q.exacto, alPelo: q.alPelo, ejecutado: q.ejecuta, palos, sobra: q.sobra, deUnSaque: deUnSaque && q.abate, canto: q.canto });
+    abatir(p, evs, { exacto: q.exacto, alPelo: q.alPelo, ejecutado: q.ejecuta, palos, sobra: q.sobra, deUnSaque, canto: q.canto, aturde: q.canto ? q.aturde : 0 });
   } else {
     segundaCara(e, evs);
     if (q.aturde) {
