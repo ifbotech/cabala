@@ -113,6 +113,8 @@ function avisarRollo(velo: HTMLElement): void {
   const rollo = velo.querySelector<HTMLElement>('.rollo');
   const panel = velo.querySelector<HTMLElement>('.panel');
   if (!rollo || !panel) return;
+  // (0.29) el aviso dice «HAY MÁS ↓» con letras (la flechita suelta no se leía): el panel lleva el texto en su idioma
+  panel.dataset.hayMas = t('hayMas').toUpperCase();
   const mirar = (): void => void panel.classList.toggle('hay-mas', rollo.scrollHeight - rollo.scrollTop - rollo.clientHeight > 8);
   rollo.addEventListener('scroll', mirar, { passive: true });
   mirar();

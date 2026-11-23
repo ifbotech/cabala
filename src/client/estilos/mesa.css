@@ -7083,3 +7083,54 @@ button.hud-tiras:focus-visible .ficha {
     animation-name: canto-pano;
   }
 }
+
+/* ───────────── 0.29 · menores de la mesa ───────────── */
+/* la chapa «×2» del crítico va AL COSTADO de la cifra del MULTI (a su derecha, arriba), no encima de ella */
+.c-crit-sello {
+  right: auto;
+  left: calc(100% + 2px * var(--k));
+  bottom: 46%;
+  transform-origin: 0 100%;
+}
+/* el cartel de la SEGUNDA CARA que no entra entre el paño y los botones: su regla parte en renglones */
+.cartel-segunda.angosto {
+  white-space: normal;
+  text-align: center;
+  padding-left: calc(var(--u) * 1);
+  padding-right: calc(var(--u) * 1);
+}
+/* la mano de 8 de la Deck y el portátil: un poco más de ancho, y la carta con el foco se abre entera sin partirle el
+   índice a su vecina */
+@media (min-width: 1100px) and (max-width: 1699px) {
+  .mesa .mano {
+    margin-inline: calc(var(--u) * 1.75);
+  }
+}
+/* la causa del TE PEGA con la escena baja del portátil («21 − 3 ESCUDO» partía en dos renglones): su forma corta, el
+   escudo y lo que frena («🛡 −3»), en un renglón a la izquierda de la cifra; la cuenta entera queda en la ayuda de la placa */
+@media (min-width: 701px) {
+  @container escena (max-height: 162px) {
+    .mesa .enemigo:has(.e-barras > .e-rasgo) .e-ataque .e-neto:has(.neto-corto) > span:not(.neto-corto) {
+      display: none;
+    }
+    .mesa .enemigo:has(.e-barras > .e-rasgo) .e-ataque .e-neto .neto-corto {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      white-space: nowrap;
+      font-size: var(--fs-s);
+    }
+    .mesa .enemigo:has(.e-barras > .e-rasgo) .e-ataque .e-neto .neto-corto .icono {
+      --k: 1;
+    }
+  }
+}
+/* (0.29) el busto del portátil (768 px de alto: ~112 px de naipe a la vista): el naipe sube 12 px bajo el borde de la
+   pantalla (se va el filo de arriba del papel, no el índice): entran la cara entera y el arranque del pecho */
+@media (min-width: 1100px) and (max-width: 1699px) {
+  @container escena (max-height: 162px) {
+    .mesa .e-centro .e-carta {
+      margin-top: -12px;
+    }
+  }
+}

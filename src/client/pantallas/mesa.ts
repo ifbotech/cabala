@@ -1196,7 +1196,7 @@ export function pantallaMesa(p: Partida): Pantalla {
             const sin = cs.filter((k) => k.alinear !== 'izquierda');
             if (sin.length) cs.splice(0, cs.length, ...sin);
           }
-          numero(entra, cs[0].x, cs[0].y, tono, grande ? 2 : 1, { carriles: cs, vx: cs[0].alinear === 'izquierda' ? 14 : cs[0].alinear === 'derecha' ? -14 : 0, vidaMin: grande ? 0.6 : 0.36 });
+          numero(entra, cs[0].x, cs[0].y, tono, grande || dePerfora ? 2 : 1, { carriles: cs, vx: cs[0].alinear === 'izquierda' ? 14 : cs[0].alinear === 'derecha' ? -14 : 0, vidaMin: grande ? 0.6 : 0.36 });
           tDano = performance.now();
           if (cantoPendiente) cantoGrande();
           enemigo.vida = ev.vida;
@@ -1416,7 +1416,8 @@ export function pantallaMesa(p: Partida): Pantalla {
           el?.classList.remove('embiste');
           void (el as HTMLElement | null)?.offsetWidth;
           el?.classList.add('embiste');
-          await pausa(140);
+          // (0.29: el apagado forzado de tu número dura 220 ms: el «−N» nace cuando ya no queda nada de él)
+          await pausa(quieto() ? 140 : 240);
           const en = centro($('[data-hud-vida]'));
           const pierde = ev.n - ev.frenado;
           const vidaMax = hud.vidaMax;
@@ -1445,7 +1446,11 @@ export function pantallaMesa(p: Partida): Pantalla {
             }
             sacudir($('[data-hud]'), 2);
             congelar(50);
-            voz(ev.vida * 3 <= vidaMax ? VOZ.pocaVida : VOZ.contra, ev.vida * 3 <= vidaMax ? 'sombria' : 'burla');
+            // (0.29) si tu Escudo frenó casi todo (dos tercios o más), lo dice: ya no «Y bue. A veces te toca.» tras un
+            // ¡CHINCHÓN! que paró 28 de 31
+            if (ev.vida * 3 <= vidaMax) voz(VOZ.pocaVida, 'sombria');
+            else if (ev.frenado >= pierde * 2) voz(VOZ.casiFrenado, 'risa');
+            else voz(VOZ.contra, 'burla');
           } else {
             const es = centro($('[data-hud-escudo]'));
             motas(es.x, es.y, RAMPA_ESCUDO, 12, 30);
@@ -2288,7 +2293,15 @@ export function pantallaMesa(p: Partida): Pantalla {
       const gw = g.offsetWidth;
       // (sin llegar a la bandeja de Chiches ni a los botones)
       const tope = ($('.mano-zona .botones')?.getBoundingClientRect().left ?? innerWidth) - 16;
-      g.style.left = `${Math.round(Math.max(gw / 2 + 6, Math.min(tope - gw * 0.62, r.left + r.width / 2)))}px`;
+      // (0.29) su borde izquierdo no pasa del borde del fieltro: a su izquierda está el desglose, que sigue encendido
+      // (tapaba su final: «Taba +1»). Si no entra entre el paño y los botones, su regla parte en dos renglones
+      const lugar = Math.max(160, tope - r.left);
+      if (gw > lugar) {
+        g.style.maxWidth = `${Math.round(lugar)}px`;
+        g.classList.add('angosto');
+      }
+      const w2 = g.offsetWidth;
+      g.style.left = `${Math.round(Math.max(r.left + w2 / 2, Math.min(tope - w2 / 2, r.left + r.width / 2)))}px`;
       g.style.top = `${Math.round(r.top + r.height / 2)}px`;
     };
     ubicar(g, 'cartel', 1500, [...(innerWidth > 700 ? [enPano] : []), pon(0.5, 0), pon(0.3, 0), pon(0.7, 0), pon(0.5, 0.3), pon(0.5, -0.3), pon(0.5, 0.42), pon(0.5, -0.42), pon(0.2, 0.3), pon(0.2, 0.42), pon(0.85, 0), pon(0.85, 0.42)]);
@@ -2525,7 +2538,14 @@ export function pantallaMesa(p: Partida): Pantalla {
     // bandeja dispara y la cuenta recibe, en un solo recorrido (nada queda clavado sobre los botones)
     const volarCifra = (texto: string, de: { x: number; y: number }, a: Element | null | undefined, tono: 'roja' | 'azul' | 'oro'): void => {
       if (!a || quieto() || apurado()) return;
-      const r = a.getBoundingClientRect();
+      let r = a.getBoundingClientRect();
+      // (0.29) si su término no está a la vista (la cuenta plegada del teléfono), vuela a su cifra de la fórmula: no cae
+      // sobre el chip TE PEGA ni sobre un naipe de la mano
+      if (r.width < 2) {
+        const parte = $(`[data-cuenta] ${tono === 'roja' ? '[data-cd]' : '[data-cm]'} [data-v]`);
+        if (!parte) return;
+        r = parte.getBoundingClientRect();
+      }
       const v = document.createElement('span');
       v.className = 'cifra-vuela';
       v.setAttribute('aria-hidden', 'true');

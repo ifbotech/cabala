@@ -5186,3 +5186,15 @@ main.fogon.forjando [data-accion='seguir'] {
   display: block;
   line-height: 0;
 }
+
+/* (0.29) los escudos de Inmune bajo cada combate del Mapa, un escalón más grandes fuera del teléfono (medían ~28 px y
+   solo se distinguían en la ayuda), y los nodos por visitar, más despegados del fondo */
+@media (min-width: 701px) {
+  .nodo .nodo-palos {
+    transform: translateX(-50%) scale(0.75);
+    bottom: calc(-22px * var(--k) * 0.5);
+  }
+  .nodo.lejos:not(.pasado) {
+    opacity: 0.82;
+  }
+}

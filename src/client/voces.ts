@@ -37,6 +37,7 @@ export const VOZ = {
   fuerte: [P('¡Tomá mate!', 'Take that!'), P('Uh. Eso dolió hasta acá.', 'Ooh. I felt that from here.')],
   contra: [P('Y bue. A veces te toca.', 'Oh well. Sometimes it is your turn.'), P('Te vi la cara. Dolió.', 'I saw your face. That hurt.')],
   frenado: [P('¡Ni te tocó!', 'Never touched you!')],
+  casiFrenado: [P('Casi todo al Escudo. Un rasguño.', 'Almost all on your Shield. A scratch.'), P('¡Eso es parar un golpe! Te rozó nomás.', 'Now that is a block! Barely grazed you.')],
   pocaVida: [P('Estás para el cachetazo. Curate o rezá.', 'One slap from done. Heal or pray.'), P('Te queda un hilo. Jugá fino.', 'You hang by a thread. Play sharp.')],
   inmune: [P('A ese no le entra su propio palo. Cambiá de cartas.', 'His own suit does nothing to him. Switch cards.')],
   noJugada: [P('Eso no arma nada. Juntá iguales, seguidas o del mismo palo.', 'That makes nothing. Match numbers, runs or suits.')],
