@@ -5394,3 +5394,14 @@ main.fogon.forjando [data-accion='seguir'] {
     background: var(--abismo);
   }
 }
+
+/* (0.29) la Colección a 1080p: cada celda es un nicho con su luz (anillos de tinta a escalón, sin fundido), no una caja
+   negra; la pieza que todavía no viste queda en penumbra */
+@media (min-width: 1700px) and (min-height: 950px) {
+  .coleccion .col-rejilla .col-item {
+    background: radial-gradient(circle at 50% 40%, #3a2240 0 14%, #2a1830 14% 30%, #1c1024 30% 50%, #120a18 50% 72%, #0b0711 72%);
+  }
+  .coleccion .col-rejilla .col-item.sin-ver {
+    background: radial-gradient(circle at 50% 40%, #1c1024 0 30%, #120a18 30% 60%, #0b0711 60%);
+  }
+}
