@@ -5286,3 +5286,111 @@ main.fogon.forjando [data-accion='seguir'] {
     min-height: 56px;
   }
 }
+
+/* ───────────── 0.29 · el resultado de la Forja Brava, a la medida del momento ─────────────
+   el naipe forjado lleva su sello «×2» FIJO en la esquina (el del momento vivo ya no se pierde al cerrarse el panel);
+   a 1080p el panel se ensancha, la placa del naipe va grande y su regla entra en UN renglón (no en tres) */
+.forja-x2 {
+  position: absolute;
+  right: calc(-6px * var(--k));
+  top: calc(-6px * var(--k));
+  z-index: 2;
+  padding: 0 calc(2px * var(--k));
+  line-height: 0;
+  background: #3a2600;
+  box-shadow:
+    0 0 0 calc(2px * var(--k)) #c99a00,
+    calc(2px * var(--k)) calc(2px * var(--k)) 0 calc(2px * var(--k)) #09070f;
+  rotate: 6deg;
+}
+.forja-x2 .cifra.grande {
+  --kc: var(--k);
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  .fogon .opcion.fuego.forjado {
+    width: auto;
+    min-width: 560px;
+    max-width: 720px;
+    padding: 16px 28px;
+    gap: 12px;
+  }
+  .fogon .opcion.fuego.forjado .forja-x2 .cifra.grande {
+    --kc: 4;
+  }
+  .fogon .opcion.fuego.forjado .c-temple.f-placa {
+    font-size: 28px;
+    line-height: 1.25;
+    padding: 4px 16px;
+  }
+  .fogon .opcion.fuego.forjado .fuego-estado {
+    font-size: 22px;
+    white-space: nowrap;
+    color: var(--hueso);
+  }
+}
+
+/* ───────────── 0.29 · el Mapa a 1080p: el Rey del tramo espera a la vista ─────────────
+   en el tercio derecho (que quedaba vacío), su retrato grande entre sombras, con su nombre y su rasgo: es a quien vas */
+.mapa-rey {
+  display: none;
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  .mapa-zona {
+    position: relative;
+  }
+  .mapa-rey {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    position: absolute;
+    right: 5.5vw;
+    top: 46%;
+    translate: 0 -50%;
+    pointer-events: none;
+  }
+  .mapa-rey .rey {
+    --k: 5;
+    filter: brightness(0.78) saturate(0.85);
+    box-shadow:
+      0 0 0 4px #09070f,
+      0 0 0 8px color-mix(in srgb, var(--aura) 55%, #09070f),
+      12px 14px 0 rgba(9, 7, 15, 0.55);
+  }
+  .mapa-rey .mr-nombre {
+    font-size: calc(var(--fr) * 1.4);
+    color: var(--oro);
+    text-shadow: 3px 3px 0 #09070f;
+  }
+  .mapa-rey .mr-rasgo {
+    font-size: var(--fs);
+    color: var(--hueso);
+    text-shadow: 2px 2px 0 #09070f;
+  }
+  .mapa .mapa-espera {
+    display: none;
+  }
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  /* (con la ayuda de un nodo abierta en su carril, el Rey se apaga: lo que se lee es la ayuda) */
+  body:has(> .tip.tip-carril) .mapa-rey {
+    opacity: 0.16;
+  }
+}
+
+@media (min-width: 701px) {
+  /* (0.29) «HAY MÁS ↓» de La Pulpería, al pie del mostrador y al centro: justo sobre lo que se corta */
+  .pulperia.hay-mas .pul-hay-mas {
+    position: fixed;
+    left: 50%;
+    right: auto;
+    top: auto;
+    bottom: calc(var(--pul-pie, 190px) + 6px);
+    translate: -50% 0;
+    z-index: 6;
+    margin: 0;
+    font-size: max(18px, var(--fr));
+    padding: 2px 14px;
+    background: var(--abismo);
+  }
+}

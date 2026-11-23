@@ -356,6 +356,7 @@ export function pantallaMapa(p: Partida): Pantalla {
       <div class="mapa-zona">
         <div class="mapa-rollo" data-rollo><div class="mapa-lienzo" style="--pisos:${PISOS + 1}">${lineas()}${tramo.nodos.map(nodo).join('')}</div></div>
         ${anfitrion(voz, expresionDe(p), 'mapa-bufon')}
+        <aside class="mapa-rey" aria-hidden="true">${reyHtml(tramo.rey as Palo, 'calma')}<b class="rotulo mr-nombre">${esc(tx(rey.apodo))}</b><span class="mr-rasgo">${esc(tx(rey.rasgo))}</span></aside>
       </div>
       ${hudHtml(p)}
     </main>`,
@@ -777,7 +778,12 @@ export function pantallaPulperia(p: Partida): Pantalla {
       const cuerpo = $('.pulperia .pul-cuerpo');
       const main = $('.pulperia');
       if (cuerpo && main) {
-        const mirar = (): void => void main.classList.toggle('hay-mas', cuerpo.scrollHeight - cuerpo.scrollTop - cuerpo.clientHeight > 8);
+        const mirar = (): void => {
+          main.classList.toggle('hay-mas', cuerpo.scrollHeight - cuerpo.scrollTop - cuerpo.clientHeight > 8);
+          // (0.29) fuera del teléfono el aviso va al PIE del mostrador, sobre lo que se corta (arriba, junto a SALIR,
+          // señalaba hacia abajo desde la otra punta)
+          main.style.setProperty('--pul-pie', `${Math.max(0, Math.round(innerHeight - cuerpo.getBoundingClientRect().bottom))}px`);
+        };
         cuerpo.addEventListener('scroll', mirar, { passive: true });
         mirar();
         requestAnimationFrame(mirar);
@@ -1018,7 +1024,7 @@ export function pantallaFogon(p: Partida): Pantalla {
       // (la placa del temple va DEBAJO del naipe, no encima: tapaba media carta en el teléfono; 0.25: en palabras)
       return `<div class="opcion marco hierro fuego${enFuego.brava ? ' forjado' : ''}">
         ${apuesta}
-        <span class="fuego-naipe"><span class="fuego-carta">${pxNaipe(enFuego)}</span>${muts.length ? '' : `<span class="c-temple f-temple f-placa">${placaHtml(enFuego)}</span>`}</span>
+        <span class="fuego-naipe"><span class="fuego-carta">${pxNaipe(enFuego)}${enFuego.brava ? `<b class="forja-x2" aria-hidden="true">${cifra('x2', 'oro', 'grande')}</b>` : ''}</span>${muts.length ? '' : `<span class="c-temple f-temple f-placa">${placaHtml(enFuego)}</span>`}</span>
         ${recienBrava ? `<b class="forja-grito rotulo" role="status">${t('forjaBrava')}</b>` : ''}
         ${enFuego.mutacion ? mutChip(enFuego.mutacion) : ''}
         ${estado}
