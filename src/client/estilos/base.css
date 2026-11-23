@@ -1693,3 +1693,9 @@ html[data-entrada='teclado'] .glifo.g-tecla {
   box-shadow: inset 0 0 0 2px var(--oro-2, #c99a00);
   animation: none;
 }
+/* (0.29) a 1080p la placa «−N» es más alta que el rótulo de su caja: sube al canto de arriba (medía 18 px sobre la cifra) */
+@media (min-width: 1700px) {
+  .hud-delta:not(.hd-tel) {
+    top: -20px;
+  }
+}
