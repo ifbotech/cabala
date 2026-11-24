@@ -324,9 +324,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
      */
     const fila = (cartas: Naipe[], y: number): void => {
       const cuantas = cartas.length;
-      // (0.28) escritorio: el naipe que subió al paño deja en la mano solo su canto (un cuarto de naipe, con su índice):
-      // el ancho que libera es de los naipes vivos, que así no se montan (o se montan mucho menos)
-      const cantos = !tel && cartas.some((c) => c.elegida) && cartas.some((c) => !c.elegida);
+      // (0.30) escritorio: la mano conserva cada lugar intacto al elegir (cero saltos horizontales)
+      const cantos = false;
       if (cantos) {
         const q = Math.round(w * CANTO);
         const anchoDe = (c: Naipe): number => (c.elegida ? q : w);
@@ -396,8 +395,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     // (0.28) escritorio: el canto de cada naipe que subió queda en su lugar solo si TODO entra sin montarse (los vivos
     // enteros y los cantos entre ellos); si no, los vivos toman la fila entera y lo jugado se ve en el paño (una
     // silueta a caballo de un naipe vivo era un fantasma encima de la mano)
-    const cantosCaben = !tel && enMano.length * (w + hueco) + (naipes.length - enMano.length) * (Math.round(w * CANTO) + Math.round(hueco / 2)) <= ancho + hueco;
-    fila(tel ? (entraEnFila(naipes.length) ? naipes : enMano) : cantosCaben ? naipes : enMano, base);
+    // (0.30) escritorio: cada naipe conserva su sitio fijo en la fila (sin encogimientos ni saltos)
+    fila(tel ? (entraEnFila(naipes.length) ? naipes : enMano) : naipes, base);
     ponerPostas();
     return out;
   }
@@ -470,7 +469,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       cacheMedidas = null;
     }
     let quiere = 0;
-    if (enPosta.some(Boolean) && altoNat.h > 0) {
+    if (altoNat.h > 0) {
       const { tapa, h, kp } = medidas();
       const techo = Math.max(0, altoNat.h - tapa - h) + hunde - (dos ? DIANA - 2 : 0);
       quiere = Math.max(0, Math.round(140 * kp + 2 * BORDE + AIRE_TEL - techo));
@@ -552,8 +551,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     const lleno = enPosta.some(Boolean);
     // (un arrastre desde la mano lo enciende solo cuando pasa por encima del paño: la mano en reposo no queda «adentro»)
     pano.classList.toggle('activo', lleno || (!!arrastre && arrastre.posta >= 0) || !!haciaPosta);
-    // (0.28) en el escritorio el paño vacío no se va: sus Postas cosidas quedan apagadas en su franja (la mesa no salta)
-    pano.classList.toggle('reservado', (conPano || !telefono()) && !pano.classList.contains('activo'));
+    // (0.30) el paño vacío conserva sus Postas cosidas en reposo también en el teléfono (cero saltos al elegir)
+    pano.classList.toggle('reservado', !pano.classList.contains('activo'));
     if (raiz.classList.contains('con-pano') !== conPano) {
       raiz.classList.toggle('con-pano', conPano);
       // (la mesa lo sabe: en el escritorio, el desglose de la cuenta le hace lugar a su derecha)
@@ -579,11 +578,11 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
         if (regla.offsetHeight > lp.hp - 8) regla.classList.add('corta');
         if (regla.offsetHeight > lp.hp - 8) regla.classList.remove('con-comodin');
       }
-      // (0.29: en el teléfono, si con el renglón del Comodín no entra arriba de la mano, ese renglón cede)
-      if (!regla.hidden && tel && regla.offsetHeight > techoTel() - 6) regla.classList.remove('con-comodin');
-      // (0.28) escritorio: a la izquierda del paño, centrada en su franja (donde después va el desglose)
+      // (0.29: en el teléfono, si con el renglón del Comodín no entra en la franja del paño, ese renglón cede)
+      if (!regla.hidden && tel && regla.offsetHeight > lp.hp - 4) regla.classList.remove('con-comodin');
+      // (0.28) escritorio: a la izquierda del paño, centrada en su franja; en el teléfono, centrada dentro de la franja del paño
       if (!regla.hidden)
-        ponerEn(regla, tel ? Math.round((ancho - regla.offsetWidth) / 2) : Math.max(4, Math.round((izq - regla.offsetWidth) / 2)), tel ? Math.max(2, Math.round(techoTel() - regla.offsetHeight - 4)) : Math.max(2, Math.round(lp.y + (lp.hp - regla.offsetHeight) / 2)), Z.pano);
+        ponerEn(regla, tel ? Math.round((ancho - regla.offsetWidth) / 2) : Math.max(4, Math.round((izq - regla.offsetWidth) / 2)), tel ? Math.max(2, Math.round(lp.y + (lp.hp - regla.offsetHeight) / 2)) : Math.max(2, Math.round(lp.y + (lp.hp - regla.offsetHeight) / 2)), Z.pano);
     } else regla.hidden = true;
     // la marca del Medio va pegada a su naipe (si lo hay), a la derecha de su número
     const enMedio = enPosta[medio];
@@ -648,13 +647,12 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       // (0.29) en la mano de dos filas del teléfono, el hueco de la fila de adelante no se dibuja (deja ver entero al
       // naipe de atrás) y el de la fila de atrás es solo su contorno punteado: nada de siluetas encimadas
       const dos = tel && raiz.classList.contains('dos-filas');
-      el.classList.toggle('h-contorno', dos);
+      el.classList.toggle('h-contorno', !tel || dos);
       el.classList.toggle('h-adelante', dos && en.y > techoTel() + 1);
       // (como la mano: la silueta no asoma por debajo de su zona)
       const piso = tel ? raiz.clientHeight - tapa : raiz.clientHeight;
-      const corte = (tel ? hunde > 0 : true) ? Math.max(0, Math.round(en.y + h - piso)) : 0;
-      const { w } = medidas();
-      const clip = !tel ? `inset(0 ${Math.round(w * (1 - CANTO))}px 0 0)` : corte > 0 ? `inset(0 0 ${corte}px 0)` : '';
+      const corte = tel && hunde > 0 ? Math.max(0, Math.round(en.y + h - piso)) : 0;
+      const clip = tel && corte > 0 ? `inset(0 0 ${corte}px 0)` : '';
       if (el.style.clipPath !== clip) el.style.clipPath = clip;
     }
   }

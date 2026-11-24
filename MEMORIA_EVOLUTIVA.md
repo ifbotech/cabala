@@ -487,6 +487,19 @@ piezas con icono de Vida máxima, grito junto al retrato; Vida máxima por Rey p
 
 **Medición.** Jurado 7,6 · 7,5 · 8,0 · 7,6. Panel 70,0 % (IC95 57–80 %); Deck 33 % (n = 9), Móvil 93 % (n = 15).
 
+## 0.30.0 · Arquitectura de Roca (publicada)
+
+**Qué se buscó.** Abrir la Temporada de Diseño (UI/UX, Dirección de Arte, Armonía Espacial y Game Feel, manteniendo congelados música, voces y reglas) atacando la sensación de «página web interactiva»: cajas que cambian de tamaño al tocar, cartas vecinas que bailan, recortes en Pulpería 1080p y descentrado en Ofertas y Colección.
+
+**Qué entró.** Nueva puerta estricta `npm run qa:estabilidad` (7 sondas interactivas en 5 resoluciones); mesa de roca en escritorio y móvil (`mano.ts`, `desglose.ts`, `mesa.css`); dimensiones fijas y simetría en Portada, Elegir Mazo, Altar, Colección, Pulpería y Ofertas (`pantallas.css`).
+
+**Lecciones.**
+- Medir *layout shift* de verdad reveló **432 hallazgos** invisibles para la QA estática (cartas que bailaban por el encogimiento de `CANTO`, `@keyframes cuenta-sale` que vibraba 4 px en cada jugada, cascada de fuente 30→26→24 px en desglose, filas desparejas en Pulpería y saltos de 23–46 px al alternar `ES↔EN` en Portada). Bajar eso a **0** transformó la solidez táctil del juego.
+- Reglas sobre `.cuenta-zona` en móvil sin `:not(.cuenta-hoja)` recortaron la hoja expandida porque ésta también porta la clase `.cuenta-zona`: en CSS de capas acumuladas conviene aislar siempre la hoja flotante.
+- Las puertas automáticas en verde no reemplazan el ojo humano: revisar las PNGs detectó texto rozando el bisel inferior en Pulpería 1080p, bocadillo tocando el borde de Chinchón en Elegir Mazo 1080p y detalle ajustado en móvil.
+
+**Consejo de Diseño (5 sillas).** Arte 8,0 · Layout/Estabilidad 8,3 · Animación/Game Feel 7,9 · Steam Deck 8,1 · Móvil 7,9 → **Media 8,0** (subida +0,7 desde base 7,3 en 0.29.0). Puertas: `qa:estabilidad` 0 hallazgos, `qa:visual` ES/EN 0 fallos (6 ventanas), `qa:smoke` ES/EN 16/16, `qa:fps` 163,8–164,8 fps (peor cuadro 18 ms).
+
 ## 0.29.0 · Lo que se gana (publicada)
 
 **Qué se buscó.** Cerrar el P1 de la mesa a 1080p y todos los P2 de la 0.28 en tres frentes a la vez (interfaz, audio

@@ -3,6 +3,28 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.30.0 · Arquitectura de Roca (2026-11-24)
+
+Primera entrega de la Temporada de Diseño, UI/UX y Game Feel: **0 saltos de layout** en las 5 resoluciones (de 432 hallazgos a 0) y armonía espacial en todas las pantallas principales. *(Música, voces y balance sin cambios.)*
+
+**Estabilidad geométrica (`npm run qa:estabilidad`)**
+- Nueva puerta automática de estabilidad y simetría interactiva en `scripts/qa-estabilidad.ts` (7 sondas en 5 resoluciones: Portada `ES↔EN`, Elegir Mazo, Altar, Colección, Mesa con selección 1–3 cartas y vuelta a reposo, Dial `DEJALO JUSTO ↔ PEGÁ CON TODO`, y Ofertas).
+- **Mesa de roca:** las cartas no elegidas ya no saltan ni se achican al elegir/deselegir (contorno punteado limpio en escritorio); la cuenta, la placa `TE PEGA` y el desglose a 1080p mantienen altura y tipografía fijas (24 px); el paño móvil reserva su franja desde reposo y el dial móvil alterna con 0 px de salto y 14 px legibles.
+- **Pantallas sin brincos:** Portada (ancho estable al alternar `ES↔EN`), Elegir Mazo (cabecera, detalle y Reinado fijos), Altar (paño 4×2, detalle y botones de tamaño uniforme) y Colección (pared de alto completo en las 5 pestañas).
+
+**Armonía espacial y composición**
+- **La Pulpería a 1080p:** los 3 Amuletos, 2 Servicios y 2 Chiches entran enteros encima del HUD con filas simétricas, sin recortes ni `HAY MÁS ↓` en el estado normal.
+- **Ofertas sobre el Botín (`ELEGÍ UNA`):** sin Botín aplastado detrás, con el Bufón íntegro a la izquierda y título, tarjetas y `SALTAR` centrados al eje en 1080p.
+- **La Colección:** vitrina centrada simétricamente sin tapar el farol de la izquierda, con los 5 Dorsos y los Reyes a escala pareja.
+
+**Consejo de Diseño (5 sillas · Armonía / Belleza / Game Feel / Simpleza)**
+- Dirección de Arte y Belleza: 8,3 · 8,1 · 7,6 · 7,8 (media 8,0; base 0.29.0: 7,3)
+- Layout y Estabilidad Visual: 8,8 · 8,1 · 8,0 · 8,2 (media 8,3; base 0.29.0: 6,8)
+- Animación y Game Feel: 8,2 · 7,9 · 7,7 · 7,8 (media 7,9; base 0.29.0: 7,4)
+- UX Steam Deck y Mando: 8,4 · 8,0 · 7,8 · 8,1 (media 8,1; base 0.29.0: 7,6)
+- UX Móvil: 8,3 · 7,8 · 7,6 · 8,0 (media 7,9; base 0.29.0: 7,2)
+- **Media global: 8,0 / 10** (+0,7 sobre 0.29.0) · **0 P0**, **0 saltos de layout**, **163,8–164,8 FPS** (0,0 % > 25 ms).
+
 ## 0.29.0 · Lo que se gana (2026-11-23)
 
 Primera versión sin ningún P0 ni P1 abierto en los siete jurados.

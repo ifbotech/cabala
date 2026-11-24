@@ -1,6 +1,6 @@
 {
   "name": "cabala",
-  "version": "0.29.0",
+  "version": "0.30.0",
   "private": true,
   "description": "CÁBALA — roguelike de baraja española en pixel-art oscuro: Daño × Multi, 5 Mazos, 4 Reyes y el Bufón chanta",
   "type": "module",
@@ -18,6 +18,7 @@
     "qa:visual": "tsx scripts/visual-qa.ts",
     "qa:smoke": "tsx scripts/smoke.ts",
     "qa:fps": "tsx scripts/fps.ts",
+    "qa:estabilidad": "tsx scripts/qa-estabilidad.ts",
     "qa:audio": "tsx scripts/audio-render.ts",
     "puertas": "node scripts/puertas.mjs"
   },

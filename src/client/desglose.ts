@@ -99,18 +99,20 @@ export function encajarDesglose(o: { bajo: HTMLElement; cu: HTMLElement; izq: nu
       return alto('.d-fd, .c-pista-pano') <= tope + 6 && alto('.c-corta, .d-fm, .c-dial-fila') <= tope + 6;
     };
   } else {
-    bajo.style.height = '';
+    bajo.style.height = `${Math.round(tope)}px`;
     bajo.style.width = `${Math.max(220, Math.round((izq !== null ? izq : zonaDer) - zonaIzq - x - 12))}px`;
-    cabe = () => bajo.offsetHeight <= tope;
+    const altoHijos = (): number =>
+      [...bajo.children].reduce((s, el) => {
+        const h = (el as HTMLElement).offsetHeight;
+        return s + (h > 0 ? h + 4 : 0);
+      }, 0);
+    cabe = () => altoHijos() <= tope + 4;
   }
-  // los pasos, del más cómodo al más apretado: la letra (1080p), la pista, los renglones, los nombres cortos
+  // los pasos, del más cómodo al más apretado: la letra (1080p: fija a 24 para no saltar), la pista, los renglones, los nombres cortos
   const pasos: { fs?: number; cls: string[] }[] = dos
     ? [
-        { fs: 30, cls: [] },
-        { fs: 26, cls: [] },
         { fs: 24, cls: [] },
         { fs: 24, cls: ['sin-pista'] },
-        { fs: 26, cls: ['sin-pista', 'cortos'] },
         { fs: 24, cls: ['sin-pista', 'cortos'] },
         { fs: 22, cls: ['sin-pista', 'junto', 'cortos'] },
         { fs: 20, cls: ['sin-pista', 'junto', 'cortos'] },
