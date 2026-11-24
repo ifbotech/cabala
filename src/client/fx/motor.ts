@@ -6,6 +6,7 @@
 // de doble buffer de pixelfx (https://github.com/patch-gg/pixelfx, MIT): color por un lado, luz por otro, pasos de
 // rampa duros en el color y la suavidad solo en la luz. El código es nuestro.
 import { ajustes } from '../almacen';
+import { armoniaActual } from '../musica';
 import type { Palo } from '../../rules/cartas';
 import { BAYER4 } from '../pixel/dither';
 import { armarEscenario, avivarFogon, dondeFuego, type Escena, type Escenario } from './escenas';
@@ -66,6 +67,8 @@ const armadas = new Map<string, Escenario>();
 let tEscena = 0;
 let respiro = 1;
 let golpe = 0;
+let ultimoPasoMusica = -1;
+let pulsoMusica = 0;
 /** Quedan cuadros de luz por adelantar en la escena montada. */
 let calentando = false;
 
@@ -88,6 +91,7 @@ export function ponerEscena(e: Escena): void {
   escena = e;
   clima = null;
   golpe = 0;
+  pulsoMusica = 0;
   if (W) rehacerFondo();
 }
 
@@ -111,10 +115,17 @@ function pasoFondo(dt: number): void {
   if (!quieta) {
     tEscena += dt;
     golpe = Math.max(0, golpe - dt * 4);
+    pulsoMusica = Math.max(0, pulsoMusica - dt * 3.2);
+    const arm = armoniaActual();
+    if (arm && arm.paso !== ultimoPasoMusica) {
+      ultimoPasoMusica = arm.paso;
+      if (arm.paso === 0) pulsoMusica = Math.max(pulsoMusica, 0.36);
+      else if (arm.paso === 6 || arm.paso === 12) pulsoMusica = Math.max(pulsoMusica, 0.22);
+    }
     // el candil respira: salta entre sus cuadros con un paseo lento
     if (azar() < dt * 5) respiro = Math.max(0, Math.min(3, respiro + (azar() < 0.5 ? -1 : 1)));
   }
-  const k = quieta ? e.base : Math.max(0, Math.min(e.n - 1, e.elegir(tEscena, respiro, golpe)));
+  const k = quieta ? e.base : Math.max(0, Math.min(e.n - 1, e.elegir(tEscena, respiro, Math.max(golpe, pulsoMusica))));
   // un cuadro de luz que falte se pinta en el momento; los demás se van adelantando de a uno, en reposo
   xFondo.drawImage(e.cuadro(k), 0, 0);
   e.animar(xFondo, quieta ? 0 : dt, tEscena, quieta);

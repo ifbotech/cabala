@@ -309,7 +309,33 @@ button {
   border-image-source: var(--mv);
 }
 .btn:active:not(:disabled) {
-  transform: translateY(calc(1px * var(--k)));
+  transform: translateY(calc(2px * var(--k)));
+  filter: brightness(0.92);
+}
+.btn.oro::after,
+.btn.monumental::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  pointer-events: none;
+  background: linear-gradient(112deg, transparent 36%, rgba(255, 248, 214, 0.3) 50%, transparent 64%);
+  background-size: 260% 100%;
+  background-position: 150% 0;
+  animation: oro-brillo 4.6s steps(10) infinite;
+}
+.btn.oro:disabled::after,
+.btn.monumental:disabled::after {
+  animation: none;
+  opacity: 0;
+}
+@keyframes oro-brillo {
+  0%,
+  74% {
+    background-position: 150% 0;
+  }
+  100% {
+    background-position: -60% 0;
+  }
 }
 .btn:disabled,
 .btn[aria-disabled='true'] {
@@ -1011,12 +1037,36 @@ button.hud-tiras .ficha {
 /* ───────────── 0.10.0: la pantalla entra, sus opciones brotan una tras otra, los números laten ───────────── */
 
 #app.recien > main {
-  animation: pantalla-entra 0.22s steps(5) both;
+  animation: pantalla-entra 0.24s steps(6) both;
 }
 @keyframes pantalla-entra {
   from {
     opacity: 0;
-    translate: 0 calc(5px * var(--k));
+    filter: brightness(0.68);
+  }
+}
+.transicion-velo {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 95;
+  background: radial-gradient(circle at 50% 42%, rgba(28, 16, 36, 0.22), rgba(9, 7, 15, 0.68));
+  animation: velo-pasa 0.24s steps(6) forwards;
+}
+@keyframes velo-pasa {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .transicion-velo,
+  .btn.oro::after,
+  .btn.monumental::after {
+    animation: none;
+    display: none;
   }
 }
 #app.recien :is(.opciones > .opcion, .botin-lista > *, .ventas > *, .portada-menu > .btn, .portada-menu > .fila > .btn, .mazos > .mazo-op, .altar-lista > *, .cr-lista > *),

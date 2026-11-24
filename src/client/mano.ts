@@ -13,6 +13,8 @@ import { quieto as todoQuieto } from './ritmo';
 import { cifra, pxHud, pxNaipe } from './sprites';
 import { MUTACION_DESC, MUTACION_NOMBRE, PASO_NOMBRE } from './textos';
 import { esc, tip } from './ui';
+import { chispas as chispasFx, RAMPA_PALO } from './fx/efectos';
+import { fogonazoCandil } from './fx/motor';
 import { B } from '../rules/balance';
 import type { HudPx } from './pixel/iconos';
 
@@ -601,7 +603,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       // (0.27) adentro del canto de arriba del naipe, a la derecha de su índice: no asoma por encima del fieltro (arriba
       // está la cuenta). Sobre un Comodín (su rótulo COMODÍN va arriba y al centro), adentro de su esquina de abajo
       const altoM = marcaMedio.offsetHeight;
-      const yMarca = nm.carta.palo !== 'X' ? nm.y + Math.round(2 * kp) : nm.y + lp.hp - altoM - Math.round(3 * kp);
+      const copia = nm.carta.palo === 'X' && !!nm.el.querySelector('.c-espectro');
+      const yMarca = nm.carta.palo !== 'X' || copia ? nm.y + Math.round(2 * kp) : nm.y + lp.hp - altoM - Math.round(3 * kp);
       ponerEn(marcaMedio, nm.x + Math.round(visible) - anchoMarca.w - 2 * kp, yMarca, Z.marca);
     }
     // la Chispa: entre la Posta del Comodín y la de su derecha
@@ -861,10 +864,31 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     enPosta.fill(null);
     ids.forEach((id, i) => (enPosta[ps[i]] = id));
   }
+  function chispaPosta(idx: number): void {
+    if (idx < 0 || idx >= slots.length || todoQuieto()) return;
+    const el = slots[idx];
+    el.classList.remove('recien-apoyo');
+    void el.offsetWidth;
+    el.classList.add('recien-apoyo');
+    window.setTimeout(() => el.classList.remove('recien-apoyo'), 220);
+    const r = el.getBoundingClientRect();
+    if (!r.width) return;
+    const esMedio = idx === medio;
+    chispasFx(
+      r.left + r.width / 2,
+      r.top + Math.min(r.height * 0.45, 56),
+      esMedio ? RAMPA_PALO.D : RAMPA_PALO.X,
+      esMedio ? 10 : 6,
+      esMedio ? 62 : 44,
+      150,
+    );
+    if (esMedio) fogonazoCandil(0.28);
+  }
   const alternar = (id: string) => {
     const c = naipes.find((x) => x.carta.id === id);
     if (!c || bloqueada) return;
-    if (enPosta.includes(id)) quitar(id);
+    const estaba = enPosta.includes(id);
+    if (estaba) quitar(id);
     else if (!apoyar(id)) {
       // el paño está lleno: la carta no tiene dónde apoyarse
       c.el.animate([{ marginTop: '0' }, { marginTop: '-6px' }, { marginTop: '0' }], { duration: 180, easing: 'steps(3)' });
@@ -872,6 +896,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     }
     acomodarTodo();
     cambio();
+    if (!estaba) chispaPosta(enPosta.indexOf(id));
   };
 
   /** Sobre qué zona está el grupo. Con el dedo (`alza` > 0) al enemigo se le apunta con las cartas, que van por
@@ -909,6 +934,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       for (let i = 0; i < nPostas; i++) enPosta[i] = previa[i];
       apoyar(origen, posta);
       cambio();
+      chispaPosta(posta);
       return { zona: null, ids, tactil, resbalon: false, posta };
     }
     // si no se jugó nada (se soltó en ninguna zona o el sistema canceló el gesto): la selección queda como estaba antes

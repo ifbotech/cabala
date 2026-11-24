@@ -3,6 +3,33 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.32.0 · Mesa Viva: Animación Cinematográfica, Física Táctil y Game Feel a 60 FPS (2026-11-24)
+
+Tercera entrega de la Temporada de Diseño: luz de pulpería sincronizada con la milonga, física táctil de cartas y botones, transiciones cinematográficas sin saltos y coreografía limpia a 163–164 FPS. *(Música, voces y balance sin cambios; lectura pura del compás en `armoniaActual()`.)*
+
+**Vida Ambiental y Transiciones Cinematográficas**
+- **Candil al pulso de la milonga (`motor.ts`):** lectura pura de `armoniaActual()` en el bucle de fondo para pulsar la luz cálida de la mesa, el farol y el fogón en los acentos 3-3-2 (`paso` 0, 6 y 12) con costo O(1) y respeto total por `calma` / `prefers-reduced-motion`.
+- **Cortes cinematográficos con 0 saltos (`ui.ts`, `base.css`):** se elimina el brinco vertical de `@keyframes pantalla-entra`, reemplazado por un fundido desde penumbra cálida + velo efímero `.transicion-velo` (240 ms, `pointer-events: none`).
+- **Botones y Dorsos táctiles (`base.css`, `pantallas.css`):** depresión física al presionar (`.btn:active`), barrido dorado escalonado periódico sobre los CTA principales (`.btn.oro`, `.btn.monumental`) y halo dorado + elevación táctil en los 5 Dorsos de Elegir Mazo.
+
+**Física Táctil y Estados Vivos del Enemigo**
+- **Chispas al apoyar en el paño (`mano.ts`, `mesa.css`):** apoyar o correr un naipe sobre una Posta dispara un destello de borde `.posta.recien-apoyo` y partículas pixeladas (en oro + fogonazo sutil del candil al apoyar en el Medio).
+- **Enemigo Aturdido y con Furia vivos (`mesa.ts`, `mesa.css`):** el retrato del enemigo aturdido tambalea en pasos pixel-art con 3 estrellas doradas orbitando sobre su frente (`.e-estrellas`), y la Furia enciende un halo cálido de brasa alrededor del naipe.
+
+**Coreografía de Golpe (Desktop, Steam Deck y Móvil)**
+- **Crítico `×2` sin pisar cifras:** el sello `.c-crit-sello` cae centrado encima de `MULTI` sin desplazarlo ni pisar el `=` o el total.
+- **`TAJO DE REVÉS` y `FURIA` despejados en 1280×800 / 1366×768:** `FURIA` ocupa su corredor limpio entre `JUGADAS` y `TAJO DE REVÉS`, a la derecha de `24 ×2`.
+- **Barra de cuenta de una sola fila en escritorio + conteo escalado en móvil:** `flex-wrap: nowrap` y espaciado fino evitan que `SOBRAN → PASAN` se monte sobre el paño (`0 solapes en movimiento` en `secuencias.ts`); en móvil cada carta y pieza hace latir `DAÑO`/`MULTI`/`TOTAL` con escalado progresivo y aterrizaje limpio sobre el canto superior de la cifra.
+- **Comodín copiado en Posta del Medio (`mano.ts`):** la chapita `×2` se ubica arriba a la derecha dejando intacta la chapa `COMODÍN` inferior izquierda.
+
+**Consejo de Diseño (5 sillas · Armonía / Belleza / Game Feel / Simpleza)**
+- Dirección de Arte y Belleza: 8,9 · 9,0 · 8,9 · 8,8 (media 8,9; v0.31.0: 8,5)
+- Layout y Estabilidad Visual: 9,1 · 8,8 · 8,9 · 8,9 (media 8,9; v0.31.0: 8,7)
+- Animación y Game Feel: 8,9 · 8,9 · 9,1 · 8,9 (media 9,0; v0.31.0: 8,3)
+- UX Steam Deck y Mando: 8,9 · 8,9 · 9,0 · 8,9 (media 8,9; v0.31.0: 8,6)
+- UX Móvil: 8,8 · 8,9 · 8,9 · 8,8 (media 8,9; v0.31.0: 8,5)
+- **Media global: 8,9 / 10** (+0,4 sobre v0.31.0; +1,6 desde 0.29.0) · **0 P0/P1**, **0 saltos de layout**, **0 solapes en movimiento**, **163,3–164,8 FPS**.
+
 ## 0.31.0 · Belleza de Pulpería Nocturna (2026-11-24)
 
 Segunda entrega de la Temporada de Diseño: dirección de arte limpia en mesa y pantallas, foco de mando 100 % unificado en Steam Deck y lectura impecable en teléfono. *(Música, voces y balance sin cambios.)*

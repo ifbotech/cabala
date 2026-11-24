@@ -237,7 +237,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     return `<div class="e-sellos">${inmune}${estados}</div>
       <div class="e-centro" data-soltar="enemigo">
         <i class="e-pano"></i>
-        <div class="e-carta ${e.jefe ? 'jefe' : ''} ${e.segunda ? 'segunda' : ''}" data-carta style="--aura:${e.segunda ? AURA_SEGUNDA[e.palo] : AURA[e.palo]}">${e.jefe && e.segunda ? pxNaipeSegunda(e.palo) : pxNaipe({ palo: e.palo, n: e.rango })}<i class="e-indice" aria-hidden="true"></i></div>
+        <div class="e-carta ${e.jefe ? 'jefe' : ''} ${e.segunda ? 'segunda' : ''} ${e.aturdido > 0 ? 'aturdido' : ''} ${furia > 0 ? 'con-furia' : ''}" data-carta style="--aura:${e.segunda ? AURA_SEGUNDA[e.palo] : AURA[e.palo]}">${e.jefe && e.segunda ? pxNaipeSegunda(e.palo) : pxNaipe({ palo: e.palo, n: e.rango })}<i class="e-indice" aria-hidden="true"></i>${e.aturdido > 0 ? '<span class="e-estrellas" aria-hidden="true"><i>★</i><i>★</i><i>★</i></span>' : ''}</div>
         <i class="e-halo" aria-hidden="true"></i>
         <span class="e-suelta chip canto">${t('soltaAca')}</span>
       </div>
@@ -2560,7 +2560,8 @@ export function pantallaMesa(p: Partida): Pantalla {
       let r = a.getBoundingClientRect();
       // (0.29) si su término no está a la vista (la cuenta plegada del teléfono), vuela a su cifra de la fórmula: no cae
       // sobre el chip TE PEGA ni sobre un naipe de la mano
-      if (r.width < 2) {
+      const plegada = r.width < 2;
+      if (plegada) {
         const parte = $(`[data-cuenta] ${tono === 'roja' ? '[data-cd]' : '[data-cm]'} [data-v]`);
         if (!parte) return;
         r = parte.getBoundingClientRect();
@@ -2573,7 +2574,7 @@ export function pantallaMesa(p: Partida): Pantalla {
       v.style.top = `${Math.round(de.y)}px`;
       $('#capa')?.append(v);
       const dx = Math.round(r.left + r.width / 2 - de.x);
-      const dy = Math.round(r.top + r.height / 2 - de.y);
+      const dy = Math.round((plegada ? r.top - 4 : r.top + r.height / 2) - de.y);
       const ms = 280;
       v.animate(
         [
@@ -2603,6 +2604,10 @@ export function pantallaMesa(p: Partida): Pantalla {
       }
       hechos.push(x);
       poner();
+      const cd = $('[data-cuenta] [data-cd]') as HTMLElement | null;
+      if (cd) cd.style.setProperty('--salto', Math.min(1.26, 1.12 + i * 0.03).toFixed(2));
+      brinco(cd);
+      brinco(total, 'sube-pulso');
       encender(x);
       await pausa(ritmo(i));
       nota(i++);
@@ -2622,7 +2627,9 @@ export function pantallaMesa(p: Partida): Pantalla {
         }
       } else hechos.push(x);
       poner();
+      if (parte instanceof HTMLElement) parte.style.setProperty('--salto', Math.min(1.28, 1.14 + i * 0.03).toFixed(2));
       brinco(parte);
+      brinco(total, 'sube-pulso');
       encender(x);
       // la ficha de la pieza brinca en la bandeja; en el escritorio, además, suelta su cifra (en el teléfono la bandeja
       // va pegada al retrato y la cifra ya se lee encendida en el desglose)

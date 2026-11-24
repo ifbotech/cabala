@@ -72,7 +72,18 @@ export function montar(p: Pantalla, misma = false): void {
   // recién montada: la pantalla entra y sus opciones brotan una tras otra (no al repintar la misma)
   clearTimeout(relojRecien);
   app.classList.toggle('recien', !misma && !quieto());
-  if (!misma && !quieto()) relojRecien = window.setTimeout(() => app.classList.remove('recien'), 800);
+  if (!misma && !quieto()) {
+    relojRecien = window.setTimeout(() => app.classList.remove('recien'), 800);
+    const capa = $('#capa');
+    if (capa) {
+      capa.querySelector('.transicion-velo')?.remove();
+      const v = document.createElement('i');
+      v.className = 'transicion-velo';
+      v.setAttribute('aria-hidden', 'true');
+      capa.append(v);
+      window.setTimeout(() => v.remove(), 260);
+    }
+  }
   avivar(app, !misma);
   document.dispatchEvent(new CustomEvent('cabala:pantalla', { detail: p.nombre }));
 }

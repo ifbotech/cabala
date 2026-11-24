@@ -5775,3 +5775,20 @@ main.fogon.forjando [data-accion='seguir'] {
     flex: 0 0 auto;
   }
 }
+
+/* ───────────── 0.32.0 · Dorsos con relieve táctil al pasar o elegir ───────────── */
+.mazo-op:not(.cerrado) .mazo-dorso {
+  transition: transform 0.12s steps(3), filter 0.12s steps(3);
+}
+.mazo-op:hover:not(.cerrado):not(.elegido) .mazo-dorso {
+  transform: translateY(calc(-2px * var(--k)));
+  filter: brightness(1.08);
+}
+.mazo-op.elegido .mazo-dorso {
+  filter: drop-shadow(0 0 calc(4px * var(--k)) rgba(255, 200, 56, 0.35));
+}
+@media (prefers-reduced-motion: reduce) {
+  .mazo-op:not(.cerrado) .mazo-dorso {
+    transition: none;
+  }
+}

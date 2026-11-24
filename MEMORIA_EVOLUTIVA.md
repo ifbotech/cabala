@@ -487,6 +487,19 @@ piezas con icono de Vida máxima, grito junto al retrato; Vida máxima por Rey p
 
 **Medición.** Jurado 7,6 · 7,5 · 8,0 · 7,6. Panel 70,0 % (IC95 57–80 %); Deck 33 % (n = 9), Móvil 93 % (n = 15).
 
+## 0.32.0 · Mesa Viva: Animación Cinematográfica, Física Táctil y Game Feel a 60 FPS (publicada)
+
+**Qué se buscó.** Dar vida continua y peso táctil a la mesa sin perder un píxel de estabilidad ni un cuadro por segundo: sincronizar la luz con la milonga, suavizar los cambios de pantalla sin saltos, sumar respuesta física al apoyar cartas y al presionar botones, dar lectura visual viva al enemigo aturdido/furioso y pulir la coreografía de golpe (sello crítico `×2`, `TAJO DE REVÉS` vs `FURIA`, conteo móvil y `×2` en Comodín copiado).
+
+**Qué entró.** Lectura pura de `armoniaActual()` en `motor.ts` para pulsar la luz en los acentos 3-3-2; fundido cálido sin `translate` + `.transicion-velo` en `ui.ts`/`base.css`; barrido dorado en CTA y depresión física; chispas + destello de Posta al apoyar (`mano.ts`/`mesa.css`); enemigo `.aturdido` con 3 estrellas doradas y `.con-furia` con halo de brasa (`mesa.ts`/`mesa.css`); `.c-crit-sello` encima de `MULTI`, corredor limpio para `FURIA` junto a `TAJO`, cuenta en una sola fila en escritorio, escalado progresivo de conteo en móvil y `×2` arriba a la derecha en Comodín copiado.
+
+**Lecciones.**
+- Correr `scripts/secuencias.ts` en `1280` y `390` y mirar los cuadros con ojos propios atrapó cuatro detalles sutiles invisibles para las capturas estáticas: un salto de renglón de `.c-queda` bajo las cartas del paño en `chancho-canta`, `FURIA` tocando el borde de `SEL JUGADAS` en `rey-tajo`, `×2` rozando `COMODÍN` cuando el Comodín copiado ocupaba la Posta del Medio (`mano.ts:606` aún suponía el rótulo arriba), y el aterrizaje central de `+N` en móvil.
+- Leer `armoniaActual()` en el motor de fondo enriquece la sensación orgánica del juego a 0 ms de costo extra (163,3–164,8 FPS intactos) respetando al 100 % el congelamiento de `musica.ts`.
+- Para el salto final `v0.33.0` (`≥ 9,2/10` en las 20 métricas): revisar el borde derecho de `SOBRAN → PASAN` con doble canto en `1280px`, Fila 1 de `360px` Chinchón y pulir todas las pantallas secundarias (Mapa, Pulpería, Fogón, Cábala, Altar, Colección, Crónica, Botín, Victoria/Derrota) a nivel obra maestra.
+
+**Consejo de Diseño (5 sillas).** Arte 8,9 · Layout/Estabilidad 8,9 · Animación/Game Feel 9,0 · Steam Deck 8,9 · Móvil 8,9 → **Media 8,9** (+0,4 sobre 0.31.0). Puertas: `qa:estabilidad` 0 hallazgos, `qa:visual` ES/EN 0 fallos (6 ventanas), `qa:smoke` ES/EN 16/16, `qa:fps` 163,3–164,8 fps (peor cuadro 24 ms), `secuencias` 1280/390 0 solapes.
+
 ## 0.31.0 · Belleza de Pulpería Nocturna (publicada)
 
 **Qué se buscó.** Elevar la belleza visual, la simpleza y la legibilidad en Steam Deck (`1280×800`) y teléfono (`390×844` / `390×664` / `360×740`): limpiar el Comodín apoyado y la caja fantasma `AL DESCARTE`, equilibrar tarjetas cortas (Fogón, Botín, Ofertas, Pulpería, Cábala), unificar el foco de mando sin pisadas y compactar la hoja de cuenta móvil en 2 columnas.

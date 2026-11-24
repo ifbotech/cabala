@@ -7519,6 +7519,24 @@ button.hud-tiras:focus-visible .ficha {
   .mesa .cuenta-zona:not(.cuenta-hoja) > .cuenta.plegada-2:not(.reposo):not(.invalida) {
     padding-right: 22px;
   }
+  .mesa .cuenta-zona:not(.cuenta-hoja) > .cuenta.plegada-2:has(.c-corta) {
+    padding-left: 4px;
+    padding-right: 20px;
+    column-gap: 2px;
+  }
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-formula {
+    gap: 2px;
+  }
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-jugada {
+    font-size: 14px;
+    letter-spacing: 0;
+  }
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-corta .cc-verbo {
+    letter-spacing: 0;
+  }
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-corta .icono {
+    --k: 1;
+  }
   .mesa .cuenta.plegada-2:has(.c-corta) .c-chips {
     flex-wrap: nowrap;
     gap: 2px;
@@ -7537,5 +7555,193 @@ button.hud-tiras:focus-visible .ficha {
   .hud .hud-vida .valor > .icono {
     display: inline-block;
     --k: 1;
+  }
+}
+
+/* ───────────── 0.32.0 · Mesa viva: física táctil, estados del enemigo y coreografía de golpe ───────────── */
+.posta.recien-apoyo::before {
+  border-image-source: var(--m-posta-viva);
+  animation: posta-apoyo 0.22s steps(3);
+}
+@keyframes posta-apoyo {
+  0% {
+    filter: brightness(1.55);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+
+/* Enemigo aturdido: tambaleo escalonado y tres estrellas doradas */
+.e-carta.aturdido:not(.herido, .embiste, .entra, .partida) {
+  animation: e-aturdido 1.2s steps(4) infinite;
+  filter: saturate(0.74) brightness(0.95);
+}
+@keyframes e-aturdido {
+  0%,
+  100% {
+    transform: rotate(-2.5deg) translateY(0);
+  }
+  50% {
+    transform: rotate(2.5deg) translateY(calc(2px * var(--k-enemigo)));
+  }
+}
+.e-carta .e-estrellas {
+  position: absolute;
+  top: calc(4px * var(--k-enemigo));
+  left: 50%;
+  translate: -50% 0;
+  z-index: 4;
+  display: flex;
+  gap: calc(6px * var(--k-enemigo));
+  pointer-events: none;
+  line-height: 1;
+}
+.e-carta .e-estrellas i {
+  font-style: normal;
+  font-size: calc(10px * var(--k-enemigo));
+  color: #ffd94a;
+  text-shadow:
+    0 calc(1px * var(--k-enemigo)) 0 #09070f,
+    calc(1px * var(--k-enemigo)) 0 0 #09070f,
+    calc(-1px * var(--k-enemigo)) 0 0 #09070f,
+    0 calc(-1px * var(--k-enemigo)) 0 #09070f;
+  animation: estrella-orbita 1.2s steps(4) infinite;
+}
+.e-carta .e-estrellas i:nth-child(2) {
+  animation-delay: -0.4s;
+}
+.e-carta .e-estrellas i:nth-child(3) {
+  animation-delay: -0.8s;
+}
+@keyframes estrella-orbita {
+  0%,
+  100% {
+    transform: translateY(0);
+    filter: brightness(1);
+  }
+  50% {
+    transform: translateY(calc(-4px * var(--k-enemigo)));
+    filter: brightness(1.35);
+  }
+}
+@container escena (max-height: 162px) {
+  .mesa .e-carta .e-estrellas {
+    top: calc(14px * var(--k-enemigo));
+  }
+}
+
+/* Enemigo con Furia: halo cálido de brasa alrededor del retrato */
+.e-carta.con-furia:not(.segunda, .aturdido, .herido, .embiste, .entra, .partida) {
+  box-shadow:
+    0 0 0 calc(1px * var(--k-enemigo)) #09070f,
+    0 0 0 calc(2px * var(--k-enemigo)) #ff6b1a;
+  animation:
+    e-flota 2.6s steps(4) infinite alternate,
+    e-furia-borde 1.2s steps(3) infinite alternate;
+}
+@keyframes e-furia-borde {
+  to {
+    box-shadow:
+      0 0 0 calc(1px * var(--k-enemigo)) #09070f,
+      0 0 0 calc(2px * var(--k-enemigo)) #ffd147,
+      0 0 0 calc(4px * var(--k-enemigo)) rgba(255, 107, 26, 0.42);
+  }
+}
+
+/* Sello crítico ×2 encima de MULTI sin pisar el = ni el total */
+.mesa .cuenta-zona:not(.cuenta-hoja),
+.mesa .cuenta:not(.reposo),
+.mesa .c-formula {
+  overflow: visible;
+}
+.c-parte[data-cm].con-crit {
+  padding-right: 0;
+}
+.c-crit-sello {
+  left: 50%;
+  right: auto;
+  bottom: calc(100% + 2px);
+  translate: -50% 0;
+  scale: 1.2;
+  transform-origin: 50% 100%;
+  rotate: -6deg;
+}
+@keyframes crit-sello {
+  0% {
+    scale: 2.4;
+    opacity: 0;
+    filter: brightness(2.4);
+  }
+  40% {
+    scale: 1.06;
+    opacity: 1;
+  }
+  70% {
+    scale: 1.3;
+    filter: brightness(1.3);
+  }
+  100% {
+    scale: 1.2;
+  }
+}
+
+/* Una sola fila en escritorio + Tajo de revés + Furia separados limpiamente en 1280×800 / 1366×768 */
+@media (min-width: 701px) {
+  .mesa .cuenta-zona > .cuenta,
+  .mesa .cuenta-zona > .cuenta .c-chips {
+    flex-wrap: nowrap;
+  }
+}
+@media (min-width: 1100px) and (max-width: 1699px) {
+  .mesa .cuenta-zona > .cuenta {
+    gap: 6px;
+    padding-inline: 10px;
+  }
+  .mesa .cuenta-zona > .cuenta .c-chips {
+    gap: 5px;
+  }
+  .mesa .cuenta-zona > .cuenta .c-chips > .chip,
+  .mesa .cuenta-zona > .cuenta .c-chips > .c-queda {
+    padding-inline: 6px;
+  }
+  .mesa .enemigo:has(.e-barras > .e-rasgo) .e-ataque.tajo {
+    position: relative;
+  }
+  .mesa .enemigo:has(.e-barras > .e-rasgo) .e-ataque.tajo .e-furia {
+    position: absolute;
+    left: calc(50% + 48px);
+    top: 60px;
+  }
+  @container escena (max-height: 162px) {
+    .mesa .enemigo:has(.e-barras > .e-rasgo) .e-ataque.tajo .e-furia {
+      top: 52px;
+    }
+  }
+}
+
+/* Escalado progresivo del conteo en todas las resoluciones */
+@keyframes parte-salta {
+  40% {
+    scale: var(--salto, 1.15);
+    filter: brightness(1.48);
+  }
+}
+[data-total].sube-pulso {
+  animation: total-pulso 0.22s steps(3);
+}
+@keyframes total-pulso {
+  40% {
+    scale: 1.14;
+    filter: brightness(1.55);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .posta.recien-apoyo::before,
+  .e-carta.aturdido:not(.herido, .embiste, .entra, .partida),
+  .e-carta .e-estrellas i,
+  .e-carta.con-furia:not(.segunda, .aturdido, .herido, .embiste, .entra, .partida),
+  [data-total].sube-pulso {
+    animation: none;
   }
 }
