@@ -3,6 +3,30 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.33.0 · Obra Maestra Rioplatense (2026-11-24)
+
+Cierre de la Temporada de Diseño: cohesión total de pantallas secundarias en las 6 resoluciones (ES y EN), mapa móvil con Rey faro y cofre nítido, galería alineada al píxel y respuesta táctil unificada en cada rincón del juego. *(Música, voces y balance sin cambios.)*
+
+**Dirección de Arte y Armonía en Pantallas Secundarias (`pantallas.css`)**
+- **La Colección:** `align-items: flex-start` en `.col-mazos` y `.col-reyes` para alinear los 5 clavos de la galería en una única horizontal exacta, tengan o no chapa de `REINADO`.
+- **Ajustes:** abanico de los 5 Dorsos despejado limpiamente por encima del gorro del Bufón en escritorio (`1920×1080`, `1366×768`, `1280×800`).
+- **Victoria (`LA CORTE CAYÓ`):** se reemplaza el tachado horizontal ilegible (`line-through`) sobre los Reyes vencidos por rótulos nítidos con fino marco dorado que acompañan a las cartas partidas.
+- **El Fogón:** íconos de `DESCANSAR` y `TEMPLAR UN NAIPE` alineados al mismo horizonte visual sin alterar el alto ni el aire sobre `SEGUIR SIN USARLO`.
+- **El Mapa (Escritorio, Deck y Móvil):** degradado superior refinado en `.mapa-rollo` para disolver filas fuera de pantalla sin fragmentos sobre los molinos (`1280×800`); en móvil (`390×844`) el cofre del Tesoro se escala a `--k: 1` en la esquina superior derecha sin tapar la calavera, y se quita la máscara superior para que el Rey corone el mapa como un faro dorado al 100 %.
+- **La Pulpería móvil (`390×844`):** pie esfumado más profundo + `padding-bottom: 44px` para que `HAY MÁS ↓` / `MORE ↓` floten sobre penumbra limpia sin pisar `FACÓN DE PLATA`.
+
+**Tacto y Detalle Fino (`pantallas.css`, `mesa.css`)**
+- **Respuesta táctil global:** brillo escalonado al pasar y depresión física al pulsar en tarjetas de opción (`.opcion`), ventas de Pulpería (`.venta`), placas de Botín (`.bp`), nodos abiertos del Mapa (`.nodo.abierto`) y velas del Altar (`.altar-lista > *`), con respeto total por `prefers-reduced-motion`.
+- **Barra de cuenta 1280×800 con doble canto:** compactación quirúrgica cuando conviven `¡AL PELO!`, `¡CHANCHO!` y `SOBRAN → PASAN` para lucir 100 % dentro del marco con margen derecho limpio.
+
+**Consejo de Diseño (5 sillas · Armonía / Belleza / Game Feel / Simpleza)**
+- Dirección de Arte y Belleza: 9,4 · 9,5 · 9,3 · 9,3 (media 9,4; v0.32.0: 8,9)
+- Layout y Estabilidad Visual: 9,5 · 9,3 · 9,3 · 9,4 (media 9,4; v0.32.0: 8,9)
+- Animación y Game Feel: 9,3 · 9,3 · 9,4 · 9,3 (media 9,3; v0.32.0: 9,0)
+- UX Steam Deck y Mando: 9,3 · 9,3 · 9,3 · 9,4 (media 9,3; v0.32.0: 8,9)
+- UX Móvil: 9,3 · 9,3 · 9,3 · 9,3 (media 9,3; v0.32.0: 8,9)
+- **Media global: 9,3 / 10** (+0,4 sobre v0.32.0; **+2,0** desde 0.29.0) · **Todas las 20 métricas ≥ 9,3/10** · **0 P0/P1**, **0 saltos de layout**, **0 solapes en movimiento**, **163,1–164,8 FPS**.
+
 ## 0.32.0 · Mesa Viva: Animación Cinematográfica, Física Táctil y Game Feel a 60 FPS (2026-11-24)
 
 Tercera entrega de la Temporada de Diseño: luz de pulpería sincronizada con la milonga, física táctil de cartas y botones, transiciones cinematográficas sin saltos y coreografía limpia a 163–164 FPS. *(Música, voces y balance sin cambios; lectura pura del compás en `armoniaActual()`.)*

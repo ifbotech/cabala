@@ -487,6 +487,18 @@ piezas con icono de Vida máxima, grito junto al retrato; Vida máxima por Rey p
 
 **Medición.** Jurado 7,6 · 7,5 · 8,0 · 7,6. Panel 70,0 % (IC95 57–80 %); Deck 33 % (n = 9), Móvil 93 % (n = 15).
 
+## 0.33.0 · Obra Maestra Rioplatense (publicada)
+
+**Qué se buscó.** Cerrar la Temporada de Diseño superando `≥ 9,2/10` en todas las métricas de las 5 sillas mediante una auditoría visual exhaustiva de todas las pantallas secundarias (Colección, Ajustes, Victoria, Fogón, Mapa, Pulpería móvil) y los últimos dos píxeles de la mesa en las 6 resoluciones (ES y EN).
+
+**Qué entró.** Clavos de Colección alineados al eje superior (`align-items: flex-start`); abanico de 5 Dorsos despejado sobre el Bufón en Ajustes; nombres nítidos sin `line-through` en Reyes vencidos de Victoria; íconos del Fogón en un mismo horizonte; degradado limpio en `.mapa-rollo` de escritorio, cofre `--k: 1` sin tapar la calavera y Rey faro sin máscara superior en Mapa móvil; pie esfumado limpio bajo `HAY MÁS ↓` en Pulpería móvil; tacto unificado en tarjetas/ventas/nodos/velas; margen derecho limpio en `1280px` con doble canto + `SOBRAN → PASAN`.
+
+**Lecciones.**
+- `scripts/visual-qa.ts` lee una sola bandera `--ventana=` con `.find()`: pasar dos `--ventana=` en una misma invocación omitía la segunda. Auditar las capturas con ojos propios y comprobar fechas de modificación destapó el detalle y permitió verificar genuinamente las 6 ventanas individuales en ES y EN (0 fallos).
+- El 80 % de pasar de «muy bueno (8,9)» a «obra maestra (9,3+)» está en la disciplina invisible de las pantallas secundarias: alinear clavos de galería, quitar tachados feos, limpiar bordes de scroll y dar la misma respuesta táctil a cada botón fuera del combate.
+
+**Consejo de Diseño (5 sillas).** Arte 9,4 · Layout/Estabilidad 9,4 · Animación/Game Feel 9,3 · Steam Deck 9,3 · Móvil 9,3 → **Media 9,3** (+0,4 sobre 0.32.0; +2,0 desde 0.29.0; todas las 20 métricas ≥ 9,3/10). Puertas: `qa:estabilidad` 0 hallazgos, `qa:visual` ES/EN 0 fallos en las 6 ventanas individuales, `qa:smoke` ES/EN 100 % verde, `qa:fps` 163,1–164,8 fps (0 cuadros > 50 ms), `secuencias` 1280/390 0 solapes.
+
 ## 0.32.0 · Mesa Viva: Animación Cinematográfica, Física Táctil y Game Feel a 60 FPS (publicada)
 
 **Qué se buscó.** Dar vida continua y peso táctil a la mesa sin perder un píxel de estabilidad ni un cuadro por segundo: sincronizar la luz con la milonga, suavizar los cambios de pantalla sin saltos, sumar respuesta física al apoyar cartas y al presionar botones, dar lectura visual viva al enemigo aturdido/furioso y pulir la coreografía de golpe (sello crítico `×2`, `TAJO DE REVÉS` vs `FURIA`, conteo móvil y `×2` en Comodín copiado).

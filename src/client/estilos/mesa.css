@@ -7745,3 +7745,37 @@ button.hud-tiras:focus-visible .ficha {
     animation: none;
   }
 }
+
+/* ───────────── 0.33.0 · Aire derecho en 1280×800 con doble canto + 360px Chinchón Fila 1 limpia ───────────── */
+@media (min-width: 1100px) and (max-width: 1699px) {
+  .mesa .cuenta-zona > .cuenta:has(.c-canto) {
+    gap: 4px;
+    padding-inline: 6px;
+  }
+  .mesa .cuenta-zona > .cuenta:has(.c-canto) .c-chips {
+    gap: 4px;
+  }
+  .mesa .cuenta-zona > .cuenta:has(.c-canto) .c-chips > .c-queda {
+    font-size: 14px;
+    letter-spacing: 0;
+    padding-inline: 4px;
+  }
+  .mesa .cuenta-zona > .cuenta:has(.c-canto) .c-chips > .c-canto {
+    padding-inline: 5px;
+  }
+}
+@media (max-width: 380px) {
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-formula {
+    gap: 1px;
+  }
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-op {
+    margin-inline: 0;
+  }
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-corta {
+    gap: 1px;
+    padding-inline: 2px;
+  }
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-corta .cifra {
+    --kc: 1;
+  }
+}
