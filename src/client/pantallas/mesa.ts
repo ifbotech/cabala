@@ -21,6 +21,7 @@ import { ajustes, alAzar, guardarPerfil, idioma, perfil, t, tx } from '../almace
 import { agacharMusica, nota, sonar } from '../audio';
 import { cantar, estadoCombate, ponerFuego, remateMusica, stinger } from '../musica';
 import { teclear } from '../habla';
+import { partirEnemigo3d } from '../escena3d';
 import { RAMPA_CURA, RAMPA_ESCUDO, RAMPA_GOLPE, RAMPA_PALO, chispas, destello, haloRey, limpiarNumeros, lluviaDeMonedas, monedas, motas, numero, partirNaipe, quiebre, tajo, tajoDeReves, type Carril } from '../fx/efectos';
 import { alCeder, cajaDe, pisan, reservar, soltar as soltarTurno, tomadas, ubicar } from '../fx/director';
 import { S, congelar, enFoto, fogonazoCandil, ponerClima, sacudir } from '../fx/motor';
@@ -237,7 +238,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     return `<div class="e-sellos">${inmune}${estados}</div>
       <div class="e-centro" data-soltar="enemigo">
         <i class="e-pano"></i>
-        <div class="e-carta ${e.jefe ? 'jefe' : ''} ${e.segunda ? 'segunda' : ''} ${e.aturdido > 0 ? 'aturdido' : ''} ${furia > 0 ? 'con-furia' : ''}" data-carta style="--aura:${e.segunda ? AURA_SEGUNDA[e.palo] : AURA[e.palo]}">${e.jefe && e.segunda ? pxNaipeSegunda(e.palo) : pxNaipe({ palo: e.palo, n: e.rango })}<i class="e-indice" aria-hidden="true"></i>${e.aturdido > 0 ? '<span class="e-estrellas" aria-hidden="true"><i>★</i><i>★</i><i>★</i></span>' : ''}</div>
+        <div class="e-carta ${e.jefe ? 'jefe' : ''} ${e.segunda ? 'segunda' : ''} ${e.aturdido > 0 ? 'aturdido' : ''} ${furia > 0 ? 'con-furia' : ''}" data-carta data-palo="${e.palo}" data-rango="${e.rango}" data-jefe="${e.jefe ? '1' : '0'}" data-segunda="${e.segunda ? '1' : '0'}" style="--aura:${e.segunda ? AURA_SEGUNDA[e.palo] : AURA[e.palo]}">${e.jefe && e.segunda ? pxNaipeSegunda(e.palo) : pxNaipe({ palo: e.palo, n: e.rango })}<i class="e-indice" aria-hidden="true"></i>${e.aturdido > 0 ? '<span class="e-estrellas" aria-hidden="true"><i>★</i><i>★</i><i>★</i></span>' : ''}</div>
         <i class="e-halo" aria-hidden="true"></i>
         <span class="e-suelta chip canto">${t('soltaAca')}</span>
       </div>
@@ -1363,6 +1364,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           }
           if (r && enemigo) {
             partirNaipe(enemigo.jefe && enemigo.segunda ? lienzoNaipeSegunda(enemigo.palo) : lienzoNaipe(enemigo.palo, enemigo.rango), r, RAMPA_PALO[enemigo.palo]);
+            partirEnemigo3d(enemigo.palo, enemigo.rango, !!enemigo.segunda);
             el!.classList.add('partida');
             monedas(r.left + r.width / 2, r.top + r.height / 2, centro($('[data-hud-oro]')).x, centro($('[data-hud-oro]')).y, 5);
           }

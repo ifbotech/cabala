@@ -12,6 +12,7 @@ import { ajustes, tx, usarPerfil } from './almacen';
 import { gritar } from './hud';
 import { GRITO } from './voces';
 import { modoFoto } from './fx/motor';
+import { forzarCuadro3d } from './escena3d';
 import { irAjustes, irAltar, irColeccion, irCronica, irMazo, irPortada, pintarFase, sesion } from './juego';
 import { $, enfocarJugador } from './ui';
 import { mascaraHtml } from './pantallas/mesa';
@@ -695,5 +696,11 @@ export function montarQa(estado: string): void {
       irPortada();
   }
   // la QA espera esta marca: la pantalla ya está montada y quieta
-  requestAnimationFrame(() => requestAnimationFrame(() => (document.documentElement.dataset.qa = 'listo')));
+  requestAnimationFrame(() => {
+    forzarCuadro3d();
+    requestAnimationFrame(() => {
+      forzarCuadro3d();
+      document.documentElement.dataset.qa = 'listo';
+    });
+  });
 }

@@ -487,6 +487,20 @@ piezas con icono de Vida máxima, grito junto al retrato; Vida máxima por Rey p
 
 **Medición.** Jurado 7,6 · 7,5 · 8,0 · 7,6. Panel 70,0 % (IC95 57–80 %); Deck 33 % (n = 9), Móvil 93 % (n = 15).
 
+## 0.40.0 · La Mesa Nocturna 3D (publicada)
+
+**Qué se buscó.** Dar el salto inicial a una experiencia 3D en primera persona sobre la mesa nocturna de pulpería con Three.js + WebGL manteniendo el 100 % del motor determinista, la música adaptativa `3-3-2`, las voces líricas y la estética *Dark Dithered Pixel Art*.
+
+**Qué entró.** Capa `src/client/escena3d/` (`index.ts`, `pulperia.ts`, `camara.ts`, `cartas3d.ts`, `texturas.ts`) con habitación persistente de pulpería nocturna (tablones Bayer `NearestFilter`, paño verde esmeralda, farol oscilando, estanterías con botellas, vela 3D con llama y luz puntual `PCFShadowMap` al compás de `armoniaActual()`, polvo/brasas 3D, climas de Reyes, pila dinámica del Mazo, monedas 3D y 5 Mazos físicos en Portada), naipes físicos 3D sincronizados con `marcarSucio3d()`, tótem 3D enemigo y fractura física en 2 mitades + monedas.
+
+**Lecciones.**
+- En modo híbrido 3D + DOM gemelo, ocultar `.pano-postas` no basta si `.pano-postas::before` pinta un relleno 9-slice verde opaco en `#app`: hay que ocultar `.pano-postas::before` y `.posta.llena::before` para dejar pasar las cartas 3D limpias.
+- `#capa > * { pointer-events: auto; }` en `base.css` gana por especificidad sobre `.chiche-vuela { pointer-events: none; }`: hace falta `pointer-events: none !important` en fichas voladoras.
+- En `desglose.ts`, `margin-top` de `.c-bajo` (`+12 px`) empuja la columna hacia abajo respecto a `tope`: restarlo al medir evita el roce de 3 px con la carta enfocada en `1280×800`.
+- `Three.js` r187+ removió `PCFSoftShadowMap` (usar `THREE.PCFShadowMap`) y conviene limpiar el `WebGLRenderer` en `pagehide`.
+
+**Consejo de Diseño 3D (5 sillas).** Dirección 3D/Atmósfera 8,2 · Carisma Bufón/Personajes 7,5 · Física/Cámara/Game Feel 8,4 · PC/Steam Deck 8,8 · Móvil 8,7 → **Media 8,3 / 10** · **158,7–164,8 FPS**, **CLS = 0**, **0 fallos `qa:visual` ES/EN**, **0 solapes en movimiento (`secuencias` 1280 y 390)**, **163/163 pruebas**. Próximo salto (`v0.41.0`): Bufón 3D articulado con ojos que siguen al puntero/carta, Máscaras 3D de los 4 Reyes y Chiches 3D físicos sobre la mesa.
+
 ## 0.33.0 · Obra Maestra Rioplatense (publicada)
 
 **Qué se buscó.** Cerrar la Temporada de Diseño superando `≥ 9,2/10` en todas las métricas de las 5 sillas mediante una auditoría visual exhaustiva de todas las pantallas secundarias (Colección, Ajustes, Victoria, Fogón, Mapa, Pulpería móvil) y los últimos dos píxeles de la mesa en las 6 resoluciones (ES y EN).

@@ -13,17 +13,16 @@
 //   npm run qa:visual -- mesa mapa         solo esos estados
 //   npm run qa:visual -- --ventana=390x844 solo esa ventana (también 390x664, la baja del móvil)
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { chromium } from 'playwright';
 import { guardian } from './guardian';
 import { letraChica, manoViva } from './mano-viva';
-import { VENTANAS, conServidor } from './servidor';
+import { VENTANAS, abrirNavegador, conServidor } from './servidor';
 import { ESTADOS } from '../src/client/qa';
 
 guardian('qa:visual', 290);
 
 const args = process.argv.slice(2);
 const lang = args.find((a) => a.startsWith('--lang='))?.split('=')[1] === 'en' ? 'en' : 'es';
-const soloVentana = args.find((a) => a.startsWith('--ventana='))?.split('=')[1];
+const soloVentanas = args.filter((a) => a.startsWith('--ventana=')).map((a) => a.split('=')[1]);
 const pedidos = args.filter((a) => !a.startsWith('-'));
 const estados = ESTADOS.filter((e) => !pedidos.length || pedidos.includes(e));
 /**
@@ -36,7 +35,7 @@ const VENTANAS_BAJAS = [
 ] as const;
 const ESTADOS_BAJA: readonly string[] = ['mesa', 'mesa-seleccion', 'mesa-mentiroso', 'mesa-rey', 'mesa-segunda', 'mesa-segunda-cambia', 'mesa-conteo', 'mesa-escudo', 'mesa-escalon', 'mesa-chinchon', 'mesa-chancho', 'mesa-garrote'];
 const esBaja = (nombre: string): boolean => VENTANAS_BAJAS.some((v) => v.nombre === nombre);
-const ventanas = [...VENTANAS, ...VENTANAS_BAJAS].filter((v) => !soloVentana || v.nombre === soloVentana);
+const ventanas = [...VENTANAS, ...VENTANAS_BAJAS].filter((v) => !soloVentanas.length || soloVentanas.includes(v.nombre));
 const carpeta = `artifacts/visual-qa${lang === 'en' ? '-en' : ''}`;
 
 interface Fallo {
@@ -697,7 +696,7 @@ const reposo = new Map<string, Record<string, number[] | null>>();
 const t0 = Date.now();
 
 await conServidor(5191, async (url) => {
-  const navegador = await chromium.launch();
+  const navegador = await abrirNavegador();
   try {
     for (const v of ventanas) {
       const ctx = await navegador.newContext({ viewport: { width: v.w, height: v.h }, deviceScaleFactor: 1, hasTouch: v.w < 700, isMobile: v.w < 700, reducedMotion: 'no-preference' });

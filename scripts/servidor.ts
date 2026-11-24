@@ -1,7 +1,25 @@
 // Levanta el servidor de desarrollo de Vite dentro del propio script (sin procesos en segundo plano) y lo cierra al
 // terminar. Lo usan la QA visual, la de humo y la de FPS.
 import { realpathSync } from 'node:fs';
+import { chromium, type Browser } from 'playwright';
 import { createServer, type ViteDevServer } from 'vite';
+
+/** Lanza Chromium con soporte WebGL habilitado (GPU D3D11 en Windows o SwiftShader en CI headless). */
+export async function abrirNavegador(): Promise<Browser> {
+  if (process.platform === 'win32') {
+    try {
+      return await chromium.launch({
+        channel: 'chromium',
+        args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=d3d11', '--enable-zero-copy'],
+      });
+    } catch {
+      // fallback a SwiftShader si el canal chromium no está disponible
+    }
+  }
+  return chromium.launch({
+    args: ['--enable-webgl', '--ignore-gpu-blocklist', '--use-angle=swiftshader-webgl', '--enable-unsafe-swiftshader'],
+  });
+}
 
 // (0.28) `fs.allow` con la ruta real de node_modules: en una copia de trabajo con node_modules enlazado, Vite negaba
 // las fuentes (403) y la QA de humo lo contaba como error de consola.

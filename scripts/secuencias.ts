@@ -7,10 +7,10 @@
 // Quedan en artifacts/jurado/secuencias/<ventana>-<momento>-NN.png.
 //   npx tsx scripts/secuencias.ts
 import { mkdirSync, readdirSync, rmSync } from 'node:fs';
-import { chromium, type Page } from 'playwright';
+import { type Page } from 'playwright';
 import { guardian } from './guardian';
 import { letraChica, manoViva, placasHud } from './mano-viva';
-import { conServidor } from './servidor';
+import { abrirNavegador, conServidor } from './servidor';
 
 guardian('secuencias', 290);
 const SALIDA = 'artifacts/jurado/secuencias';
@@ -68,7 +68,7 @@ const BOTON = { A: 0, B: 1, X: 2, Y: 3, ARRIBA: 12, ABAJO: 13, IZQUIERDA: 14, DE
 const fallos: string[] = [];
 
 await conServidor(5198, async (url) => {
-  const navegador = await chromium.launch();
+  const navegador = await abrirNavegador();
   try {
     // (0.29) `--ventana=1920` filma la mesa a 1080p en una secuencia de golpe (sola: no entra en la corrida de las otras dos)
     for (const [w, h] of ([[1280, 800], [390, 844], [1920, 1080]] as const).filter(([ancho]) => (soloVentana ? ancho === soloVentana : ancho !== 1920))) {

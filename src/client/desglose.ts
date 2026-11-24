@@ -101,12 +101,14 @@ export function encajarDesglose(o: { bajo: HTMLElement; cu: HTMLElement; izq: nu
   } else {
     bajo.style.height = `${Math.round(tope)}px`;
     bajo.style.width = `${Math.max(220, Math.round((izq !== null ? izq : zonaDer) - zonaIzq - x - 12))}px`;
-    const altoHijos = (): number =>
-      [...bajo.children].reduce((s, el) => {
-        const h = (el as HTMLElement).offsetHeight;
-        return s + (h > 0 ? h + 4 : 0);
-      }, 0);
-    cabe = () => altoHijos() <= tope + 4;
+    const mTop = parseFloat(getComputedStyle(bajo).marginTop) || 0;
+    const altoHijos = (): number => {
+      const vis = [...bajo.children].filter((el) => (el as HTMLElement).offsetHeight > 0) as HTMLElement[];
+      if (!vis.length) return 0;
+      const ult = vis[vis.length - 1];
+      return ult.offsetTop + ult.offsetHeight;
+    };
+    cabe = () => altoHijos() + mTop <= tope - 8;
   }
   // los pasos, del más cómodo al más apretado: la letra (1080p: fija a 24 para no saltar), la pista, los renglones, los nombres cortos
   const pasos: { fs?: number; cls: string[] }[] = dos

@@ -1318,7 +1318,7 @@ html[data-entrada='teclado'] .pano-regla .p-mando .g-tecla {
   22% {
     scale: 1;
   }
-  75% {
+  82% {
     opacity: 1;
   }
   100% {
@@ -4299,7 +4299,7 @@ button.chiche:focus-visible {
 .chiche-vuela {
   position: fixed;
   z-index: 300;
-  pointer-events: none;
+  pointer-events: none !important;
   line-height: 0;
   --k: 2;
   filter: drop-shadow(0 4px 0 rgba(11, 7, 17, 0.6));
@@ -4310,7 +4310,7 @@ button.chiche:focus-visible {
 .cifra-vuela {
   position: fixed;
   z-index: 300;
-  pointer-events: none;
+  pointer-events: none !important;
   transform: translate(-50%, -50%);
 }
 .prenda-sello {
@@ -5246,7 +5246,7 @@ body.mueve-pano [data-cuenta] .cuenta.previa {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  pointer-events: none;
+  pointer-events: none !important;
   filter: drop-shadow(0 0 3px rgba(0, 200, 255, 0.8));
 }
 .escudo-vuela .icono {
@@ -5854,7 +5854,7 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
   22% {
     scale: 1;
   }
-  75% {
+  82% {
     opacity: 1;
   }
   100% {
@@ -6691,19 +6691,20 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
 
 /* (0.29) el sello ATURDIDO cae con su golpe (también sobre el que recién entra, tras un ¡CHANCHO! que abate) */
 .mesa .e-sello.nace {
-  animation: sello-nace 0.4s steps(5);
+  animation: sello-nace 0.3s steps(4);
 }
 @keyframes sello-nace {
   0% {
-    scale: 1.8;
-    opacity: 0;
+    scale: 1.75;
+    opacity: 0.92;
   }
-  35% {
+  40% {
     scale: 0.92;
     opacity: 1;
   }
   100% {
     scale: 1;
+    opacity: 1;
   }
 }
 /* (0.29) «COPAS NO CURAN» (el Brindis de Sangre) y «ENVIDO: faltan N» (el Truco), en la cuenta */
@@ -7195,6 +7196,11 @@ button.hud-tiras:focus-visible .ficha {
   .mesa .esc-bufon .bocadillo {
     right: calc(20px * var(--k-bufon) + 40px);
     max-width: min(12.5em, 20.5vw);
+  }
+}
+@media (min-width: 1100px) and (max-width: 1319px) {
+  .mesa .esc-bufon .bocadillo {
+    max-width: min(11.5em, 18.5vw);
   }
 }
 @media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
@@ -7778,4 +7784,24 @@ button.hud-tiras:focus-visible .ficha {
   .mesa .cuenta.plegada-2:has(.c-corta) .c-corta .cifra {
     --kc: 1;
   }
+}
+
+/* ───────────── 0.40.0 · Modo 3D: Three.js pinta naipes, enemigo y paño manteniendo focos y sellos DOM ───────────── */
+html.modo-3d .mesa .mano .carta > .px,
+html.modo-3d .mesa .mano .carta.elegida .c-espectro,
+html.modo-3d .mesa .mano .carta.elegida .c-espectro .px,
+html.modo-3d .mesa .e-carta > .px {
+  background-image: none !important;
+}
+html.modo-3d .mesa .pano-postas {
+  background: transparent !important;
+  border-image: none !important;
+}
+html.modo-3d .mesa .pano-postas::before,
+html.modo-3d .mesa .pano-postas .posta.llena::before {
+  display: none !important;
+}
+html.modo-3d .portada .portada-pila {
+  opacity: 0.01;
+  pointer-events: none;
 }

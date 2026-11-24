@@ -2,9 +2,9 @@
 //   npm run qa:estabilidad              falla (exit 1) si hay cualquier salto o asimetría
 //   npm run qa:estabilidad -- --reportar escribe el informe y sale con 0 (para línea base)
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { chromium, type Page } from 'playwright';
+import { type Page } from 'playwright';
 import { guardian } from './guardian';
-import { conServidor } from './servidor';
+import { abrirNavegador, conServidor } from './servidor';
 
 guardian('qa:estabilidad', 240);
 
@@ -68,7 +68,7 @@ async function medirSelectores(page: Page, selectores: readonly string[]): Promi
 }
 
 await conServidor(5194, async (url) => {
-  const navegador = await chromium.launch();
+  const navegador = await abrirNavegador();
   try {
     for (const v of VENTANAS) {
       const esMovil = v.w < 700;

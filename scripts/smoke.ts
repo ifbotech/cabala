@@ -6,9 +6,9 @@
 //   4. El final anota los Porotos; al volver a la portada el progreso quedó guardado.
 //   5. En móvil (390 × 844, táctil): se llega a la mesa y se golpea tocando.
 // Falla ante cualquier error de consola.   npm run qa:smoke [-- --lang=en] [-- --mazo=truco]
-import { chromium, type Page } from 'playwright';
+import { type Page } from 'playwright';
 import { guardian } from './guardian';
-import { conServidor } from './servidor';
+import { abrirNavegador, conServidor } from './servidor';
 
 guardian('qa:smoke', 280);
 const args = process.argv.slice(2);
@@ -156,7 +156,7 @@ async function hastaLaMesa(p: Page, url: string): Promise<void> {
 }
 
 await conServidor(5192, async (url) => {
-  const navegador = await chromium.launch();
+  const navegador = await abrirNavegador();
   const errores: string[] = [];
   try {
     // ───────────── escritorio ─────────────

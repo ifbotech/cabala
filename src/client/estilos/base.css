@@ -149,6 +149,21 @@ body {
 #fondo {
   z-index: 0;
 }
+#escena-3d {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  display: none;
+}
+html.modo-3d #escena-3d {
+  display: block;
+}
+html.modo-3d #fondo {
+  display: none;
+}
 #fx-color {
   z-index: 60;
 }

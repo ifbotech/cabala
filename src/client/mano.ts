@@ -15,6 +15,7 @@ import { MUTACION_DESC, MUTACION_NOMBRE, PASO_NOMBRE } from './textos';
 import { esc, tip } from './ui';
 import { chispas as chispasFx, RAMPA_PALO } from './fx/efectos';
 import { fogonazoCandil } from './fx/motor';
+import { marcarSucio3d } from './escena3d';
 import { B } from '../rules/balance';
 import type { HudPx } from './pixel/iconos';
 
@@ -503,6 +504,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     c.el.classList.toggle('achicada', c.esc < 0.95);
     // (el recorte deja aire arriba y a los costados: la flecha del foco y el canto dorado no se cortan)
     c.el.style.clipPath = corte > 0 ? `inset(-64px -64px ${corte}px -64px)` : '';
+    marcarSucio3d();
   }
   const ponerEn = (el: HTMLElement, x: number, y: number, z: number, extra = ''): void => {
     const clave = `${Math.round(x)}|${Math.round(y)}|${z}|${extra}`;

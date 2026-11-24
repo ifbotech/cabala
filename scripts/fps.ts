@@ -2,9 +2,8 @@
 // tienen que correr a 60 cuadros por segundo. Mide los cuadros reales con requestAnimationFrame en dos ventanas.
 //   npm run qa:fps
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { chromium } from 'playwright';
 import { guardian } from './guardian';
-import { conServidor } from './servidor';
+import { abrirNavegador, conServidor } from './servidor';
 
 guardian('qa:fps', 200);
 /** Mínimos: media de cuadros por segundo y parte de los cuadros que pueden pasar de 25 ms. */
@@ -37,8 +36,7 @@ const decir = (l: string): void => {
 };
 
 await conServidor(5193, async (url) => {
-  // con la GPU de verdad (el Chromium nuevo sin cabecera sobre ANGLE/D3D11): es donde corre el juego
-  const navegador = await chromium.launch({ channel: 'chromium', args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=d3d11', '--enable-zero-copy'] });
+  const navegador = await abrirNavegador();
   try {
     for (const v of ventanas) {
       const ctx = await navegador.newContext({ viewport: { width: v.w, height: v.h }, isMobile: v.w < 700, hasTouch: v.w < 700 });

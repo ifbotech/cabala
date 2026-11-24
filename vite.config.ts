@@ -4,7 +4,7 @@ import { defineConfig } from 'vite';
 export default defineConfig(({ command }) => ({
   root: '.',
   base: command === 'build' ? '/cabala/' : '/',
-  build: { outDir: 'dist/web', emptyOutDir: true, target: 'es2022' },
+  build: { outDir: 'dist/web', emptyOutDir: true, target: 'es2022', chunkSizeWarningLimit: 1200 },
   server: { port: 5183, strictPort: true },
   preview: { port: 5184, strictPort: true },
 }));

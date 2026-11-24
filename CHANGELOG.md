@@ -3,6 +3,29 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.40.0 · La Mesa Nocturna 3D (2026-11-24)
+
+Primera entrega de la transformación 3D en primera persona con Three.js + WebGL sobre la mesa nocturna de pulpería, manteniendo intactos el motor determinista, el balance, la música adaptativa `3-3-2`, las voces líricas y la identidad *Dark Dithered Pixel Art*. *(Música, voces y balance sin cambios.)*
+
+**Escenario Persistente 3D (`src/client/escena3d/pulperia.ts`, `texturas.ts`, `camara.ts`, `index.ts`)**
+- **Mesa y Pulpería en Penumbra:** tablero de tablones viejos oscuros tramados en Bayer (`THREE.NearestFilter`, sin mipmaps), paño central verde esmeralda sin patrones repetidos, estanterías laterales con botellas, farol de hierro forjado oscilando y polvo/brasas en partículas 3D.
+- **Vela 3D sincronizada a la milonga:** vela de cera con collarín, llama viva, halo radial circular tramado con Bayer y luz puntual con sombras reales (`THREE.PCFShadowMap`) leyendo `armoniaActual()` en modo solo lectura sobre los acentos `3-3-2`, además de 4 climas cromáticos para los Reyes Jefe.
+- **Mazos físicos y monedas 3D:** pila dinámica del Mazo del jugador con dorso real, pilas de monedas de oro 3D sobre la madera y abanico físico de los 5 Mazos sobre la Portada.
+- **Cámara en primera persona y fallback limpio:** presets cinematográficos suaves por pantalla (`portada`, `mazos`, `mesa`, `mapa`, `pulperia`, `fogon`, `altar`, `coleccion`, `cronica`, `ajustes`, `amanecer`, `ocaso`), paralaje sutil al puntero, sacudida amortiguada, calidad adaptativa móvil (`dpr <= 1.5`, sombras `512`) y limpieza de contexto WebGL en `pagehide` con respaldo 2D automático si falta WebGL.
+
+**Naipes Físicos 3D, Tótem Enemigo y Cohesión DOM (`cartas3d.ts`, `mesa.ts`, `mano.ts`, `mesa.css`, `desglose.ts`)**
+- **Naipes españoles con espesor real:** mallas 3D (`BoxGeometry`) con frente crispado de la forja, dorso del Mazo elegido, cantos marfil/dorado, sombras proyectadas y sincronización instantánea (`marcarSucio3d()`) alineada al píxel con los marcos de foco y Postas.
+- **Enemigo 3D y fractura física:** el enemigo activo se yergue como tótem 3D con recorte limpio de busto y al caer se parte en 2 mitades 3D que vuelan derramando monedas 3D giratorias.
+- **Estabilidad, secuencias y mando:** Postas transparentes en modo 3D, `pointer-events: none !important` en fichas voladoras, `marginTop` exacto en el ajuste del desglose (`1280×800`), bocadillo del Bufón ajustado para Steam Deck y portátil (`0` solapes en `1280×800` y `1366×768` ES/EN).
+
+**Consejo de Diseño 3D (5 sillas)**
+- Dirección 3D, Iluminación y Atmósfera (*Inscryption* Feel): 8,2 / 10
+- Carisma del Bufón y Personajes Vivos: 7,5 / 10
+- Física de Cartas, Cámara y Game Feel (60 FPS): 8,4 / 10
+- Legibilidad y UX en PC / Steam Deck (`1280×800`) y Mando: 8,8 / 10
+- UX y Rendimiento en Móvil (`390×844` / `390×664` / `360×740`): 8,7 / 10
+- **Media global: 8,3 / 10** · **158,7–164,8 FPS**, **0 saltos de layout (`qa:layout-shift = 0`)**, **0 fallos en `qa:visual` ES/EN (6 ventanas)**, **0 solapes en movimiento (`secuencias` 1280 y 390)**, **163/163 pruebas**.
+
 ## 0.33.0 · Obra Maestra Rioplatense (2026-11-24)
 
 Cierre de la Temporada de Diseño: cohesión total de pantallas secundarias en las 6 resoluciones (ES y EN), mapa móvil con Rey faro y cofre nítido, galería alineada al píxel y respuesta táctil unificada en cada rincón del juego. *(Música, voces y balance sin cambios.)*
