@@ -1,6 +1,7 @@
 // Ayudas de la interfaz: montar una pantalla, repartir los clics por `data-accion`, la inspección al pasar el cursor
 // o el foco (`data-tip`), los modales, el Bufón, los Reyes y la etiqueta de sinergia.
 import { quieto } from './ritmo';
+import { marcarSucio3d } from './escena3d';
 import { AMULETO, RAREZA_NOMBRE } from '../rules/amuletos';
 import type { AmuletoId } from '../rules/amuletos';
 import { AUMENTO } from '../rules/aumentos';
@@ -445,6 +446,7 @@ export function gestoBufon(raiz: ParentNode, e: Expresion): void {
   const b = $('.bufon', raiz);
   if (!b || b.dataset.expresion === e) return;
   b.outerHTML = bufonHtml(e, b.className.replace('bufon', '').trim());
+  marcarSucio3d();
 }
 /** El Bufón con su bocadillo debajo: lo que dice se escribe, suena y al rato se va (ver bufon-vivo.ts). */
 export function anfitrion(texto: string, e: Expresion = 'reposo', cls = ''): string {

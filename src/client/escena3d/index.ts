@@ -4,8 +4,10 @@ import type { Palo } from '../../rules/cartas';
 import { ajustes } from '../almacen';
 import type { Escena } from '../fx/escenas';
 import { sesion } from '../juego';
+import { Bufon3D } from './bufon3d';
 import { CamaraPulperia, type ModoCamara } from './camara';
 import { SincroCartas3D } from './cartas3d';
+import { Chiches3D } from './chiches3d';
 import { MundoPulperia } from './pulperia';
 
 class Motor3D {
@@ -14,6 +16,8 @@ class Motor3D {
   readonly camara: CamaraPulperia;
   readonly mundo: MundoPulperia;
   readonly cartas: SincroCartas3D;
+  readonly bufon: Bufon3D;
+  readonly chiches: Chiches3D;
 
   private raf = 0;
   private ultimo = 0;
@@ -42,6 +46,8 @@ class Motor3D {
     this.camara = new CamaraPulperia(window.innerWidth / Math.max(1, window.innerHeight));
     this.mundo = new MundoPulperia(this.escena, this.esMovil);
     this.cartas = new SincroCartas3D(this.escena);
+    this.bufon = new Bufon3D(this.escena);
+    this.chiches = new Chiches3D(this.escena);
 
     window.addEventListener('resize', () => this.redimensionar());
     window.addEventListener(
@@ -151,6 +157,8 @@ class Motor3D {
     this.mundo.actualizar(dt, quieto);
     this.camara.actualizar(dt, quieto);
     this.cartas.sincronizar(this.camara.cam, p?.mazoId ?? 'escoba', dt, quieto, this.punteroX, this.punteroY, this.reloj);
+    this.bufon.sincronizar(this.camara.cam, dt, quieto, this.punteroX, this.punteroY, this.reloj);
+    this.chiches.sincronizar(this.camara.cam, dt, quieto, this.reloj);
     this.renderer.render(this.escena, this.camara.cam);
   }
 
@@ -183,6 +191,8 @@ export function iniciarEscena3d(): boolean {
       activa: () => motor !== null,
       forzar: () => motor?.forzarCuadro(),
       modo: () => motor?.camara,
+      bufonVisible: () => motor?.bufon.raiz.visible ?? false,
+      chichesActivos: () => motor?.chiches.activos ?? 0,
     };
     return true;
   } catch {

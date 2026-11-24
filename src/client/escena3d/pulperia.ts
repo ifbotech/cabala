@@ -344,10 +344,12 @@ export class MundoPulperia {
     this.climaActual = palo;
     if (palo) {
       this.matParticulas.color.setHex(CLIMA_TINTE[palo]);
+      this.matParticulas.opacity = 0.72;
       this.luzFarol.color.setHex(CLIMA_TINTE[palo]);
       this.niebla.color.setHex(CLIMA_TINTE[palo]).lerp(new THREE.Color(0x0b0714), 0.74);
     } else {
       this.matParticulas.color.setHex(0xffc66d);
+      this.matParticulas.opacity = 0.56;
       this.luzFarol.color.setHex(0xff8e3c);
       this.niebla.color.setHex(0x0b0714);
     }
@@ -405,7 +407,8 @@ export class MundoPulperia {
       this.llamaInt.scale.set(0.65 * escLlama, 1.4 * escLlama, 0.65 * escLlama);
 
       this.farolPivote.rotation.z = Math.sin(this.reloj * 1.15) * 0.065;
-      this.luzFarol.intensity = (this.climaActual ? 12 : 9.5) + pulso * 4;
+      const relampago = this.climaActual === 'S' && Math.sin(this.reloj * 7.3) > 0.94 ? 9 : 0;
+      this.luzFarol.intensity = (this.climaActual ? 12 : 9.5) + pulso * 4 + relampago;
 
       if (this.grupoPortadaDorsos.visible) {
         this.grupoPortadaDorsos.rotation.y = Math.sin(this.reloj * 0.55) * 0.04;
@@ -413,9 +416,23 @@ export class MundoPulperia {
 
       const attr = this.particulas.geometry.getAttribute('position') as THREE.BufferAttribute;
       for (let i = 0; i < this.nParticulas; i++) {
-        let py = this.posParticulas[i * 3 + 1] + this.velParticulas[i] * dt * (this.climaActual ? 1.8 : 1);
-        if (py > 5.4) py = 0.1;
-        this.posParticulas[i * 3 + 1] = py;
+        const ix = i * 3;
+        if (this.climaActual === 'D') {
+          let py = this.posParticulas[ix + 1] - this.velParticulas[i] * dt * 1.4;
+          if (py < 0.1) py = 5.4;
+          this.posParticulas[ix + 1] = py;
+        } else {
+          const multY = this.climaActual === 'H' ? 2.1 : this.climaActual === 'S' ? 1.85 : 1.15;
+          let py = this.posParticulas[ix + 1] + this.velParticulas[i] * dt * multY;
+          if (py > 5.4) py = 0.1;
+          this.posParticulas[ix + 1] = py;
+          if (this.climaActual === 'S') {
+            this.posParticulas[ix] += dt * 0.9;
+            if (this.posParticulas[ix] > 7) this.posParticulas[ix] = -7;
+          } else if (this.climaActual === 'C') {
+            this.posParticulas[ix] += Math.sin(this.reloj * 1.7 + i) * dt * 0.32;
+          }
+        }
       }
       attr.needsUpdate = true;
     } else {

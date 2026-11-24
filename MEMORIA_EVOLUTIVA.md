@@ -487,6 +487,18 @@ piezas con icono de Vida máxima, grito junto al retrato; Vida máxima por Rey p
 
 **Medición.** Jurado 7,6 · 7,5 · 8,0 · 7,6. Panel 70,0 % (IC95 57–80 %); Deck 33 % (n = 9), Móvil 93 % (n = 15).
 
+## 0.41.0 · El Bufón de la Penumbra, Máscaras de los Reyes y Chiches 3D (publicada)
+
+**Qué se buscó.** Elevar la presencia teatral del Bufón en la penumbra al nivel *Inscryption*, darle a los 4 Reyes Jefe máscaras/coronas 3D teatrales y climas propios, y materializar los 5 Chiches sobre la madera de la mesa.
+
+**Qué entró.** `bufon3d.ts` (máscara veneciana esculpida con `ExtrudeGeometry` y UVs normalizadas, ojos almendrados con seguimiento de cursor/carta y parpadeo, manto oscuro mate con gorguera arlequín de 8 puntas, cetro veneciano y 4 antifaces dominó + coronas de Rey); `chiches3d.ts` (Ginebra con borde cristalino e hielo, Dado Cargado de 6 caras, Fósforo encendido con halo Bayer, Polvo de Tiza cobalto y Poroto de Yapa); `pulperia.ts` (climas diferenciados por palo en partículas y farol); realce del retrato DOOM y cartas de Segunda Cara.
+
+**Lecciones.**
+- La primera iteración con primitivas de caja y domo brillante parecía cartón iluminado: pasar a silueta puntiaguda veneciana (`ExtrudeGeometry` con bisel), terciopelo oscuro mate (`roughness: 0.98`) y una luz puntual corta focalizada solo sobre la máscara (`distance: 1.6`) transformó por completo la lectura dramática.
+- En la mesa (`1920×1080`), bajar ligeramente el anclaje (`factorY = 0.62`, `escala = 0.84`) despejó por completo el dado `Turno 1` y dejó la corona de Rey intacta bajo el borde superior.
+
+**Consejo de Diseño 3D (5 sillas).** Dirección 3D/Atmósfera 8,8 · Carisma Bufón/Personajes 9,1 · Física/Cámara/Game Feel 8,8 · PC/Steam Deck 9,1 · Móvil 9,0 → **Media 9,0 / 10** (+0,7 sobre v0.40.0) · **160,9–164,8 FPS**, **CLS = 0**, **0 fallos `qa:visual` ES/EN (592 capturas)**, **0 solapes (`secuencias` 1280 y 390)**, **163/163 pruebas**. Próximo salto (`v0.42.0`): Mapa 3D sobre cuero, Fogón 3D vivo y Mostrador de la Pulpería 3D.
+
 ## 0.40.0 · La Mesa Nocturna 3D (publicada)
 
 **Qué se buscó.** Dar el salto inicial a una experiencia 3D en primera persona sobre la mesa nocturna de pulpería con Three.js + WebGL manteniendo el 100 % del motor determinista, la música adaptativa `3-3-2`, las voces líricas y la estética *Dark Dithered Pixel Art*.

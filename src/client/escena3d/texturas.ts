@@ -263,3 +263,214 @@ export function texturaHalo(): THREE.CanvasTexture {
   cache.set(k, tex);
   return tex;
 }
+
+/** Máscara veneciana tallada de marfil hueso frío con cuencas almendradas, lágrima carmesí y sonrisa ladina. */
+export function texturaMascaraBufon(): THREE.CanvasTexture {
+  const k = 'mat:mascara-bufon';
+  if (cache.has(k)) return cache.get(k)!;
+  const W = 64;
+  const H = 64;
+  const [c, ctx] = crearCanvas(W, H);
+  const img = ctx.createImageData(W, H);
+  const paleta = [
+    [96, 82, 102],
+    [168, 154, 152],
+    [224, 214, 198],
+    [248, 243, 232],
+  ];
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const idx = (y * W + x) * 4;
+      const nx = (x - 31.5) / 31.5;
+      const ny = (y - 31.5) / 31.5;
+      const luz = 0.88 - Math.abs(nx) * 0.42 - Math.max(0, ny) * 0.28 + (ruido2(x, y) - 0.5) * 0.06;
+      const esc = Math.max(0, Math.min(1, luz)) * (paleta.length - 1);
+      const base = Math.max(0, Math.min(paleta.length - 2, Math.floor(esc)));
+      const ci = esc - base > umbral(x, y) ? base + 1 : base;
+      const col = paleta[ci];
+      img.data[idx] = col[0];
+      img.data[idx + 1] = col[1];
+      img.data[idx + 2] = col[2];
+      img.data[idx + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+
+  // Sombra sutil del tabique nasal
+  ctx.fillStyle = 'rgba(72, 56, 82, 0.35)';
+  ctx.fillRect(30, 24, 4, 14);
+
+  // Cuencas oscuras almendradas inclinadas hacia las sienes (mirada felina y ladina)
+  ctx.fillStyle = '#0d0614';
+  for (let i = 0; i < 13; i++) {
+    const t = i / 12;
+    const h = Math.round(5 + Math.sin(t * Math.PI) * 5);
+    const yL = Math.round(25 - t * 4 - h * 0.5);
+    const yR = Math.round(25 - t * 4 - h * 0.5);
+    ctx.fillRect(14 + i, yL, 1, h);
+    ctx.fillRect(49 - i, yR, 1, h);
+  }
+
+  // Cejas finas y arqueadas
+  ctx.fillStyle = '#1b0b26';
+  for (let i = 0; i < 15; i++) {
+    const t = i / 14;
+    const yArc = Math.round(18 - Math.sin(t * Math.PI) * 4 - t * 2);
+    ctx.fillRect(13 + i, yArc, 2, 2);
+    ctx.fillRect(49 - i, yArc, 2, 2);
+  }
+
+  // Lágrima romboidal carmesí bajo la cuenca izquierda + rubor sutil en pómulos
+  ctx.fillStyle = '#d41145';
+  ctx.fillRect(16, 33, 3, 2);
+  ctx.fillRect(17, 32, 1, 5);
+  ctx.fillStyle = 'rgba(196, 18, 66, 0.35)';
+  ctx.fillRect(11, 35, 5, 3);
+  ctx.fillRect(48, 35, 5, 3);
+
+  // Sonrisa veneciana curva y afilada (sin dientes de bloque)
+  ctx.fillStyle = '#14081d';
+  for (let x = 18; x <= 46; x++) {
+    const u = (x - 32) / 14;
+    const ySonrisa = Math.round(47 - u * u * 6);
+    ctx.fillRect(x, ySonrisa, 1, 2);
+  }
+  ctx.fillStyle = '#d41145';
+  ctx.fillRect(17, 40, 2, 2);
+  ctx.fillRect(45, 40, 2, 2);
+
+  const tex = aTexturaPixel(c);
+  cache.set(k, tex);
+  return tex;
+}
+
+/** Terciopelo arlequín tramado con Bayer y costuras doradas para el gorro y la gorguera del Bufón. */
+export function texturaTelaBufon(tono: 'carmesi' | 'purpura'): THREE.CanvasTexture {
+  const k = `mat:tela-bufon:${tono}`;
+  if (cache.has(k)) return cache.get(k)!;
+  const W = 32;
+  const H = 32;
+  const [c, ctx] = crearCanvas(W, H);
+  const img = ctx.createImageData(W, H);
+  const pal =
+    tono === 'carmesi'
+      ? [
+          [40, 6, 20],
+          [92, 11, 40],
+          [158, 20, 64],
+        ]
+      : [
+          [24, 8, 46],
+          [49, 18, 89],
+          [83, 32, 138],
+        ];
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const idx = (y * W + x) * 4;
+      const rombo = Math.abs((x % 16) - 8) + Math.abs((y % 16) - 8);
+      if (rombo === 8 && (x + y) % 4 === 0) {
+        img.data[idx] = 255;
+        img.data[idx + 1] = 213;
+        img.data[idx + 2] = 0;
+        img.data[idx + 3] = 255;
+        continue;
+      }
+      const v = rombo < 8 ? 0.78 : 0.28;
+      const esc = (v + (ruido2(x, y) - 0.5) * 0.14) * (pal.length - 1);
+      const base = Math.max(0, Math.min(pal.length - 2, Math.floor(esc)));
+      const ci = esc - base > umbral(x, y) ? base + 1 : base;
+      const col = pal[ci];
+      img.data[idx] = col[0];
+      img.data[idx + 1] = col[1];
+      img.data[idx + 2] = col[2];
+      img.data[idx + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const tex = aTexturaPixel(c, 2, 2);
+  cache.set(k, tex);
+  return tex;
+}
+
+/** Cara pixel-art de marfil del Dado Cargado (1..6) con pinta central carmesí en el 1 y el 5. */
+export function texturaCaraDado(puntos: number): THREE.CanvasTexture {
+  const k = `mat:dado:${puntos}`;
+  if (cache.has(k)) return cache.get(k)!;
+  const W = 32;
+  const H = 32;
+  const [c, ctx] = crearCanvas(W, H);
+  ctx.fillStyle = '#cbbca0';
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#f4efe2';
+  ctx.fillRect(2, 2, W - 4, H - 4);
+  const pinta = (px: number, py: number, rojo = false): void => {
+    ctx.fillStyle = rojo ? '#d81b4a' : '#160c1c';
+    ctx.fillRect(px - 2, py - 2, 5, 5);
+  };
+  const mid = 16;
+  const lo = 8;
+  const hi = 24;
+  if (puntos === 1) pinta(mid, mid, true);
+  else if (puntos === 2) {
+    pinta(lo, lo);
+    pinta(hi, hi);
+  } else if (puntos === 3) {
+    pinta(lo, lo);
+    pinta(mid, mid);
+    pinta(hi, hi);
+  } else if (puntos === 4) {
+    pinta(lo, lo);
+    pinta(hi, lo);
+    pinta(lo, hi);
+    pinta(hi, hi);
+  } else if (puntos === 5) {
+    pinta(lo, lo);
+    pinta(hi, lo);
+    pinta(mid, mid, true);
+    pinta(lo, hi);
+    pinta(hi, hi);
+  } else {
+    pinta(lo, lo);
+    pinta(hi, lo);
+    pinta(lo, mid);
+    pinta(hi, mid);
+    pinta(lo, hi);
+    pinta(hi, hi);
+  }
+  const tex = aTexturaPixel(c);
+  cache.set(k, tex);
+  return tex;
+}
+
+/** Cubo de tiza azul cobalto tramado en Bayer con borde superior empolvado. */
+export function texturaTiza(): THREE.CanvasTexture {
+  const k = 'mat:tiza';
+  if (cache.has(k)) return cache.get(k)!;
+  const W = 32;
+  const H = 32;
+  const [c, ctx] = crearCanvas(W, H);
+  const img = ctx.createImageData(W, H);
+  const paleta = [
+    [11, 46, 94],
+    [26, 104, 196],
+    [110, 231, 255],
+  ];
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const idx = (y * W + x) * 4;
+      const v = y < 5 ? 0.92 : y > 28 ? 0.15 : 0.45 + (ruido2(x, y) - 0.5) * 0.22;
+      const esc = Math.max(0, Math.min(1, v)) * (paleta.length - 1);
+      const base = Math.max(0, Math.min(paleta.length - 2, Math.floor(esc)));
+      const ci = esc - base > umbral(x, y) ? base + 1 : base;
+      const col = paleta[ci];
+      img.data[idx] = col[0];
+      img.data[idx + 1] = col[1];
+      img.data[idx + 2] = col[2];
+      img.data[idx + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const tex = aTexturaPixel(c);
+  cache.set(k, tex);
+  return tex;
+}

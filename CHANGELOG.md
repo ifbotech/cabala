@@ -3,6 +3,27 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.41.0 · El Bufón de la Penumbra, Máscaras de los Reyes y Chiches 3D (2026-11-24)
+
+Segunda entrega de la transformación 3D: el Bufón cobra vida como figura veneciana esculpida y articulada en la penumbra con ojos que siguen al cursor y a las cartas, se calza las Máscaras y Coronas 3D de los 4 Reyes Jefe y los 5 Chiches se apoyan como objetos físicos 3D sobre la madera. *(Música, voces y balance sin cambios.)*
+
+**Bufón Veneciano 3D y Máscaras de los 4 Reyes (`src/client/escena3d/bufon3d.ts`, `texturas.ts`)**
+- **Escultura gótica veneciana en 3D:** máscara puntiaguda de marfil frío (`ExtrudeGeometry`) con tramado Bayer, cuencas almendradas, lágrima carmesí y sonrisa ladina; manto oscuro mate con gorguera arlequín de 8 puntas y cascabeles dorados; cuernos curvados móviles; manos enguantadas y cetro marotte con miniatura veneciana.
+- **Mirada viva y expresiones teatrales:** ojos almendrados luminosos con pupilas que siguen físicamente al puntero y a la carta enfocada o arrastrada, parpadeo orgánico e inclinación viva hacia el candil al hablar, reír o burlarse en Portada, Mesa, Pulpería y Fogón.
+- **Las 4 Máscaras y Coronas 3D de los Reyes Jefe:** al enfrentar a un Rey, el Bufón se calza el antifaz veneciano dominó y la corona 3D de su palo (Espadas de acero cian, Bastos de astas esmeralda, Oros de sol dorado con rubí, Copas de cáliz carmesí), potenciando su fulgor en Segunda Cara.
+
+**5 Chiches Físicos 3D y Climas Diferenciados (`chiches3d.ts`, `pulperia.ts`, `mesa.css`)**
+- **Chiches 3D sobre la madera:** Vaso de Ginebra cristalino con hielo y líquido esmeralda, Dado Cargado de marfil con 6 caras pixel-art, Fósforo de Fogón con llama viva y halo Bayer, Polvo de Tiza cobalto y Poroto de Yapa sobre platillo oscuro, con levitación y giro suave al pasar o enfocar con mando (`L3`).
+- **Climas 3D propios por Rey Jefe:** relámpagos y viento cian en Espadas, esporas esmeralda en Bastos, lluvia áurea descendente en Oros y brasas carmesí ascendentes en Copas, más realce reactivo en el retrato HUD estilo DOOM y cartas de Segunda Cara.
+
+**Consejo de Diseño 3D (5 sillas)**
+- Dirección 3D, Iluminación y Atmósfera (*Inscryption* Feel): 8,8 / 10 *(v0.40.0: 8,2)*
+- Carisma del Bufón y Personajes Vivos: 9,1 / 10 *(v0.40.0: 7,5)*
+- Física de Cartas, Cámara y Game Feel (60 FPS): 8,8 / 10 *(v0.40.0: 8,4)*
+- Legibilidad y UX en PC / Steam Deck (`1280×800`) y Mando: 9,1 / 10 *(v0.40.0: 8,8)*
+- UX y Rendimiento en Móvil (`390×844` / `390×664` / `360×740`): 9,0 / 10 *(v0.40.0: 8,7)*
+- **Media global: 9,0 / 10** (+0,7 sobre v0.40.0) · **160+ FPS**, **CLS = 0**, **0 fallos en 592 capturas `qa:visual` ES/EN**, **0 solapes en movimiento (`secuencias` 1280 y 390)**, **163/163 pruebas**.
+
 ## 0.40.0 · La Mesa Nocturna 3D (2026-11-24)
 
 Primera entrega de la transformación 3D en primera persona con Three.js + WebGL sobre la mesa nocturna de pulpería, manteniendo intactos el motor determinista, el balance, la música adaptativa `3-3-2`, las voces líricas y la identidad *Dark Dithered Pixel Art*. *(Música, voces y balance sin cambios.)*

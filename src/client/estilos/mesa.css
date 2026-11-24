@@ -7805,3 +7805,33 @@ html.modo-3d .portada .portada-pila {
   opacity: 0.01;
   pointer-events: none;
 }
+
+/* ───────────── 0.41.0 · Bufón 3D articulado, Máscaras de los Reyes y Chiches 3D ───────────── */
+html.modo-3d .portada .anfitrion .bufon .px {
+  background-image: none !important;
+}
+@media (min-width: 701px) {
+  html.modo-3d .mesa .esc-bufon .bufon .px,
+  html.modo-3d .pulperia .pul-bufon .bufon .px,
+  html.modo-3d .fogon .anfitrion .bufon .px {
+    background-image: none !important;
+  }
+  html.modo-3d .mesa .chiches button.chiche > .px {
+    background-image: none !important;
+  }
+  html.modo-3d .mesa .chiches button.chiche {
+    background: rgba(11, 7, 17, 0.2);
+  }
+}
+/* Retrato HUD estilo DOOM vivo al gritar y pulso cálido en Reyes Jefe */
+.hud-retrato.grita {
+  box-shadow:
+    0 0 0 2px var(--oro),
+    0 0 12px rgba(255, 213, 0, 0.45);
+}
+.e-carta.jefe.segunda {
+  box-shadow:
+    0 0 0 calc(2px * var(--k-enemigo)) var(--abismo),
+    0 0 0 calc(3px * var(--k-enemigo)) var(--aura),
+    0 0 calc(14px * var(--k-enemigo)) var(--aura);
+}

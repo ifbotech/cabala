@@ -21,7 +21,7 @@ import { ajustes, alAzar, guardarPerfil, idioma, perfil, t, tx } from '../almace
 import { agacharMusica, nota, sonar } from '../audio';
 import { cantar, estadoCombate, ponerFuego, remateMusica, stinger } from '../musica';
 import { teclear } from '../habla';
-import { partirEnemigo3d } from '../escena3d';
+import { marcarSucio3d, partirEnemigo3d } from '../escena3d';
 import { RAMPA_CURA, RAMPA_ESCUDO, RAMPA_GOLPE, RAMPA_PALO, chispas, destello, haloRey, limpiarNumeros, lluviaDeMonedas, monedas, motas, numero, partirNaipe, quiebre, tajo, tajoDeReves, type Carril } from '../fx/efectos';
 import { alCeder, cajaDe, pisan, reservar, soltar as soltarTurno, tomadas, ubicar } from '../fx/director';
 import { S, congelar, enFoto, fogonazoCandil, ponerClima, sacudir } from '../fx/motor';
@@ -983,6 +983,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     if (placa && enemigo) ponerGolpeRey(placa.n, placa.tajo, placa.causa);
     const corte = $('[data-corte]');
     if (corte) corte.innerHTML = corteHtml();
+    marcarSucio3d();
   }
   function pintarArriba(): void {
     const el = $('[data-turno]');
@@ -1797,6 +1798,7 @@ export function pantallaMesa(p: Partida): Pantalla {
       hud.style.setProperty('--ancho-chiches', `${el.classList.contains('sin-nada') ? 0 : el.offsetWidth + 10}px`);
       actualizarTiras(p);
     }
+    marcarSucio3d();
   }
   /** Un Chiche que vuela de un punto a otro de la mesa (lo que se usa, va a lo suyo; la Prenda, del caído a su hueco). */
   function volarChiche(id: ChicheId, de: { x: number; y: number }, a: { x: number; y: number }, ms = 320): Promise<void> {
