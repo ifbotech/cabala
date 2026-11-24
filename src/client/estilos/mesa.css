@@ -700,13 +700,13 @@ html[data-entrada='teclado'] .pano-regla .p-mando .g-tecla {
 .carta:focus-visible {
   box-shadow: none;
 }
-.carta:focus-visible .px {
+.carta:focus-visible > .px {
   transform: scale(1.1);
   box-shadow:
     0 0 0 calc(3px * var(--k-naipe)) var(--hueso),
     0 0 0 calc(8px * var(--k-naipe)) rgba(255, 213, 0, 0.45);
 }
-.carta.elegida:focus-visible .px {
+.carta.elegida:focus-visible > .px {
   box-shadow:
     0 0 0 calc(3px * var(--k-naipe)) var(--oro),
     0 0 0 calc(8px * var(--k-naipe)) rgba(255, 213, 0, 0.45);
@@ -1362,16 +1362,18 @@ html[data-entrada='teclado'] .pano-regla .p-mando .g-tecla {
   position: absolute;
   inset: 0;
   line-height: 0;
-  filter: sepia(1) saturate(2.6) hue-rotate(-12deg) brightness(1.08);
-  box-shadow: 0 0 0 calc(2px * var(--k-naipe, 1)) #ffd500;
-  animation: espectro 0.28s steps(4) both;
+  opacity: 1;
+  filter: sepia(0.28) saturate(1.38) brightness(1.05);
+  box-shadow:
+    inset 0 0 0 calc(2px * var(--k-pano, var(--k-naipe, 1))) #ffd500,
+    0 0 0 calc(2px * var(--k-pano, var(--k-naipe, 1))) #ffd500;
+  animation: espectro 0.2s steps(4) both;
   pointer-events: none;
 }
 @keyframes espectro {
   from {
-    opacity: 0;
-    scale: 1.2;
-    filter: sepia(1) saturate(4) brightness(2.2);
+    scale: 1.08;
+    filter: brightness(2.1) saturate(1.8);
   }
 }
 /* (0.22) el Comodín espectral conserva su nombre: corrido a la esquina de arriba a la derecha, lejos del índice de lo
@@ -3869,9 +3871,9 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
    hueso: sobre el papel hueso del naipe, un marco hueso no se ve ── */
 .mesa {
   --foco: #7df3ff;
-  --foco-2: #e8fdff;
+  --foco-2: #b8f8ff;
 }
-.carta:focus-visible .px {
+.carta:focus-visible > .px {
   transform: none;
   box-shadow:
     0 0 0 calc(1px * var(--k-naipe)) #09070f,
@@ -3879,7 +3881,7 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
     0 0 0 calc(4px * var(--k-naipe)) #09070f;
   animation: foco-late 0.8s steps(1) infinite;
 }
-.carta.elegida:focus-visible .px {
+.carta.elegida:focus-visible > .px {
   box-shadow:
     0 0 0 calc(2px * var(--k-naipe)) var(--oro),
     0 0 0 calc(3px * var(--k-naipe)) #09070f,
@@ -3926,8 +3928,8 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .carta:focus-visible .px,
-  .carta.elegida:focus-visible .px,
+  .carta:focus-visible > .px,
+  .carta.elegida:focus-visible > .px,
   .carta:focus-visible::before {
     animation: none;
   }
@@ -4118,7 +4120,7 @@ html[data-entrada='mando'] :is(.opcion, button):focus-visible > .op-glifo {
    Mapa: el mismo canal en toda la interfaz (marco celeste que late, separado por un filo de tinta) */
 :root {
   --foco: #7df3ff;
-  --foco-2: #e8fdff;
+  --foco-2: #b8f8ff;
   --flecha-foco: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 7' shape-rendering='crispEdges'%3E%3Cpath fill='%2309070f' d='M0 0h11v2h-1v1H9v1H8v1H7v1H6v1H5V6H4V5H3V4H2V3H1V2H0z'/%3E%3Cpath fill='%237df3ff' d='M1 1h9v1H9v1H8v1H7v1H6v1H5V5H4V4H3V3H2V2H1z'/%3E%3Cpath fill='%23e8fdff' d='M2 1h3v1H2z'/%3E%3Cpath fill='%232fa8c8' d='M7 2h2v1H7zM6 4h1v1H6z'/%3E%3C/svg%3E");
 }
 :is(#capa .velo, .p-botin, .p-elegi-una, .p-pulperia, .p-mapa, .p-fogon, main.fin) :is(.opcion, .btn, .nodo.abierto, .visor-carta, .fin-pieza):focus-visible {
@@ -5449,7 +5451,7 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
   }
 }
 /* mientras se juega el golpe, el foco suelta su aro y su flecha: nada celeste encima del conteo */
-.mesa.ocupada .mano .carta:focus-visible .px {
+.mesa.ocupada .mano .carta:focus-visible > .px {
   box-shadow: none;
   transform: none;
 }
@@ -7334,5 +7336,206 @@ button.hud-tiras:focus-visible .ficha {
       font-size: 14px;
       line-height: 14px;
     }
+  }
+}
+
+/* ───────────── 0.31.0 · Belleza de Mesa, Deck y Móvil ───────────── */
+.mano .carta.elegida:has(.c-espectro) .c-rotulo {
+  left: calc(3px * var(--k-pano, 1));
+  right: auto;
+  top: auto;
+  bottom: calc(3px * var(--k-pano, 1));
+  transform: none;
+  writing-mode: horizontal-tb;
+  text-orientation: initial;
+  font-family: var(--cuerpo);
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  padding: 2px 5px;
+  max-height: none;
+  max-width: calc(100% - 26px);
+  background: #09070f;
+  color: var(--oro);
+  box-shadow: 0 0 0 1px var(--oro);
+  z-index: 3;
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  .mano .carta.elegida:has(.c-espectro) .c-rotulo {
+    font-size: 16px;
+    padding: 3px 8px;
+    bottom: 6px;
+    left: 6px;
+  }
+}
+@media (max-width: 700px) {
+  .mano .carta.elegida:has(.c-espectro) .c-rotulo {
+    padding: 1px 3px;
+    letter-spacing: 0;
+    max-width: none;
+  }
+}
+
+@media (min-width: 701px) {
+  .mesa .descarte-zona {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.16s steps(4);
+  }
+  .arrastrando .mesa .descarte-zona,
+  body.arrastrando .mesa .descarte-zona {
+    opacity: 0.92;
+    pointer-events: auto;
+  }
+  .arrastrando .mesa .descarte-zona.apunta,
+  body.arrastrando .mesa .descarte-zona.apunta {
+    opacity: 1;
+  }
+}
+
+.mano .carta.paga:not(.elegida) > .px {
+  box-shadow:
+    0 0 0 calc(2px * var(--k-naipe)) #1e78e8,
+    0 0 0 calc(3px * var(--k-naipe)) #0a244d;
+}
+.mano .carta.paga:not(.elegida):focus-visible > .px {
+  box-shadow:
+    0 0 0 calc(1px * var(--k-naipe)) #09070f,
+    0 0 0 calc(3px * var(--k-naipe)) var(--foco),
+    0 0 0 calc(4px * var(--k-naipe)) #09070f;
+}
+
+.e-ataque .e-neto {
+  color: var(--hueso);
+}
+.e-furia-nota {
+  color: #ffd996;
+}
+@media (min-width: 701px) {
+  .mesa .chiches > .rotulo {
+    margin-bottom: 6px;
+  }
+  .mesa .chiches button.chiche:focus-visible::before {
+    top: calc(-6px * var(--k));
+  }
+  .mesa .carta.elegida:focus-visible::before {
+    top: calc(-4px * var(--k-pano, 1));
+  }
+}
+
+@media (max-width: 700px) {
+  .mesa .cuenta-hoja {
+    gap: 2px;
+    padding: 5px 6px 4px;
+  }
+  .mesa .cuenta-hoja .c-formula {
+    gap: 4px;
+  }
+  .mesa .cuenta-hoja .cifra.grande {
+    --kd: 1;
+  }
+  .mesa .cuenta-hoja .c-desglose {
+    display: grid;
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.82fr);
+    column-gap: 8px;
+    row-gap: 2px;
+    width: 100%;
+    font-size: 14px;
+    line-height: 1.15;
+  }
+  .mesa .cuenta-hoja .c-desglose > .d-fila {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+  }
+  .mesa .cuenta-hoja .c-desglose > .d-fila > .d-rot {
+    width: auto;
+    text-align: left;
+    font-size: 14px;
+    padding-bottom: 1px;
+    box-shadow: 0 1px 0 currentColor;
+  }
+  .mesa .cuenta-hoja .c-desglose .d-terminos {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1px;
+  }
+  .mesa .cuenta-hoja .c-desglose .d-t {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    min-width: 0;
+  }
+  .mesa .cuenta-hoja .c-desglose .d-t .d-n {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .mesa .cuenta-hoja .c-desglose .d-t .d-v {
+    flex: none;
+    margin-left: auto;
+  }
+  .mesa .cuenta-hoja .c-desglose .d-i {
+    margin: -5px -2px;
+  }
+}
+
+@media (max-width: 700px) {
+  .mesa .cuenta-zona:not(.cuenta-hoja) > .cuenta.plegada-2:not(.reposo):not(.invalida) {
+    padding-right: 32px;
+  }
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-formula {
+    flex-basis: auto;
+  }
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-corta {
+    order: 1;
+  }
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-chips {
+    flex-basis: 100%;
+    justify-content: center;
+    order: 2;
+    gap: 3px;
+  }
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-chips > .chip,
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-chips > .c-queda,
+  .mesa .cuenta.plegada-2 .c-corta .cc-verbo {
+    font-size: 14px;
+  }
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-queda {
+    display: inline-flex;
+  }
+  @container escena (max-height: 176px) {
+    .mesa .enemigo .e-ataque {
+      background: rgba(9, 7, 15, 0.92);
+      box-shadow:
+        0 0 0 2px #6b2438,
+        0 0 0 4px #09070f;
+      padding: 1px 6px;
+      gap: 4px;
+    }
+  }
+}
+@media (max-width: 380px) {
+  .mesa .cuenta-zona:not(.cuenta-hoja) > .cuenta.plegada-2:not(.reposo):not(.invalida) {
+    padding-right: 22px;
+  }
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-chips {
+    flex-wrap: nowrap;
+    gap: 2px;
+  }
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-chips > .chip,
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-corta {
+    padding-inline: 2px;
+    gap: 2px;
+  }
+  .mesa .cuenta.plegada-2:has(.c-corta) .c-efectos {
+    display: none;
+  }
+  .hud .hud-vida .valor {
+    gap: 3px;
+  }
+  .hud .hud-vida .valor > .icono {
+    display: inline-block;
+    --k: 1;
   }
 }

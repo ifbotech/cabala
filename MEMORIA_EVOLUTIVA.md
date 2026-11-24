@@ -487,6 +487,19 @@ piezas con icono de Vida máxima, grito junto al retrato; Vida máxima por Rey p
 
 **Medición.** Jurado 7,6 · 7,5 · 8,0 · 7,6. Panel 70,0 % (IC95 57–80 %); Deck 33 % (n = 9), Móvil 93 % (n = 15).
 
+## 0.31.0 · Belleza de Pulpería Nocturna (publicada)
+
+**Qué se buscó.** Elevar la belleza visual, la simpleza y la legibilidad en Steam Deck (`1280×800`) y teléfono (`390×844` / `390×664` / `360×740`): limpiar el Comodín apoyado y la caja fantasma `AL DESCARTE`, equilibrar tarjetas cortas (Fogón, Botín, Ofertas, Pulpería, Cábala), unificar el foco de mando sin pisadas y compactar la hoja de cuenta móvil en 2 columnas.
+
+**Qué entró.** Comodín foil a opacidad 1 con chapita horizontal inferior izquierda (`mesa.css`); `AL DESCARTE` oculto en reposo (`opacity: 0`) y visible al arrastrar; foco `> .px` sin marcar íconos internos, `.pieza-fila` en foco celeste, azul zafiro para `CORTÁS`, mayor contraste en `TE PEGA`/`FURIA`; `.mapa-rey` incorporado a `vecinos` en `ui.ts`; `.cuenta-hoja` en 2 columnas, 2 filas exactas en Chinchón móvil, corazón restaurado en `360 px` y mayor aire entre filas de Chinchón móvil (`mano.ts`).
+
+**Lecciones.**
+- La animación `@keyframes espectro` arrancando en `opacity: 0` con `steps(4)` dejaba al Comodín en 75 % de opacidad en las capturas, transparentando al Bufón detrás de las pintas: las transformaciones de naipe deben animar brillo y escala sobre opacidad 1.
+- Dos reglas `.carta:focus-visible .px` separadas (líneas 703 y 3874 de `mesa.css`) hacían que al corregir solo la segunda reapareciera el halo amarillo de la primera sobre el escudo Inmune interno: usar siempre selector de hijo directo `> .px`.
+- Un `<div class="op-sinergia"></div>` vacío con `margin-top: auto` empujaba hacia arriba las tarjetas sin sinergia (`BOTA DE VINO`): ocultarlo con `:empty` devuelve centrado natural al instante.
+
+**Consejo de Diseño (5 sillas).** Arte 8,5 · Layout/Estabilidad 8,7 · Animación/Game Feel 8,3 · Steam Deck 8,6 · Móvil 8,5 → **Media 8,5** (+0,5 sobre 0.30.0). Puertas: `qa:estabilidad` 0 hallazgos, `qa:visual` ES/EN 0 fallos (6 ventanas), `qa:smoke` ES/EN 16/16, `qa:fps` 163,6–164,8 fps (peor cuadro 18 ms).
+
 ## 0.30.0 · Arquitectura de Roca (publicada)
 
 **Qué se buscó.** Abrir la Temporada de Diseño (UI/UX, Dirección de Arte, Armonía Espacial y Game Feel, manteniendo congelados música, voces y reglas) atacando la sensación de «página web interactiva»: cajas que cambian de tamaño al tocar, cartas vecinas que bailan, recortes en Pulpería 1080p y descentrado en Ofertas y Colección.

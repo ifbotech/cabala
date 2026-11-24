@@ -381,7 +381,7 @@ function carrilDelMapa(el: HTMLElement, r: DOMRect): boolean {
   let x = pegado ?? (derecha >= izquierda ? L.right + margen : L.left - margen - w);
   // (0.28) en su carril vive el Bufón con su globo: la ayuda va por encima de él (o, si no entra, por debajo de lo que
   // dice), nunca sobre su cara ni sobre su frase
-  const vecinos = [...document.querySelectorAll<HTMLElement>('.pantalla .anfitrion .bufon, .pantalla .anfitrion .bocadillo:not([hidden])')].map((n) => n.getBoundingClientRect()).filter((o) => o.width > 2 && o.right > x && o.left < x + w);
+  const vecinos = [...document.querySelectorAll<HTMLElement>('.pantalla .anfitrion .bufon, .pantalla .anfitrion .bocadillo:not([hidden]), .mapa-rey')].map((n) => n.getBoundingClientRect()).filter((o) => o.width > 2 && o.right > x && o.left < x + w);
   if (vecinos.some((o) => o.bottom > y && o.top < y + h)) {
     const arriba = Math.min(...vecinos.map((o) => o.top)) - h - 6;
     const abajo = Math.max(...vecinos.map((o) => o.bottom)) + 6;

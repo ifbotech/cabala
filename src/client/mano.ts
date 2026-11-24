@@ -385,7 +385,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     const pasoTodas = N > 1 ? Math.min(w + hueco, (ancho - w) / (N - 1)) : 0;
     if (raiz.classList.contains('dos-filas') && N > 1 && pasoTodas < w * 0.8) {
       const atras = Math.ceil(N / 2);
-      fila(naipes.slice(0, atras), base - DIANA + 2);
+      const pasoFila = innerHeight >= 780 ? DIANA + 6 : DIANA - 2;
+      fila(naipes.slice(0, atras), base - pasoFila);
       fila(naipes.slice(atras), base);
       ponerPostas();
       return out;
@@ -471,7 +472,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     let quiere = 0;
     if (altoNat.h > 0) {
       const { tapa, h, kp } = medidas();
-      const techo = Math.max(0, altoNat.h - tapa - h) + hunde - (dos ? DIANA - 2 : 0);
+      const pasoFila = innerHeight >= 780 ? DIANA + 6 : DIANA - 2;
+      const techo = Math.max(0, altoNat.h - tapa - h) + hunde - (dos ? pasoFila : 0);
       quiere = Math.max(0, Math.round(140 * kp + 2 * BORDE + AIRE_TEL - techo));
     }
     if (quiere !== crece) {

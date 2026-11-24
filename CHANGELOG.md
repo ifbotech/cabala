@@ -3,6 +3,32 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.31.0 · Belleza de Pulpería Nocturna (2026-11-24)
+
+Segunda entrega de la Temporada de Diseño: dirección de arte limpia en mesa y pantallas, foco de mando 100 % unificado en Steam Deck y lectura impecable en teléfono. *(Música, voces y balance sin cambios.)*
+
+**Dirección de Arte y Simpleza**
+- **Comodín apoyado de lámina dorada:** desaparece el espectro borroso del Bufón y la barra vertical que tapaba las pintas; el naipe copiado luce a opacidad plena con brillo dorado cálido que preserva los colores del palo y una chapita horizontal `COMODÍN` en la esquina inferior izquierda.
+- **Mesa silenciosa en reposo:** la caja punteada `AL DESCARTE` en escritorio se oculta en reposo y aparece solo al arrastrar una carta (conservando su geometría para 0 saltos).
+- **Equilibrio de tarjetas y escenas:** tarjetas cortas centradas en Fogón, Cábala, Pulpería y Ofertas (sin mitades vacías); Botín a 1080p proporcionado (`--kp: 4` y placas compactas); el Rey del Mapa permanece siempre al 100 % mientras la ayuda lo esquiva por arriba o por abajo.
+
+**UX Steam Deck (`1280×800`) y Mando**
+- **Lenguaje de foco único:** «LO QUE LLEVÁS» suma borde celeste y flecha `▼`; se eliminó el recuadro erróneo sobre el escudo Inmune y el `+6` dentro de la carta enfocada; `--foco-2` pasa a celeste claro (`#b8f8ff`) para no parecer blanco; `HAY MÁS ↓` se posa sobre un pie esfumado sin pisar títulos.
+- **Separación visual `CORTÁS` vs. Foco:** las cartas que pagan Escudo en Chinchón usan marco azul zafiro (`#1e78e8`) para distinguirse al instante del foco celeste eléctrico (`#7df3ff`).
+- **Cero pisadas y mayor contraste a 40 cm:** aire limpio bajo `AMULETOS 0/5`, `L3 CHICHES` y Postas para la flecha `▼`; mayor contraste en `TE PEGA` (`21 − 3 ESCUDO`) y nota de `FURIA`.
+
+**UX Móvil (`390×844` / `390×664` / `360×740`)**
+- **Hoja de cuenta en 2 columnas (`DAÑO | MULTI`):** reduce casi a la mitad el alto del desglose expandido para no decapitar `TE PEGA` ni invadir la cabecera.
+- **`CORTÁS` en 2 pisos exactos** manteniendo `TE PEGA` y `LE QUEDAN` visibles; fila trasera más legible en Chinchón de dos filas en móvil alto; placa oscura cohesionada para `TE PEGA` en escenas bajas (`390×664` / `360×740`) e ícono de corazón restaurado en el HUD de `360×740`.
+
+**Consejo de Diseño (5 sillas · Armonía / Belleza / Game Feel / Simpleza)**
+- Dirección de Arte y Belleza: 8,7 · 8,8 · 7,8 · 8,6 (media 8,5; v0.30.0: 8,0)
+- Layout y Estabilidad Visual: 9,1 · 8,7 · 8,1 · 8,8 (media 8,7; v0.30.0: 8,3)
+- Animación y Game Feel: 8,5 · 8,4 · 7,8 · 8,3 (media 8,3; v0.30.0: 7,9)
+- UX Steam Deck y Mando: 8,9 · 8,7 · 8,0 · 8,9 (media 8,6; v0.30.0: 8,1)
+- UX Móvil: 8,8 · 8,5 · 7,8 · 8,8 (media 8,5; v0.30.0: 7,9)
+- **Media global: 8,5 / 10** (+0,5 sobre v0.30.0; +1,2 desde 0.29.0) · **0 P0**, **0 saltos de layout**, **163,6–164,8 FPS**.
+
 ## 0.30.0 · Arquitectura de Roca (2026-11-24)
 
 Primera entrega de la Temporada de Diseño, UI/UX y Game Feel: **0 saltos de layout** en las 5 resoluciones (de 432 hallazgos a 0) y armonía espacial en todas las pantallas principales. *(Música, voces y balance sin cambios.)*

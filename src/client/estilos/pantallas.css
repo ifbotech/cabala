@@ -5371,12 +5371,7 @@ main.fogon.forjando [data-accion='seguir'] {
     display: none;
   }
 }
-@media (min-width: 1700px) and (min-height: 950px) {
-  /* (con la ayuda de un nodo abierta en su carril, el Rey se apaga: lo que se lee es la ayuda) */
-  body:has(> .tip.tip-carril) .mapa-rey {
-    opacity: 0.16;
-  }
-}
+/* 0.31.0: el Rey del Mapa permanece siempre a plena vista mientras la ayuda se ubica por encima o por debajo */
 
 @media (min-width: 701px) {
   /* (0.29) «HAY MÁS ↓» de La Pulpería, al pie del mostrador y al centro: justo sobre lo que se corta */
@@ -5714,5 +5709,69 @@ main.fogon.forjando [data-accion='seguir'] {
   }
   .velo.sobre-botin .opciones > .opcion {
     width: 360px;
+  }
+}
+
+/* ───────────── 0.31.0 · Belleza de Pulpería Nocturna y Armonía ───────────── */
+
+/* 1 · Pulpería: aire bajo «AMULETOS 0/5» para que el ▼ del foco no lo muerda + tarjetas cortas centradas con equilibrio */
+@media (min-width: 701px) {
+  .pulperia .bandeja > .rotulo {
+    margin-bottom: 6px;
+  }
+  .pulperia .venta:focus-visible::before {
+    top: calc(-6px * var(--k));
+  }
+  .pulperia .venta:not(.hierro) {
+    grid-template-rows: auto auto 1fr auto auto;
+  }
+  .pulperia .venta:not(.hierro) > .op-desc {
+    align-self: center;
+  }
+}
+
+/* 2 · Tarjetas con descripciones cortas (Fogón, Cábala, Ofertas): centradas verticalmente sin mitades vacías */
+@media (min-width: 701px) {
+  .fogon .opcion,
+  .cabala .opcion {
+    justify-content: center;
+    gap: calc(var(--u) * 1);
+    padding: calc(var(--u) * 1.1) calc(var(--u) * 1.25);
+  }
+  .velo.sobre-botin .opciones > .opcion > .op-sinergia:empty {
+    display: none;
+  }
+  .velo.sobre-botin .opciones > .opcion:not(:has(.op-sinergia:not(:empty))) {
+    justify-content: center;
+    gap: calc(var(--u) * 1.25);
+  }
+  .velo.sobre-botin .opciones > .opcion:has(.op-sinergia:not(:empty)) {
+    justify-content: space-between;
+  }
+}
+
+/* 3 · El Fogón: opciones proporcionadas arriba y «SEGUIR» despejado de la llama y del HUD */
+@media (min-width: 701px) {
+  .fogon .cuerpo {
+    align-content: center;
+    row-gap: calc(var(--u) * 1.25);
+  }
+  .fogon .cuerpo > .opciones {
+    align-items: stretch;
+  }
+}
+
+/* 4 · El Botín a 1080p: moneda y corona proporcionadas (--kp: 4) y placas compactas y elegantes */
+@media (min-width: 1700px) and (min-height: 950px) {
+  .botin:not(.directo) .botin-panel {
+    --kp: 4;
+  }
+  .botin-fila.bp {
+    min-height: 336px;
+    justify-content: center;
+    gap: calc(var(--u) * 1.5);
+  }
+  .botin-fila.bp .bp-nombre {
+    flex: 0 0 auto;
   }
 }
