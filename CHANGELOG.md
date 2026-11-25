@@ -3,6 +3,13 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.51.0 · La Mano contra el Bufón + La Bendición del Bufón (2026-11-25)
+
+Duelo 3D en la mesa contra el Bufón antes de cada Rey Jefe (Tramos 1, 2 y 3), jugando 1 mano auténtica del juego del Mazo actual para ganar **La Bendición del Bufón**. *(Reglas, música, voces y balance 100 % congelados.)*
+
+- **Duelo 3D por Mazo (`dueloBufon.ts`, `juego.ts`, `camino.ts`, `qa.ts`, `pantallas.css`):** Truco (jerarquía real + Envido), Escoba del 15 (carta en mano + mesa sumando 15), Chinchón (piernas/escaleras y corte), El Mentiroso (destapar o creer) y Chancho Va (cambios rápidos + pares/piernas).
+- **La Bendición del Bufón:** al ganar, elegís entre `Mano Bendita`, `Bolso del Chanta` o `Cábala Mayor` con fichas icónicas de lectura instantánea.
+
 ## 0.50.0 · Los 4 Reyes Malvados en 3D saliendo de la Carta + Poderes VFX (2026-11-25)
 
 Irrupción física 3D de los 4 Reyes Jefe desde su naipe `12` durante el combate, con arma y corona propias y coreografía VFX 3D en cada poder o embestida. *(Reglas, música, voces y balance 100 % congelados.)*

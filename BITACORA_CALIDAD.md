@@ -16,6 +16,7 @@ Registro vivo del Estudio Autónomo. Cada versión se audita con lupa adversaria
 | **F. El Palacio del Rey (*Pokémon* Top-Down)** | Reemplazado por decisión de UAT (`v0.49.0`): eliminado para dar lugar a «La Mano contra el Bufón» 3D | **Eliminado (`v0.49.0`)** |
 | **G. Bufón 3D Cuerpo Vivo, Mirada, Reyes en Naipe y Tablón 3D** | Cuerpo completo articulado, mirada calibrada al centro, cero Bufón 2D, Mapa sin flechas, Reyes Malvados en naipe `12` y 8 placas de Amuletos/Cábalas en La Pared de la Gloria | **Completado (`v0.49.0`)** |
 | **H. Reyes Malvados 3D saliendo de la Carta + Poderes VFX** | Figuras 3D de los 4 Reyes saliendo del naipe `12` con corona, arma de palo y VFX propios (tajos cian, estacas esmeralda, lluvia de monedas, bruma carmesí) | **Completado (`v0.50.0`)** |
+| **I. La Mano contra el Bufón + La Bendición del Bufón** | Duelo 3D de mesa antes de cada Rey Jefe jugando 1 mano auténtica del Mazo actual (Truco, Escoba, Chinchón, El Mentiroso, Chancho Va) para ganar La Bendición del Bufón | **Completado (`v0.51.0`)** |
 
 ---
 

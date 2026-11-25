@@ -4,6 +4,14 @@ Lo que se probó, lo que funcionó y lo que no, versión por versión. Sirve par
 cada cosa está como está. Las mediciones del panel de jugadores son **simuladas** (modelos de lenguaje con capturas y
 reglas): orientan, no demuestran.
 
+## 0.51.0 · La Mano contra el Bufón + La Bendición del Bufón (publicada)
+
+**Qué se buscó.** Reemplazar el minijuego 2D por un duelo 3D de mesa contra el Bufón antes de cada Rey Jefe, jugando 1 mano real del Mazo elegido para ganar La Bendición del Bufón.
+
+**Qué entró.** `pantallaDueloBufon` (`src/client/pantallas/dueloBufon.ts`) con los 5 juegos auténticos, 3 premios icónicos de Bendición, conectado en `camino.ts` (con bypass `RAPIDO` para `qa:smoke`) y verificado con `DUELO_E2E_OK: true`.
+
+**Lecciones.** En `escoba` (3 filas de cartas en duelo), escalar `.duelo-naipe .px` a `76×106` y habilitar `overflow: auto` en `.duelo-centro` evita que la fila inferior choque con el HUD.
+
 ## 0.50.0 · Los 4 Reyes Malvados en 3D saliendo de la Carta + Poderes VFX (publicada)
 
 **Qué se buscó.** Que cada Rey Jefe salga físicamente en 3D de su carta `12` en combate y dispare efectos VFX 3D propios de su palo al atacar o activar su poder.

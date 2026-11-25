@@ -13,6 +13,7 @@ import { ponerMusica, type PistaId } from './musica';
 import { pantallaBotin, pantallaCabala, pantallaFin, pantallaFogon, pantallaMapa, pantallaPulperia } from './pantallas/camino';
 import { pantallaAjustes, pantallaAltar, pantallaCaminoSol, pantallaColeccion, pantallaCronica, pantallaExplorar, pantallaMazo, pantallaPortada, type VistaCuartoId } from './pantallas/menu';
 import { pantallaMesa } from './pantallas/mesa';
+import { pantallaDueloBufon } from './pantallas/dueloBufon';
 import { precargarPersonaje } from './precarga';
 import { montar, type Pantalla } from './ui';
 
@@ -39,6 +40,7 @@ function ir(p: Pantalla, escena: Escena, pista: PistaId = 'portada', seguido = f
 export const irPortada = (): void => ir(pantallaPortada(), 'portada');
 export const irExplorar = (vista?: VistaCuartoId): void => ir(pantallaExplorar(vista), 'portada');
 export const irCaminoSol = (enClimax = false): void => ir(pantallaCaminoSol(enClimax), 'amanecer', enClimax ? 'rey' : 'portada');
+export const irDueloBufon = (p: Partida): void => ir(pantallaDueloBufon(p), 'mesa', 'cabala');
 export const irMazo = (): void => ir(pantallaMazo(), 'portada');
 export const irAltar = (): void => ir(pantallaAltar(), 'altar', 'cabala');
 // la Colección es la pared donde se clava lo juntado; la Crónica y los Ajustes (con el abanico de los Dorsos) se leen
