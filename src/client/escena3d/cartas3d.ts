@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import type { Palo } from '../../rules/cartas';
 import type { MazoId } from '../../rules/mazos';
-import { texturaDorso, texturaNaipe, texturaNaipeMitad, texturaPalo } from './texturas';
+import { texturaDorso, texturaNaipe, texturaNaipeMitad, texturaOroMoneda, texturaPalo } from './texturas';
 
 interface Naipe3D {
   malla: THREE.Mesh;
@@ -11,6 +11,10 @@ interface Naipe3D {
   claveDorso: string;
   mats: THREE.MeshStandardMaterial[];
   visto: boolean;
+  ultCx: number;
+  ultCy: number;
+  eraElegida: boolean;
+  slam: number;
 }
 
 interface PiezaFisica {
@@ -25,14 +29,14 @@ export class SincroCartas3D {
   private readonly cartas = new Map<string, Naipe3D>();
   private readonly geoCarta = new THREE.BoxGeometry(1, 1, 0.045);
   private readonly geoSombra = new THREE.PlaneGeometry(1, 1);
-  private readonly geoMoneda = new THREE.CylinderGeometry(0.16, 0.16, 0.05, 10);
+  private readonly geoMoneda = new THREE.CylinderGeometry(0.16, 0.16, 0.05, 8);
   private readonly matSombra = new THREE.MeshBasicMaterial({
     color: 0x040208,
     transparent: true,
     opacity: 0.42,
     depthWrite: false,
   });
-  private readonly matOro = new THREE.MeshStandardMaterial({ color: 0xffd23f, metalness: 0.72, roughness: 0.28 });
+  private readonly matOro = new THREE.MeshStandardMaterial({ map: texturaOroMoneda(), color: 0xffd23f, metalness: 0.65, roughness: 0.34 });
 
   private readonly enemigoTotem: THREE.Mesh;
   private readonly enemigoMats: THREE.MeshStandardMaterial[];
@@ -82,7 +86,7 @@ export class SincroCartas3D {
     malla.castShadow = true;
     const sombra = new THREE.Mesh(this.geoSombra, this.matSombra);
     this.raiz.add(sombra, malla);
-    const entry: Naipe3D = { malla, sombra, claveTex: '', claveDorso: this.mazoDorso, mats, visto: true };
+    const entry: Naipe3D = { malla, sombra, claveTex: '', claveDorso: this.mazoDorso, mats, visto: true, ultCx: 0, ultCy: 0, eraElegida: false, slam: 0 };
     this.cartas.set(id, entry);
     return entry;
   }
@@ -255,9 +259,17 @@ export class SincroCartas3D {
         entry.malla.quaternion.copy(cam.quaternion);
 
         if (!quieto) {
+          const vx = entry.ultCx ? (cx - entry.ultCx) / Math.max(0.008, dt) : 0;
+          const vy = entry.ultCy ? (cy - entry.ultCy) / Math.max(0.008, dt) : 0;
+          if (!entry.eraElegida && elegida) entry.slam = 1;
+          entry.slam = Math.max(0, entry.slam - dt * 4.8);
+          if (entry.slam > 0) {
+            const pop = 1 + Math.sin(entry.slam * Math.PI) * 0.065;
+            entry.malla.scale.multiplyScalar(pop);
+          }
           if (arrastrada) {
-            entry.malla.rotateX(-0.08);
-            entry.malla.rotateY(punteroX * 0.14);
+            entry.malla.rotateY(THREE.MathUtils.clamp(vx * 0.00028 + punteroX * 0.1, -0.28, 0.28));
+            entry.malla.rotateX(THREE.MathUtils.clamp(-0.08 + vy * 0.0002, -0.26, 0.18));
           } else if (elegida) {
             entry.malla.rotateX(-0.11);
           } else if (enfocada) {
@@ -266,13 +278,18 @@ export class SincroCartas3D {
           } else {
             entry.malla.rotateZ(Math.sin(reloj * 1.4 + cx * 0.01) * 0.012);
           }
+        } else {
+          entry.slam = 0;
         }
+        entry.ultCx = cx;
+        entry.ultCy = cy;
+        entry.eraElegida = elegida;
         entry.malla.visible = true;
 
         // Sombra desplazada por debajo de la carta
-        entry.sombra.position.copy(entry.malla.position).add(new THREE.Vector3(0.06, -0.08, arrastrada ? -0.35 : -0.14));
+        entry.sombra.position.copy(entry.malla.position).add(new THREE.Vector3(0.06, -0.08, arrastrada ? -0.38 : -0.14));
         entry.sombra.quaternion.copy(cam.quaternion);
-        entry.sombra.scale.set(tam.worldW * 1.03, tam.worldH * 1.03, 1);
+        entry.sombra.scale.set(tam.worldW * (arrastrada ? 1.07 : 1.03), tam.worldH * (arrastrada ? 1.07 : 1.03), 1);
         entry.sombra.visible = true;
       });
 

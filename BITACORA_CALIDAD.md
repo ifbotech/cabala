@@ -11,7 +11,7 @@ Registro vivo del Estudio Autónomo. Cada versión se audita con lupa adversaria
 | **A. Cohesión Visual *Dark Dithered Pixel-3D*** | Rediseño del Bufón 3D estilo *Leshy*/*COMODÍN*, cero parches 2D flotantes, cero textos cortados/solapados, materiales 3D tramados en Bayer (`NearestFilter`), cierre de brecha desktop `1700px+` | **Completado (`v0.43.0`)** |
 | **B. Mundo 3D Vivo — «La Pulpería»** | Menú 3D caminable en primera persona (`WASD`/Stick/Clic) con *head-bob*, 6 rincones interactivos (Mesa del Bufón, Altar, Pared de la Gloria, Fogón, Fonógrafo/Crónica, Puerta Doble con resplandor) + accesos rápidos 1 clic | **Completado (`v0.44.0`)** |
 | **C. Clímax Argentino — «El Camino al Sol de Mayo»** | Puerta doble abierta en el clímax del Tramo 3, empedrado porteño nocturno entre niebla, faroles, banderines celestes y blancos, arcos de naipes españoles, Sol de Mayo colosal *dithered*, Mesa de la Gloria y Carta de Gloria clavada en la pared | **Completado (`v0.45.0`)** |
-| **D. Pulido Artesanal Total y Doble Auditoría Limpia** | Física táctil de cartas, expresividad completa del elenco y **2 Auditorías Adversariales consecutivas con 0 defectos**, `CLS = 0`, `≥ 60 FPS`, ES/EN verdes en vivo | Pendiente (`v0.46.0+`) |
+| **D. Pulido Artesanal Total y Doble Auditoría Limpia** | Física táctil de cartas, expresividad completa del elenco y **2 Auditorías Adversariales consecutivas con 0 defectos**, `CLS = 0`, `≥ 60 FPS`, ES/EN verdes en vivo | **Completado (`v0.46.0`)** |
 
 ---
 
@@ -52,4 +52,15 @@ Verificada sobre capturas reales en `1920×1080`, `1920×920`, `2560×1320`, `13
   4. Cartas de Gloria debajo del marco de La Pared de la Gloria: tablero ampliado (`5.2 × 3.85`) con 3 filas integradas dentro del marco de latón y tachuelas doradas; festones laterales despejando el rostro del Sol de Mayo.
 - **Verificación #3b:** `sol-1920`, `sol-1280`, `sol-390`, `cuarto-gloria-cartas`, `fin-victoria-gloria` y `fin-victoria-390` sin recortes, sin solapes y sin desborde.
 
-**Próximo paso inmediato:** **Pilar D (`v0.46.0`) — Pulido Artesanal Total y Doble Auditoría Adversarial Consecutiva con 0 Defectos**.
+## Auditoría Adversarial #4 y #4b (`v0.46.0` — Pulido Artesanal Total)
+
+- **Hallazgos de #4 (corregidos antes de publicar):**
+  1. Al entreabrirse `La Puerta Doble` (`abierta=1`), las aldabas quedaban desfasadas del marco: reconstruida con 3 vigas reales de marco, portal celeste-dorado en el vano y pivotes en bisagras reales (`pivotePuertaIzq` / `pivotePuertaDer`).
+  2. Reglas del costado en `1920×920`: agregado aire vertical (`translateY(-28px)`) para despejar el borde superior de las cartas.
+- **Verificación #4b:** `audit4b-cuarto-puerta-abierta`, `audit4b-cuarto-vista`, `audit4b-mesa-1920x920` y `audit4b-sol-1920` limpias.
+
+## Auditoría Adversarial #5 (2.ª Pasada Consecutiva Limpia — GPU D3D11 Real)
+
+- **Verificación consecutiva #5 (`2560×1320`, `1920×920`, `1920×1080`, `1280×800`, `390×844`):** **0 recortes, 0 solapes, 0 parches 2D flotantes, 0 modelos plásticos**, `CLS = 0`, `130.7–134.0 FPS` (`0 cuadros > 50 ms`), `592/592` capturas `qa:visual` ES/EN con `0 fallos`, `secuencias` 1280/390 sin solapes y `163/163` pruebas en verde.
+
+**Estado del Estudio:** Los 4 pilares (A, B, C y D) completados, auditados en doble pasada consecutiva sin defectos y publicados en vivo en https://ifbotech.github.io/cabala/.

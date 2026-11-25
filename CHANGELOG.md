@@ -3,6 +3,13 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.46.0 · Pulido Artesanal Total y Doble Auditoría Limpia (2026-11-25)
+
+Cierre del Pilar D: física táctil 3D en los naipes, bisagras reales con portal celeste-dorado en La Puerta Doble, aire vertical en escritorio bajo (`1920×920`) y aprobación en doble Auditoría Adversarial consecutiva (#4b y #5) con `0` defectos en todas las pantallas y resoluciones. *(Reglas, música, voces y balance 100 % congelados e intactos.)*
+
+- **Física táctil 3D (`cartas3d.ts`):** inclinación física según velocidad de arrastre, rebote elástico al encajar en una Posta, sombra desplazada al levitar y monedas octogonales tramadas en Bayer (`texturaOroMoneda`).
+- **La Puerta Doble y escritorio `1920×920` (`cuarto3d.ts`, `mesa.css`):** vano abierto con 3 vigas de marco, portal celeste-dorado y pivotes en bisagras reales; aire vertical limpio en `1920×920`.
+
 ## 0.45.0 · El Camino al Sol de Mayo y Cartas de Gloria (2026-11-25)
 
 Tercera entrega de la transformación 3D (Pilar C): el clímax del Tramo 3 y la Puerta Doble tras la primera victoria abren la avenida nocturna de **El Camino al Sol de Mayo**, y cada triunfo forja una **Carta de Gloria** clavada en La Pared de la Gloria. *(Reglas, música, voces y balance 100 % congelados e intactos.)*

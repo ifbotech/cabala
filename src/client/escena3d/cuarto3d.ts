@@ -48,8 +48,8 @@ export class CuartoPulperia3D {
   private readonly luzPuerta: THREE.PointLight;
   private readonly rendijasPuerta: THREE.Mesh[] = [];
   private readonly cartasGloria: THREE.Mesh[] = [];
-  private hojaIzqPuerta!: THREE.Mesh;
-  private hojaDerPuerta!: THREE.Mesh;
+  private pivotePuertaIzq!: THREE.Group;
+  private pivotePuertaDer!: THREE.Group;
   private trancaPuerta!: THREE.Mesh;
   private readonly discoFonografo: THREE.Mesh;
   private readonly bocinaFonografo: THREE.Group;
@@ -477,28 +477,64 @@ export class CuartoPulperia3D {
     const matSol = new THREE.MeshBasicMaterial({ color: 0xffe26a });
     const matCeleste = new THREE.MeshBasicMaterial({ color: 0x62d0ff });
 
-    const marco = new THREE.Mesh(new THREE.BoxGeometry(4.2, 4.9, 0.28), matHierro);
-    marco.position.y = 2.45;
-    const hojaIzq = new THREE.Mesh(new THREE.BoxGeometry(1.86, 4.55, 0.16), matMadera);
-    hojaIzq.position.set(-0.96, 2.28, 0.08);
-    const hojaDer = new THREE.Mesh(new THREE.BoxGeometry(1.86, 4.55, 0.16), matMadera);
-    hojaDer.position.set(0.96, 2.28, 0.08);
-    this.hojaIzqPuerta = hojaIzq;
-    this.hojaDerPuerta = hojaDer;
+    // 3 vigas reales de marco dejando el vano central abierto
+    const jambaIzq = new THREE.Mesh(new THREE.BoxGeometry(0.24, 4.9, 0.28), matHierro);
+    jambaIzq.position.set(-1.98, 2.45, 0);
+    const jambaDer = new THREE.Mesh(new THREE.BoxGeometry(0.24, 4.9, 0.28), matHierro);
+    jambaDer.position.set(1.98, 2.45, 0);
+    const dintel = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.28, 0.28), matHierro);
+    dintel.position.set(0, 4.76, 0);
 
-    // Bisagras y aldabas de latón
+    // Fondo de portal nocturno celeste-dorado detrás del vano
+    const portalFondo = new THREE.Mesh(
+      new THREE.PlaneGeometry(3.75, 4.65),
+      new THREE.MeshBasicMaterial({ color: 0x0d2142 }),
+    );
+    portalFondo.position.set(0, 2.35, -0.04);
+    const portalHalo = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: texturaHalo(),
+        color: 0x70d8ff,
+        transparent: true,
+        opacity: 0.72,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      }),
+    );
+    portalHalo.position.set(0, 2.35, -0.01);
+    portalHalo.scale.set(4.6, 5.2, 1);
+
+    // Pivotes en bisagras reales para ambas hojas
+    const pivoteIzq = new THREE.Group();
+    pivoteIzq.position.set(-1.86, 0, 0.08);
+    const hojaIzq = new THREE.Mesh(new THREE.BoxGeometry(1.84, 4.55, 0.16), matMadera);
+    hojaIzq.position.set(0.92, 2.28, 0);
+    pivoteIzq.add(hojaIzq);
     for (const by of [0.85, 3.65]) {
       const bIzq = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.12, 0.06), matLaton);
-      bIzq.position.set(-1.72, by, 0.18);
+      bIzq.position.set(0.14, by, 0.1);
+      pivoteIzq.add(bIzq);
+    }
+    const aldabaIzq = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.025, 6, 10), matLaton);
+    aldabaIzq.position.set(1.42, 2.05, 0.12);
+    pivoteIzq.add(aldabaIzq);
+
+    const pivoteDer = new THREE.Group();
+    pivoteDer.position.set(1.86, 0, 0.08);
+    const hojaDer = new THREE.Mesh(new THREE.BoxGeometry(1.84, 4.55, 0.16), matMadera);
+    hojaDer.position.set(-0.92, 2.28, 0);
+    pivoteDer.add(hojaDer);
+    for (const by of [0.85, 3.65]) {
       const bDer = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.12, 0.06), matLaton);
-      bDer.position.set(1.72, by, 0.18);
-      g.add(bIzq, bDer);
+      bDer.position.set(-0.14, by, 0.1);
+      pivoteDer.add(bDer);
     }
-    for (const ax of [-0.45, 0.45]) {
-      const aldaba = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.025, 6, 10), matLaton);
-      aldaba.position.set(ax, 2.05, 0.22);
-      g.add(aldaba);
-    }
+    const aldabaDer = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.025, 6, 10), matLaton);
+    aldabaDer.position.set(-1.42, 2.05, 0.12);
+    pivoteDer.add(aldabaDer);
+
+    this.pivotePuertaIzq = pivoteIzq;
+    this.pivotePuertaDer = pivoteDer;
 
     // Tranca de hierro trabando ambas hojas
     const tranca = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.18, 0.14), matHierro);
@@ -545,7 +581,7 @@ export class CuartoPulperia3D {
     const luz = new THREE.PointLight(0x8be2ff, 15, 12, 1.3);
     luz.position.set(0, 2.3, 1.1);
 
-    g.add(marco, hojaIzq, hojaDer, tranca, rendijaCentro, rendijaSup, rendijaInf, derramePiso, hazDorado, luz);
+    g.add(jambaIzq, jambaDer, dintel, portalFondo, portalHalo, pivoteIzq, pivoteDer, tranca, rendijaCentro, rendijaSup, rendijaInf, derramePiso, hazDorado, luz);
     this.raiz.add(g);
     this.registrarZona('puerta', [0, 2.6, -3.9], [0, 1.9, -8.1], g, [0, 2.6, -7.7]);
     return luz;
@@ -588,8 +624,8 @@ export class CuartoPulperia3D {
 
     const abierta = perfil.stats.victorias > 0;
     this.trancaPuerta.visible = !abierta;
-    this.hojaIzqPuerta.rotation.y = abierta ? 0.22 : 0;
-    this.hojaDerPuerta.rotation.y = abierta ? -0.22 : 0;
+    this.pivotePuertaIzq.rotation.y = abierta ? -0.36 : 0;
+    this.pivotePuertaDer.rotation.y = abierta ? 0.36 : 0;
   }
 
   actualizar(dt: number, quieto: boolean, reloj: number, resaltado: RinconId | null, camPos?: THREE.Vector3): void {

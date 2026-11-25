@@ -7775,6 +7775,17 @@ button.hud-tiras:focus-visible .ficha {
     padding-inline: 5px;
   }
 }
+@media (min-width: 1700px) and (max-height: 949px) {
+  .mesa .enemigo {
+    gap: 4px 12px;
+  }
+  .mesa .escena {
+    gap: 8px;
+  }
+  .mesa .pano-regla.costado {
+    transform: translateY(-28px);
+  }
+}
 @media (max-width: 380px) {
   .mesa .cuenta.plegada-2:has(.c-corta) .c-formula {
     gap: 1px;

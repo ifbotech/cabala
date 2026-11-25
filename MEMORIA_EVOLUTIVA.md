@@ -4,6 +4,14 @@ Lo que se probó, lo que funcionó y lo que no, versión por versión. Sirve par
 cada cosa está como está. Las mediciones del panel de jugadores son **simuladas** (modelos de lenguaje con capturas y
 reglas): orientan, no demuestran.
 
+## 0.46.0 · Pulido Artesanal Total (publicada)
+
+**Qué se buscó.** Cerrar el Pilar D con física táctil 3D en naipes, bisagras reales en La Puerta Doble y doble Auditoría Adversarial consecutiva sin defectos.
+
+**Qué entró.** Inclinación por velocidad de arrastre y rebote elástico en Postas (`cartas3d.ts`), pivotes reales de puerta con portal celeste-dorado (`cuarto3d.ts`), y ajuste de aire vertical en `1920×920` (`mesa.css`).
+
+**Lecciones.** Auditar las capturas grandes (`2560×1320`) con GPU D3D11 real evita falsos artefactos de SwiftShader por encima de `2048px`.
+
 ## 0.45.0 · El Camino al Sol de Mayo y Cartas de Gloria (publicada)
 
 **Qué se buscó.** Darle a CÁBALA su clímax argentino caminable en 3D y un trofeo físico persistente en La Pulpería sin alterar la huella de `src/rules/`.
