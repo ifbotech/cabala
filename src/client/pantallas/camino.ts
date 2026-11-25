@@ -24,7 +24,7 @@ import { teclear } from '../habla';
 import { RAPIDO, pausa, quieto } from '../ritmo';
 import { avivarFuego, congelar, enFoto, fuegoEnPantalla, sacudir } from '../fx/motor';
 import { avivarRetrato, cargaQue, hudHtml, reubicarGrito } from '../hud';
-import { avanzar, guardar, irDueloBufon, irPortada, sesion, soltarPartida } from '../juego';
+import { avanzar, empezar, guardar, irAltar, irDueloBufon, irPortada, sesion, soltarPartida } from '../juego';
 import type { Expresion } from '../pixel/bufon';
 import { CHICHE, huecosChiche } from '../../rules/chiches';
 import { lienzoNaipe, cifra, pxChiche, pxAmuleto, pxAumento, pxEvolucion, pxBendicion, pxHud, pxInmune, pxMitades, pxNaipe, pxNaipeSegunda, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
@@ -1596,11 +1596,11 @@ export function pantallaFin(p: Partida): Pantalla {
       otra: () => {
         const { mazoId, reinado } = p;
         sesion.partida = null;
-        void import('../juego').then((j) => j.empezar(mazoId, reinado));
+        empezar(mazoId, reinado);
       },
       altar: () => {
         sesion.partida = null;
-        void import('../juego').then((j) => j.irAltar());
+        irAltar();
       },
       portada: soltarPartida,
     },
