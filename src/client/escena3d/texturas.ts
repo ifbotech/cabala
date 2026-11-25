@@ -796,3 +796,24 @@ export function texturaSolDeMayo(): THREE.CanvasTexture {
   cache.set(k, tex);
   return tex;
 }
+
+/** Placa pixel-art 32×32 con marco dorado para clavar Amuletos y Cábalas en La Pared de la Gloria 3D. */
+export function texturaIconoMapa(clave: string, mapa: readonly string[], fondoHex = '#160c24'): THREE.CanvasTexture {
+  const k = `mat:icono:${clave}`;
+  if (cache.has(k)) return cache.get(k)!;
+  const W = 32;
+  const H = 32;
+  const [c, ctx] = crearCanvas(W, H);
+  ctx.fillStyle = fondoHex;
+  ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = '#ffd500';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(1, 1, W - 2, H - 2);
+  const img = lienzo(`icono:${clave}`, () => mapa);
+  const pad = 4;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(img, pad, pad, W - pad * 2, H - pad * 2);
+  const tex = aTexturaPixel(c);
+  cache.set(k, tex);
+  return tex;
+}

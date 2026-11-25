@@ -1,6 +1,5 @@
 // El hilo del juego en el cliente: qué partida hay, qué pantalla toca y cuándo se guarda. Las pantallas piden aquí
 // los cambios de fase; las reglas viven en src/rules.
-import type { Palo } from '../rules/cartas';
 import type { Partida } from '../rules/estado';
 import type { MazoId } from '../rules/mazos';
 import { nuevaPartida } from '../rules/partida';
@@ -14,7 +13,6 @@ import { ponerMusica, type PistaId } from './musica';
 import { pantallaBotin, pantallaCabala, pantallaFin, pantallaFogon, pantallaMapa, pantallaPulperia } from './pantallas/camino';
 import { pantallaAjustes, pantallaAltar, pantallaCaminoSol, pantallaColeccion, pantallaCronica, pantallaExplorar, pantallaMazo, pantallaPortada, type VistaCuartoId } from './pantallas/menu';
 import { pantallaMesa } from './pantallas/mesa';
-import { pantallaPalacio } from './pantallas/palacio';
 import { precargarPersonaje } from './precarga';
 import { montar, type Pantalla } from './ui';
 
@@ -41,7 +39,6 @@ function ir(p: Pantalla, escena: Escena, pista: PistaId = 'portada', seguido = f
 export const irPortada = (): void => ir(pantallaPortada(), 'portada');
 export const irExplorar = (vista?: VistaCuartoId): void => ir(pantallaExplorar(vista), 'portada');
 export const irCaminoSol = (enClimax = false): void => ir(pantallaCaminoSol(enClimax), 'amanecer', enClimax ? 'rey' : 'portada');
-export const irPalacio = (p: Partida, opts?: { palo?: Palo; puzzle?: 0 | 1 | 2 }): void => ir(pantallaPalacio(p, opts), 'mapa', 'mapa');
 export const irMazo = (): void => ir(pantallaMazo(), 'portada');
 export const irAltar = (): void => ir(pantallaAltar(), 'altar', 'cabala');
 // la Colección es la pared donde se clava lo juntado; la Crónica y los Ajustes (con el abanico de los Dorsos) se leen

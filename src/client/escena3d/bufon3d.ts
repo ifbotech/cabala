@@ -74,6 +74,8 @@ export class Bufon3D {
   private readonly pupilaDer: THREE.Mesh;
   private readonly manoIzq = new THREE.Group();
   private readonly manoDer = new THREE.Group();
+  private readonly brazoIzq = new THREE.Group();
+  private readonly brazoDer = new THREE.Group();
   private readonly cetro = new THREE.Group();
   private readonly luzMascara: THREE.PointLight;
   private readonly mascarasRey: Record<Palo, THREE.Group>;
@@ -131,30 +133,49 @@ export class Bufon3D {
       emissiveIntensity: 0.26,
     });
 
-    // Torso de jubón oscuro + hombreras abullonadas bicolor + doble gorguera isabelina con cuentas doradas
-    const jubon = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.27, 0.36, 8), matCapa);
-    jubon.position.set(0, -0.27, -0.04);
+    // Torso de jubón arlequín bicolor + faja con hebilla dorada + capa oscura + hombreras + gorguera de 12 puntas
+    const jubon = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.28, 0.48, 8), matCapa);
+    jubon.position.set(0, -0.32, -0.04);
     jubon.castShadow = true;
-    this.cuerpo.add(jubon);
+    const pechoIzq = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.34, 0.14), matPurpura);
+    pechoIzq.position.set(-0.085, -0.28, 0.06);
+    pechoIzq.rotation.z = 0.08;
+    const pechoDer = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.34, 0.14), matCarmesi);
+    pechoDer.position.set(0.085, -0.28, 0.06);
+    pechoDer.rotation.z = -0.08;
+    const faja = new THREE.Mesh(new THREE.CylinderGeometry(0.245, 0.275, 0.08, 8), matCapucha);
+    faja.position.set(0, -0.47, -0.01);
+    const hebilla = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.085, 0.05), matOro);
+    hebilla.position.set(0, -0.47, 0.22);
+    const capa = new THREE.Mesh(new THREE.ConeGeometry(0.46, 0.72, 8, 1, true, Math.PI * 0.65, Math.PI * 0.7), matCapa);
+    capa.position.set(0, -0.34, -0.14);
+    capa.material.side = THREE.DoubleSide;
+    this.cuerpo.add(jubon, pechoIzq, pechoDer, faja, hebilla, capa);
 
-    const hombreraIzq = new THREE.Mesh(new THREE.SphereGeometry(0.14, 7, 6), matPurpura);
-    hombreraIzq.scale.set(1.1, 0.85, 0.85);
-    hombreraIzq.position.set(-0.22, -0.16, -0.02);
-    const hombreraDer = new THREE.Mesh(new THREE.SphereGeometry(0.14, 7, 6), matCarmesi);
-    hombreraDer.scale.set(1.1, 0.85, 0.85);
-    hombreraDer.position.set(0.22, -0.16, -0.02);
+    for (let b = 0; b < 3; b++) {
+      const boton = new THREE.Mesh(new THREE.OctahedronGeometry(0.022, 0), matOro);
+      boton.position.set(0, -0.22 - b * 0.085, 0.14);
+      this.cuerpo.add(boton);
+    }
+
+    const hombreraIzq = new THREE.Mesh(new THREE.SphereGeometry(0.15, 7, 6), matPurpura);
+    hombreraIzq.scale.set(1.12, 0.88, 0.88);
+    hombreraIzq.position.set(-0.24, -0.15, -0.02);
+    const hombreraDer = new THREE.Mesh(new THREE.SphereGeometry(0.15, 7, 6), matCarmesi);
+    hombreraDer.scale.set(1.12, 0.88, 0.88);
+    hombreraDer.position.set(0.24, -0.15, -0.02);
     this.cuerpo.add(hombreraIzq, hombreraDer);
 
-    for (let i = 0; i < 10; i++) {
-      const a = ((i + 0.5) / 10) * Math.PI * 2;
-      const punta = new THREE.Mesh(new THREE.ConeGeometry(0.052, 0.18, 4), i % 2 === 0 ? matCarmesi : matPurpura);
-      punta.position.set(Math.sin(a) * 0.2, -0.19, Math.cos(a) * 0.12);
+    for (let i = 0; i < 12; i++) {
+      const a = ((i + 0.5) / 12) * Math.PI * 2;
+      const punta = new THREE.Mesh(new THREE.ConeGeometry(0.048, 0.18, 4), i % 2 === 0 ? matCarmesi : matPurpura);
+      punta.position.set(Math.sin(a) * 0.21, -0.17, Math.cos(a) * 0.13);
       punta.rotation.x = Math.PI - Math.cos(a) * 0.72;
       punta.rotation.z = Math.sin(a) * 0.72;
       this.cuerpo.add(punta);
 
       const cuenta = new THREE.Mesh(new THREE.OctahedronGeometry(0.024, 0), matOro);
-      cuenta.position.set(Math.sin(a) * 0.27, -0.26, Math.cos(a) * 0.18);
+      cuenta.position.set(Math.sin(a) * 0.28, -0.24, Math.cos(a) * 0.19);
       this.cuerpo.add(cuenta);
     }
 
@@ -262,18 +283,28 @@ export class Bufon3D {
 
     this.cuerpo.add(this.cabeza);
 
-    // Manos enguantadas estilizadas + cetro dorado con miniatura veneciana
+    // Brazos y manos enguantadas articulados desde los hombros + cetro dorado con miniatura veneciana
     const matGuante = new THREE.MeshStandardMaterial({ color: 0x1d0b2c, roughness: 0.72 });
-    const armarMano = (grupo: THREE.Group, x: number): void => {
+    const armarBrazo = (brazo: THREE.Group, mano: THREE.Group, sx: number, matManga: THREE.Material): void => {
+      brazo.position.set(sx * 0.25, -0.17, 0.01);
+      const alto = new THREE.Mesh(new THREE.CylinderGeometry(0.048, 0.058, 0.22, 6), matManga);
+      alto.position.set(sx * 0.04, -0.11, 0.06);
+      alto.rotation.set(0.32, 0, sx * -0.18);
+      const codo = new THREE.Mesh(new THREE.SphereGeometry(0.052, 6, 5), matOro);
+      codo.position.set(sx * 0.07, -0.21, 0.11);
+      const ante = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.05, 0.18, 6), matManga);
+      ante.position.set(sx * 0.05, -0.22, 0.2);
+      ante.rotation.set(1.15, 0, sx * 0.12);
       const palma = new THREE.Mesh(new THREE.ConeGeometry(0.058, 0.13, 5), matGuante);
       palma.rotation.x = Math.PI * 0.78;
       const puno = new THREE.Mesh(new THREE.CylinderGeometry(0.046, 0.058, 0.085, 6), matCarmesi);
       puno.position.set(0, -0.055, -0.02);
-      grupo.add(palma, puno);
-      grupo.position.set(x, -0.32, 0.2);
+      mano.add(palma, puno);
+      mano.position.set(sx * 0.04, -0.22, 0.28);
+      brazo.add(alto, codo, ante, mano);
     };
-    armarMano(this.manoIzq, -0.3);
-    armarMano(this.manoDer, 0.28);
+    armarBrazo(this.brazoIzq, this.manoIzq, -1, matPurpura);
+    armarBrazo(this.brazoDer, this.manoDer, 1, matCarmesi);
 
     const asta = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.024, 0.66, 6), matOro);
     asta.position.set(0, 0.08, 0);
@@ -287,10 +318,11 @@ export class Bufon3D {
     cuernoMiniR.position.set(0.042, 0.495, 0);
     cuernoMiniR.rotation.z = -0.65;
     this.cetro.add(asta, remate, cuernoMiniL, cuernoMiniR);
-    this.cetro.position.set(-0.24, -0.26, 0.21);
-    this.cetro.rotation.z = 0.42;
+    this.cetro.position.set(-0.03, -0.18, 0.29);
+    this.cetro.rotation.z = 0.36;
+    this.brazoIzq.add(this.cetro);
 
-    this.cuerpo.add(this.manoIzq, this.manoDer, this.cetro);
+    this.cuerpo.add(this.brazoIzq, this.brazoDer);
 
     // Luz rasante de claroscuro desde abajo a la izquierda (como candil cercano, sin lavar el lado derecho)
     this.luzMascara = new THREE.PointLight(0xffbe5c, 2.5, 2.0, 2);
@@ -366,20 +398,11 @@ export class Bufon3D {
   }
 
   private anfitrionVisible(): HTMLElement | null {
-    const esEscritorio = window.innerWidth > 700;
     const candidatos = [
-      document.querySelector<HTMLElement>('.portada .anfitrion .bufon'),
-      ...(esEscritorio
-        ? [
-            document.querySelector<HTMLElement>('.mesa .esc-bufon .bufon'),
-            document.querySelector<HTMLElement>('.mapa .mapa-bufon .bufon'),
-            document.querySelector<HTMLElement>('.pulperia .pul-bufon .bufon'),
-            document.querySelector<HTMLElement>('.fogon .anfitrion .bufon'),
-          ]
-        : []),
+      ...Array.from(document.querySelectorAll<HTMLElement>('#capa .velo .bufon')),
+      ...Array.from(document.querySelectorAll<HTMLElement>('#app .bufon')),
     ];
     for (const el of candidatos) {
-      if (!el) continue;
       const st = getComputedStyle(el);
       if (st.display === 'none' || st.visibility === 'hidden' || Number(st.opacity) < 0.05) continue;
       const r = el.getBoundingClientRect();
@@ -465,14 +488,15 @@ export class Bufon3D {
       }
     }
 
+    const enModal = !!el.closest('#capa .velo');
     if (paloRey) {
       this.luzMascara.color.setHex(COLOR_REY[paloRey]);
-      this.luzMascara.intensity = segundaRey ? 2.8 : 2.2;
-      this.luzMascara.distance = 1.7;
+      this.luzMascara.intensity = segundaRey ? 2.9 : 2.4;
+      this.luzMascara.distance = 2.0;
     } else {
-      this.luzMascara.color.setHex(0xffb464);
-      this.luzMascara.intensity = 1.8;
-      this.luzMascara.distance = 1.6;
+      this.luzMascara.color.setHex(0xffbe5c);
+      this.luzMascara.intensity = enModal ? 2.9 : 2.5;
+      this.luzMascara.distance = 2.0;
     }
 
     let objX = punteroX;
@@ -484,41 +508,52 @@ export class Bufon3D {
       objY = ((fr.top + fr.height / 2) / Math.max(1, window.innerHeight)) * 2 - 1;
     }
 
+    const bufonNdcX = ((r.left + r.width / 2) / Math.max(1, window.innerWidth)) * 2 - 1;
+    const bufonNdcY = ((r.top + r.height * factorY) / Math.max(1, window.innerHeight)) * 2 - 1;
+    const aimX = quieto ? 0 : objX;
+    const aimY = quieto ? 0.08 : objY;
+    const relX = THREE.MathUtils.clamp((aimX - bufonNdcX) * 0.85, -1, 1);
+    const relY = THREE.MathUtils.clamp((aimY - bufonNdcY) * 0.65, -0.85, 0.85);
+
     const expr = el.dataset.expresion ?? 'reposo';
     const habla = el.classList.contains('habla');
     const festeja = el.classList.contains('festeja');
     const lamenta = el.classList.contains('lamenta');
 
     if (quieto) {
-      this.cabeza.rotation.set(expr === 'sombria' ? 0.14 : -0.04, 0.08, expr === 'burla' ? -0.1 : 0);
-      this.cuerpo.rotation.set(0.04, 0.06, 0);
+      this.miraX = relX;
+      this.miraY = relY;
+      this.cabeza.rotation.set((expr === 'sombria' ? 0.14 : -0.02) + relY * 0.18, relX * 0.42, expr === 'burla' ? -0.1 : 0);
+      this.cuerpo.rotation.set(0.04, relX * 0.2, 0);
       this.cuerpo.position.set(0, 0, 0);
       this.ojoIzq.scale.set(1.15, 0.58, 1);
       this.ojoDer.scale.set(1.15, 0.58, 1);
-      this.pupilaIzq.position.set(0.006, -0.003, 0.003);
-      this.pupilaDer.position.set(0.006, -0.003, 0.003);
-      this.cetro.rotation.set(0, 0, 0.42);
-      this.manoIzq.position.set(-0.3, enMesa ? -0.34 : -0.3, enMesa ? 0.18 : 0.22);
-      this.manoDer.position.set(0.28, enMesa ? -0.34 : -0.3, enMesa ? 0.18 : 0.22);
+      const pxQ = THREE.MathUtils.clamp(relX * 0.015, -0.013, 0.013);
+      const pyQ = THREE.MathUtils.clamp(-relY * 0.008, -0.008, 0.008);
+      this.pupilaIzq.position.set(pxQ, pyQ, 0.003);
+      this.pupilaDer.position.set(pxQ, pyQ, 0.003);
+      this.brazoIzq.rotation.set(0.06, 0, 0.08);
+      this.brazoDer.rotation.set(0.08, 0, -0.08);
+      this.cetro.rotation.set(0, 0, 0.36);
       return;
     }
 
     const k = 1 - Math.exp(-8 * dt);
-    this.miraX += (objX - this.miraX) * k;
-    this.miraY += (objY - this.miraY) * k;
+    this.miraX += (relX - this.miraX) * k;
+    this.miraY += (relY - this.miraY) * k;
     const metaInclina = habla || expr === 'brillo' || expr === 'sombria' ? 0.14 : 0;
     this.inclina += (metaInclina - this.inclina) * k;
 
     const risaOsc = expr === 'risa' || expr === 'burla' || festeja ? Math.sin(reloj * 14) * 0.09 : 0;
     const penaOsc = lamenta ? Math.sin(reloj * 18) * 0.05 : 0;
-    const respY = Math.sin(reloj * 1.9) * 0.018;
+    const respY = Math.sin(reloj * 1.9) * 0.022;
 
-    this.cuerpo.position.set(0, respY + (festeja ? Math.abs(Math.sin(reloj * 10)) * 0.04 : 0), this.inclina * 0.35);
-    this.cuerpo.rotation.set(this.inclina + (lamenta ? 0.15 : 0), this.miraX * 0.14, risaOsc * 0.4 + penaOsc);
+    this.cuerpo.position.set(0, respY + (festeja ? Math.abs(Math.sin(reloj * 10)) * 0.045 : 0), this.inclina * 0.35);
+    this.cuerpo.rotation.set(this.inclina + (lamenta ? 0.15 : 0), this.miraX * 0.2, risaOsc * 0.4 + penaOsc);
 
     this.cabeza.rotation.set(
-      (expr === 'sombria' ? 0.16 : 0) + this.miraY * 0.16 + risaOsc,
-      this.miraX * 0.28,
+      (expr === 'sombria' ? 0.16 : 0) + this.miraY * 0.22 + risaOsc,
+      this.miraX * 0.42,
       (expr === 'burla' ? -0.12 : 0) + penaOsc,
     );
 
@@ -527,12 +562,13 @@ export class Bufon3D {
     this.cascabelIzq.position.y = 0.06 + Math.sin(reloj * 4.5) * 0.012;
     this.cascabelDer.position.y = 0.06 + Math.cos(reloj * 4.5) * 0.012;
 
-    const hablaCetro = habla ? Math.sin(reloj * 12) * 0.12 : Math.sin(reloj * 1.6) * 0.05;
-    this.cetro.rotation.set(hablaCetro * 0.5, 0, 0.42 + hablaCetro);
-    this.manoIzq.position.set(-0.3, (enMesa ? -0.34 : -0.3) + hablaCetro * 0.12, enMesa ? 0.18 : 0.22);
-    this.manoDer.position.set(0.28, (enMesa ? -0.34 : -0.3) - hablaCetro * 0.1, enMesa ? 0.18 : 0.22);
+    const hablaCetro = habla ? Math.sin(reloj * 12) * 0.16 : Math.sin(reloj * 1.6) * 0.06;
+    const gestoDer = habla || festeja ? Math.sin(reloj * 10 + 0.8) * 0.22 : Math.sin(reloj * 1.4 + 1.2) * 0.06;
+    this.brazoIzq.rotation.set(-hablaCetro * 0.5, 0, 0.08 + hablaCetro * 0.3);
+    this.brazoDer.rotation.set(-0.18 - Math.abs(gestoDer) * 0.45, this.miraX * 0.18, -0.12 - gestoDer * 0.35);
+    this.cetro.rotation.set(hablaCetro * 0.5, 0, 0.36 + hablaCetro);
 
-    const px = THREE.MathUtils.clamp(this.miraX * 0.014, -0.014, 0.014);
+    const px = THREE.MathUtils.clamp(this.miraX * 0.015, -0.013, 0.013);
     const py = THREE.MathUtils.clamp(-this.miraY * 0.008, -0.008, 0.008);
     this.pupilaIzq.position.set(px, py, 0.003);
     this.pupilaDer.position.set(px, py, 0.003);

@@ -13,7 +13,7 @@ import { gritar } from './hud';
 import { GRITO } from './voces';
 import { modoFoto } from './fx/motor';
 import { enfocarRincon3d, forzarCuadro3d, type RinconId } from './escena3d';
-import { irAjustes, irAltar, irCaminoSol, irColeccion, irCronica, irExplorar, irMazo, irPalacio, irPortada, pintarFase, sesion } from './juego';
+import { irAjustes, irAltar, irCaminoSol, irColeccion, irCronica, irExplorar, irMazo, irPortada, pintarFase, sesion } from './juego';
 import { $, enfocarJugador } from './ui';
 import { mascaraHtml } from './pantallas/mesa';
 import { vistaCuartoInicial } from './pantallas/menu';
@@ -705,17 +705,6 @@ export function montarQa(estado: string): void {
     }
     case 'sol-de-mayo' as EstadoQa: {
       irCaminoSol(false);
-      break;
-    }
-    case 'palacio' as EstadoQa: {
-      const p = partida(mazo, (x) => x.fase === 'mapa');
-      const q = new URLSearchParams(location.search);
-      const paloQ = q.get('palo');
-      const palo = paloQ === 'S' || paloQ === 'C' || paloQ === 'D' || paloQ === 'H' ? paloQ : undefined;
-      const puzQ = Number(q.get('puzzle'));
-      const puzzle = puzQ === 0 || puzQ === 1 || puzQ === 2 ? puzQ : undefined;
-      sesion.partida = p;
-      irPalacio(p, { palo, puzzle });
       break;
     }
     default:

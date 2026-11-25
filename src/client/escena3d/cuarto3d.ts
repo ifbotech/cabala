@@ -1,15 +1,19 @@
 // Cuarto completo de La Pulpería en 3D caminable: paredes de madera, 6 rincones interactivos y Puerta Doble con resplandor del Sol de Mayo.
 import * as THREE from 'three';
 import { PALOS } from '../../rules/cartas';
+import { AMULETOS } from '../../rules/amuletos';
+import { AUMENTOS } from '../../rules/aumentos';
 import { MAZOS } from '../../rules/mazos';
 import { MEJORAS, type MejoraId, type Perfil } from '../../rules/perfil';
 import { glorias as listaGlorias } from '../almacen';
 import { armoniaActual } from '../musica';
+import { amuletoMapa, aumentoMapa } from '../pixel/iconos';
 import {
   texturaCera,
   texturaCuero,
   texturaDorso,
   texturaHalo,
+  texturaIconoMapa,
   texturaLaton,
   texturaMadera,
   texturaNaipe,
@@ -48,6 +52,7 @@ export class CuartoPulperia3D {
   private readonly luzPuerta: THREE.PointLight;
   private readonly rendijasPuerta: THREE.Mesh[] = [];
   private readonly cartasGloria: THREE.Mesh[] = [];
+  private readonly placasGloria: THREE.Mesh[] = [];
   private pivotePuertaIzq!: THREE.Group;
   private pivotePuertaDer!: THREE.Group;
   private trancaPuerta!: THREE.Mesh;
@@ -263,24 +268,24 @@ export class CuartoPulperia3D {
     const matMadera = new THREE.MeshStandardMaterial({ map: texturaMadera(), roughness: 0.85 });
     const matLaton = new THREE.MeshStandardMaterial({ map: texturaLaton(), color: 0xc99c46, metalness: 0.65, roughness: 0.38 });
 
-    const tablero = new THREE.Mesh(new THREE.BoxGeometry(5.2, 3.85, 0.14), matMadera);
+    const tablero = new THREE.Mesh(new THREE.BoxGeometry(6.4, 4.1, 0.14), matMadera);
     g.add(tablero);
 
     // Marco perimetral de latón
-    const marcoSup = new THREE.Mesh(new THREE.BoxGeometry(5.42, 0.12, 0.2), matLaton);
-    marcoSup.position.set(0, 1.96, 0.02);
-    const marcoInf = new THREE.Mesh(new THREE.BoxGeometry(5.42, 0.12, 0.2), matLaton);
-    marcoInf.position.set(0, -1.96, 0.02);
-    const marcoIzq = new THREE.Mesh(new THREE.BoxGeometry(0.12, 4.04, 0.2), matLaton);
-    marcoIzq.position.set(-2.65, 0, 0.02);
-    const marcoDer = new THREE.Mesh(new THREE.BoxGeometry(0.12, 4.04, 0.2), matLaton);
-    marcoDer.position.set(2.65, 0, 0.02);
+    const marcoSup = new THREE.Mesh(new THREE.BoxGeometry(6.62, 0.12, 0.2), matLaton);
+    marcoSup.position.set(0, 2.08, 0.02);
+    const marcoInf = new THREE.Mesh(new THREE.BoxGeometry(6.62, 0.12, 0.2), matLaton);
+    marcoInf.position.set(0, -2.08, 0.02);
+    const marcoIzq = new THREE.Mesh(new THREE.BoxGeometry(0.12, 4.28, 0.2), matLaton);
+    marcoIzq.position.set(-3.25, 0, 0.02);
+    const marcoDer = new THREE.Mesh(new THREE.BoxGeometry(0.12, 4.28, 0.2), matLaton);
+    marcoDer.position.set(3.25, 0, 0.02);
     g.add(marcoSup, marcoInf, marcoIzq, marcoDer);
 
-    // 5 Dorsos en fila superior
+    // 5 Dorsos en fila superior (izquierda)
     MAZOS.forEach((m, i) => {
       const matD = new THREE.MeshStandardMaterial({ map: texturaDorso(m), roughness: 0.62 });
-      const carta = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.98, 0.04), [
+      const carta = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.94, 0.04), [
         matLaton,
         matLaton,
         matLaton,
@@ -288,14 +293,14 @@ export class CuartoPulperia3D {
         matD,
         matLaton,
       ]);
-      carta.position.set((i - 2) * 0.92, 1.18, 0.09);
+      carta.position.set(-2.55 + i * 0.84, 1.28, 0.09);
       g.add(carta);
     });
 
-    // 4 Reyes en fila media
+    // 4 Reyes Malvados en fila media (izquierda)
     PALOS.forEach((palo, i) => {
       const matR = new THREE.MeshStandardMaterial({ map: texturaNaipe(palo, 12), roughness: 0.6 });
-      const carta = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.98, 0.04), [
+      const carta = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.94, 0.04), [
         matLaton,
         matLaton,
         matLaton,
@@ -303,7 +308,7 @@ export class CuartoPulperia3D {
         matR,
         matLaton,
       ]);
-      carta.position.set((i - 1.5) * 1.05, 0.02, 0.09);
+      carta.position.set(-2.2 + i * 0.92, 0.08, 0.09);
       g.add(carta);
     });
 
@@ -311,10 +316,10 @@ export class CuartoPulperia3D {
     luz.position.set(0, 0.9, 2.2);
     g.add(luz);
 
-    // Fila inferior dentro del marco: Cartas de Gloria clavadas (hasta 4)
+    // Fila inferior izquierda: Cartas de Gloria clavadas (hasta 4)
     for (let i = 0; i < 4; i++) {
       const matG = new THREE.MeshStandardMaterial({ map: texturaNaipe('D', 1), roughness: 0.55 });
-      const cg = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.86, 0.04), [
+      const cg = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.84, 0.04), [
         matLaton,
         matLaton,
         matLaton,
@@ -322,7 +327,7 @@ export class CuartoPulperia3D {
         matG,
         matLaton,
       ]);
-      cg.position.set((i - 1.5) * 1.05, -1.18, 0.1);
+      cg.position.set(-2.2 + i * 0.92, -1.16, 0.1);
       const clavo = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.05, 6), matLaton);
       clavo.rotation.x = Math.PI / 2;
       clavo.position.set(0, 0.36, 0.03);
@@ -330,6 +335,29 @@ export class CuartoPulperia3D {
       cg.visible = false;
       g.add(cg);
       this.cartasGloria.push(cg);
+    }
+
+    // Columna derecha (2 × 4): Amuletos y Cábalas descubiertas clavadas en madera
+    for (let i = 0; i < 8; i++) {
+      const col = i % 2;
+      const fila = Math.floor(i / 2);
+      const matP = new THREE.MeshStandardMaterial({ roughness: 0.62 });
+      const placa = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.64, 0.04), [
+        matLaton,
+        matLaton,
+        matLaton,
+        matLaton,
+        matP,
+        matLaton,
+      ]);
+      placa.position.set(1.8 + col * 0.84, 1.24 - fila * 0.84, 0.1);
+      const tachuela = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.04, 6), matLaton);
+      tachuela.rotation.x = Math.PI / 2;
+      tachuela.position.set(0, 0.25, 0.03);
+      placa.add(tachuela);
+      placa.visible = false;
+      g.add(placa);
+      this.placasGloria.push(placa);
     }
 
     this.raiz.add(g);
@@ -620,6 +648,33 @@ export class CuartoPulperia3D {
       mats[4].map = texturaNaipe(g.palo, g.n);
       mats[4].needsUpdate = true;
       cg.visible = true;
+    });
+
+    const piezas: Array<{ clave: string; mapa: readonly string[]; fondo: string }> = [];
+    for (const id of AMULETOS) {
+      if (perfil.vistos.includes(`a:${id}`) || piezas.length < 4) {
+        const m = amuletoMapa(id);
+        if (m) piezas.push({ clave: `a:${id}`, mapa: m, fondo: '#1b112c' });
+      }
+      if (piezas.length >= 4) break;
+    }
+    for (const id of AUMENTOS) {
+      if (perfil.vistos.includes(`u:${id}`) || piezas.length < 8) {
+        const m = aumentoMapa(id);
+        if (m) piezas.push({ clave: `u:${id}`, mapa: m, fondo: '#241122' });
+      }
+      if (piezas.length >= 8) break;
+    }
+    this.placasGloria.forEach((placa, i) => {
+      const pz = piezas[i];
+      if (!pz) {
+        placa.visible = false;
+        return;
+      }
+      const mats = placa.material as THREE.MeshStandardMaterial[];
+      mats[4].map = texturaIconoMapa(pz.clave, pz.mapa, pz.fondo);
+      mats[4].needsUpdate = true;
+      placa.visible = true;
     });
 
     const abierta = perfil.stats.victorias > 0;

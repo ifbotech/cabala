@@ -12,6 +12,7 @@ import { CIFRA_H, CIFRA_W, glifo } from './cifras';
 import { umbral } from './dither';
 import { dorsoMapa } from './dorsos';
 import { figuraLienzo, figuraSegunda } from './figuras';
+import { REY_PX, reyMapa } from './reyes';
 import { LETRA_PALO } from './paleta';
 import { Lienzo, girar } from './pincel';
 import { pintaNaipe, type Talla } from './pintas';
@@ -171,7 +172,14 @@ export function naipeMapa(s: Palo, rango: number): string[] {
   if (hecho) return hecho;
   const l = papel();
   recuadro(l, s, rango);
-  if (rango >= 10) l.pegar(figuraLienzo(s, rango as 10 | 11 | 12), OX, 0);
+  if (rango === 12) {
+    l.rect(OX + 14, 34, 68, 68, 'y');
+    l.rect(OX + 15, 35, 66, 66, 'k');
+    l.pegar(reyMapa(REY_PX[s], 'calma'), OX + 16, 36);
+    const p = pintaNaipe(s, 'chica', 0);
+    const [pw, ph] = medida(p);
+    l.pegar(p, Math.round(NAIPE_W / 2 - pw / 2), Math.round(117 - ph / 2));
+  } else if (rango >= 10) l.pegar(figuraLienzo(s, rango as 10 | 11 | 12), OX, 0);
   else if (rango === 1) l.pegar(asMapa(s), OX, 0);
   else for (const p of pintasColocadas(s, rango)) l.pegar(p.m, OX + p.x, p.y);
   indice(l, s, rango);
@@ -190,7 +198,12 @@ export function naipeSegundaMapa(s: Palo): string[] {
   if (hecho) return hecho;
   const l = papel();
   recuadro(l, s, 12);
-  l.pegar(figuraSegunda(s), OX, 0);
+  l.rect(OX + 14, 34, 68, 68, 'r');
+  l.rect(OX + 15, 35, 66, 66, 'k');
+  l.pegar(reyMapa(REY_PX[s], 'habla'), OX + 16, 36);
+  const p = pintaNaipe(s, 'chica', 0);
+  const [pw, ph] = medida(p);
+  l.pegar(p, Math.round(NAIPE_W / 2 - pw / 2), Math.round(117 - ph / 2));
   indice(l, s, 12);
   const m = l.mapa();
   cache.set(clave, m);

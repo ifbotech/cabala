@@ -7823,24 +7823,19 @@ html.modo-3d .portada .portada-pila {
 }
 
 /* ───────────── 0.41.0 · Bufón 3D articulado, Máscaras de los Reyes y Chiches 3D ───────────── */
-html.modo-3d .portada .anfitrion .bufon .px {
+html.modo-3d .bufon .px {
   background-image: none !important;
+  opacity: 0 !important;
+}
+html.modo-3d .mesa .e-pano,
+html.modo-3d .pulperia .pul-bufon::after {
+  display: none !important;
 }
 @media (min-width: 701px) {
-  html.modo-3d .mesa .e-pano,
-  html.modo-3d .pulperia .pul-bufon::after {
-    display: none !important;
-  }
   html.modo-3d .mesa .pano-regla.costado {
     background: rgba(11, 7, 19, 0.86);
     padding: 8px 12px;
     box-shadow: inset 0 0 0 1px rgba(212, 162, 62, 0.35), 0 0 0 1px rgba(74, 58, 102, 0.55);
-  }
-  html.modo-3d .mesa .esc-bufon .bufon .px,
-  html.modo-3d .mapa .mapa-bufon .bufon .px,
-  html.modo-3d .pulperia .pul-bufon .bufon .px,
-  html.modo-3d .fogon .anfitrion .bufon .px {
-    background-image: none !important;
   }
   html.modo-3d .mesa .chiches button.chiche > .px {
     background-image: none !important;

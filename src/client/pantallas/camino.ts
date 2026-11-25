@@ -24,7 +24,7 @@ import { teclear } from '../habla';
 import { RAPIDO, pausa, quieto } from '../ritmo';
 import { avivarFuego, congelar, enFoto, fuegoEnPantalla, sacudir } from '../fx/motor';
 import { avivarRetrato, cargaQue, hudHtml, reubicarGrito } from '../hud';
-import { avanzar, guardar, irPalacio, irPortada, sesion, soltarPartida } from '../juego';
+import { avanzar, guardar, irCaminoSol, irPortada, sesion, soltarPartida } from '../juego';
 import type { Expresion } from '../pixel/bufon';
 import { CHICHE, huecosChiche } from '../../rules/chiches';
 import { lienzoNaipe, cifra, pxChiche, pxAmuleto, pxAumento, pxEvolucion, pxBendicion, pxHud, pxInmune, pxMitades, pxNaipe, pxNaipeSegunda, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
@@ -380,9 +380,9 @@ export function pantallaMapa(p: Partida): Pantalla {
         el.closest('.mapa-lienzo')?.classList.add('andando');
         await pausa(280);
         juego.elegirNodo(p, id);
-        if (n.tipo === 'rey' && !sesion.qa && !RAPIDO) {
+        if (n.tipo === 'rey' && p.acto >= 2 && !sesion.qa && !RAPIDO) {
           guardar();
-          irPalacio(p);
+          irCaminoSol(true);
         } else {
           avanzar();
         }

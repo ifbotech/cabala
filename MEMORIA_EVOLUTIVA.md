@@ -4,6 +4,14 @@ Lo que se probó, lo que funcionó y lo que no, versión por versión. Sirve par
 cada cosa está como está. Las mediciones del panel de jugadores son **simuladas** (modelos de lenguaje con capturas y
 reglas): orientan, no demuestran.
 
+## 0.49.0 · Bufón 3D Vivo, Mirada Calibrada, Mapa Limpio y Tablón de Colección (publicada)
+
+**Qué se buscó.** Eliminar el calabozo 2D ajeno a la mesa, unificar el juego en un único Bufón 3D de cuerpo completo con mirada natural hacia el jugador, limpiar flechas del Mapa y llevar el arte de Reyes Malvados a los naipes y al Tablón 3D.
+
+**Qué entró.** `Bufon3D` articulado con brazos, torso, capa y mirada relativa al NDC; ocultamiento global de `.bufon .px` en `html.modo-3d`; retratos de Reyes Malvados en `naipeMapa(s, 12)` y 8 placas `texturaIconoMapa` en `CuartoPulperia3D`.
+
+**Lecciones.** Calcular `relX = aimX - bufonNdcX` resuelve que el Bufón mire en diagonal hacia el centro cuando está sentado a la izquierda de la pantalla.
+
 ## 0.48.0 · El Palacio del Rey (publicada)
 
 **Qué se buscó.** Sumar un calabozo cenital estilo *Pokémon* antes de cada Rey Jefe con cofres de mejoras reales y acertijos aleatorios sin tocar `src/rules/`.

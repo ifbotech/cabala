@@ -3,6 +3,14 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.49.0 · Bufón 3D Vivo, Mirada Calibrada, Mapa Limpio y Tablón de Colección (2026-11-25)
+
+Primera gran entrega del nuevo mandato: eliminación del calabozo 2D (`palacio.ts`), Bufón 3D de cuerpo completo articulado en todo el juego (cero sprite 2D viejo), mirada diagonal calibrada al centro de la mesa, Mapa sin flechas guía, Reyes Malvados en los naipes `12` y placas de Amuletos/Cábalas en La Pared de la Gloria. *(Reglas, música, voces y balance 100 % congelados.)*
+
+- **Cuerpo vivo y mirada del Bufón 3D (`bufon3d.ts`, `mesa.css`):** jubón arlequín bicolor, faja con hebilla dorada, capa oscura, brazos y manos articulados con cetro y gestos vivos; vector de mirada relativo al NDC del Bufón; ocultamiento universal de `.bufon .px` en `html.modo-3d` (escritorio y móvil).
+- **Reyes Malvados en naipe y Tablón 3D (`naipes.ts`, `texturas.ts`, `cuarto3d.ts`):** los naipes `12` y su segunda cara lucen el retrato del Rey Malvado; La Pared de la Gloria suma 8 placas de Amuletos y Cábalas clavadas con tachuelas de latón.
+- **Mapa limpio y limpieza (`pantallas.css`, `camino.ts`, `qa.ts`):** eliminadas las flechas guía `.nodo-aca::after` y removido `palacio.ts`.
+
 ## 0.48.0 · El Palacio del Rey (2026-11-25)
 
 Nuevo calabozo cenital HD-2D estilo *Pokémon* antes de cada Rey Jefe (Tramos 1, 2 y 3): explorá el palacio del palo correspondiente, abrí 3 cofres con mejoras reales, resolvé 1 de 3 acertijos aleatorios y cruzá la Puerta del Trono. *(Reglas, música, voces y balance 100 % congelados e intactos.)*
