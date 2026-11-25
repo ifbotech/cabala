@@ -7812,6 +7812,7 @@ html.modo-3d .portada .anfitrion .bufon .px {
 }
 @media (min-width: 701px) {
   html.modo-3d .mesa .esc-bufon .bufon .px,
+  html.modo-3d .mapa .mapa-bufon .bufon .px,
   html.modo-3d .pulperia .pul-bufon .bufon .px,
   html.modo-3d .fogon .anfitrion .bufon .px {
     background-image: none !important;

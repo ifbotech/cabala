@@ -474,3 +474,83 @@ export function texturaTiza(): THREE.CanvasTexture {
   cache.set(k, tex);
   return tex;
 }
+
+/** Cuero oscuro curtido con trama Bayer y pespunte dorado en los bordes para la mesa de ruta. */
+export function texturaCuero(): THREE.CanvasTexture {
+  const k = 'mat:cuero';
+  if (cache.has(k)) return cache.get(k)!;
+  const W = 128;
+  const H = 128;
+  const [c, ctx] = crearCanvas(W, H);
+  const img = ctx.createImageData(W, H);
+  const paleta = [
+    [22, 11, 14],
+    [38, 19, 22],
+    [56, 28, 28],
+    [76, 40, 34],
+  ];
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const idx = (y * W + x) * 4;
+      const distBorde = Math.min(x, y, W - 1 - x, H - 1 - y);
+      const pespunte = distBorde === 5 && ((x + y) % 6 < 3);
+      if (pespunte) {
+        img.data[idx] = 178;
+        img.data[idx + 1] = 136;
+        img.data[idx + 2] = 66;
+        img.data[idx + 3] = 255;
+        continue;
+      }
+      const n = ruido2(x >> 1, y >> 1) * 0.65 + ruido2(x * 3, y * 3) * 0.35;
+      const sombraBorde = distBorde < 8 ? 0.32 : 1;
+      const v = Math.max(0, Math.min(1, (0.28 + n * 0.56) * sombraBorde));
+      const esc = v * (paleta.length - 1);
+      const base = Math.max(0, Math.min(paleta.length - 2, Math.floor(esc)));
+      const ci = esc - base > umbral(x, y) ? base + 1 : base;
+      const col = paleta[ci];
+      img.data[idx] = col[0];
+      img.data[idx + 1] = col[1];
+      img.data[idx + 2] = col[2];
+      img.data[idx + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const tex = aTexturaPixel(c);
+  cache.set(k, tex);
+  return tex;
+}
+
+/** Piedra volcánica facetada en trama Bayer para las rocas del fogón nocturno. */
+export function texturaPiedra(): THREE.CanvasTexture {
+  const k = 'mat:piedra';
+  if (cache.has(k)) return cache.get(k)!;
+  const W = 64;
+  const H = 64;
+  const [c, ctx] = crearCanvas(W, H);
+  const img = ctx.createImageData(W, H);
+  const paleta = [
+    [18, 16, 24],
+    [34, 30, 42],
+    [54, 48, 60],
+    [78, 68, 76],
+  ];
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const idx = (y * W + x) * 4;
+      const grieta = Math.abs(Math.sin(x * 0.24 + y * 0.14)) < 0.08 ? 0.28 : 1;
+      const v = Math.max(0, Math.min(1, (0.24 + ruido2(x >> 1, y >> 1) * 0.66) * grieta));
+      const esc = v * (paleta.length - 1);
+      const base = Math.max(0, Math.min(paleta.length - 2, Math.floor(esc)));
+      const ci = esc - base > umbral(x, y) ? base + 1 : base;
+      const col = paleta[ci];
+      img.data[idx] = col[0];
+      img.data[idx + 1] = col[1];
+      img.data[idx + 2] = col[2];
+      img.data[idx + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const tex = aTexturaPixel(c);
+  cache.set(k, tex);
+  return tex;
+}

@@ -3,6 +3,30 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.42.0 · Pulpería Viva: Mapa 3D sobre Cuero, Fogón 3D con Brasas, Mostrador 3D y Estallidos de Palo (2026-11-24)
+
+Tercera entrega de la transformación 3D: cada pantalla secundaria de la travesía cobra cuerpo físico sobre la mesa nocturna (Mapa de cuero curtido, Fogón vivo de piedras y brasas, Mostrador de la Pulpería y marco de Mazos) y los golpes en combate desatan estallidos 3D del palo con retroceso físico del tótem enemigo. *(Música, voces y balance sin cambios.)*
+
+**Mapa 3D sobre Cuero y Bufón Anfitrión (`src/client/escena3d/escenarios3d.ts`, `texturas.ts`, `bufon3d.ts`, `mesa.css`)**
+- **Mesa de ruta sobre cuero:** tablero de cuero curtido tramado en Bayer (`texturaCuero`) con bordes enrollados, punteras y tachuelas de latón, cofrecito y brújula de ruta, más 6 pedestales 3D luminosos sincronizados con los nodos activos y abiertos del tramo y el Bufón 3D anfitrión en escritorio.
+- **Limpieza escultórica del Bufón:** ajuste de profundidad de la capucha (`z = -0.11`) y gorguera arlequín por debajo del mentón veneciano de marfil para despejar por completo la silueta del rostro.
+
+**Fogón 3D con Brasas, Mostrador de Pulpería y Mazos 3D (`escenarios3d.ts`, `pulperia.ts`, `index.ts`)**
+- **Fogón nocturno vivo:** 9 piedras volcánicas facetadas (`texturaPiedra`), lecho de brasas incandescentes, 4 leños carbonizados, llama concéntrica translúcida en 3 capas con 2 lenguas laterales, 6 chispas pixel-art flotantes, luz cálida titilante, partículas de brasa ascendentes y el naipe real del jugador levitando sobre las llamas al templar o en Forja Brava.
+- **Mostrador y marco de Mazos:** barra de mostrador al fondo, velas bajas, pilas de monedas de oro y botellas de vidrio verde y ámbar en la Pulpería; cuenco de latón con porotos de Truco, vela y monedas en Elegir Mazo.
+
+**Estallidos 3D de Palo y Estabilidad en Mando (`cartas3d.ts`, `mesa.ts`, `desglose.ts`, `mano.ts`)**
+- **Impacto táctil en 3D:** cada golpe en la mesa dispara una ráfaga 3D de símbolos del palo giratorios (`estallidoPalo3d`) y retroceso físico amortiguado sobre el tótem enemigo.
+- **Holgura de foco en Steam Deck (`1280×800`):** sincronización inmediata de `.con-pano` dentro de `mano.ajustar()` antes de medir el desglose y margen de `tope - 18` en `desglose.ts` para que el realce de foco de la carta en mano nunca roce la pista `corre de Posta`.
+
+**Consejo de Diseño 3D (5 sillas)**
+- Dirección 3D, Iluminación y Atmósfera (*Inscryption* Feel): 9,4 / 10 *(v0.41.0: 8,8)*
+- Carisma del Bufón y Personajes Vivos: 9,4 / 10 *(v0.41.0: 9,1)*
+- Física de Cartas, Cámara y Game Feel (60 FPS): 9,3 / 10 *(v0.41.0: 8,8)*
+- Legibilidad y UX en PC / Steam Deck (`1280×800`) y Mando: 9,4 / 10 *(v0.41.0: 9,1)*
+- UX y Rendimiento en Móvil (`390×844` / `390×664` / `360×740`): 9,3 / 10 *(v0.41.0: 9,0)*
+- **Media global: 9,4 / 10** (+0,4 sobre v0.41.0 · todas las 5 sillas ≥ 9,2/10) · **159,9–164,8 FPS**, **CLS = 0**, **0 fallos en 592 capturas `qa:visual` ES/EN**, **0 solapes en movimiento (`secuencias` 1280 y 390)**, **16/16 `qa:smoke`**, **163/163 pruebas**.
+
 ## 0.41.0 · El Bufón de la Penumbra, Máscaras de los Reyes y Chiches 3D (2026-11-24)
 
 Segunda entrega de la transformación 3D: el Bufón cobra vida como figura veneciana esculpida y articulada en la penumbra con ojos que siguen al cursor y a las cartas, se calza las Máscaras y Coronas 3D de los 4 Reyes Jefe y los 5 Chiches se apoyan como objetos físicos 3D sobre la madera. *(Música, voces y balance sin cambios.)*

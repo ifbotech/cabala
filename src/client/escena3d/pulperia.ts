@@ -327,6 +327,14 @@ export class MundoPulperia {
     this.grupoMazo.visible = enMesa;
     this.grupoMonedas.visible = enMesa;
 
+    if (escena === 'fogon' && !this.climaActual) {
+      this.matParticulas.color.setHex(0xff8b36);
+      this.matParticulas.opacity = 0.76;
+    } else if (!this.climaActual) {
+      this.matParticulas.color.setHex(0xffc66d);
+      this.matParticulas.opacity = 0.58;
+    }
+
     if (escena === 'amanecer') {
       this.niebla.color.setHex(0x281028);
       this.luzAmbiente.color.setHex(0xff9b54);
@@ -422,7 +430,14 @@ export class MundoPulperia {
           if (py < 0.1) py = 5.4;
           this.posParticulas[ix + 1] = py;
         } else {
-          const multY = this.climaActual === 'H' ? 2.1 : this.climaActual === 'S' ? 1.85 : 1.15;
+          const multY =
+            this.climaActual === 'H'
+              ? 2.1
+              : this.climaActual === 'S'
+                ? 1.85
+                : this.escenaActual === 'fogon'
+                  ? 2.25
+                  : 1.15;
           let py = this.posParticulas[ix + 1] + this.velParticulas[i] * dt * multY;
           if (py > 5.4) py = 0.1;
           this.posParticulas[ix + 1] = py;

@@ -136,7 +136,7 @@ export class Bufon3D {
     // Manto oscuro mate en ángulos góticos + 8 puntas de gorguera arlequín con cascabeles dorados
     const manto = new THREE.Mesh(new THREE.ConeGeometry(0.46, 0.44, 6), matCapa);
     manto.scale.set(1.12, 1, 0.56);
-    manto.position.set(0, -0.24, -0.05);
+    manto.position.set(0, -0.27, -0.05);
     manto.castShadow = true;
     this.cuerpo.add(manto);
 
@@ -151,23 +151,23 @@ export class Bufon3D {
     this.cuerpo.add(hombreraIzq, hombreraDer);
 
     for (let i = 0; i < 8; i++) {
-      const a = (i / 8) * Math.PI * 2;
-      const punta = new THREE.Mesh(new THREE.ConeGeometry(0.068, 0.24, 4), i % 2 === 0 ? matCarmesi : matPurpura);
-      punta.position.set(Math.sin(a) * 0.19, -0.105, Math.cos(a) * 0.13);
-      punta.rotation.x = Math.cos(a) * 1.25;
-      punta.rotation.z = -Math.sin(a) * 1.25;
+      const a = ((i + 0.5) / 8) * Math.PI * 2;
+      const punta = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.19, 4), i % 2 === 0 ? matCarmesi : matPurpura);
+      punta.position.set(Math.sin(a) * 0.21, -0.21, Math.cos(a) * 0.11);
+      punta.rotation.x = Math.PI - Math.cos(a) * 0.65;
+      punta.rotation.z = Math.sin(a) * 0.65;
       this.cuerpo.add(punta);
 
-      const cuenta = new THREE.Mesh(new THREE.SphereGeometry(0.024, 6, 5), matOro);
-      cuenta.position.set(Math.sin(a) * 0.28, -0.135, Math.cos(a) * 0.18);
+      const cuenta = new THREE.Mesh(new THREE.SphereGeometry(0.022, 6, 5), matOro);
+      cuenta.position.set(Math.sin(a) * 0.28, -0.29, Math.cos(a) * 0.17);
       this.cuerpo.add(cuenta);
     }
 
     // Cabeza articulada con capucha de terciopelo negro y máscara veneciana esculpida
     this.cabeza.position.set(0, 0.15, 0.03);
     const capucha = new THREE.Mesh(new THREE.ConeGeometry(0.26, 0.46, 7), matCapucha);
-    capucha.scale.set(1.06, 1, 0.85);
-    capucha.position.set(0, 0.05, -0.03);
+    capucha.scale.set(1.02, 1, 0.62);
+    capucha.position.set(0, 0.06, -0.11);
     this.cabeza.add(capucha);
 
     const mascara = new THREE.Mesh(geometriaMascaraVeneciana(), matMascara);
@@ -359,6 +359,7 @@ export class Bufon3D {
       ...(esEscritorio
         ? [
             document.querySelector<HTMLElement>('.mesa .esc-bufon .bufon'),
+            document.querySelector<HTMLElement>('.mapa .mapa-bufon .bufon'),
             document.querySelector<HTMLElement>('.pulperia .pul-bufon .bufon'),
             document.querySelector<HTMLElement>('.fogon .anfitrion .bufon'),
           ]

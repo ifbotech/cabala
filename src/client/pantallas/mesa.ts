@@ -21,7 +21,7 @@ import { ajustes, alAzar, guardarPerfil, idioma, perfil, t, tx } from '../almace
 import { agacharMusica, nota, sonar } from '../audio';
 import { cantar, estadoCombate, ponerFuego, remateMusica, stinger } from '../musica';
 import { teclear } from '../habla';
-import { marcarSucio3d, partirEnemigo3d } from '../escena3d';
+import { estallidoPalo3d, marcarSucio3d, partirEnemigo3d } from '../escena3d';
 import { RAMPA_CURA, RAMPA_ESCUDO, RAMPA_GOLPE, RAMPA_PALO, chispas, destello, haloRey, limpiarNumeros, lluviaDeMonedas, monedas, motas, numero, partirNaipe, quiebre, tajo, tajoDeReves, type Carril } from '../fx/efectos';
 import { alCeder, cajaDe, pisan, reservar, soltar as soltarTurno, tomadas, ubicar } from '../fx/director';
 import { S, congelar, enFoto, fogonazoCandil, ponerClima, sacudir } from '../fx/motor';
@@ -1205,6 +1205,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           enemigo.escudo = ev.escudo;
           pintarEnemigo();
           $('[data-carta]')?.classList.add('herido');
+          if (!quieto() && enemigo) estallidoPalo3d(enemigo.palo, grande ? 1.4 : 0.9);
           if (sePlanta) gestoPlanta(pierde, enemigo.palo);
           if (ev.vida > 0) {
             tGolpe = performance.now();

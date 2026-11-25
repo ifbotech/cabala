@@ -487,6 +487,19 @@ piezas con icono de Vida máxima, grito junto al retrato; Vida máxima por Rey p
 
 **Medición.** Jurado 7,6 · 7,5 · 8,0 · 7,6. Panel 70,0 % (IC95 57–80 %); Deck 33 % (n = 9), Móvil 93 % (n = 15).
 
+## 0.42.0 · Pulpería Viva 3D (publicada)
+
+**Qué se buscó.** Llevar la presencia física 3D más allá del combate a todas las pantallas clave de la travesía (Mapa sobre cuero, Fogón vivo, Mostrador de Pulpería y Elegir Mazo), sumar estallidos 3D de palo en cada golpe y cerrar los detalles finales del Bufón 3D y del foco en Steam Deck.
+
+**Qué entró.** `escenarios3d.ts` (tablero de cuero Bayer con bordes enrollados, latón, cofrecito, brújula y 6 pedestales de nodos; fogón de 9 piedras, brasas, 4 leños, llama translúcida en 3 capas + lenguas laterales + chispas y carta real levitando; mostrador, velas, monedas y botellas en Pulpería; cuenco de porotos y vela en Mazos); `texturas.ts` (`texturaCuero`, `texturaPiedra`); `bufon3d.ts` (capucha `z = -0.11` y gorguera por debajo del mentón, anfitrión en Mapa); `cartas3d.ts` + `mesa.ts` (`estallidoPalo3d` y retroceso del tótem enemigo); `pulperia.ts` (partículas de brasa en Fogón); `mano.ts` + `desglose.ts` (`.con-pano` síncrono en `ajustar()` y `tope - 18`).
+
+**Lecciones.**
+- Un cono de capucha centrado en `z = -0.03` con escala Z `0.85` asomaba un triángulo oscuro por el mentón de la máscara veneciana: llevarlo a `z = -0.11` y `scale.z = 0.62` limpió por completo el rostro en todas las escenas.
+- En el Fogón 3D, una capa exterior de llama opaca ocultaba el núcleo dorado: usar `transparent: true` y `depthWrite: false` en las capas exteriores dejó brillar el corazón de fuego y las chispas.
+- En `1280×800`, `.con-pano` se alternaba recién en el `requestAnimationFrame` de `posicionar()` mientras `acomodarCuenta` medía `.c-pista-pano` con `display: none`; sincronizar `.con-pano` en `mano.ajustar()` junto con `tope - 18` en `desglose.ts` eliminó por completo el solape `mano-tapa-cuenta` sin perder legibilidad.
+
+**Consejo de Diseño 3D (5 sillas).** Dirección 3D/Atmósfera 9,4 · Carisma Bufón/Personajes 9,4 · Física/Cámara/Game Feel 9,3 · PC/Steam Deck 9,4 · Móvil 9,3 → **Media 9,4 / 10** (+0,4 sobre v0.41.0; todas las 5 sillas ≥ 9,2/10) · **159,9–164,8 FPS**, **CLS = 0**, **0 fallos `qa:visual` ES/EN (592 capturas)**, **0 solapes (`secuencias` 1280 y 390)**, **16/16 `qa:smoke`**, **163/163 pruebas**.
+
 ## 0.41.0 · El Bufón de la Penumbra, Máscaras de los Reyes y Chiches 3D (publicada)
 
 **Qué se buscó.** Elevar la presencia teatral del Bufón en la penumbra al nivel *Inscryption*, darle a los 4 Reyes Jefe máscaras/coronas 3D teatrales y climas propios, y materializar los 5 Chiches sobre la madera de la mesa.

@@ -1159,6 +1159,11 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       return raiz.getBoundingClientRect().left + lp.xs[nPostas - 1] + lp.wp + 2 * BORDE;
     },
     ajustar() {
+      const conPano = reservaPano();
+      if (raiz.classList.contains('con-pano') !== conPano) {
+        raiz.classList.toggle('con-pano', conPano);
+        raiz.closest('.mesa')?.classList.toggle('con-pano', conPano);
+      }
       acomodarZona();
     },
     marcar(m) {

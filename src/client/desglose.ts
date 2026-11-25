@@ -108,7 +108,7 @@ export function encajarDesglose(o: { bajo: HTMLElement; cu: HTMLElement; izq: nu
       const ult = vis[vis.length - 1];
       return ult.offsetTop + ult.offsetHeight;
     };
-    cabe = () => altoHijos() + mTop <= tope - 8;
+    cabe = () => altoHijos() + mTop <= tope - 18;
   }
   // los pasos, del más cómodo al más apretado: la letra (1080p: fija a 24 para no saltar), la pista, los renglones, los nombres cortos
   const pasos: { fs?: number; cls: string[] }[] = dos

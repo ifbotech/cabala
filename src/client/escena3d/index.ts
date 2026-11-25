@@ -8,6 +8,7 @@ import { Bufon3D } from './bufon3d';
 import { CamaraPulperia, type ModoCamara } from './camara';
 import { SincroCartas3D } from './cartas3d';
 import { Chiches3D } from './chiches3d';
+import { Escenarios3D } from './escenarios3d';
 import { MundoPulperia } from './pulperia';
 
 class Motor3D {
@@ -18,6 +19,7 @@ class Motor3D {
   readonly cartas: SincroCartas3D;
   readonly bufon: Bufon3D;
   readonly chiches: Chiches3D;
+  readonly escenarios: Escenarios3D;
 
   private raf = 0;
   private ultimo = 0;
@@ -48,6 +50,7 @@ class Motor3D {
     this.cartas = new SincroCartas3D(this.escena);
     this.bufon = new Bufon3D(this.escena);
     this.chiches = new Chiches3D(this.escena);
+    this.escenarios = new Escenarios3D(this.escena);
 
     window.addEventListener('resize', () => this.redimensionar());
     window.addEventListener(
@@ -63,8 +66,10 @@ class Motor3D {
       const nom = (ev as CustomEvent<string>).detail;
       if (nom && nom !== 'modal') {
         this.ultimaPantalla = nom;
+        const esc = this.escenaDePantalla(nom);
         this.camara.ponerModo(this.modoDe(nom), this.foto || ajustes.calma);
-        this.mundo.ponerEscena(this.escenaDePantalla(nom), nom);
+        this.mundo.ponerEscena(esc, nom);
+        this.escenarios.ponerEscena(esc, nom);
         this.forzarCuadro();
       }
     });
@@ -153,12 +158,15 @@ class Motor3D {
     if (!quieto) this.reloj += dt;
 
     const p = sesion.partida;
+    const cartaF = p?.fogonCarta ? p.mazo.find((k) => k.id === p.fogonCarta) : undefined;
+    const infoCartaF = cartaF && cartaF.palo !== 'X' ? { palo: cartaF.palo, rango: cartaF.n } : undefined;
     this.mundo.sincronizarPartida(p?.mazoId, p?.combate?.mazo.length, p?.oro);
     this.mundo.actualizar(dt, quieto);
     this.camara.actualizar(dt, quieto);
     this.cartas.sincronizar(this.camara.cam, p?.mazoId ?? 'escoba', dt, quieto, this.punteroX, this.punteroY, this.reloj);
     this.bufon.sincronizar(this.camara.cam, dt, quieto, this.punteroX, this.punteroY, this.reloj);
     this.chiches.sincronizar(this.camara.cam, dt, quieto, this.reloj);
+    this.escenarios.actualizar(this.camara.cam, dt, quieto, this.reloj, p?.mazoId ?? 'escoba', infoCartaF);
     this.renderer.render(this.escena, this.camara.cam);
   }
 
@@ -193,6 +201,7 @@ export function iniciarEscena3d(): boolean {
       modo: () => motor?.camara,
       bufonVisible: () => motor?.bufon.raiz.visible ?? false,
       chichesActivos: () => motor?.chiches.activos ?? 0,
+      escenario3d: () => motor?.escenarios.activo ?? 'ninguno',
     };
     return true;
   } catch {
@@ -203,12 +212,16 @@ export function iniciarEscena3d(): boolean {
 }
 
 export const escena3dActiva = (): boolean => motor !== null;
-export const ponerEscena3d = (e: Escena, pantalla?: string): void => motor?.mundo.ponerEscena(e, pantalla);
+export const ponerEscena3d = (e: Escena, pantalla?: string): void => {
+  motor?.mundo.ponerEscena(e, pantalla);
+  motor?.escenarios.ponerEscena(e, pantalla);
+};
 export const ponerClima3d = (palo: Palo | null): void => motor?.mundo.ponerClima(palo);
 export const fogonazo3d = (fuerza = 1): void => motor?.mundo.fogonazoCandil(fuerza);
 export const sacudirCamara3d = (fuerza = 1): void => motor?.camara.sacudir(fuerza);
 export const partirEnemigo3d = (palo: Palo, rango: number, segunda = false): void =>
   motor?.cartas.partirEnemigo(motor.camara.cam, palo, rango, segunda);
+export const estallidoPalo3d = (palo: Palo, fuerza = 1): void => motor?.cartas.estallidoPalo(motor.camara.cam, palo, fuerza);
 export const modoFoto3d = (si: boolean): void => motor?.ponerModoFoto(si);
 export const marcarSucio3d = (): void => motor?.marcarSucio();
 export const forzarCuadro3d = (): void => motor?.forzarCuadro();

@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import type { Palo } from '../../rules/cartas';
 import type { MazoId } from '../../rules/mazos';
-import { texturaDorso, texturaNaipe, texturaNaipeMitad } from './texturas';
+import { texturaDorso, texturaNaipe, texturaNaipeMitad, texturaPalo } from './texturas';
 
 interface Naipe3D {
   malla: THREE.Mesh;
@@ -41,6 +41,7 @@ export class SincroCartas3D {
 
   private readonly piezas: PiezaFisica[] = [];
   private mazoDorso: MazoId = 'escoba';
+  private retrocesoEnemigo = 0;
 
   private readonly vFwd = new THREE.Vector3();
   private readonly vCentroPlano = new THREE.Vector3();
@@ -315,12 +316,18 @@ export class SincroCartas3D {
           this.enemigoMats[4].emissiveIntensity = herido ? 0.95 : 0.62;
           this.enemigoMats[0].color.setHex(segunda ? 0xff4d6d : furia ? 0xff9a2e : 0xe6d7bc);
 
-          const distE = embiste ? 5.15 : herido ? 6.25 : 5.85;
+          if (!quieto && this.retrocesoEnemigo > 0.001) {
+            this.retrocesoEnemigo = Math.max(0, this.retrocesoEnemigo - dt * 5.2);
+          } else if (quieto) {
+            this.retrocesoEnemigo = 0;
+          }
+          const distE = (embiste ? 5.15 : herido ? 6.25 : 5.85) + this.retrocesoEnemigo * 0.42;
           const tam = this.proyectarRect(cam, r.left + r.width / 2, top + hVis / 2, r.width, hVis, distE, this.enemigoTotem.position);
           this.enemigoTotem.scale.set(tam.worldW, tam.worldH, 1.4);
           this.enemigoTotem.quaternion.copy(cam.quaternion);
           if (!quieto && aturdido) this.enemigoTotem.rotateZ(Math.sin(reloj * 6.5) * 0.06);
           else if (!quieto && embiste) this.enemigoTotem.rotateX(0.14);
+          if (!quieto && this.retrocesoEnemigo > 0.01) this.enemigoTotem.rotateX(-this.retrocesoEnemigo * 0.28);
           this.enemigoTotem.visible = true;
         } else this.enemigoTotem.visible = false;
       } else this.enemigoTotem.visible = false;
@@ -359,5 +366,35 @@ export class SincroCartas3D {
     }
 
     return activas;
+  }
+
+  estallidoPalo(cam: THREE.PerspectiveCamera, palo: Palo, fuerza = 1): void {
+    this.retrocesoEnemigo = Math.min(1.4, Math.max(this.retrocesoEnemigo, fuerza));
+    const origen = this.enemigoTotem.visible
+      ? this.enemigoTotem.position.clone()
+      : cam.position.clone().add(new THREE.Vector3(0, 0.2, -4.5));
+    const cantidad = Math.min(14, 8 + Math.round(fuerza * 4));
+    const tex = texturaPalo(palo);
+    const geo = new THREE.PlaneGeometry(0.24, 0.24);
+    for (let i = 0; i < cantidad; i++) {
+      const mat = new THREE.MeshBasicMaterial({
+        map: tex,
+        transparent: true,
+        opacity: 1,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      });
+      const malla = new THREE.Mesh(geo, mat);
+      malla.position.copy(origen).add(new THREE.Vector3((Math.random() - 0.5) * 0.35, (Math.random() - 0.5) * 0.35, 0.15));
+      const ang = (i / cantidad) * Math.PI * 2 + (Math.random() - 0.5) * 0.45;
+      const spd = (1.8 + Math.random() * 2.2) * (0.8 + fuerza * 0.25);
+      this.raiz.add(malla);
+      this.piezas.push({
+        malla,
+        vel: new THREE.Vector3(Math.cos(ang) * spd, 1.4 + Math.random() * 2.3, 0.8 + Math.random() * 1.4),
+        rotVel: new THREE.Vector3((Math.random() - 0.5) * 12, (Math.random() - 0.5) * 12, (Math.random() - 0.5) * 14),
+        vida: 0.65 + Math.random() * 0.28,
+      });
+    }
   }
 }
