@@ -19,16 +19,19 @@ import { enFoto } from '../fx/motor';
 import { numero } from '../fx/efectos';
 import { glifo } from '../nav';
 import { nombreCarga } from '../hud';
-import { continuar, empezar, hayPartida, irAjustes, irAltar, irColeccion, irCronica, irExplorar, irMazo, irPortada, sesion } from '../juego';
+import { continuar, empezar, hayPartida, irAjustes, irAltar, irCaminoSol, irColeccion, irCronica, irExplorar, irMazo, irPortada, pintarFase, sesion } from '../juego';
 import {
+  distanciaMesaGloria3d,
   enfocarRincon3d,
   entrarExploracion3d,
+  entrarSolDeMayo3d,
   moverExploracion3d,
   raycastRincon3d,
   resaltarRincon3d,
   rinconFrente3d,
   rotarExploracion3d,
   salirExploracion3d,
+  salirSolDeMayo3d,
   type RinconId,
 } from '../escena3d';
 import { CUADRO0 } from '../pixel/personajes';
@@ -307,6 +310,11 @@ export function pantallaExplorar(): Pantalla {
           () => {
             sonar('clic');
             if (r.id === 'puerta') {
+              if (perfil.stats.victorias > 0) {
+                salirExploracion3d();
+                irCaminoSol(false);
+                return;
+              }
               enfocarRincon3d('puerta');
               const s = $<HTMLElement>('.explorar-susurro');
               if (s) {
@@ -331,6 +339,113 @@ export function pantallaExplorar(): Pantalla {
           },
         ]),
       ),
+    },
+  };
+}
+
+// ───────────────────────── Camino al Sol de Mayo ─────────────────────────
+
+export function pantallaCaminoSol(enClimax = false): Pantalla {
+  let saliendo = false;
+  const salir = (): void => {
+    if (saliendo) return;
+    saliendo = true;
+    sonar('clic');
+    salirSolDeMayo3d();
+    if (enClimax) pintarFase();
+    else irExplorar();
+  };
+  return {
+    nombre: 'sol-de-mayo',
+    atras: salir,
+    html: () => `<main class="pantalla sol-de-mayo">
+      <header class="sol-top">
+        <div class="sol-titulo-caja">
+          <b class="rotulo dorado sol-titulo">${t('solDeMayoTitulo')}</b>
+          <span class="sub explorar-guia">${t('solDeMayoGuia')}</span>
+        </div>
+      </header>
+      <footer class="sol-pie">
+        <button class="btn marco oro grande" data-accion="salir-sol" data-foco="avanzar-sol" data-inicio>${enClimax ? t('enfrentarReyFinal') : t('volverPulperia')}</button>
+      </footer>
+    </main>`,
+    alMontar: (raiz) => {
+      entrarSolDeMayo3d(enFoto());
+      const teclas = new Set<string>();
+      const onKeyDown = (ev: KeyboardEvent): void => {
+        if (!raiz.isConnected) return;
+        const k = ev.key.toLowerCase();
+        teclas.add(k);
+        if (k === 'e') {
+          ev.preventDefault();
+          salir();
+        }
+      };
+      const onKeyUp = (ev: KeyboardEvent): void => {
+        teclas.delete(ev.key.toLowerCase());
+      };
+      let arrastrando = false;
+      let lastX = 0;
+      let lastY = 0;
+      const onDown = (ev: PointerEvent): void => {
+        if ((ev.target as HTMLElement).closest('button')) return;
+        arrastrando = true;
+        lastX = ev.clientX;
+        lastY = ev.clientY;
+      };
+      const onMove = (ev: PointerEvent): void => {
+        if (!arrastrando) return;
+        const dx = ev.clientX - lastX;
+        const dy = ev.clientY - lastY;
+        lastX = ev.clientX;
+        lastY = ev.clientY;
+        rotarExploracion3d(-dx * 0.0045, -dy * 0.0035);
+      };
+      const onUp = (): void => {
+        arrastrando = false;
+      };
+      window.addEventListener('keydown', onKeyDown);
+      window.addEventListener('keyup', onKeyUp);
+      window.addEventListener('pointerdown', onDown);
+      window.addEventListener('pointermove', onMove, { passive: true });
+      window.addEventListener('pointerup', onUp);
+
+      let tPrev = performance.now();
+      const bucle = (ahora: number): void => {
+        if (!raiz.isConnected) {
+          window.removeEventListener('keydown', onKeyDown);
+          window.removeEventListener('keyup', onKeyUp);
+          window.removeEventListener('pointerdown', onDown);
+          window.removeEventListener('pointermove', onMove);
+          window.removeEventListener('pointerup', onUp);
+          return;
+        }
+        const dt = Math.min(0.05, Math.max(0.001, (ahora - tPrev) / 1000));
+        tPrev = ahora;
+        let adel = (teclas.has('w') || teclas.has('arrowup') ? 1 : 0) - (teclas.has('s') || teclas.has('arrowdown') ? 1 : 0);
+        let der = (teclas.has('d') ? 1 : 0) - (teclas.has('a') ? 1 : 0);
+        const giro = (teclas.has('arrowleft') || teclas.has('q') ? 1 : 0) - (teclas.has('arrowright') ? 1 : 0);
+        if (giro !== 0) rotarExploracion3d(giro * 1.9 * dt, 0);
+
+        const pad = navigator.getGamepads?.()[0];
+        if (pad) {
+          if (Math.abs(pad.axes[1]) > 0.2) adel -= pad.axes[1];
+          if (Math.abs(pad.axes[0]) > 0.2) der += pad.axes[0];
+          if (Math.abs(pad.axes[2]) > 0.2) rotarExploracion3d(-pad.axes[2] * 2.2 * dt, 0);
+          if (Math.abs(pad.axes[3]) > 0.2) rotarExploracion3d(0, -pad.axes[3] * 1.6 * dt);
+        }
+
+        if (moverExploracion3d(adel, der, dt)) sonar('paso');
+        if (enClimax && distanciaMesaGloria3d() < 4.5) {
+          salir();
+          return;
+        }
+        requestAnimationFrame(bucle);
+      };
+      requestAnimationFrame(bucle);
+    },
+    acciones: {
+      'salir-sol': salir,
     },
   };
 }

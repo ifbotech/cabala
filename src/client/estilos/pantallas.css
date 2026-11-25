@@ -5987,3 +5987,57 @@ main.fogon.forjando [data-accion='seguir'] {
     min-height: 44px;
   }
 }
+
+/* ── 0.45 · El Camino al Sol de Mayo ── */
+.pantalla.sol-de-mayo {
+  background: transparent;
+  pointer-events: none;
+  justify-content: space-between;
+  padding: calc(var(--u) * 1.5);
+}
+.pantalla.sol-de-mayo .sol-top {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--u);
+  pointer-events: auto;
+}
+.sol-titulo-caja {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sol-titulo {
+  background: rgba(8, 19, 38, 0.86);
+  box-shadow: inset 0 0 0 2px #62d0ff;
+  padding: 6px 12px;
+  font-size: max(16px, var(--fs));
+  align-self: flex-start;
+}
+.sol-pie {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  pointer-events: auto;
+}
+.sol-pie .btn,
+.sol-top .btn {
+  min-height: 44px;
+  max-width: 100%;
+}
+@media (max-width: 700px) {
+  .sol-titulo {
+    font-size: 14px;
+  }
+  .sol-pie .btn {
+    font-size: 15px;
+    padding: 8px 14px;
+  }
+}
+.fin-gloria-chip {
+  white-space: normal;
+  text-align: center;
+  max-width: 100%;
+  margin-bottom: 4px;
+}

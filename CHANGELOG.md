@@ -3,6 +3,13 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.45.0 · El Camino al Sol de Mayo y Cartas de Gloria (2026-11-25)
+
+Tercera entrega de la transformación 3D (Pilar C): el clímax del Tramo 3 y la Puerta Doble tras la primera victoria abren la avenida nocturna de **El Camino al Sol de Mayo**, y cada triunfo forja una **Carta de Gloria** clavada en La Pared de la Gloria. *(Reglas, música, voces y balance 100 % congelados e intactos.)*
+
+- **El Camino al Sol de Mayo (`solDeMayo3d.ts`, `texturas.ts`, `camara.ts`, `menu.ts`, `camino.ts`):** empedrado porteño nocturno en trama Bayer (`texturaEmpedrado`), faroles cálidos, festones laterales celestes y blancos, 3 arcos monumentales de naipes españoles, Mesa de la Gloria con `1 de Oros` levitando y Sol de Mayo monumental (`texturaSolDeMayo`) latiendo al compás `3-3-2`.
+- **Cartas de Gloria (`almacen.ts`, `cuarto3d.ts`, `camino.ts`):** al ganar una partida, la carta más icónica del mazo se guarda en `cabala:glorias`, se celebra en Victoria y queda clavada con tachuela de latón dentro de **La Pared de la Gloria**.
+
 ## 0.44.0 · La Pulpería 3D Explorable (2026-11-25)
 
 Segunda entrega de la transformación 3D (Pilar B): la Portada incorpora el botón `LEVANTARSE` para recorrer en primera persona el cuarto completo de **La Pulpería 3D** con 7 rincones interactivos. *(Música, voces y balance sin cambios.)*

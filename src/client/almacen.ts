@@ -2,7 +2,9 @@
 // en curso y los ajustes. El idioma, si no hay nada guardado, sale del navegador.
 import type { L } from '../rules/balance';
 import { fill } from '../rules/balance';
+import type { Palo } from '../rules/cartas';
 import type { Partida } from '../rules/estado';
+import type { MazoId } from '../rules/mazos';
 import { perfilNuevo, type Perfil } from '../rules/perfil';
 import { idiomaDe, type Idioma } from '../shared/brand';
 import { EN, ES, type Clave } from './textos';
@@ -44,6 +46,48 @@ export const guardarAjustes = (): void => escribir('ajustes', ajustes);
 export let perfil: Perfil = { ...perfilNuevo(), ...(leer<Perfil>('perfil') ?? {}) };
 export const guardarPerfil = (): void => escribir('perfil', perfil);
 
+export interface CartaGloria {
+  palo: Palo;
+  n: number;
+  mazo: MazoId;
+  reinado: number;
+  fecha: number;
+  temple?: number;
+  brava?: boolean;
+}
+export let glorias: CartaGloria[] = leer<CartaGloria[]>('glorias') ?? [];
+export const guardarGlorias = (): void => escribir('glorias', glorias);
+export function elegirCartaGloria(p: Partida, fecha: number): CartaGloria {
+  const candidatas = p.mazo.filter((c) => c.palo !== 'X');
+  let mejor = candidatas[0];
+  let mejorPunt = -1;
+  for (const c of candidatas) {
+    const punt = (c.brava ? 1000 : 0) + (c.temple ?? 0) * 20 + c.n;
+    if (punt > mejorPunt) {
+      mejorPunt = punt;
+      mejor = c;
+    }
+  }
+  return {
+    palo: mejor && mejor.palo !== 'X' ? mejor.palo : 'D',
+    n: mejor ? mejor.n : 1,
+    mazo: p.mazoId,
+    reinado: p.reinado,
+    fecha,
+    temple: mejor?.temple,
+    brava: mejor?.brava,
+  };
+}
+export function registrarCartaGloria(p: Partida, fecha: number): CartaGloria {
+  const g = elegirCartaGloria(p, fecha);
+  glorias = [g, ...glorias].slice(0, 6);
+  guardarGlorias();
+  return g;
+}
+export function usarGlorias(lista: CartaGloria[]): void {
+  glorias = lista;
+}
+
 /** La partida en curso (null si no hay). */
 export function cargarPartida(): Partida | null {
   const p = leer<Partida>('partida');
@@ -55,7 +99,9 @@ export const guardarPartida = (p: Partida | null): void => escribir('partida', p
 export function borrarTodo(): void {
   escribir('perfil', null);
   escribir('partida', null);
+  escribir('glorias', null);
   perfil = perfilNuevo();
+  glorias = [];
 }
 
 /** Para la QA: sustituye el perfil en memoria sin tocar lo guardado. */

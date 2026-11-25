@@ -411,6 +411,13 @@ export const ES = {
   rinconPuerta: 'La Puerta Doble',
   puertaTrancada: 'Cerrada con tranca. Un resplandor celeste y dorado se filtra por las rendijas…',
   fogonReposo: 'Las brasas esperan. Templarás tus naipes cuando salgas al camino.',
+  solDeMayoTitulo: 'EL CAMINO AL SOL DE MAYO',
+  solDeMayoGuia: 'WASD caminar hacia la Gloria · Arrastrá para mirar',
+  enfrentarReyFinal: 'ENFRENTAR AL REY FINAL',
+  volverPulperia: 'VOLVER A LA PULPERÍA',
+  puertaAbierta: 'Las puertas se abren hacia el empedrado nocturno…',
+  cartaGloria: 'CARTA DE GLORIA',
+  cartaGloriaClavada: 'Clavada en La Pared de la Gloria',
 };
 
 export const EN: Record<keyof typeof ES, string> = {
@@ -805,6 +812,13 @@ export const EN: Record<keyof typeof ES, string> = {
   rinconPuerta: 'The Double Doors',
   puertaTrancada: 'Barred shut. A sky-blue and golden glow spills through the cracks…',
   fogonReposo: 'The embers wait. You will temper your cards once you take the road.',
+  solDeMayoTitulo: 'THE ROAD TO THE SUN OF MAY',
+  solDeMayoGuia: 'WASD walk toward Glory · Drag to look',
+  enfrentarReyFinal: 'FACE THE FINAL KING',
+  volverPulperia: 'BACK TO THE PULPERÍA',
+  puertaAbierta: 'The doors swing wide to the nocturnal cobblestones…',
+  cartaGloria: 'CARD OF GLORY',
+  cartaGloriaClavada: 'Pinned to the Wall of Glory',
 };
 
 export type Clave = keyof typeof ES;

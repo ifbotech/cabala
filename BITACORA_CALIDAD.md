@@ -10,7 +10,7 @@ Registro vivo del Estudio Autónomo. Cada versión se audita con lupa adversaria
 | :--- | :--- | :--- |
 | **A. Cohesión Visual *Dark Dithered Pixel-3D*** | Rediseño del Bufón 3D estilo *Leshy*/*COMODÍN*, cero parches 2D flotantes, cero textos cortados/solapados, materiales 3D tramados en Bayer (`NearestFilter`), cierre de brecha desktop `1700px+` | **Completado (`v0.43.0`)** |
 | **B. Mundo 3D Vivo — «La Pulpería»** | Menú 3D caminable en primera persona (`WASD`/Stick/Clic) con *head-bob*, 6 rincones interactivos (Mesa del Bufón, Altar, Pared de la Gloria, Fogón, Fonógrafo/Crónica, Puerta Doble con resplandor) + accesos rápidos 1 clic | **Completado (`v0.44.0`)** |
-| **C. Clímax Argentino — «El Camino al Sol de Mayo»** | Puerta doble abierta en el clímax del Tramo 3, empedrado porteño nocturno entre niebla, faroles, banderines celestes y blancos, arcos de naipes españoles, Sol de Mayo colosal *dithered*, Mesa de la Gloria y Carta de Gloria clavada en la pared | Pendiente (`v0.45.0`) |
+| **C. Clímax Argentino — «El Camino al Sol de Mayo»** | Puerta doble abierta en el clímax del Tramo 3, empedrado porteño nocturno entre niebla, faroles, banderines celestes y blancos, arcos de naipes españoles, Sol de Mayo colosal *dithered*, Mesa de la Gloria y Carta de Gloria clavada en la pared | **Completado (`v0.45.0`)** |
 | **D. Pulido Artesanal Total y Doble Auditoría Limpia** | Física táctil de cartas, expresividad completa del elenco y **2 Auditorías Adversariales consecutivas con 0 defectos**, `CLS = 0`, `≥ 60 FPS`, ES/EN verdes en vivo | Pendiente (`v0.46.0+`) |
 
 ---
@@ -43,4 +43,13 @@ Verificada sobre capturas reales en `1920×1080`, `1920×920`, `2560×1320`, `13
   4. Botón huérfano en `.explorar-barra` y barra superior amontonada: `width: 100%` en `.explorar-top`, `flex-wrap: nowrap` y `min-height: 44px` en escritorio.
 - **Verificación #2b sobre 10 capturas frescas (`portada` 1920/1280/390 + `cuarto-vista`, `cuarto-1280`, `cuarto-altar`, `cuarto-gloria`, `cuarto-puerta`, `cuarto-fogon`, `cuarto-390`):** 0 recortes, 0 solapes, 7 botones en una sola fila en `1920×1080` y `1280×800`, 0 desborde horizontal, más suavizado Bayer (`texturaHalo()`) en el haz vertical de `La Puerta Doble`.
 
-**Próximo paso inmediato:** **Pilar C (`v0.45.0`) — «El Camino al Sol de Mayo» y Cartas de Gloria**.
+## Auditoría Adversarial #3 y #3b (`v0.45.0` — El Camino al Sol de Mayo y Cartas de Gloria)
+
+- **Hallazgos de #3 (corregidos antes de publicar):**
+  1. Cabecera y botón duplicado en `sol-de-mayo` recortándose en `390×844`: unificado en un solo botón inferior `grande` con `max-width: 100%`.
+  2. Chip de `CARTA DE GLORIA` en `fin-victoria` desbordando `fin-panel` en `390×844`: agregado `.fin-gloria-chip { white-space: normal; max-width: 100%; }`.
+  3. Naipes frontales en sombra azulada y corona trasera octogonal: agregada `PointLight` cálida en el primer arco y `Sprite` circular Bayer con `texturaHalo()`.
+  4. Cartas de Gloria debajo del marco de La Pared de la Gloria: tablero ampliado (`5.2 × 3.85`) con 3 filas integradas dentro del marco de latón y tachuelas doradas; festones laterales despejando el rostro del Sol de Mayo.
+- **Verificación #3b:** `sol-1920`, `sol-1280`, `sol-390`, `cuarto-gloria-cartas`, `fin-victoria-gloria` y `fin-victoria-390` sin recortes, sin solapes y sin desborde.
+
+**Próximo paso inmediato:** **Pilar D (`v0.46.0`) — Pulido Artesanal Total y Doble Auditoría Adversarial Consecutiva con 0 Defectos**.

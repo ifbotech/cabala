@@ -17,14 +17,14 @@ import { BENDICION, BENDICIONES, REY_DEF } from '../../rules/reyes';
 import type { BendicionId } from '../../rules/reyes';
 import { clavePieza } from '../../rules/notas';
 import { EVOLUCION, esEvolucionable, evoluciono } from '../../rules/evoluciones';
-import { alAzar, idioma, perfil, t, tx } from '../almacen';
+import { alAzar, elegirCartaGloria, idioma, perfil, t, tx } from '../almacen';
 import { sonar } from '../audio';
 import { chispas, destello, haloRey, humo, lluviaDeMonedas, monedas, numero, partirNaipe } from '../fx/efectos';
 import { teclear } from '../habla';
 import { RAPIDO, pausa, quieto } from '../ritmo';
 import { avivarFuego, congelar, enFoto, fuegoEnPantalla, sacudir } from '../fx/motor';
 import { avivarRetrato, cargaQue, hudHtml, reubicarGrito } from '../hud';
-import { avanzar, guardar, irPortada, sesion, soltarPartida } from '../juego';
+import { avanzar, guardar, irCaminoSol, irPortada, sesion, soltarPartida } from '../juego';
 import type { Expresion } from '../pixel/bufon';
 import { CHICHE, huecosChiche } from '../../rules/chiches';
 import { lienzoNaipe, cifra, pxChiche, pxAmuleto, pxAumento, pxEvolucion, pxBendicion, pxHud, pxInmune, pxMitades, pxNaipe, pxNaipeSegunda, pxNodo, pxPalo, pxPieza, urlRetrato } from '../sprites';
@@ -380,7 +380,12 @@ export function pantallaMapa(p: Partida): Pantalla {
         el.closest('.mapa-lienzo')?.classList.add('andando');
         await pausa(280);
         juego.elegirNodo(p, id);
-        avanzar();
+        if (n.tipo === 'rey' && p.acto >= 2 && !sesion.qa) {
+          guardar();
+          irCaminoSol(true);
+        } else {
+          avanzar();
+        }
       },
     },
   };
@@ -1537,6 +1542,7 @@ export function pantallaFin(p: Partida): Pantalla {
           <section class="panel fin-panel">
             ${resumenHtml(p, sesion.resumen ?? resumenDe(p, perfil))}
             <p class="fin-porotos dorado">${pxHud('poroto')} ${t('ganaste', { n: p.fin?.porotos ?? 0 })}</p>
+            ${gano ? (() => { const g = elegirCartaGloria(p, 0); return `<p class="chip sinergia fin-gloria-chip">${t('cartaGloria')}: ${g.n} ${esc(tx(PALO_NOMBRE[g.palo]))} · ${t('cartaGloriaClavada')}</p>`; })() : ''}
             ${sesion.abiertos.map((m) => `<p class="chip sinergia">${t('seAbrio', { m: tx(MAZO[m].nombre) })}</p>`).join('')}
             ${sesion.reinadoAbierto ? `<p class="chip sinergia">${t('reinadoAbierto', { n: sesion.reinadoAbierto })}</p>` : ''}
           </section>

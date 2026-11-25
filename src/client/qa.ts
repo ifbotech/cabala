@@ -8,7 +8,7 @@ import type { Partida, TipoNodo } from '../rules/estado';
 import type { MazoId } from '../rules/mazos';
 import * as juego from '../rules/partida';
 import { altarLleno, perfilNuevo, type Perfil } from '../rules/perfil';
-import { ajustes, tx, usarPerfil } from './almacen';
+import { ajustes, perfil, tx, usarGlorias, usarPerfil } from './almacen';
 import { gritar } from './hud';
 import { GRITO } from './voces';
 import { modoFoto } from './fx/motor';
@@ -115,6 +115,12 @@ export function montarQa(estado: string): void {
       irPortada();
       break;
     case 'cuarto' as EstadoQa: {
+      usarGlorias([
+        { palo: 'D', n: 1, mazo: 'escoba', reinado: 1, fecha: 1 },
+        { palo: 'S', n: 12, mazo: 'truco', reinado: 2, fecha: 2 },
+        { palo: 'H', n: 7, mazo: 'chinchon', reinado: 1, fecha: 3 },
+      ]);
+      if (q.get('abierta') === '1') perfil.stats.victorias = Math.max(1, perfil.stats.victorias);
       irExplorar();
       const r = q.get('rincon') as RinconId | null;
       if (r) enfocarRincon3d(r, true);
@@ -696,6 +702,13 @@ export function montarQa(estado: string): void {
         mesa.mano.elegir(ids);
         mesa.conteoQa(0.75);
       }
+      break;
+    }
+    case 'sol-de-mayo' as EstadoQa: {
+      void import('./juego').then((j) => {
+        j.irCaminoSol(false);
+        void import('./escena3d').then((e) => e.entrarSolDeMayo3d(true));
+      });
       break;
     }
     default:

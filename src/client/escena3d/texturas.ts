@@ -682,3 +682,117 @@ export function texturaLaton(): THREE.CanvasTexture {
   cache.set(k, tex);
   return tex;
 }
+
+/** Empedrado porteño nocturno en trama Bayer 4×4 con adoquines azulados y juntas oscuras. */
+export function texturaEmpedrado(): THREE.CanvasTexture {
+  const k = 'mat:empedrado';
+  if (cache.has(k)) return cache.get(k)!;
+  const W = 64;
+  const H = 64;
+  const [c, ctx] = crearCanvas(W, H);
+  const img = ctx.createImageData(W, H);
+  const pal = [
+    [11, 16, 28],
+    [22, 32, 52],
+    [39, 55, 84],
+    [68, 92, 134],
+  ];
+  for (let y = 0; y < H; y++) {
+    const fila = Math.floor(y / 8);
+    const desfase = (fila % 2) * 8;
+    for (let x = 0; x < W; x++) {
+      const idx = (y * W + x) * 4;
+      const ax = (x + desfase) % 16;
+      const ay = y % 8;
+      const junta = ax === 0 || ay === 0;
+      const v = junta ? 0.08 : 0.42 + (ruido2(Math.floor((x + desfase) / 16), fila) - 0.5) * 0.38 + (ay === 1 ? 0.16 : 0);
+      const esc = Math.max(0, Math.min(1, v)) * (pal.length - 1);
+      const base = Math.max(0, Math.min(pal.length - 2, Math.floor(esc)));
+      const ci = esc - base > umbral(x, y) ? base + 1 : base;
+      const col = pal[ci];
+      img.data[idx] = col[0];
+      img.data[idx + 1] = col[1];
+      img.data[idx + 2] = col[2];
+      img.data[idx + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const tex = aTexturaPixel(c, 5, 14);
+  cache.set(k, tex);
+  return tex;
+}
+
+/** Sol de Mayo monumental en oro tramado Bayer (eco del 1 de Oros) con 32 rayos alternados y rostro tallado. */
+export function texturaSolDeMayo(): THREE.CanvasTexture {
+  const k = 'mat:sol-de-mayo';
+  if (cache.has(k)) return cache.get(k)!;
+  const W = 128;
+  const H = 128;
+  const [c, ctx] = crearCanvas(W, H);
+  const cx = 64;
+  const cy = 64;
+
+  // 32 rayos alternados: 16 rectos agudos y 16 flamígeros sinuosos
+  for (let i = 0; i < 32; i++) {
+    const ang = (i * Math.PI * 2) / 32;
+    const flamigero = i % 2 === 1;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(ang);
+    ctx.beginPath();
+    ctx.moveTo(0, -22);
+    if (flamigero) {
+      ctx.quadraticCurveTo(5, -38, -3, -48);
+      ctx.quadraticCurveTo(4, -56, 0, -62);
+      ctx.quadraticCurveTo(-4, -54, 2, -45);
+      ctx.quadraticCurveTo(-5, -35, -3, -22);
+    } else {
+      ctx.lineTo(3, -22);
+      ctx.lineTo(0, -61);
+      ctx.lineTo(-3, -22);
+    }
+    ctx.closePath();
+    ctx.fillStyle = flamigero ? '#ffae2b' : '#ffe26a';
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Disco solar central con sombreado Bayer
+  const img = ctx.getImageData(0, 0, W, H);
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const dx = x - cx;
+      const dy = y - cy;
+      const r = Math.hypot(dx, dy);
+      if (r <= 25) {
+        const idx = (y * W + x) * 4;
+        const luz = 1 - r / 27 + (-dx * 0.012 - dy * 0.012);
+        const ci = luz > 0.65 + (umbral(x, y) - 0.5) * 0.25 ? 2 : luz > 0.35 + (umbral(x, y) - 0.5) * 0.25 ? 1 : 0;
+        const col = ci === 2 ? [255, 243, 168] : ci === 1 ? [255, 213, 74] : [214, 134, 24];
+        img.data[idx] = col[0];
+        img.data[idx + 1] = col[1];
+        img.data[idx + 2] = col[2];
+        img.data[idx + 3] = 255;
+      }
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+
+  // Rostro sereno tallado del Sol de Mayo
+  ctx.fillStyle = '#5a2d0c';
+  // Cejas arqueadas
+  ctx.fillRect(52, 54, 7, 2);
+  ctx.fillRect(69, 54, 7, 2);
+  // Ojos
+  ctx.fillRect(54, 58, 4, 3);
+  ctx.fillRect(70, 58, 4, 3);
+  // Nariz recta
+  ctx.fillRect(63, 56, 2, 11);
+  ctx.fillRect(61, 66, 6, 2);
+  // Boca firme
+  ctx.fillRect(58, 73, 12, 2);
+
+  const tex = aTexturaPixel(c);
+  cache.set(k, tex);
+  return tex;
+}

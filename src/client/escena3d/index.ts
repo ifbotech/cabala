@@ -12,6 +12,7 @@ import { CuartoPulperia3D, type RinconId } from './cuarto3d';
 export type { RinconId } from './cuarto3d';
 import { Escenarios3D } from './escenarios3d';
 import { MundoPulperia } from './pulperia';
+import { CaminoSolDeMayo3D } from './solDeMayo3d';
 
 class Motor3D {
   readonly renderer: THREE.WebGLRenderer;
@@ -23,6 +24,7 @@ class Motor3D {
   readonly chiches: Chiches3D;
   readonly escenarios: Escenarios3D;
   readonly cuarto: CuartoPulperia3D;
+  readonly solDeMayo: CaminoSolDeMayo3D;
   rinconResaltado: RinconId | null = null;
 
   private raf = 0;
@@ -57,6 +59,7 @@ class Motor3D {
     this.escenarios = new Escenarios3D(this.escena);
     this.cuarto = new CuartoPulperia3D(this.escena);
     this.cuarto.sincronizarPerfil(perfil);
+    this.solDeMayo = new CaminoSolDeMayo3D(this.escena);
 
     window.addEventListener('resize', () => this.redimensionar());
     window.addEventListener(
@@ -79,6 +82,16 @@ class Motor3D {
         const enCuarto = nom === 'explorar';
         this.cuarto.ponerVisible(enCuarto);
         if (enCuarto) this.cuarto.sincronizarPerfil(perfil);
+        const enSol = nom === 'sol-de-mayo';
+        this.solDeMayo.ponerVisible(enSol);
+        this.mundo.raiz.visible = !enSol;
+        if (enSol) {
+          this.escena.background = new THREE.Color(0x081326);
+          this.escena.fog = new THREE.FogExp2(0x0b1830, 0.024);
+        } else {
+          this.escena.background = new THREE.Color(0x09070f);
+          this.escena.fog = this.mundo.niebla;
+        }
         this.forzarCuadro();
       }
     });
@@ -104,6 +117,8 @@ class Motor3D {
     switch (pantalla) {
       case 'explorar':
         return 'explorar';
+      case 'sol-de-mayo':
+        return 'sol-de-mayo';
       case 'mazo':
         return 'mazos';
       case 'mesa':
@@ -179,6 +194,7 @@ class Motor3D {
     this.chiches.sincronizar(this.camara.cam, dt, quieto, this.reloj);
     this.escenarios.actualizar(this.camara.cam, dt, quieto, this.reloj, p?.mazoId ?? 'escoba', infoCartaF);
     this.cuarto.actualizar(dt, quieto, this.reloj, this.rinconResaltado, this.camara.cam.position);
+    this.solDeMayo.actualizar(dt, quieto, this.reloj);
     this.renderer.render(this.escena, this.camara.cam);
   }
 
@@ -215,6 +231,7 @@ export function iniciarEscena3d(): boolean {
       chichesActivos: () => motor?.chiches.activos ?? 0,
       escenario3d: () => motor?.escenarios.activo ?? 'ninguno',
       cuartoActivo: () => motor?.cuarto.raiz.visible ?? false,
+      solDeMayoActivo: () => motor?.solDeMayo.raiz.visible ?? false,
     };
     return true;
   } catch {
@@ -262,3 +279,10 @@ export const rinconFrente3d = (): RinconId | null =>
 export const resaltarRincon3d = (id: RinconId | null): void => {
   if (motor) motor.rinconResaltado = id;
 };
+export const entrarSolDeMayo3d = (inmediato = false): void => {
+  motor?.solDeMayo.ponerVisible(true);
+  motor?.camara.entrarSolDeMayo(inmediato);
+  if (inmediato) motor?.forzarCuadro();
+};
+export const salirSolDeMayo3d = (): void => motor?.camara.salirExploracion();
+export const distanciaMesaGloria3d = (): number => (motor ? Math.abs(motor.camara.posLibre.z - -20.5) : 99);

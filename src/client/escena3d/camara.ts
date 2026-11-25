@@ -14,7 +14,8 @@ export type ModoCamara =
   | 'cronica'
   | 'ajustes'
   | 'amanecer'
-  | 'ocaso';
+  | 'ocaso'
+  | 'sol-de-mayo';
 
 interface Pose {
   pos: [number, number, number];
@@ -36,6 +37,7 @@ const POSES: Record<ModoCamara, Pose> = {
   ajustes: { pos: [0.2, 4.2, 8.2], mira: [0, 1.0, -0.4], fov: 42 },
   amanecer: { pos: [0, 3.3, 9.0], mira: [0, 1.8, -2.0], fov: 44 },
   ocaso: { pos: [0, 3.5, 8.8], mira: [0, 1.4, -1.5], fov: 43 },
+  'sol-de-mayo': { pos: [0, 1.85, 6.2], mira: [0, 3.2, -28], fov: 50 },
 };
 
 export class CamaraPulperia {
@@ -69,7 +71,7 @@ export class CamaraPulperia {
 
   ponerModo(modo: ModoCamara, inmediato = false): void {
     this.modo = modo;
-    if (modo !== 'explorar') this.libre = false;
+    if (modo !== 'explorar' && modo !== 'sol-de-mayo') this.libre = false;
     if (inmediato) this.encajar();
   }
 
@@ -91,6 +93,20 @@ export class CamaraPulperia {
     this.libre = false;
     this.metaPos = null;
     this.modo = 'portada';
+  }
+
+  entrarSolDeMayo(inmediato = false): void {
+    this.libre = true;
+    this.modo = 'sol-de-mayo';
+    this.posLibre.set(0, 1.85, 6.2);
+    this.yaw = 0;
+    this.pitch = 0.06;
+    this.fasePaso = 0;
+    this.ultimoPasoIdx = 0;
+    this.metaPos = null;
+    this.metaYaw = null;
+    this.metaPitch = null;
+    if (inmediato) this.aplicarLibre(0);
   }
 
   rotarLibre(dyaw: number, dpitch: number): void {
@@ -117,12 +133,17 @@ export class CamaraPulperia {
     let nx = this.posLibre.x + (fx * adelante + rx * derecha) * vel;
     let nz = this.posLibre.z + (fz * adelante + rz * derecha) * vel;
 
-    nx = THREE.MathUtils.clamp(nx, -6.0, 6.0);
-    nz = THREE.MathUtils.clamp(nz, -4.4, 7.6);
-    // Colisión suave con la mesa central
-    if (Math.abs(nx) < 3.4 && nz > -2.4 && nz < 2.6) {
-      if (Math.abs(this.posLibre.x) >= 3.4) nx = this.posLibre.x;
-      else nz = this.posLibre.z;
+    if (this.modo === 'sol-de-mayo') {
+      nx = THREE.MathUtils.clamp(nx, -3.5, 3.5);
+      nz = THREE.MathUtils.clamp(nz, -17.2, 7.0);
+    } else {
+      nx = THREE.MathUtils.clamp(nx, -6.0, 6.0);
+      nz = THREE.MathUtils.clamp(nz, -4.4, 7.6);
+      // Colisión suave con la mesa central
+      if (Math.abs(nx) < 3.4 && nz > -2.4 && nz < 2.6) {
+        if (Math.abs(this.posLibre.x) >= 3.4) nx = this.posLibre.x;
+        else nz = this.posLibre.z;
+      }
     }
     this.posLibre.x = nx;
     this.posLibre.z = nz;

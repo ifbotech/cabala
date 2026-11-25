@@ -6,12 +6,12 @@ import { nuevaPartida } from '../rules/partida';
 import { anotar, reinadoMax } from '../rules/perfil';
 import { resumenDe, type ResumenPartida } from '../rules/resumen';
 import { semillaNueva } from '../rules/rng';
-import { cargarPartida, guardarPartida, guardarPerfil, perfil } from './almacen';
+import { cargarPartida, guardarPartida, guardarPerfil, perfil, registrarCartaGloria } from './almacen';
 import { ponerEscena, type Escena } from './fx/motor';
 import { apagarRetrato } from './hud';
 import { ponerMusica, type PistaId } from './musica';
 import { pantallaBotin, pantallaCabala, pantallaFin, pantallaFogon, pantallaMapa, pantallaPulperia } from './pantallas/camino';
-import { pantallaAjustes, pantallaAltar, pantallaColeccion, pantallaCronica, pantallaExplorar, pantallaMazo, pantallaPortada } from './pantallas/menu';
+import { pantallaAjustes, pantallaAltar, pantallaCaminoSol, pantallaColeccion, pantallaCronica, pantallaExplorar, pantallaMazo, pantallaPortada } from './pantallas/menu';
 import { pantallaMesa } from './pantallas/mesa';
 import { precargarPersonaje } from './precarga';
 import { montar, type Pantalla } from './ui';
@@ -38,6 +38,7 @@ function ir(p: Pantalla, escena: Escena, pista: PistaId = 'portada', seguido = f
 
 export const irPortada = (): void => ir(pantallaPortada(), 'portada');
 export const irExplorar = (): void => ir(pantallaExplorar(), 'portada');
+export const irCaminoSol = (enClimax = false): void => ir(pantallaCaminoSol(enClimax), 'amanecer', enClimax ? 'rey' : 'portada');
 export const irMazo = (): void => ir(pantallaMazo(), 'portada');
 export const irAltar = (): void => ir(pantallaAltar(), 'altar', 'cabala');
 // la Colección es la pared donde se clava lo juntado; la Crónica y los Ajustes (con el abanico de los Dorsos) se leen
@@ -85,6 +86,7 @@ function anotarFin(p: Partida): void {
   const ahora = reinadoMax(perfil);
   sesion.reinadoAbierto = ahora > antes ? ahora : 0;
   if (sesion.qa) return;
+  if (p.fin?.victoria) registrarCartaGloria(p, Date.now());
   guardarPartida(null);
   guardarPerfil();
 }

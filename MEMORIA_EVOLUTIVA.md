@@ -4,6 +4,14 @@ Lo que se probó, lo que funcionó y lo que no, versión por versión. Sirve par
 cada cosa está como está. Las mediciones del panel de jugadores son **simuladas** (modelos de lenguaje con capturas y
 reglas): orientan, no demuestran.
 
+## 0.45.0 · El Camino al Sol de Mayo y Cartas de Gloria (publicada)
+
+**Qué se buscó.** Darle a CÁBALA su clímax argentino caminable en 3D y un trofeo físico persistente en La Pulpería sin alterar la huella de `src/rules/`.
+
+**Qué entró.** `CaminoSolDeMayo3D` (empedrado porteño, faroles, festones celestes/blancos, arcos de naipes y Sol de Mayo Bayer al pulso `3-3-2`) y `CartaGloria` en `src/client/almacen.ts` clavada en `CuartoPulperia3D`.
+
+**Lecciones.** `tests/forja.test.ts` exige que `src/rules/` conserve la huella exacta de `meta-report.json`; guardar `glorias` en `src/client/almacen.ts` mantiene las reglas 100 % congeladas.
+
 ## 0.44.0 · La Pulpería 3D Explorable (publicada)
 
 **Qué se buscó.** Convertir el menú en un cuarto 3D caminable estilo *Inscryption* sin romper la limpieza de la Portada sentada ni las puertas de QA.
