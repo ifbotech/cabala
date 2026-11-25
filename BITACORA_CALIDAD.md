@@ -22,6 +22,7 @@ Registro vivo del Estudio Autónomo. Cada versión se audita con lupa adversaria
 | **L. Dark-Dithered Pixel-3D & Intro 3D Abierta (Rev. 1/5)** | `voxel.ts` con sombras violáceas `#120a24`, Bayer 4×4 3D y primitivas orgánicas; escenario 3D abierto en `intro-mazo` verificado en `1920×1080`, `1280×800` y `390×844` | **Completado (`v0.54.0`)** |
 | **M. Bufón y 5 Héroes Dark-Gothic 2× (Rev. 2/5)** | Reconstrucción a `V = 0.018` sin bloques *Minecraft*: máscara veneciana de tarot, cuernos orgánicos, paleta oscura de `paleta.ts`, 5 Héroes estilizados | **Completado (`v0.55.0`)** |
 | **N. 4 Reyes Malvados Dark-Gothic 2× (Rev. 3/5)** | Reconstrucción a `V = 0.017` de los 4 Reyes Jefe con armas/coronas orgánicas, paleta regia oscura, jerarquía de escala sobre el Bufón y 0 recorte en `1920`/`1280`/`390` | **Completado (`v0.56.0`)** |
+| **O. Artesanía 3D de La Pulpería (Rev. 4/5)** | Nuevas texturas pixel-art (`texturaPaginaCronica`, `texturaVinilo`, `texturaMantelAltar`) y modelos 3D detallados para Altar, Crónica y Fonógrafo verificados en los 5 rincones | **Completado (`v0.57.0`)** |
 
 ---
 

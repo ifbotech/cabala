@@ -3,6 +3,13 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.57.0 · Artesanía 3D de La Pulpería — Altar, Crónica y Fonógrafo (2026-11-25)
+
+Cuarta iteración de la serie de 5 versiones: reconstrucción artesanal de los rincones 3D del cuarto caminable con nuevas texturas pixeladas y luminarias cálidas. *(Reglas, música, voces y balance 100 % congelados.)*
+
+- **Texturas nuevas (`texturas.ts`):** `texturaPaginaCronica()` (hojas caligrafiadas con marcas de conteo), `texturaVinilo()` (surcos concéntricos + etiqueta carmesí/oro) y `texturaMantelAltar()` (terciopelo vino oscuro con guarda de oro antiguo).
+- **Muebles 3D (`cuarto3d.ts`):** Altar con zócalo de piedra, pilares, mantel colgante, cáliz de latón con Porotos y 7 platillos de velas; Crónica con escritorio torneado, atril, libro abierto, tintero/pluma voxel y candelabro; Fonógrafo con mueble moldeado, manivela, brazo fonocaptor, vinilo giratorio y bocina acampanada de latón.
+
 ## 0.56.0 · Los 4 Reyes Malvados Dark-Gothic 2× + Jerarquía Imponente (2026-11-25)
 
 Tercera iteración de la serie de 5 versiones: reconstrucción completa de los 4 Reyes Malvados al doble de resolución (`V = 0.017`) con proporciones regias oscuras, armas detalladas y calibración de escala en combate. *(Reglas, música, voces y balance 100 % congelados.)*

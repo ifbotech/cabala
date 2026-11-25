@@ -827,3 +827,88 @@ export function texturaIconoMapa(clave: string, mapa: readonly string[], fondoHe
   cache.set(k, tex);
   return tex;
 }
+
+/** Hoja envejecida pixel-art para el Libro de Crónicas abierto en 3D. */
+export function texturaPaginaCronica(): THREE.CanvasTexture {
+  const k = 'mat:pagina-cronica';
+  if (cache.has(k)) return cache.get(k)!;
+  const W = 128;
+  const H = 160;
+  const [c, ctx] = crearCanvas(W, H);
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const borde = x < 6 || x >= W - 6 || y < 6 || y >= H - 6;
+      const mancha = ruido2(x * 0.16, y * 0.16) > 0.78 && umbral(x, y) > 0.45;
+      ctx.fillStyle = borde ? '#9d8563' : mancha ? '#c5b08e' : '#dfd2b5';
+      ctx.fillRect(x, y, 1, 1);
+    }
+  }
+  // Encabezado rojo oscuro y líneas caligráficas pixeladas
+  ctx.fillStyle = '#7a1026';
+  ctx.fillRect(16, 16, 62, 5);
+  ctx.fillStyle = '#5e2408';
+  ctx.fillRect(16, 25, W - 32, 2);
+  ctx.fillStyle = '#24141e';
+  for (let row = 0; row < 12; row++) {
+    const yy = 36 + row * 9;
+    const len = 68 + Math.floor(ruido2(row, 3) * 28);
+    for (let x = 16; x < 16 + len; x += 3) {
+      if (ruido2(x, yy) > 0.22) ctx.fillRect(x, yy, 2, 2);
+    }
+  }
+  // Marcas de conteo abajo
+  ctx.fillStyle = '#7a1026';
+  for (let i = 0; i < 4; i++) ctx.fillRect(18 + i * 5, 142, 2, 8);
+  ctx.fillRect(16, 145, 22, 2);
+  const tex = aTexturaPixel(c);
+  cache.set(k, tex);
+  return tex;
+}
+
+/** Disco de vinilo pixel-art con surcos concéntricos y etiqueta central carmesí/oro. */
+export function texturaVinilo(): THREE.CanvasTexture {
+  const k = 'mat:vinilo';
+  if (cache.has(k)) return cache.get(k)!;
+  const S = 128;
+  const [c, ctx] = crearCanvas(S, S);
+  const cx = S / 2;
+  const cy = S / 2;
+  for (let y = 0; y < S; y++) {
+    for (let x = 0; x < S; x++) {
+      const d = Math.hypot(x - cx, y - cy);
+      if (d > 62) continue;
+      if (d < 4) {
+        ctx.fillStyle = '#c99c46';
+      } else if (d < 18) {
+        ctx.fillStyle = d > 16 ? '#c99c46' : '#7a0e28';
+      } else {
+        const surco = Math.floor(d) % 3 === 0;
+        const reflejo = Math.abs(x - cx - (y - cy)) < 14 && umbral(x, y) > 0.5;
+        ctx.fillStyle = reflejo ? '#2a1d3d' : surco ? '#191126' : '#0d0814';
+      }
+      ctx.fillRect(x, y, 1, 1);
+    }
+  }
+  const tex = aTexturaPixel(c);
+  cache.set(k, tex);
+  return tex;
+}
+
+/** Mantel ritual de terciopelo vino oscuro con guarda de oro antiguo para el Altar. */
+export function texturaMantelAltar(): THREE.CanvasTexture {
+  const k = 'mat:mantel-altar';
+  if (cache.has(k)) return cache.get(k)!;
+  const S = 128;
+  const [c, ctx] = crearCanvas(S, S);
+  for (let y = 0; y < S; y++) {
+    for (let x = 0; x < S; x++) {
+      const guarda = x < 8 || x >= S - 8 || y >= S - 10;
+      const hilo = umbral(x, y) > 0.65;
+      ctx.fillStyle = guarda ? (hilo ? '#c98c1e' : '#78430b') : hilo ? '#4d081c' : '#2e0512';
+      ctx.fillRect(x, y, 1, 1);
+    }
+  }
+  const tex = aTexturaPixel(c);
+  cache.set(k, tex);
+  return tex;
+}
