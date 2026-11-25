@@ -1,0 +1,623 @@
+// Cuarto completo de La Pulpería en 3D caminable: paredes de madera, 6 rincones interactivos y Puerta Doble con resplandor del Sol de Mayo.
+import * as THREE from 'three';
+import { PALOS } from '../../rules/cartas';
+import { MAZOS } from '../../rules/mazos';
+import { MEJORAS, type MejoraId, type Perfil } from '../../rules/perfil';
+import { armoniaActual } from '../musica';
+import {
+  texturaCera,
+  texturaCuero,
+  texturaDorso,
+  texturaHalo,
+  texturaLaton,
+  texturaMadera,
+  texturaNaipe,
+  texturaOroMoneda,
+  texturaPano,
+  texturaPared,
+  texturaPiedra,
+} from './texturas';
+
+export type RinconId = 'mesa' | 'altar' | 'coleccion' | 'fogon' | 'cronica' | 'ajustes' | 'puerta';
+
+interface ZonaRincon {
+  id: RinconId;
+  pos: THREE.Vector3;
+  mira: THREE.Vector3;
+  malla: THREE.Object3D;
+  baliza: THREE.Mesh;
+}
+
+interface VelaAltar {
+  id: MejoraId;
+  cera: THREE.Mesh;
+  llama: THREE.Mesh;
+  halo: THREE.Sprite;
+  baseY: number;
+}
+
+export class CuartoPulperia3D {
+  readonly raiz = new THREE.Group();
+  private readonly zonas: ZonaRincon[] = [];
+  private readonly velasAltar: VelaAltar[] = [];
+  private readonly llamasFogon: THREE.Mesh[] = [];
+  private readonly chispasFogon: THREE.Mesh[] = [];
+  private readonly luzFogon: THREE.PointLight;
+  private readonly luzAltar: THREE.PointLight;
+  private readonly luzPuerta: THREE.PointLight;
+  private readonly rendijasPuerta: THREE.Mesh[] = [];
+  private readonly discoFonografo: THREE.Mesh;
+  private readonly bocinaFonografo: THREE.Group;
+  private readonly raycaster = new THREE.Raycaster();
+  private readonly vNdc = new THREE.Vector2();
+  private readonly vDelta = new THREE.Vector3();
+
+  constructor(escenaThree: THREE.Scene) {
+    this.construirEstructura();
+    this.construirMesaRincon();
+    this.luzAltar = this.construirAltar();
+    this.construirParedGloria();
+    const fogon = this.construirFogonCuarto();
+    this.luzFogon = fogon.luz;
+    this.construirCronica();
+    const fono = this.construirFonografo();
+    this.discoFonografo = fono.disco;
+    this.bocinaFonografo = fono.bocina;
+    this.luzPuerta = this.construirPuertaDoble();
+
+    this.raiz.visible = false;
+    escenaThree.add(this.raiz);
+  }
+
+  private registrarZona(
+    id: RinconId,
+    pos: [number, number, number],
+    mira: [number, number, number],
+    malla: THREE.Object3D,
+    balizaPos: [number, number, number],
+  ): void {
+    const baliza = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.055, 0),
+      new THREE.MeshBasicMaterial({ color: 0xffd54a, transparent: true, opacity: 0.58 }),
+    );
+    baliza.position.set(...balizaPos);
+    this.raiz.add(baliza);
+    this.zonas.push({
+      id,
+      pos: new THREE.Vector3(...pos),
+      mira: new THREE.Vector3(...mira),
+      malla,
+      baliza,
+    });
+  }
+
+  private construirEstructura(): void {
+    const matPiso = new THREE.MeshStandardMaterial({ map: texturaMadera(), roughness: 0.9, metalness: 0.04 });
+    const matPared = new THREE.MeshStandardMaterial({ map: texturaPared(), roughness: 0.94 });
+    const matViga = new THREE.MeshStandardMaterial({ color: 0x120919, roughness: 0.96 });
+
+    const piso = new THREE.Mesh(new THREE.BoxGeometry(24, 0.25, 22), matPiso);
+    piso.position.set(0, -1.75, 0);
+    piso.receiveShadow = true;
+    this.raiz.add(piso);
+
+    const paredFondo = new THREE.Mesh(new THREE.BoxGeometry(22, 8.4, 0.3), matPared);
+    paredFondo.position.set(0, 2.3, -8.35);
+    const paredFrente = new THREE.Mesh(new THREE.BoxGeometry(22, 8.4, 0.3), matPared);
+    paredFrente.position.set(0, 2.3, 11.4);
+    const paredIzq = new THREE.Mesh(new THREE.BoxGeometry(0.3, 8.4, 20.5), matPared);
+    paredIzq.position.set(-10.4, 2.3, 1.5);
+    const paredDer = new THREE.Mesh(new THREE.BoxGeometry(0.3, 8.4, 20.5), matPared);
+    paredDer.position.set(10.4, 2.3, 1.5);
+    this.raiz.add(paredFondo, paredFrente, paredIzq, paredDer);
+
+    // Vigas oscuras del techo
+    for (const z of [-6, -2, 2, 6]) {
+      const viga = new THREE.Mesh(new THREE.BoxGeometry(21, 0.32, 0.36), matViga);
+      viga.position.set(0, 6.2, z);
+      this.raiz.add(viga);
+    }
+  }
+
+  private construirMesaRincon(): void {
+    const grupo = new THREE.Group();
+    const matMadera = new THREE.MeshStandardMaterial({ map: texturaMadera(), roughness: 0.86 });
+    const matPano = new THREE.MeshStandardMaterial({ map: texturaPano(), roughness: 0.92 });
+    const matSilla = new THREE.MeshStandardMaterial({ color: 0x1e1120, roughness: 0.88 });
+    const matLaton = new THREE.MeshStandardMaterial({ map: texturaLaton(), color: 0xc99c46, metalness: 0.65, roughness: 0.38 });
+
+    const tablero = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.22, 3.0), matMadera);
+    tablero.position.set(0, -0.09, 0);
+    tablero.castShadow = true;
+    tablero.receiveShadow = true;
+    grupo.add(tablero);
+
+    const pano = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.04, 2.1), matPano);
+    pano.position.set(0, 0.04, 0);
+    pano.receiveShadow = true;
+    grupo.add(pano);
+
+    const geoPata = new THREE.BoxGeometry(0.24, 1.52, 0.24);
+    for (const px of [-2.05, 2.05]) {
+      for (const pz of [-1.15, 1.15]) {
+        const pata = new THREE.Mesh(geoPata, matMadera);
+        pata.position.set(px, -0.88, pz);
+        pata.castShadow = true;
+        grupo.add(pata);
+      }
+    }
+
+    const crearSilla = (zPos: number, rotY: number): void => {
+      const s = new THREE.Group();
+      s.position.set(0, -1.62, zPos);
+      s.rotation.y = rotY;
+      const asiento = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.1, 0.9), matSilla);
+      asiento.position.y = 0.82;
+      const respaldo = new THREE.Mesh(new THREE.BoxGeometry(0.95, 1.05, 0.1), matSilla);
+      respaldo.position.set(0, 1.38, -0.4);
+      s.add(asiento, respaldo);
+      for (const sx of [-0.38, 0.38]) {
+        for (const sz of [-0.36, 0.36]) {
+          const ps = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.8, 0.1), matSilla);
+          ps.position.set(sx, 0.4, sz);
+          s.add(ps);
+        }
+      }
+      grupo.add(s);
+    };
+    crearSilla(-2.1, Math.PI);
+    crearSilla(2.1, 0.18);
+
+    // 5 cartas con los 5 Dorsos en abanico sobre el paño
+    MAZOS.forEach((m, i) => {
+      const matD = new THREE.MeshStandardMaterial({ map: texturaDorso(m), roughness: 0.62 });
+      const c = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.025, 0.76), [
+        matLaton,
+        matLaton,
+        matD,
+        matLaton,
+        matLaton,
+        matLaton,
+      ]);
+      const ang = (i - 2) * 0.14;
+      c.position.set((i - 2) * 0.56, 0.08 + i * 0.002, 0.12 + Math.abs(i - 2) * 0.06);
+      c.rotation.y = -ang;
+      grupo.add(c);
+    });
+
+    const hit = new THREE.Mesh(
+      new THREE.BoxGeometry(4.8, 1.4, 3.0),
+      new THREE.MeshBasicMaterial({ visible: false }),
+    );
+    hit.position.set(0, 0.4, 0);
+    grupo.add(hit);
+    this.raiz.add(grupo);
+    this.registrarZona('mesa', [0, 3.1, 5.2], [0, 1.0, 0], grupo, [3.6, 1.05, 0.4]);
+  }
+
+  private construirAltar(): THREE.PointLight {
+    const g = new THREE.Group();
+    g.position.set(-7.4, -1.62, -2.5);
+
+    const matMadera = new THREE.MeshStandardMaterial({ map: texturaMadera(), roughness: 0.88 });
+    const matLaton = new THREE.MeshStandardMaterial({ map: texturaLaton(), color: 0xc99c46, metalness: 0.65, roughness: 0.38 });
+    const matCera = new THREE.MeshStandardMaterial({ map: texturaCera(), color: 0xf4e3c1, roughness: 0.86 });
+
+    const mesa = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.6, 3.2), matMadera);
+    mesa.position.y = 0.8;
+    mesa.castShadow = true;
+    mesa.receiveShadow = true;
+    g.add(mesa);
+
+    // Cuenco de latón para Porotos
+    const cuenco = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.18, 0.14, 8), matLaton);
+    cuenco.position.set(0.2, 1.67, 0);
+    g.add(cuenco);
+
+    // 7 velas físicas (una por mejora del Altar)
+    MEJORAS.forEach((m, i) => {
+      const zOff = (i - 3) * 0.38;
+      const xOff = i % 2 === 0 ? -0.22 : 0.08;
+      const cera = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.08, 1, 7), matCera);
+      cera.position.set(xOff, 1.6, zOff);
+      const llama = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.055, 0),
+        new THREE.MeshBasicMaterial({ color: 0xffb338 }),
+      );
+      llama.scale.set(0.7, 1.6, 0.7);
+      llama.visible = false;
+      const halo = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+          map: texturaHalo(),
+          color: 0xffaa33,
+          transparent: true,
+          opacity: 0.42,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        }),
+      );
+      halo.scale.set(0.55, 0.55, 1);
+      halo.visible = false;
+      g.add(cera, llama, halo);
+      this.velasAltar.push({ id: m.id, cera, llama, halo, baseY: 1.6 });
+    });
+
+    const luz = new THREE.PointLight(0xff9c38, 6, 8, 1.5);
+    luz.position.set(0.2, 2.5, 0);
+    g.add(luz);
+
+    this.raiz.add(g);
+    this.registrarZona('altar', [-4.4, 2.7, -1.5], [-7.4, 1.1, -2.5], g, [-6.6, 1.4, -2.5]);
+    return luz;
+  }
+
+  private construirParedGloria(): void {
+    const g = new THREE.Group();
+    g.position.set(5.6, 2.2, -8.05);
+
+    const matMadera = new THREE.MeshStandardMaterial({ map: texturaMadera(), roughness: 0.85 });
+    const matLaton = new THREE.MeshStandardMaterial({ map: texturaLaton(), color: 0xc99c46, metalness: 0.65, roughness: 0.38 });
+
+    const tablero = new THREE.Mesh(new THREE.BoxGeometry(5.0, 3.0, 0.14), matMadera);
+    g.add(tablero);
+
+    // Marco perimetral de latón
+    const marcoSup = new THREE.Mesh(new THREE.BoxGeometry(5.22, 0.12, 0.2), matLaton);
+    marcoSup.position.set(0, 1.54, 0.02);
+    const marcoInf = new THREE.Mesh(new THREE.BoxGeometry(5.22, 0.12, 0.2), matLaton);
+    marcoInf.position.set(0, -1.54, 0.02);
+    const marcoIzq = new THREE.Mesh(new THREE.BoxGeometry(0.12, 3.2, 0.2), matLaton);
+    marcoIzq.position.set(-2.55, 0, 0.02);
+    const marcoDer = new THREE.Mesh(new THREE.BoxGeometry(0.12, 3.2, 0.2), matLaton);
+    marcoDer.position.set(2.55, 0, 0.02);
+    g.add(marcoSup, marcoInf, marcoIzq, marcoDer);
+
+    // 5 Dorsos en fila superior
+    MAZOS.forEach((m, i) => {
+      const matD = new THREE.MeshStandardMaterial({ map: texturaDorso(m), roughness: 0.62 });
+      const carta = new THREE.Mesh(new THREE.BoxGeometry(0.74, 1.04, 0.04), [
+        matLaton,
+        matLaton,
+        matLaton,
+        matLaton,
+        matD,
+        matLaton,
+      ]);
+      carta.position.set((i - 2) * 0.92, 0.62, 0.09);
+      g.add(carta);
+    });
+
+    // 4 Reyes en fila inferior
+    PALOS.forEach((palo, i) => {
+      const matR = new THREE.MeshStandardMaterial({ map: texturaNaipe(palo, 12), roughness: 0.6 });
+      const carta = new THREE.Mesh(new THREE.BoxGeometry(0.74, 1.04, 0.04), [
+        matLaton,
+        matLaton,
+        matLaton,
+        matLaton,
+        matR,
+        matLaton,
+      ]);
+      carta.position.set((i - 1.5) * 1.05, -0.68, 0.09);
+      g.add(carta);
+    });
+
+    const luz = new THREE.PointLight(0xffd27a, 14, 10, 1.35);
+    luz.position.set(0, 0.9, 2.2);
+    g.add(luz);
+
+    this.raiz.add(g);
+    this.registrarZona('coleccion', [4.8, 2.6, -4.1], [5.6, 2.2, -8.0], g, [5.6, 3.9, -7.7]);
+  }
+
+  private construirFogonCuarto(): { luz: THREE.PointLight } {
+    const g = new THREE.Group();
+    g.position.set(-6.4, -1.62, -7.2);
+
+    const matPiedra = new THREE.MeshStandardMaterial({ map: texturaPiedra(), roughness: 0.92 });
+    const matLena = new THREE.MeshStandardMaterial({ color: 0x261512, roughness: 0.95 });
+    const matBrasa = new THREE.MeshStandardMaterial({
+      color: 0x3a1208,
+      emissive: 0xff4512,
+      emissiveIntensity: 1.35,
+      roughness: 0.7,
+    });
+
+    // Arco de hogar de piedra contra la pared
+    const base = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.3, 1.6), matPiedra);
+    base.position.y = 0.15;
+    const pilarL = new THREE.Mesh(new THREE.BoxGeometry(0.55, 2.2, 1.2), matPiedra);
+    pilarL.position.set(-1.1, 1.2, -0.15);
+    const pilarR = new THREE.Mesh(new THREE.BoxGeometry(0.55, 2.2, 1.2), matPiedra);
+    pilarR.position.set(1.1, 1.2, -0.15);
+    const dintel = new THREE.Mesh(new THREE.BoxGeometry(2.9, 0.55, 1.3), matPiedra);
+    dintel.position.set(0, 2.45, -0.15);
+    g.add(base, pilarL, pilarR, dintel);
+
+    const brasas = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.72, 0.08, 10), matBrasa);
+    brasas.position.set(0, 0.34, 0.1);
+    g.add(brasas);
+
+    for (let i = 0; i < 4; i++) {
+      const a = (i / 4) * Math.PI + 0.3;
+      const leno = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 1.15, 6), matLena);
+      leno.rotation.z = Math.PI / 2 - 0.18;
+      leno.rotation.y = a;
+      leno.position.set(Math.cos(a) * 0.1, 0.44, 0.1 + Math.sin(a) * 0.1);
+      g.add(leno);
+    }
+
+    const specs = [
+      { r: 0.32, h: 0.85, c: 0xff4800, y: 0.75, op: 0.46, tr: true },
+      { r: 0.21, h: 0.65, c: 0xffa81e, y: 0.7, op: 0.78, tr: true },
+      { r: 0.11, h: 0.42, c: 0xfff5a8, y: 0.62, op: 1, tr: false },
+    ];
+    for (const sp of specs) {
+      const ll = new THREE.Mesh(
+        new THREE.OctahedronGeometry(sp.r, 0),
+        new THREE.MeshBasicMaterial({ color: sp.c, transparent: sp.tr, opacity: sp.op, depthWrite: !sp.tr }),
+      );
+      ll.scale.set(1, sp.h / sp.r, 1);
+      ll.position.set(0, sp.y, 0.1);
+      g.add(ll);
+      this.llamasFogon.push(ll);
+    }
+
+    for (let i = 0; i < 5; i++) {
+      const ch = new THREE.Mesh(
+        new THREE.BoxGeometry(0.04, 0.04, 0.04),
+        new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? 0xffd166 : 0xff7b00 }),
+      );
+      ch.position.set(Math.cos(i * 1.4) * 0.22, 0.9 + i * 0.16, 0.1 + Math.sin(i * 1.8) * 0.16);
+      g.add(ch);
+      this.chispasFogon.push(ch);
+    }
+
+    const luz = new THREE.PointLight(0xff6a1a, 12, 10, 1.4);
+    luz.position.set(0, 1.2, 0.6);
+    g.add(luz);
+
+    this.raiz.add(g);
+    this.registrarZona('fogon', [-4.4, 2.4, -4.0], [-6.4, 0.8, -7.2], g, [-6.4, 1.9, -6.5]);
+    return { luz };
+  }
+
+  private construirCronica(): void {
+    const g = new THREE.Group();
+    g.position.set(7.2, -1.62, 1.2);
+
+    const matMadera = new THREE.MeshStandardMaterial({ map: texturaMadera(), roughness: 0.86 });
+    const matCuero = new THREE.MeshStandardMaterial({ map: texturaCuero(), roughness: 0.82 });
+    const matHojas = new THREE.MeshStandardMaterial({ color: 0xede0c4, roughness: 0.78 });
+    const matLaton = new THREE.MeshStandardMaterial({ map: texturaLaton(), color: 0xc99c46, metalness: 0.65, roughness: 0.38 });
+
+    const mesa = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.55, 2.0), matMadera);
+    mesa.position.y = 0.775;
+    g.add(mesa);
+
+    // Libro abierto de Crónica con tapa de cuero y hojas abiertas
+    const tapa = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.06, 1.04), matCuero);
+    tapa.position.set(-0.08, 1.58, 0);
+    tapa.rotation.y = -0.18;
+    const hojaIzq = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.04, 0.94), matHojas);
+    hojaIzq.position.set(-0.08, 1.62, -0.22);
+    hojaIzq.rotation.y = -0.18;
+    const hojaDer = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.04, 0.94), matHojas);
+    hojaDer.position.set(-0.08, 1.62, 0.22);
+    hojaDer.rotation.y = -0.18;
+    const tintero = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.14, 7), matLaton);
+    tintero.position.set(0.24, 1.62, -0.52);
+    g.add(tapa, hojaIzq, hojaDer, tintero);
+
+    this.raiz.add(g);
+    this.registrarZona('cronica', [4.1, 2.6, 1.8], [7.2, 0.8, 1.2], g, [6.6, 1.2, 1.2]);
+  }
+
+  private construirFonografo(): { disco: THREE.Mesh; bocina: THREE.Group } {
+    const g = new THREE.Group();
+    g.position.set(7.2, -1.62, -3.2);
+
+    const matMadera = new THREE.MeshStandardMaterial({ map: texturaMadera(), roughness: 0.84 });
+    const matLaton = new THREE.MeshStandardMaterial({ map: texturaLaton(), color: 0xc99c46, metalness: 0.68, roughness: 0.35 });
+    const matVinilo = new THREE.MeshStandardMaterial({ color: 0x110c18, roughness: 0.45, metalness: 0.2 });
+
+    const mueble = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.65, 1.3), matMadera);
+    mueble.position.y = 0.825;
+    const disco = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.04, 12), matVinilo);
+    disco.position.set(0, 1.67, 0);
+
+    const bocina = new THREE.Group();
+    bocina.position.set(0.18, 1.95, 0);
+    const cuello = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 0.45, 7), matLaton);
+    cuello.rotation.z = 0.45;
+    const campana = new THREE.Mesh(new THREE.ConeGeometry(0.36, 0.56, 8, 1, true), matLaton);
+    campana.position.set(-0.28, 0.34, 0);
+    campana.rotation.z = Math.PI * 0.65;
+    bocina.add(cuello, campana);
+
+    g.add(mueble, disco, bocina);
+    this.raiz.add(g);
+    this.registrarZona('ajustes', [4.2, 2.7, -2.5], [7.2, 1.2, -3.2], g, [6.6, 1.7, -3.2]);
+    return { disco, bocina };
+  }
+
+  private construirPuertaDoble(): THREE.PointLight {
+    const g = new THREE.Group();
+    g.position.set(0, -1.62, -8.12);
+
+    const matMadera = new THREE.MeshStandardMaterial({ map: texturaMadera(), roughness: 0.88 });
+    const matHierro = new THREE.MeshStandardMaterial({ color: 0x201c2a, metalness: 0.65, roughness: 0.46 });
+    const matLaton = new THREE.MeshStandardMaterial({ map: texturaLaton(), color: 0xc99c46, metalness: 0.65, roughness: 0.38 });
+    const matSol = new THREE.MeshBasicMaterial({ color: 0xffe26a });
+    const matCeleste = new THREE.MeshBasicMaterial({ color: 0x62d0ff });
+
+    const marco = new THREE.Mesh(new THREE.BoxGeometry(4.2, 4.9, 0.28), matHierro);
+    marco.position.y = 2.45;
+    const hojaIzq = new THREE.Mesh(new THREE.BoxGeometry(1.86, 4.55, 0.16), matMadera);
+    hojaIzq.position.set(-0.96, 2.28, 0.08);
+    const hojaDer = new THREE.Mesh(new THREE.BoxGeometry(1.86, 4.55, 0.16), matMadera);
+    hojaDer.position.set(0.96, 2.28, 0.08);
+
+    // Bisagras y aldabas de latón
+    for (const by of [0.85, 3.65]) {
+      const bIzq = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.12, 0.06), matLaton);
+      bIzq.position.set(-1.72, by, 0.18);
+      const bDer = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.12, 0.06), matLaton);
+      bDer.position.set(1.72, by, 0.18);
+      g.add(bIzq, bDer);
+    }
+    for (const ax of [-0.45, 0.45]) {
+      const aldaba = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.025, 6, 10), matLaton);
+      aldaba.position.set(ax, 2.05, 0.22);
+      g.add(aldaba);
+    }
+
+    // Tranca de hierro trabando ambas hojas
+    const tranca = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.18, 0.14), matHierro);
+    tranca.position.set(0, 2.05, 0.22);
+
+    // Rendijas celestes y doradas filtrando el resplandor del Sol de Mayo
+    const rendijaCentro = new THREE.Mesh(new THREE.PlaneGeometry(0.08, 4.5), matSol);
+    rendijaCentro.position.set(0, 2.28, 0.18);
+    const rendijaSup = new THREE.Mesh(new THREE.PlaneGeometry(3.75, 0.07), matCeleste);
+    rendijaSup.position.set(0, 4.58, 0.18);
+    const rendijaInf = new THREE.Mesh(new THREE.PlaneGeometry(3.75, 0.06), matCeleste);
+    rendijaInf.position.set(0, 0.04, 0.18);
+    this.rendijasPuerta.push(rendijaCentro, rendijaSup, rendijaInf);
+
+    // Derrame de luz celeste sobre las tablas del piso y haz dorado vertical
+    const derramePiso = new THREE.Mesh(
+      new THREE.PlaneGeometry(3.8, 3.4),
+      new THREE.MeshBasicMaterial({
+        map: texturaHalo(),
+        color: 0x70d8ff,
+        transparent: true,
+        opacity: 0.34,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      }),
+    );
+    derramePiso.rotation.x = -Math.PI / 2;
+    derramePiso.position.set(0, 0.03, 1.85);
+
+    const hazDorado = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.9, 4.4),
+      new THREE.MeshBasicMaterial({
+        map: texturaHalo(),
+        color: 0xffe26a,
+        transparent: true,
+        opacity: 0.28,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      }),
+    );
+    hazDorado.position.set(0, 2.25, 0.28);
+
+    const luz = new THREE.PointLight(0x8be2ff, 15, 12, 1.3);
+    luz.position.set(0, 2.3, 1.1);
+
+    g.add(marco, hojaIzq, hojaDer, tranca, rendijaCentro, rendijaSup, rendijaInf, derramePiso, hazDorado, luz);
+    this.raiz.add(g);
+    this.registrarZona('puerta', [0, 2.6, -3.9], [0, 1.9, -8.1], g, [0, 2.6, -7.7]);
+    return luz;
+  }
+
+  ponerVisible(si: boolean): void {
+    this.raiz.visible = si;
+  }
+
+  sincronizarPerfil(perfil: Perfil): void {
+    let activas = 0;
+    for (const v of this.velasAltar) {
+      const nv = perfil.altar[v.id] ?? 0;
+      const h = nv > 0 ? 0.28 + nv * 0.11 : 0.16;
+      v.cera.scale.y = h;
+      v.cera.position.y = v.baseY + h * 0.5;
+      const encendida = nv > 0;
+      v.llama.visible = encendida;
+      v.halo.visible = encendida;
+      if (encendida) {
+        activas++;
+        v.llama.position.set(v.cera.position.x, v.baseY + h + 0.07, v.cera.position.z);
+        v.halo.position.set(v.cera.position.x, v.baseY + h + 0.08, v.cera.position.z);
+      }
+    }
+    this.luzAltar.intensity = activas > 0 ? 4 + activas * 1.4 : 1.5;
+  }
+
+  actualizar(dt: number, quieto: boolean, reloj: number, resaltado: RinconId | null, camPos?: THREE.Vector3): void {
+    if (!this.raiz.visible) return;
+    const arm = armoniaActual();
+    const pulso = arm && (arm.paso === 0 || arm.paso === 6 || arm.paso === 12) ? 0.3 : 0;
+
+    if (!quieto) {
+      this.discoFonografo.rotation.y += dt * 1.8;
+      this.bocinaFonografo.scale.setScalar(1 + pulso * 0.09 + Math.sin(reloj * 4) * 0.015);
+
+      this.luzFogon.intensity = 12 + Math.sin(reloj * 10) * 3.5;
+      this.llamasFogon.forEach((ll, i) => {
+        ll.scale.y = (i === 0 ? 2.65 : i === 1 ? 3.1 : 3.8) * (1 + Math.sin(reloj * 11 + i) * 0.16);
+        ll.rotation.y += dt * 1.4;
+      });
+      this.chispasFogon.forEach((ch, i) => {
+        ch.position.y += dt * (0.4 + (i % 3) * 0.12);
+        if (ch.position.y > 1.75) ch.position.y = 0.85;
+      });
+
+      this.luzPuerta.intensity = 7 + pulso * 5 + Math.sin(reloj * 2.1) * 1.6;
+    }
+
+    for (const z of this.zonas) {
+      const activo = resaltado === z.id;
+      const cerca = camPos ? camPos.distanceTo(z.mira) < 4.6 : false;
+      z.baliza.visible = !cerca && (activo || z.id !== 'mesa');
+      if (!quieto) {
+        z.baliza.rotation.y = reloj * (activo ? 3.5 : 1.4);
+        z.baliza.scale.setScalar(activo ? 1.45 + Math.sin(reloj * 8) * 0.18 : 0.85);
+      } else {
+        z.baliza.scale.setScalar(activo ? 1.35 : 0.85);
+      }
+      (z.baliza.material as THREE.MeshBasicMaterial).color.setHex(activo ? 0x62d0ff : 0xffd54a);
+    }
+  }
+
+  raycast(cam: THREE.PerspectiveCamera, ndcX: number, ndcY: number): RinconId | null {
+    if (!this.raiz.visible) return null;
+    this.vNdc.set(ndcX, ndcY);
+    this.raycaster.setFromCamera(this.vNdc, cam);
+    for (const z of this.zonas) {
+      if (this.raycaster.intersectObject(z.malla, true).length > 0 || this.raycaster.intersectObject(z.baliza, false).length > 0) {
+        return z.id;
+      }
+    }
+    return null;
+  }
+
+  cercano(posCam: THREE.Vector3, dirCam: THREE.Vector3): RinconId | null {
+    let mejor: RinconId | null = null;
+    let mejorPunt = -Infinity;
+    for (const z of this.zonas) {
+      this.vDelta.copy(z.mira).sub(posCam);
+      const dist = this.vDelta.length();
+      if (dist > 6.8) continue;
+      this.vDelta.normalize();
+      const dot = dirCam.dot(this.vDelta);
+      if (dot < 0.72) continue;
+      const punt = dot * 3 - dist * 0.25;
+      if (punt > mejorPunt) {
+        mejorPunt = punt;
+        mejor = z.id;
+      }
+    }
+    return mejor;
+  }
+
+  poseDe(id: RinconId): { pos: [number, number, number]; mira: [number, number, number] } {
+    const z = this.zonas.find((x) => x.id === id);
+    if (!z) return { pos: [0, 2.7, 5.4], mira: [0, 2.1, -6.0] };
+    return {
+      pos: [z.pos.x, z.pos.y, z.pos.z],
+      mira: [z.mira.x, z.mira.y, z.mira.z],
+    };
+  }
+}

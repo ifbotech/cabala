@@ -3,6 +3,13 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.44.0 · La Pulpería 3D Explorable (2026-11-25)
+
+Segunda entrega de la transformación 3D (Pilar B): la Portada incorpora el botón `LEVANTARSE` para recorrer en primera persona el cuarto completo de **La Pulpería 3D** con 7 rincones interactivos. *(Música, voces y balance sin cambios.)*
+
+- **Exploración en primera persona (`cuarto3d.ts`, `camara.ts`, `menu.ts`, `index.ts`):** caminata con `WASD`/flechas/stick izquierdo (*head-bob* y pasos sobre madera), mirada 360° con arrastre o stick derecho, raycast con `[E]`/clic y barra rápida de 7 botones en una sola fila en escritorio.
+- **7 rincones físicos 3D:** Mesa del Bufón con 2 sillas y 5 Dorsos en abanico, Rincón del Altar con 7 velas dinámicas ligadas a `perfil.altar`, Pared de la Gloria enmarcada en latón (5 Dorsos + 4 Reyes), Fogón de piedra con chispas, Libro de Crónicas, Fonógrafo giratorio sincronizado al pulso `3-3-2` y La Puerta Doble trancada con resplandor celeste y dorado del Sol de Mayo.
+
 ## 0.43.0 · Cirugía Visual Total: Bufón Dark Dithered, Cero Parches 2D y Escritorio Sin Brechas (2026-11-24)
 
 Primera gran cirugía visual del Pilar A: el Bufón 3D adopta claroscuro partido *Dark Dithered* estilo *Leshy*/*COMODÍN*, desaparecen los parches 2D flotantes en todas las resoluciones, se cierra la brecha de media queries `1700px+` y se eliminan los solapes sobre `LA CORTE` y el borde izquierdo. *(Música, voces y balance sin cambios.)*

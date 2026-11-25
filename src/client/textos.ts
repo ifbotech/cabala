@@ -399,6 +399,18 @@ export const ES = {
   placaBrava: 'naipe entero ×2',
   bufonForjaBrava: 'Tercera pasada: o vale doble, o ceniza. Elegí la mutación y rezá.',
   temple: 'Daño',
+  levantarse: 'LEVANTARSE',
+  volverMesa: 'VOLVER A LA MESA',
+  explorarGuia: 'WASD caminar · Arrastrá para mirar · Clic o E para usar',
+  rinconMesa: 'La Mesa del Bufón',
+  rinconAltar: 'El Rincón del Altar',
+  rinconColeccion: 'Pared de la Gloria',
+  rinconFogon: 'El Fogón',
+  rinconCronica: 'Libro de Crónicas',
+  rinconAjustes: 'El Fonógrafo',
+  rinconPuerta: 'La Puerta Doble',
+  puertaTrancada: 'Cerrada con tranca. Un resplandor celeste y dorado se filtra por las rendijas…',
+  fogonReposo: 'Las brasas esperan. Templarás tus naipes cuando salgas al camino.',
 };
 
 export const EN: Record<keyof typeof ES, string> = {
@@ -781,6 +793,18 @@ export const EN: Record<keyof typeof ES, string> = {
   placaBrava: 'whole card ×2',
   bufonForjaBrava: 'Third pass: double or ashes. Pick the mutation and pray.',
   temple: 'Damage',
+  levantarse: 'STAND UP',
+  volverMesa: 'BACK TO TABLE',
+  explorarGuia: 'WASD walk · Drag to look · Click or E to use',
+  rinconMesa: "The Jester's Table",
+  rinconAltar: 'The Altar Corner',
+  rinconColeccion: 'Wall of Glory',
+  rinconFogon: 'The Hearth',
+  rinconCronica: 'Chronicle Ledger',
+  rinconAjustes: 'The Phonograph',
+  rinconPuerta: 'The Double Doors',
+  puertaTrancada: 'Barred shut. A sky-blue and golden glow spills through the cracks…',
+  fogonReposo: 'The embers wait. You will temper your cards once you take the road.',
 };
 
 export type Clave = keyof typeof ES;

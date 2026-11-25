@@ -11,7 +11,7 @@ import { ponerEscena, type Escena } from './fx/motor';
 import { apagarRetrato } from './hud';
 import { ponerMusica, type PistaId } from './musica';
 import { pantallaBotin, pantallaCabala, pantallaFin, pantallaFogon, pantallaMapa, pantallaPulperia } from './pantallas/camino';
-import { pantallaAjustes, pantallaAltar, pantallaColeccion, pantallaCronica, pantallaMazo, pantallaPortada } from './pantallas/menu';
+import { pantallaAjustes, pantallaAltar, pantallaColeccion, pantallaCronica, pantallaExplorar, pantallaMazo, pantallaPortada } from './pantallas/menu';
 import { pantallaMesa } from './pantallas/mesa';
 import { precargarPersonaje } from './precarga';
 import { montar, type Pantalla } from './ui';
@@ -37,6 +37,7 @@ function ir(p: Pantalla, escena: Escena, pista: PistaId = 'portada', seguido = f
 }
 
 export const irPortada = (): void => ir(pantallaPortada(), 'portada');
+export const irExplorar = (): void => ir(pantallaExplorar(), 'portada');
 export const irMazo = (): void => ir(pantallaMazo(), 'portada');
 export const irAltar = (): void => ir(pantallaAltar(), 'altar', 'cabala');
 // la Colección es la pared donde se clava lo juntado; la Crónica y los Ajustes (con el abanico de los Dorsos) se leen

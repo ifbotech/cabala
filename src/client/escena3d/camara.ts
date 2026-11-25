@@ -3,6 +3,7 @@ import * as THREE from 'three';
 
 export type ModoCamara =
   | 'portada'
+  | 'explorar'
   | 'mazos'
   | 'mesa'
   | 'mapa'
@@ -23,6 +24,7 @@ interface Pose {
 
 const POSES: Record<ModoCamara, Pose> = {
   portada: { pos: [0, 3.6, 8.8], mira: [0, 1.35, -0.5], fov: 42 },
+  explorar: { pos: [0, 2.7, 5.4], mira: [0, 2.1, -6.0], fov: 50 },
   mazos: { pos: [0, 4.3, 8.4], mira: [0, 0.8, 0.2], fov: 42 },
   mesa: { pos: [0, 5.2, 7.6], mira: [0, 0.65, -0.2], fov: 44 },
   mapa: { pos: [0, 6.8, 5.4], mira: [0, 0.1, 0.1], fov: 44 },
@@ -48,6 +50,16 @@ export class CamaraPulperia {
   private reloj = 0;
   private readonly vPosObj = new THREE.Vector3();
   private readonly vMiraObj = new THREE.Vector3();
+  private libre = false;
+  readonly posLibre = new THREE.Vector3(0, 2.7, 5.4);
+  readonly dirLibre = new THREE.Vector3(0, 0, -1);
+  private yaw = 0;
+  private pitch = -0.05;
+  private fasePaso = 0;
+  private ultimoPasoIdx = 0;
+  private metaPos: THREE.Vector3 | null = null;
+  private metaYaw: number | null = null;
+  private metaPitch: number | null = null;
 
   constructor(aspecto: number) {
     this.cam = new THREE.PerspectiveCamera(42, aspecto, 0.1, 60);
@@ -57,7 +69,102 @@ export class CamaraPulperia {
 
   ponerModo(modo: ModoCamara, inmediato = false): void {
     this.modo = modo;
+    if (modo !== 'explorar') this.libre = false;
     if (inmediato) this.encajar();
+  }
+
+  entrarExploracion(inmediato = false): void {
+    this.libre = true;
+    this.modo = 'explorar';
+    this.posLibre.set(0, 2.7, 5.4);
+    this.yaw = 0;
+    this.pitch = -0.05;
+    this.fasePaso = 0;
+    this.ultimoPasoIdx = 0;
+    this.metaPos = null;
+    this.metaYaw = null;
+    this.metaPitch = null;
+    if (inmediato) this.aplicarLibre(0);
+  }
+
+  salirExploracion(): void {
+    this.libre = false;
+    this.metaPos = null;
+    this.modo = 'portada';
+  }
+
+  rotarLibre(dyaw: number, dpitch: number): void {
+    this.metaPos = null;
+    this.metaYaw = null;
+    this.metaPitch = null;
+    this.yaw += dyaw;
+    this.pitch = THREE.MathUtils.clamp(this.pitch + dpitch, -0.42, 0.36);
+  }
+
+  moverLibre(adelante: number, derecha: number, dt: number): boolean {
+    if (!this.libre) return false;
+    if (Math.abs(adelante) < 0.01 && Math.abs(derecha) < 0.01) return false;
+    this.metaPos = null;
+    this.metaYaw = null;
+    this.metaPitch = null;
+
+    const vel = 4.2 * dt;
+    const fx = -Math.sin(this.yaw);
+    const fz = -Math.cos(this.yaw);
+    const rx = Math.cos(this.yaw);
+    const rz = -Math.sin(this.yaw);
+
+    let nx = this.posLibre.x + (fx * adelante + rx * derecha) * vel;
+    let nz = this.posLibre.z + (fz * adelante + rz * derecha) * vel;
+
+    nx = THREE.MathUtils.clamp(nx, -6.0, 6.0);
+    nz = THREE.MathUtils.clamp(nz, -4.4, 7.6);
+    // Colisión suave con la mesa central
+    if (Math.abs(nx) < 3.4 && nz > -2.4 && nz < 2.6) {
+      if (Math.abs(this.posLibre.x) >= 3.4) nx = this.posLibre.x;
+      else nz = this.posLibre.z;
+    }
+    this.posLibre.x = nx;
+    this.posLibre.z = nz;
+    this.fasePaso += dt * 10.5;
+    const idx = Math.floor(this.fasePaso / Math.PI);
+    if (idx !== this.ultimoPasoIdx) {
+      this.ultimoPasoIdx = idx;
+      return true;
+    }
+    return false;
+  }
+
+  enfocarPose(pos: [number, number, number], mira: [number, number, number], inmediato = false): void {
+    this.libre = true;
+    this.modo = 'explorar';
+    const dx = mira[0] - pos[0];
+    const dy = mira[1] - pos[1];
+    const dz = mira[2] - pos[2];
+    const yawObj = Math.atan2(-dx, -dz);
+    const pitchObj = THREE.MathUtils.clamp(Math.atan2(dy, Math.hypot(dx, dz)), -0.42, 0.36);
+    if (inmediato) {
+      this.posLibre.set(pos[0], pos[1], pos[2]);
+      this.yaw = yawObj;
+      this.pitch = pitchObj;
+      this.metaPos = null;
+      this.aplicarLibre(0);
+    } else {
+      this.metaPos = new THREE.Vector3(pos[0], pos[1], pos[2]);
+      this.metaYaw = yawObj;
+      this.metaPitch = pitchObj;
+    }
+  }
+
+  private aplicarLibre(bob: number): void {
+    const fovObj = POSES.explorar.fov;
+    if (Math.abs(this.cam.fov - fovObj) > 0.05) {
+      this.cam.fov = fovObj;
+      this.cam.updateProjectionMatrix();
+    }
+    this.dirLibre.set(-Math.sin(this.yaw) * Math.cos(this.pitch), Math.sin(this.pitch), -Math.cos(this.yaw) * Math.cos(this.pitch)).normalize();
+    this.cam.position.set(this.posLibre.x, this.posLibre.y + bob, this.posLibre.z);
+    this.cam.lookAt(this.posLibre.x + this.dirLibre.x * 5, this.posLibre.y + bob + this.dirLibre.y * 5, this.posLibre.z + this.dirLibre.z * 5);
   }
 
   establecerPuntero(nx: number, ny: number): void {
@@ -92,6 +199,23 @@ export class CamaraPulperia {
   }
 
   actualizar(dt: number, quieto: boolean): void {
+    if (this.libre) {
+      if (!quieto && this.metaPos) {
+        const k = 1 - Math.exp(-6.2 * dt);
+        this.posLibre.lerp(this.metaPos, k);
+        if (this.metaYaw !== null) {
+          let diff = this.metaYaw - this.yaw;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          this.yaw += diff * k;
+        }
+        if (this.metaPitch !== null) this.pitch += (this.metaPitch - this.pitch) * k;
+        if (this.posLibre.distanceTo(this.metaPos) < 0.04) this.metaPos = null;
+      }
+      const bob = quieto ? 0 : Math.sin(this.fasePaso) * 0.085;
+      this.aplicarLibre(bob);
+      return;
+    }
     if (quieto) {
       this.sacudida = 0;
       this.encajar();

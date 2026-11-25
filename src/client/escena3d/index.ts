@@ -1,13 +1,15 @@
 // Orquestador de la escena 3D en Three.js: inicialización segura, fallback 2D si falta WebGL y bucle adaptativo 60+ FPS.
 import * as THREE from 'three';
 import type { Palo } from '../../rules/cartas';
-import { ajustes } from '../almacen';
+import { ajustes, perfil } from '../almacen';
 import type { Escena } from '../fx/escenas';
 import { sesion } from '../juego';
 import { Bufon3D } from './bufon3d';
 import { CamaraPulperia, type ModoCamara } from './camara';
 import { SincroCartas3D } from './cartas3d';
 import { Chiches3D } from './chiches3d';
+import { CuartoPulperia3D, type RinconId } from './cuarto3d';
+export type { RinconId } from './cuarto3d';
 import { Escenarios3D } from './escenarios3d';
 import { MundoPulperia } from './pulperia';
 
@@ -20,6 +22,8 @@ class Motor3D {
   readonly bufon: Bufon3D;
   readonly chiches: Chiches3D;
   readonly escenarios: Escenarios3D;
+  readonly cuarto: CuartoPulperia3D;
+  rinconResaltado: RinconId | null = null;
 
   private raf = 0;
   private ultimo = 0;
@@ -51,6 +55,8 @@ class Motor3D {
     this.bufon = new Bufon3D(this.escena);
     this.chiches = new Chiches3D(this.escena);
     this.escenarios = new Escenarios3D(this.escena);
+    this.cuarto = new CuartoPulperia3D(this.escena);
+    this.cuarto.sincronizarPerfil(perfil);
 
     window.addEventListener('resize', () => this.redimensionar());
     window.addEventListener(
@@ -70,6 +76,9 @@ class Motor3D {
         this.camara.ponerModo(this.modoDe(nom), this.foto || ajustes.calma);
         this.mundo.ponerEscena(esc, nom);
         this.escenarios.ponerEscena(esc, nom);
+        const enCuarto = nom === 'explorar';
+        this.cuarto.ponerVisible(enCuarto);
+        if (enCuarto) this.cuarto.sincronizarPerfil(perfil);
         this.forzarCuadro();
       }
     });
@@ -93,6 +102,8 @@ class Motor3D {
 
   private modoDe(pantalla: string): ModoCamara {
     switch (pantalla) {
+      case 'explorar':
+        return 'explorar';
       case 'mazo':
         return 'mazos';
       case 'mesa':
@@ -167,6 +178,7 @@ class Motor3D {
     this.bufon.sincronizar(this.camara.cam, dt, quieto, this.punteroX, this.punteroY, this.reloj);
     this.chiches.sincronizar(this.camara.cam, dt, quieto, this.reloj);
     this.escenarios.actualizar(this.camara.cam, dt, quieto, this.reloj, p?.mazoId ?? 'escoba', infoCartaF);
+    this.cuarto.actualizar(dt, quieto, this.reloj, this.rinconResaltado, this.camara.cam.position);
     this.renderer.render(this.escena, this.camara.cam);
   }
 
@@ -202,6 +214,7 @@ export function iniciarEscena3d(): boolean {
       bufonVisible: () => motor?.bufon.raiz.visible ?? false,
       chichesActivos: () => motor?.chiches.activos ?? 0,
       escenario3d: () => motor?.escenarios.activo ?? 'ninguno',
+      cuartoActivo: () => motor?.cuarto.raiz.visible ?? false,
     };
     return true;
   } catch {
@@ -225,3 +238,27 @@ export const estallidoPalo3d = (palo: Palo, fuerza = 1): void => motor?.cartas.e
 export const modoFoto3d = (si: boolean): void => motor?.ponerModoFoto(si);
 export const marcarSucio3d = (): void => motor?.marcarSucio();
 export const forzarCuadro3d = (): void => motor?.forzarCuadro();
+export const entrarExploracion3d = (inmediato = false): void => {
+  motor?.cuarto.ponerVisible(true);
+  motor?.cuarto.sincronizarPerfil(perfil);
+  motor?.camara.entrarExploracion(inmediato);
+};
+export const salirExploracion3d = (): void => motor?.camara.salirExploracion();
+export const moverExploracion3d = (adelante: number, derecha: number, dt: number): boolean =>
+  motor?.camara.moverLibre(adelante, derecha, dt) ?? false;
+export const rotarExploracion3d = (dyaw: number, dpitch: number): void => motor?.camara.rotarLibre(dyaw, dpitch);
+export const enfocarRincon3d = (id: RinconId, inmediato = false): void => {
+  if (!motor) return;
+  const pose = motor.cuarto.poseDe(id);
+  motor.cuarto.ponerVisible(true);
+  motor.cuarto.sincronizarPerfil(perfil);
+  motor.camara.enfocarPose(pose.pos, pose.mira, inmediato);
+  if (inmediato) motor.forzarCuadro();
+};
+export const raycastRincon3d = (ndcX: number, ndcY: number): RinconId | null =>
+  motor ? motor.cuarto.raycast(motor.camara.cam, ndcX, ndcY) : null;
+export const rinconFrente3d = (): RinconId | null =>
+  motor ? motor.cuarto.cercano(motor.camara.posLibre, motor.camara.dirLibre) : null;
+export const resaltarRincon3d = (id: RinconId | null): void => {
+  if (motor) motor.rinconResaltado = id;
+};

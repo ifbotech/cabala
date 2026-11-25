@@ -19,7 +19,18 @@ import { enFoto } from '../fx/motor';
 import { numero } from '../fx/efectos';
 import { glifo } from '../nav';
 import { nombreCarga } from '../hud';
-import { continuar, empezar, hayPartida, irAjustes, irAltar, irColeccion, irCronica, irMazo, irPortada, sesion } from '../juego';
+import { continuar, empezar, hayPartida, irAjustes, irAltar, irColeccion, irCronica, irExplorar, irMazo, irPortada, sesion } from '../juego';
+import {
+  enfocarRincon3d,
+  entrarExploracion3d,
+  moverExploracion3d,
+  raycastRincon3d,
+  resaltarRincon3d,
+  rinconFrente3d,
+  rotarExploracion3d,
+  salirExploracion3d,
+  type RinconId,
+} from '../escena3d';
 import { CUADRO0 } from '../pixel/personajes';
 import { cifra, pxAmuleto, pxAumento, pxBendicion, pxDorso, pxHud, pxLogo, pxPalo, urlRetrato } from '../sprites';
 import { TRAMO_NOMBRE } from '../textos';
@@ -57,6 +68,7 @@ export function pantallaPortada(): Pantalla {
             <button class="btn marco" data-accion="cronica" data-foco="cronica">${t('cronica')}</button>
             <button class="btn marco" data-accion="ajustes" data-foco="ajustes">${t('ajustes')}</button>
           </div>
+          <button class="btn marco chico btn-levantarse" data-accion="levantarse" data-foco="levantarse">${t('levantarse')}</button>
         </nav>
         <div class="portada-pila" aria-hidden="true">${(['chinchon', 'truco', 'escoba'] as MazoId[]).map((m, i) => `<span class="pila-dorso" style="--i:${i}">${pxDorso(m)}</span>`).join('')}</div>
       </div>
@@ -90,6 +102,7 @@ export function pantallaPortada(): Pantalla {
       coleccion: irColeccion,
       cronica: irCronica,
       ajustes: irAjustes,
+      levantarse: irExplorar,
       es: () => {
         fijarIdioma('es');
         repintar();
@@ -98,6 +111,226 @@ export function pantallaPortada(): Pantalla {
         fijarIdioma('en');
         repintar();
       },
+    },
+  };
+}
+
+export function pantallaExplorar(): Pantalla {
+  const RINCONES: { id: RinconId; clave: Parameters<typeof t>[0] }[] = [
+    { id: 'mesa', clave: 'rinconMesa' },
+    { id: 'altar', clave: 'rinconAltar' },
+    { id: 'coleccion', clave: 'rinconColeccion' },
+    { id: 'fogon', clave: 'rinconFogon' },
+    { id: 'cronica', clave: 'rinconCronica' },
+    { id: 'ajustes', clave: 'rinconAjustes' },
+    { id: 'puerta', clave: 'rinconPuerta' },
+  ];
+  const nombreDe = (id: RinconId): string => t(RINCONES.find((r) => r.id === id)?.clave ?? 'rinconMesa');
+
+  return {
+    nombre: 'explorar',
+    atras: () => {
+      salirExploracion3d();
+      irPortada();
+    },
+    html: () => `<main class="pantalla explorar">
+      <header class="explorar-top">
+        <span class="explorar-guia sub">${t('explorarGuia')}</span>
+        <button class="btn marco chico" data-accion="sentarse" data-foco="sentarse" data-inicio>${t('volverMesa')}</button>
+      </header>
+      <div class="explorar-mira" aria-hidden="true">
+        <i class="mira-punto"></i>
+        <b class="mira-cartel" hidden></b>
+      </div>
+      <p class="explorar-susurro" hidden role="status"></p>
+      <nav class="explorar-barra" aria-label="${t('levantarse')}">
+        ${RINCONES.map((r) => `<button class="btn marco chico exp-btn" data-accion="ir-${r.id}" data-rincon="${r.id}">${t(r.clave)}</button>`).join('')}
+      </nav>
+    </main>`,
+    alMontar: (raiz) => {
+      entrarExploracion3d(enFoto());
+      const cartel = raiz.querySelector<HTMLElement>('.mira-cartel');
+      const susurro = raiz.querySelector<HTMLElement>('.explorar-susurro');
+      let activo: RinconId | null = null;
+      let timerSusurro = 0;
+      const decir = (msg: string): void => {
+        if (!susurro) return;
+        susurro.textContent = msg;
+        susurro.hidden = false;
+        window.clearTimeout(timerSusurro);
+        timerSusurro = window.setTimeout(() => {
+          if (susurro.isConnected) susurro.hidden = true;
+        }, 3600);
+      };
+      const abrirRincon = (id: RinconId): void => {
+        sonar('clic');
+        if (id === 'mesa') {
+          salirExploracion3d();
+          irMazo();
+        } else if (id === 'altar') {
+          salirExploracion3d();
+          irAltar();
+        } else if (id === 'coleccion') {
+          salirExploracion3d();
+          irColeccion();
+        } else if (id === 'cronica') {
+          salirExploracion3d();
+          irCronica();
+        } else if (id === 'ajustes') {
+          salirExploracion3d();
+          irAjustes();
+        } else if (id === 'puerta') {
+          enfocarRincon3d('puerta');
+          decir(t('puertaTrancada'));
+        } else if (id === 'fogon') {
+          enfocarRincon3d('fogon');
+          decir(t('fogonReposo'));
+        }
+      };
+
+      const teclas = new Set<string>();
+      const onKeyDown = (ev: KeyboardEvent): void => {
+        if (!raiz.isConnected) return;
+        const k = ev.key.toLowerCase();
+        teclas.add(k);
+        if (k === 'e' && activo) {
+          ev.preventDefault();
+          abrirRincon(activo);
+        }
+      };
+      const onKeyUp = (ev: KeyboardEvent): void => {
+        teclas.delete(ev.key.toLowerCase());
+      };
+
+      let arrastrando = false;
+      let moved = false;
+      let lastX = 0;
+      let lastY = 0;
+      const onDown = (ev: PointerEvent): void => {
+        if ((ev.target as HTMLElement).closest('button')) return;
+        arrastrando = true;
+        moved = false;
+        lastX = ev.clientX;
+        lastY = ev.clientY;
+      };
+      const onMove = (ev: PointerEvent): void => {
+        if (arrastrando) {
+          const dx = ev.clientX - lastX;
+          const dy = ev.clientY - lastY;
+          if (Math.hypot(dx, dy) > 4) moved = true;
+          lastX = ev.clientX;
+          lastY = ev.clientY;
+          rotarExploracion3d(-dx * 0.0045, -dy * 0.0035);
+          return;
+        }
+        if ((ev.target as HTMLElement).closest('button')) return;
+        const ndcX = (ev.clientX / Math.max(1, innerWidth)) * 2 - 1;
+        const ndcY = -(ev.clientY / Math.max(1, innerHeight)) * 2 + 1;
+        const hit = raycastRincon3d(ndcX, ndcY);
+        if (hit !== activo) {
+          activo = hit;
+          resaltarRincon3d(hit);
+        }
+      };
+      const onUp = (ev: PointerEvent): void => {
+        if (!arrastrando) return;
+        arrastrando = false;
+        if (!moved && !(ev.target as HTMLElement).closest('button')) {
+          const ndcX = (ev.clientX / Math.max(1, innerWidth)) * 2 - 1;
+          const ndcY = -(ev.clientY / Math.max(1, innerHeight)) * 2 + 1;
+          const hit = raycastRincon3d(ndcX, ndcY) ?? activo;
+          if (hit) abrirRincon(hit);
+        }
+      };
+
+      window.addEventListener('keydown', onKeyDown);
+      window.addEventListener('keyup', onKeyUp);
+      window.addEventListener('pointerdown', onDown);
+      window.addEventListener('pointermove', onMove, { passive: true });
+      window.addEventListener('pointerup', onUp);
+
+      let tPrev = performance.now();
+      let raf = 0;
+      const bucle = (ahora: number): void => {
+        if (!raiz.isConnected) {
+          window.removeEventListener('keydown', onKeyDown);
+          window.removeEventListener('keyup', onKeyUp);
+          window.removeEventListener('pointerdown', onDown);
+          window.removeEventListener('pointermove', onMove);
+          window.removeEventListener('pointerup', onUp);
+          return;
+        }
+        const dt = Math.min(0.05, Math.max(0.001, (ahora - tPrev) / 1000));
+        tPrev = ahora;
+        let adel = (teclas.has('w') || teclas.has('arrowup') ? 1 : 0) - (teclas.has('s') || teclas.has('arrowdown') ? 1 : 0);
+        let der = (teclas.has('d') ? 1 : 0) - (teclas.has('a') ? 1 : 0);
+        const giro = (teclas.has('arrowleft') || teclas.has('q') ? 1 : 0) - (teclas.has('arrowright') ? 1 : 0);
+        if (giro !== 0) rotarExploracion3d(giro * 1.9 * dt, 0);
+
+        const pad = navigator.getGamepads?.()[0];
+        if (pad) {
+          if (Math.abs(pad.axes[1]) > 0.2) adel -= pad.axes[1];
+          if (Math.abs(pad.axes[0]) > 0.2) der += pad.axes[0];
+          if (Math.abs(pad.axes[2]) > 0.2) rotarExploracion3d(-pad.axes[2] * 2.2 * dt, 0);
+          if (Math.abs(pad.axes[3]) > 0.2) rotarExploracion3d(0, -pad.axes[3] * 1.6 * dt);
+        }
+
+        if (moverExploracion3d(adel, der, dt)) sonar('paso');
+
+        const frente = rinconFrente3d();
+        if (frente && !arrastrando) {
+          activo = frente;
+          resaltarRincon3d(frente);
+        }
+        if (cartel) {
+          if (activo) {
+            cartel.textContent = `[E] · ${nombreDe(activo)}`;
+            cartel.hidden = false;
+          } else {
+            cartel.hidden = true;
+          }
+        }
+        raf = requestAnimationFrame(bucle);
+      };
+      raf = requestAnimationFrame(bucle);
+      void raf;
+    },
+    acciones: {
+      sentarse: () => {
+        sonar('clic');
+        salirExploracion3d();
+        irPortada();
+      },
+      ...Object.fromEntries(
+        RINCONES.map((r) => [
+          `ir-${r.id}`,
+          () => {
+            sonar('clic');
+            if (r.id === 'puerta') {
+              enfocarRincon3d('puerta');
+              const s = $<HTMLElement>('.explorar-susurro');
+              if (s) {
+                s.textContent = t('puertaTrancada');
+                s.hidden = false;
+              }
+            } else if (r.id === 'fogon') {
+              enfocarRincon3d('fogon');
+              const s = $<HTMLElement>('.explorar-susurro');
+              if (s) {
+                s.textContent = t('fogonReposo');
+                s.hidden = false;
+              }
+            } else {
+              salirExploracion3d();
+              if (r.id === 'mesa') irMazo();
+              else if (r.id === 'altar') irAltar();
+              else if (r.id === 'coleccion') irColeccion();
+              else if (r.id === 'cronica') irCronica();
+              else if (r.id === 'ajustes') irAjustes();
+            }
+          },
+        ]),
+      ),
     },
   };
 }

@@ -4,6 +4,14 @@ Lo que se probó, lo que funcionó y lo que no, versión por versión. Sirve par
 cada cosa está como está. Las mediciones del panel de jugadores son **simuladas** (modelos de lenguaje con capturas y
 reglas): orientan, no demuestran.
 
+## 0.44.0 · La Pulpería 3D Explorable (publicada)
+
+**Qué se buscó.** Convertir el menú en un cuarto 3D caminable estilo *Inscryption* sin romper la limpieza de la Portada sentada ni las puertas de QA.
+
+**Qué entró.** `CuartoPulperia3D` con 7 rincones interactivos (Mesa del Bufón, Altar de 7 velas vivas, Pared de la Gloria enmarcada en latón, Fogón, Libro de Crónicas, Fonógrafo al pulso `3-3-2` y Puerta Doble con resplandor celeste/dorado), caminata `WASD`/stick con *head-bob*, mirada 360° y barra rápida en una sola fila.
+
+**Lecciones.** La pared trasera plana de `pulperia.ts` ocluía el fondo del cuarto completo hasta ocultarla en `explorar`; y en `visual-qa.ts` las cajas de HUD requieren `box-shadow` en lugar de `border` liso y `min-height: 44px` en botones.
+
 ## Punto de partida
 
 CÁBALA nace el 2026-11-19 como repo nuevo. Viene de un proyecto anterior (cuarenta versiones de otro juego de naipes)

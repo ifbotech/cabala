@@ -12,8 +12,8 @@ import { ajustes, tx, usarPerfil } from './almacen';
 import { gritar } from './hud';
 import { GRITO } from './voces';
 import { modoFoto } from './fx/motor';
-import { forzarCuadro3d } from './escena3d';
-import { irAjustes, irAltar, irColeccion, irCronica, irMazo, irPortada, pintarFase, sesion } from './juego';
+import { enfocarRincon3d, forzarCuadro3d, type RinconId } from './escena3d';
+import { irAjustes, irAltar, irColeccion, irCronica, irExplorar, irMazo, irPortada, pintarFase, sesion } from './juego';
 import { $, enfocarJugador } from './ui';
 import { mascaraHtml } from './pantallas/mesa';
 import { BENDICION, BENDICIONES, type BendicionId } from '../rules/reyes';
@@ -114,6 +114,12 @@ export function montarQa(estado: string): void {
     case 'portada':
       irPortada();
       break;
+    case 'cuarto' as EstadoQa: {
+      irExplorar();
+      const r = q.get('rincon') as RinconId | null;
+      if (r) enfocarRincon3d(r, true);
+      break;
+    }
     case 'elegir-mazo':
       irMazo();
       break;

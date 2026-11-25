@@ -9,7 +9,7 @@ Registro vivo del Estudio Autónomo. Cada versión se audita con lupa adversaria
 | Pilar | Alcance | Estado |
 | :--- | :--- | :--- |
 | **A. Cohesión Visual *Dark Dithered Pixel-3D*** | Rediseño del Bufón 3D estilo *Leshy*/*COMODÍN*, cero parches 2D flotantes, cero textos cortados/solapados, materiales 3D tramados en Bayer (`NearestFilter`), cierre de brecha desktop `1700px+` | **Completado (`v0.43.0`)** |
-| **B. Mundo 3D Vivo — «La Pulpería»** | Menú 3D caminable en primera persona (`WASD`/Stick/Clic) con *head-bob*, 6 rincones interactivos (Mesa del Bufón, Altar, Pared de la Gloria, Fogón, Fonógrafo/Crónica, Puerta Doble con resplandor) + accesos rápidos 1 clic | Pendiente (`v0.44.0`) |
+| **B. Mundo 3D Vivo — «La Pulpería»** | Menú 3D caminable en primera persona (`WASD`/Stick/Clic) con *head-bob*, 6 rincones interactivos (Mesa del Bufón, Altar, Pared de la Gloria, Fogón, Fonógrafo/Crónica, Puerta Doble con resplandor) + accesos rápidos 1 clic | **Completado (`v0.44.0`)** |
 | **C. Clímax Argentino — «El Camino al Sol de Mayo»** | Puerta doble abierta en el clímax del Tramo 3, empedrado porteño nocturno entre niebla, faroles, banderines celestes y blancos, arcos de naipes españoles, Sol de Mayo colosal *dithered*, Mesa de la Gloria y Carta de Gloria clavada en la pared | Pendiente (`v0.45.0`) |
 | **D. Pulido Artesanal Total y Doble Auditoría Limpia** | Física táctil de cartas, expresividad completa del elenco y **2 Auditorías Adversariales consecutivas con 0 defectos**, `CLS = 0`, `≥ 60 FPS`, ES/EN verdes en vivo | Pendiente (`v0.46.0+`) |
 
@@ -34,4 +34,13 @@ Verificada sobre capturas reales en `1920×1080`, `1920×920`, `2560×1320`, `13
 4. **Cero textos cortados en borde izquierdo:** margen mínimo `18 px` y respaldo oscuro legible en `.pano-regla.costado`, más `x = 14` en `desglose.ts`.
 5. **Cero plástico 3D:** Bufón tallado en claroscuro Bayer estilo *Leshy*, vela con `texturaCera`, palmatoria/cascabeles con `texturaLaton` y monedas octogonales con `texturaOroMoneda`.
 
-**Próximo paso inmediato:** **Pilar B (`v0.44.0`) — La Pulpería Explorable 3D** (menú caminable en primera persona con 6 rincones interactivos).
+## Auditoría Adversarial #2 y #2b (`v0.44.0` — La Pulpería 3D Explorable)
+
+- **Hallazgos de #2 (corregidos antes de publicar):**
+  1. La pared trasera plana de `pulperia.ts` (`z = -5.8`) ocluía `La Puerta Doble`, `La Pared de la Gloria` y `El Fogón` al caminar: agrupada en `grupoParedPlana` y `grupoTableroGrande`, ocultos cuando `pantalla === 'explorar'`.
+  2. Props del cuarto filtrándose detrás del Bufón en `portada`: `enCuarto` restringido a `nom === 'explorar'`.
+  3. Baliza sobredimensionada en primeros planos: reducida a `0.055` y oculta automáticamente al acercarse (`dist < 4.6`).
+  4. Botón huérfano en `.explorar-barra` y barra superior amontonada: `width: 100%` en `.explorar-top`, `flex-wrap: nowrap` y `min-height: 44px` en escritorio.
+- **Verificación #2b sobre 10 capturas frescas (`portada` 1920/1280/390 + `cuarto-vista`, `cuarto-1280`, `cuarto-altar`, `cuarto-gloria`, `cuarto-puerta`, `cuarto-fogon`, `cuarto-390`):** 0 recortes, 0 solapes, 7 botones en una sola fila en `1920×1080` y `1280×800`, 0 desborde horizontal, más suavizado Bayer (`texturaHalo()`) en el haz vertical de `La Puerta Doble`.
+
+**Próximo paso inmediato:** **Pilar C (`v0.45.0`) — «El Camino al Sol de Mayo» y Cartas de Gloria**.

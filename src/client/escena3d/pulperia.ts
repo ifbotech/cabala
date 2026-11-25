@@ -25,6 +25,8 @@ export class MundoPulperia {
   private readonly llamaExt: THREE.Mesh;
   private readonly llamaInt: THREE.Mesh;
   private readonly farolPivote = new THREE.Group();
+  private readonly grupoTableroGrande = new THREE.Group();
+  private readonly grupoParedPlana = new THREE.Group();
   private readonly grupoPano = new THREE.Group();
   private readonly grupoMazo = new THREE.Group();
   private readonly pilaMazo: THREE.Mesh;
@@ -32,6 +34,7 @@ export class MundoPulperia {
   private readonly grupoMonedas = new THREE.Group();
   private readonly pilasMonedas: THREE.Mesh[] = [];
   private readonly grupoPortadaDorsos = new THREE.Group();
+  private readonly posVelaMesa: [number, number, number];
   private readonly particulas: THREE.Points;
   private readonly matParticulas: THREE.PointsMaterial;
   private readonly posParticulas: Float32Array;
@@ -70,14 +73,15 @@ export class MundoPulperia {
     const tablero = new THREE.Mesh(new THREE.BoxGeometry(19, 0.7, 12.5), matMadera);
     tablero.position.set(0, -0.35, 0);
     tablero.receiveShadow = true;
-    this.raiz.add(tablero);
+    this.grupoTableroGrande.add(tablero);
 
     const bisel = new THREE.Mesh(
       new THREE.BoxGeometry(19.2, 0.24, 12.7),
       new THREE.MeshStandardMaterial({ color: 0x110918, roughness: 0.9, metalness: 0.15 }),
     );
     bisel.position.set(0, -0.62, 0);
-    this.raiz.add(bisel);
+    this.grupoTableroGrande.add(bisel);
+    this.raiz.add(this.grupoTableroGrande);
 
     // Paño verde central en relieve sobre la madera
     const matPano = new THREE.MeshStandardMaterial({
@@ -111,14 +115,14 @@ export class MundoPulperia {
       new THREE.MeshStandardMaterial({ map: texturaPared(), roughness: 0.95 }),
     );
     pared.position.set(0, 4.6, -5.8);
-    this.raiz.add(pared);
+    this.grupoParedPlana.add(pared);
 
     // Repisas laterales con botellas (centro oscuro limpio detrás del logo y del enemigo)
     const matEstante = new THREE.MeshStandardMaterial({ color: 0x201228, roughness: 0.85 });
     for (const sx of [-5.0, 5.0]) {
       const est = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.16, 0.9), matEstante);
       est.position.set(sx, 3.2, -5.2);
-      this.raiz.add(est);
+      this.grupoParedPlana.add(est);
     }
 
     const geoBotella = new THREE.CylinderGeometry(0.16, 0.22, 0.88, 8);
@@ -132,8 +136,9 @@ export class MundoPulperia {
       b.position.set(bx, 3.71, -5.2);
       const c = new THREE.Mesh(geoCuello, matB);
       c.position.set(bx, 4.3, -5.2);
-      this.raiz.add(b, c);
+      this.grupoParedPlana.add(b, c);
     });
+    this.raiz.add(this.grupoParedPlana);
 
     // Farol colgante a la izquierda con jaula de hierro forjado y halo cálido
     this.farolPivote.position.set(-6.1, 6.2, -3.1);
@@ -184,7 +189,8 @@ export class MundoPulperia {
     this.raiz.add(this.farolPivote);
 
     // Vela cálida 3D despejada por encima de CHICHES con palmatoria de latón, cera tramada y llama de 3 capas
-    this.grupoVela.position.set(esMovil ? 2.8 : 6.1, 0, esMovil ? -2.7 : -2.1);
+    this.posVelaMesa = [esMovil ? 2.8 : 6.1, 0, esMovil ? -2.7 : -2.1];
+    this.grupoVela.position.set(...this.posVelaMesa);
     const matLatonVela = new THREE.MeshStandardMaterial({ map: texturaLaton(), color: 0xc99c46, metalness: 0.65, roughness: 0.38 });
     const matCeraVela = new THREE.MeshStandardMaterial({
       map: texturaCera(),
@@ -326,6 +332,16 @@ export class MundoPulperia {
 
   ponerEscena(escena: Escena, pantalla?: string): void {
     this.escenaActual = escena;
+    const enExplorar = pantalla === 'explorar';
+    this.grupoParedPlana.visible = !enExplorar;
+    this.grupoTableroGrande.visible = !enExplorar;
+    if (enExplorar) {
+      this.grupoVela.position.set(1.85, 0.04, -0.75);
+      this.niebla.density = 0.022;
+    } else {
+      this.grupoVela.position.set(...this.posVelaMesa);
+      this.niebla.density = 0.036;
+    }
     const enMesa = escena === 'mesa' && (!pantalla || pantalla === 'mesa');
     this.grupoPano.visible = enMesa;
     this.grupoPortadaDorsos.visible = escena === 'portada' && (!pantalla || pantalla === 'portada');
