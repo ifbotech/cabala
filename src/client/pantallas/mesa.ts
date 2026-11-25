@@ -961,6 +961,7 @@ export function pantallaMesa(p: Partida): Pantalla {
       d.classList.toggle('con-sol', sol);
       const pasa = modo === 'gratis' || (c().pasar && !sel.length);
       d.classList.toggle('con-regla', pasa);
+      d.classList.toggle('listo', !d.disabled && sel.length > 0);
       d.innerHTML = `${glifo('Y', 'D')}${pasa ? `<span class="b-nombre">${pxHud('pasar')} ${t('pasar')}</span><span class="b-regla">${esc(t('pasarRegla'))}</span>` : `${nombre} ${quedan}`}`;
       if (sol) for (const [k, v] of Object.entries({ 'data-tip-t': t('descartar'), 'data-tip': t('descartesOroTip', { o: oroSol }) })) d.setAttribute(k, v);
     }

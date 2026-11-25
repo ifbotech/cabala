@@ -3,6 +3,14 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.52.0 · Intro 3D del Personaje por Mazo, Tarjetas Icónicas 0,2 s y Descarte Táctico (2026-11-25)
+
+Cierre del mandato autónomo: Intro animada en 3 golpes para cada Personaje de Mazo, tarjetas de Amuletos/Cábalas/Bendiciones legibles en 0,2 s con bloque de beneficio icónico, cabecera de reglas propias en `? JUGADAS` y descarte táctico multi-carta pulido. *(Reglas, música, voces y balance 100 % certificados e intactos.)*
+
+- **Intro 3D por Mazo (`introMazo.ts`, `juego.ts`, `menu.ts`, `qa.ts`):** se dispara al estrenar cada Mazo (y desde el botón `VER INTRO`) enseñando su juego argentino en 3 golpes visuales sobre la mesa 3D.
+- **Tarjetas icónicas 0,2 s (`chips.ts`, `camino.ts`, `pantallas.css`):** sabor corto arriba + bloque inferior puro con íconos y cifras (`⚔ +N`, `×N MULTI`, `🛡 +N`, `♥ +N`, `● +N`) sin muros de texto.
+- **Reglas por Mazo y descarte táctico (`camino.ts`, `mesa.ts`):** cabecera `REGLAS DE TU MAZO` en `? JUGADAS` y contador táctico dinámico en el botón `DESCARTAR`.
+
 ## 0.51.0 · La Mano contra el Bufón + La Bendición del Bufón (2026-11-25)
 
 Duelo 3D en la mesa contra el Bufón antes de cada Rey Jefe (Tramos 1, 2 y 3), jugando 1 mano auténtica del juego del Mazo actual para ganar **La Bendición del Bufón**. *(Reglas, música, voces y balance 100 % congelados.)*

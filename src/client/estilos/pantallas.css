@@ -6203,3 +6203,102 @@ main.fogon.forjando [data-accion='seguir'] {
     height: 68px;
   }
 }
+
+/* ── 0.52 · Tarjetas icónicas 0,2 s + Intro 3D del Personaje + Reglas de Mazo ── */
+.op-sabor {
+  font-size: max(14px, var(--fs-s));
+  color: var(--hueso-2);
+  line-height: 1.2;
+}
+.op-chips > .oc-dano {
+  color: #7ee3ff;
+  box-shadow: inset 0 0 0 1px #1e6fa8;
+}
+.op-chips > .oc-multi {
+  color: #ff94b2;
+  box-shadow: inset 0 0 0 1px #9e2249;
+}
+.op-chips > .oc-escudo {
+  color: #6df09a;
+  box-shadow: inset 0 0 0 1px #247842;
+}
+.op-chips > .oc-vida {
+  color: #ff6e8e;
+  box-shadow: inset 0 0 0 1px #8c1f3c;
+}
+.op-chips > .oc-oro {
+  color: var(--oro);
+  box-shadow: inset 0 0 0 1px #947214;
+}
+.op-chips > .oc-util {
+  color: #e2c6ff;
+  box-shadow: inset 0 0 0 1px #6a449c;
+}
+.op-chips > .oc-mal {
+  color: #ff7b54;
+  box-shadow: inset 0 0 0 1px #a63414;
+}
+.jugadas-mazo-regla {
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  background: rgba(28, 16, 40, 0.85);
+}
+.pantalla.intro-mazo {
+  justify-content: space-between;
+  background: transparent;
+}
+.intro-escena {
+  flex: 1;
+  min-height: 0;
+  width: min(92vw, 760px);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: calc(var(--u) * 1.6);
+  padding: calc(var(--u) * 2);
+  background: rgba(9, 7, 15, 0.82);
+}
+.intro-pj {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 1.5);
+  width: 100%;
+  justify-content: center;
+}
+.intro-retrato {
+  display: block;
+  width: 84px;
+  height: 84px;
+  flex: none;
+  background-size: 100% 100%;
+  image-rendering: pixelated;
+  box-shadow: 0 0 0 2px #09070f, 0 0 0 4px var(--oro);
+}
+.intro-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 34em;
+}
+.intro-cartas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.intro-carta .px {
+  width: calc(84px * var(--k, 1));
+  height: calc(118px * var(--k, 1));
+}
+@media (max-width: 700px) {
+  .intro-pj {
+    flex-direction: column;
+    text-align: center;
+  }
+  .intro-carta .px {
+    width: 60px;
+    height: 84px;
+  }
+}

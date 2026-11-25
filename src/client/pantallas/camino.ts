@@ -38,6 +38,7 @@ import { VOZ } from '../voces';
 import { bufonDice } from '../bufon-vivo';
 import { glifo } from '../nav';
 import { $, abrirModal, anfitrion, ayudaPrimera, bufonHtml, cerrarModal, conMaldicion, esc, fichaDe, gestoBufon, irASalida, repintar, reyHtml, sinergiaHtml, tip, type Accion, type Pantalla } from '../ui';
+import { fichaIc } from '../chips';
 
 const fijo = (): number | undefined => (enFoto() ? 0 : undefined);
 const expresionDe = (p: Partida): Expresion => (p.afinidad <= -2 ? 'sombria' : p.afinidad >= 2 ? 'brillo' : 'reposo');
@@ -220,7 +221,12 @@ export function modalJugadas(p: Partida, actual?: Jugada | null): void {
     `<div class="panel jugadas">
       <header class="cabecera"><h2 class="titulo">${t('jugadas')}</h2><button class="btn marco chico" data-accion="cerrar" data-inicio>${t('cerrar')}</button></header>
       <div class="jugadas-cuerpo rollo">
-        <div class="jugadas-principal"><table class="jugadas-tabla">
+        <div class="jugadas-principal">
+          <div class="jugadas-mazo-regla marco chico">
+            <b class="rotulo dorado">${t('reglasTuMazo')} · ${esc(tx(mz.nombre))}</b>
+            <p class="sub">${esc(tx(mz.regla))}</p>
+          </div>
+          <table class="jugadas-tabla">
           <thead><tr><th scope="col">${t('jugada')}</th><th scope="col">${t('cartas')}</th><th scope="col" class="n">${t('dano')}</th><th scope="col" class="n">${t('multi')}</th></tr></thead>
           <caption class="jugadas-canto"><span class="rotulo">${t('tuCanto')}</span><b class="chip canto">${esc(tx(mz.canto))}</b><span>${esc(tx(mz.regla))}</span></caption>
           <tbody>${filas}</tbody>
@@ -416,12 +422,14 @@ function ofertaHtml(p: Partida, oferta: Oferta, fraseRey: string): string {
   const saltarHtml = `<button class="btn marco chico" data-accion="saltar" data-foco="saltar" ${alcanza ? '' : 'data-inicio'}>${precio ? t('saltarCofre') : t('saltar', { n: B.botin.saltar })}</button>`;
   const opcion = (id: string, i: number): string => {
     const f = fichaDe(oferta.tipo, id, p);
+    const ic = fichaIc(oferta.tipo, id, p);
     const rey = oferta.tipo === 'bendicion' ? BENDICION[id as BendicionId].rey : null;
-    return `<button class="opcion marco ${f.marco}" data-accion="elegir" data-id="${id}" data-foco="op-${i}" ${i === 0 && alcanza ? 'data-inicio' : ''} ${alcanza ? '' : 'disabled'}>
+    return `<button class="opcion marco ${f.marco}" data-accion="elegir" data-id="${id}" data-foco="op-${i}" ${i === 0 && alcanza ? 'data-inicio' : ''} ${alcanza ? '' : 'disabled'} ${tip(f.nombre, f.desc)}>
       <span class="op-arte">${rey ? reyHtml(rey, 'calma') : ''}<span class="op-icono">${pxPieza(oferta.tipo, id)}</span></span>
       <span class="op-clase rotulo">${esc(f.clase)}</span>
       <b class="op-nombre">${esc(f.nombre)}</b>
-      <span class="op-desc">${esc(f.desc)}</span>
+      <span class="op-sabor">${esc(ic.sabor)}</span>
+      <span class="op-chips">${ic.chips.map((c) => `<span class="oc-${c.tono}">${esc(c.texto)}</span>`).join('')}</span>
       <span class="op-sinergia">${sinergiaHtml(oferta.tipo, id, p)}</span>
       ${candado}
     </button>`;
@@ -747,11 +755,13 @@ export function pantallaPulperia(p: Partida): Pantalla {
             <div class="ventas">${tienda.amuletos
               .map((a, i) => {
                 const f = fichaDe('amuleto', a.id, p);
-                return `<button class="venta opcion marco ${f.marco} ${a.vendido ? 'vendida' : ''}" data-accion="comprar" data-i="${i}" data-foco="venta-${i}" ${a.vendido ? 'disabled' : ''} ${i === 0 ? 'data-inicio' : ''}>
+                const ic = fichaIc('amuleto', a.id, p);
+                return `<button class="venta opcion marco ${f.marco} ${a.vendido ? 'vendida' : ''}" data-accion="comprar" data-i="${i}" data-foco="venta-${i}" ${a.vendido ? 'disabled' : ''} ${i === 0 ? 'data-inicio' : ''} ${tip(f.nombre, f.desc)}>
                   <span class="op-icono">${pxAmuleto(a.id)}</span>
                   <span class="op-clase rotulo">${esc(f.clase)}</span>
                   <b class="op-nombre">${esc(f.nombre)}</b>
-                  <span class="op-desc">${esc(f.desc)}</span>
+                  <span class="op-sabor">${esc(ic.sabor)}</span>
+                  <span class="op-chips">${ic.chips.map((c) => `<span class="oc-${c.tono}">${esc(c.texto)}</span>`).join('')}</span>
                   <span class="op-sinergia">${sinergiaHtml('amuleto', a.id, p)}</span>
                   ${a.vendido ? `<span class="chip">${t('vendido')}</span>` : precio(a.precio, p.oro >= a.precio)}
                 </button>`;

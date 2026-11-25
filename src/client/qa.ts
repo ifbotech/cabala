@@ -13,7 +13,7 @@ import { gritar } from './hud';
 import { GRITO } from './voces';
 import { modoFoto } from './fx/motor';
 import { enfocarRincon3d, forzarCuadro3d, type RinconId } from './escena3d';
-import { irAjustes, irAltar, irCaminoSol, irColeccion, irCronica, irDueloBufon, irExplorar, irMazo, irPortada, pintarFase, sesion } from './juego';
+import { irAjustes, irAltar, irCaminoSol, irColeccion, irCronica, irDueloBufon, irExplorar, irIntroMazo, irMazo, irPortada, pintarFase, sesion } from './juego';
 import { $, enfocarJugador } from './ui';
 import { mascaraHtml } from './pantallas/mesa';
 import { vistaCuartoInicial } from './pantallas/menu';
@@ -711,6 +711,10 @@ export function montarQa(estado: string): void {
       const p = partida(mazo, (x) => x.fase === 'mapa');
       sesion.partida = p;
       irDueloBufon(p);
+      break;
+    }
+    case 'intro-mazo' as EstadoQa: {
+      irIntroMazo(mazo, () => irPortada());
       break;
     }
     default:

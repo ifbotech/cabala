@@ -14,6 +14,8 @@ import { pantallaBotin, pantallaCabala, pantallaFin, pantallaFogon, pantallaMapa
 import { pantallaAjustes, pantallaAltar, pantallaCaminoSol, pantallaColeccion, pantallaCronica, pantallaExplorar, pantallaMazo, pantallaPortada, type VistaCuartoId } from './pantallas/menu';
 import { pantallaMesa } from './pantallas/mesa';
 import { pantallaDueloBufon } from './pantallas/dueloBufon';
+import { introVista, marcarIntroVista, pantallaIntroMazo } from './pantallas/introMazo';
+import { RAPIDO } from './ritmo';
 import { precargarPersonaje } from './precarga';
 import { montar, type Pantalla } from './ui';
 
@@ -41,6 +43,7 @@ export const irPortada = (): void => ir(pantallaPortada(), 'portada');
 export const irExplorar = (vista?: VistaCuartoId): void => ir(pantallaExplorar(vista), 'portada');
 export const irCaminoSol = (enClimax = false): void => ir(pantallaCaminoSol(enClimax), 'amanecer', enClimax ? 'rey' : 'portada');
 export const irDueloBufon = (p: Partida): void => ir(pantallaDueloBufon(p), 'mesa', 'cabala');
+export const irIntroMazo = (mazo: MazoId, alTerminar: () => void): void => ir(pantallaIntroMazo(mazo, alTerminar), 'mesa', 'portada');
 export const irMazo = (): void => ir(pantallaMazo(), 'portada');
 export const irAltar = (): void => ir(pantallaAltar(), 'altar', 'cabala');
 // la Colección es la pared donde se clava lo juntado; la Crónica y los Ajustes (con el abanico de los Dorsos) se leen
@@ -62,7 +65,12 @@ export function empezar(mazo: MazoId, reinado: number, semilla?: string): void {
   sesion.anotada = false;
   precargarPersonaje(mazo);
   guardar();
-  pintarFase();
+  if (!sesion.qa && !RAPIDO && !introVista(mazo)) {
+    marcarIntroVista(mazo);
+    irIntroMazo(mazo, () => pintarFase());
+  } else {
+    pintarFase();
+  }
 }
 
 /** Retoma la partida guardada, si hay. */

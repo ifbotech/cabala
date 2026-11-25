@@ -4,6 +4,14 @@ Lo que se probó, lo que funcionó y lo que no, versión por versión. Sirve par
 cada cosa está como está. Las mediciones del panel de jugadores son **simuladas** (modelos de lenguaje con capturas y
 reglas): orientan, no demuestran.
 
+## 0.52.0 · Intro 3D del Personaje, Tarjetas Icónicas 0,2 s y Descarte Táctico (publicada)
+
+**Qué se buscó.** Enseñar cada Mazo jugando en 3 golpes con su Personaje, eliminar muros de texto en Amuletos/Cábalas/Bendiciones mediante fichas icónicas y pulir el descarte táctico y la auditoría estética final.
+
+**Qué entró.** `introMazo.ts` (3 golpes por Mazo con `localStorage` + botón `VER INTRO`), `chips.ts` (`fichaIc` con chips codificados por color y cifra pura), cabecera `REGLAS DE TU MAZO` en `modalJugadas` y contador táctico en `DESCARTAR`.
+
+**Lecciones.** Aplicar `.marco.oro` sobre un elemento con `background-image` pinta el relleno dorado encima del retrato: usar `box-shadow` de doble borde preserva el sprite intacto.
+
 ## 0.51.0 · La Mano contra el Bufón + La Bendición del Bufón (publicada)
 
 **Qué se buscó.** Reemplazar el minijuego 2D por un duelo 3D de mesa contra el Bufón antes de cada Rey Jefe, jugando 1 mano real del Mazo elegido para ganar La Bendición del Bufón.

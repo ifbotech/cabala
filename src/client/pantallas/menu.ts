@@ -19,7 +19,7 @@ import { enFoto } from '../fx/motor';
 import { numero } from '../fx/efectos';
 import { glifo } from '../nav';
 import { nombreCarga } from '../hud';
-import { continuar, empezar, hayPartida, irAjustes, irAltar, irCaminoSol, irColeccion, irCronica, irExplorar, irMazo, irPortada, pintarFase, sesion } from '../juego';
+import { continuar, empezar, hayPartida, irAjustes, irAltar, irCaminoSol, irColeccion, irCronica, irExplorar, irIntroMazo, irMazo, irPortada, pintarFase, sesion } from '../juego';
 import {
   limpiarPoseDiscreta3d,
   ponerPoseDiscreta3d,
@@ -442,7 +442,7 @@ export function pantallaMazo(): Pantalla {
       <div class="md-texto">
         <b class="md-nombre dorado">${esc(tx(d.nombre))} · ${esc(tx(d.personaje))}</b>
         <p class="md-regla">${esc(tx(d.regla))}</p>
-        ${abierto ? `<p class="sub">${t('vida')} ${vida} · ${t('mano', { n: m.mano })}</p>` : `<p class="rojo">${t('bloqueado')} · ${esc(tx(d.desbloqueo!.texto))} ${t('avance', { a, b })}</p>`}
+        ${abierto ? `<p class="sub">${t('vida')} ${vida} · ${t('mano', { n: m.mano })} <button class="btn marco chico" data-accion="ver-intro">${t('introBtn')}</button></p>` : `<p class="rojo">${t('bloqueado')} · ${esc(tx(d.desbloqueo!.texto))} ${t('avance', { a, b })}</p>`}
       </div>`;
   };
   const reinado = (): string => {
@@ -492,6 +492,10 @@ export function pantallaMazo(): Pantalla {
       'reinado-mas': () => {
         reinadoElegido = Math.min(reinadoMax(perfil), reinadoElegido + 1);
         repintar();
+      },
+      'ver-intro': () => {
+        sonar('clic');
+        irIntroMazo(mazoElegido, () => irMazo());
       },
       jugar: () => {
         if (!mazoAbierto(perfil, mazoElegido)) return;
