@@ -87,7 +87,7 @@
 /* 0.15.0 · Deck de verdad: el escalón de portátil y Steam Deck (1280×800, 1366×768). Los sprites siguen a escala 1,
    pero la letra sube: el texto corrido pasa de 16 a 20 px (18 el chico) y el rótulo de píxel salta de 16 a 24, que
    es su siguiente múltiplo de 8 (a 18 o 20 se deforma). El piso de lectura a 40 cm es 18 px. */
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   :root {
     --fs: 20px;
     --fs-s: 18px;
@@ -1468,7 +1468,7 @@ html[data-entrada='teclado'] .glifo.g-tecla {
   }
 }
 
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   /* el «+N» de la bandeja va con la letra del cuerpo: a 24 px de rótulo se comía el sitio de una ficha */
   .hud-mas {
     font-family: inherit;

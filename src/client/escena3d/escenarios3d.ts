@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import type { Palo } from '../../rules/cartas';
 import type { MazoId } from '../../rules/mazos';
 import type { Escena } from '../fx/escenas';
-import { texturaCuero, texturaDorso, texturaHalo, texturaMadera, texturaNaipe, texturaPiedra } from './texturas';
+import { texturaCera, texturaCuero, texturaDorso, texturaHalo, texturaLaton, texturaMadera, texturaNaipe, texturaOroMoneda, texturaPiedra } from './texturas';
 
 export type TipoEscenario3D = 'ninguno' | 'mapa' | 'fogon' | 'pulperia' | 'mazos';
 
@@ -59,7 +59,7 @@ export class Escenarios3D {
       roughness: 0.84,
       metalness: 0.06,
     });
-    const matLaton = new THREE.MeshStandardMaterial({ color: 0xc99c46, metalness: 0.72, roughness: 0.34 });
+    const matLaton = new THREE.MeshStandardMaterial({ map: texturaLaton(), color: 0xc99c46, metalness: 0.65, roughness: 0.38 });
     const matHierro = new THREE.MeshStandardMaterial({ color: 0x2a2434, metalness: 0.65, roughness: 0.45 });
 
     const tabla = new THREE.Mesh(new THREE.BoxGeometry(7.8, 0.07, 6.4), matCuero);
@@ -302,14 +302,15 @@ export class Escenarios3D {
 
   private construirPulperia(): void {
     const matMadera = new THREE.MeshStandardMaterial({ map: texturaMadera(), roughness: 0.82 });
-    const matLaton = new THREE.MeshStandardMaterial({ color: 0xc99c46, metalness: 0.72, roughness: 0.35 });
+    const matLaton = new THREE.MeshStandardMaterial({ map: texturaLaton(), color: 0xc99c46, metalness: 0.65, roughness: 0.38 });
     const matCera = new THREE.MeshStandardMaterial({
+      map: texturaCera(),
       color: 0xf4e3c1,
       emissive: 0x6b3a12,
-      emissiveIntensity: 0.45,
-      roughness: 0.62,
+      emissiveIntensity: 0.42,
+      roughness: 0.86,
     });
-    const matOro = new THREE.MeshStandardMaterial({ color: 0xf5c542, metalness: 0.78, roughness: 0.28 });
+    const matOro = new THREE.MeshStandardMaterial({ map: texturaOroMoneda(), color: 0xf5c542, metalness: 0.7, roughness: 0.32 });
 
     // Barra de mostrador al fondo, detrás del puesto
     const barra = new THREE.Mesh(new THREE.BoxGeometry(8.6, 0.22, 0.92), matMadera);
@@ -373,14 +374,15 @@ export class Escenarios3D {
   }
 
   private construirMazos(): void {
-    const matLaton = new THREE.MeshStandardMaterial({ color: 0xc99c46, metalness: 0.7, roughness: 0.36 });
-    const matPoroto = new THREE.MeshStandardMaterial({ color: 0x3b1f14, roughness: 0.68 });
-    const matOro = new THREE.MeshStandardMaterial({ color: 0xf5c542, metalness: 0.78, roughness: 0.28 });
+    const matLaton = new THREE.MeshStandardMaterial({ map: texturaLaton(), color: 0xc99c46, metalness: 0.65, roughness: 0.4 });
+    const matPoroto = new THREE.MeshStandardMaterial({ color: 0x3b1f14, roughness: 0.75 });
+    const matOro = new THREE.MeshStandardMaterial({ map: texturaOroMoneda(), color: 0xf5c542, metalness: 0.7, roughness: 0.32 });
     const matCera = new THREE.MeshStandardMaterial({
+      map: texturaCera(),
       color: 0xf4e3c1,
       emissive: 0x6b3a12,
-      emissiveIntensity: 0.45,
-      roughness: 0.62,
+      emissiveIntensity: 0.42,
+      roughness: 0.86,
     });
 
     // Cuenco con porotos de Truco a la izquierda de JUGAR

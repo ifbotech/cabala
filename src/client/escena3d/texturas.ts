@@ -264,7 +264,10 @@ export function texturaHalo(): THREE.CanvasTexture {
   return tex;
 }
 
-/** Máscara veneciana tallada de marfil hueso frío con cuencas almendradas, lágrima carmesí y sonrisa ladina. */
+
+
+
+/** Máscara de tarot oscuro tramada en Bayer: claroscuro partido, cuencas abismales, cejas en V, costuras de títere y sonrisa ladina. */
 export function texturaMascaraBufon(): THREE.CanvasTexture {
   const k = 'mat:mascara-bufon';
   if (cache.has(k)) return cache.get(k)!;
@@ -273,17 +276,21 @@ export function texturaMascaraBufon(): THREE.CanvasTexture {
   const [c, ctx] = crearCanvas(W, H);
   const img = ctx.createImageData(W, H);
   const paleta = [
-    [96, 82, 102],
-    [168, 154, 152],
-    [224, 214, 198],
-    [248, 243, 232],
+    [10, 6, 18],
+    [42, 26, 56],
+    [118, 102, 122],
+    [204, 192, 184],
+    [246, 240, 224],
   ];
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W; x++) {
       const idx = (y * W + x) * 4;
       const nx = (x - 31.5) / 31.5;
       const ny = (y - 31.5) / 31.5;
-      const luz = 0.88 - Math.abs(nx) * 0.42 - Math.max(0, ny) * 0.28 + (ruido2(x, y) - 0.5) * 0.06;
+      // Claroscuro partido: luz fría arriba a la izquierda, sombra violácea abismal a la derecha y en pómulos hundidos
+      const pomuloHueco = Math.exp(-((nx - 0.45) ** 2 * 7 + (ny - 0.14) ** 2 * 10)) * 0.28 +
+        Math.exp(-((nx + 0.48) ** 2 * 8 + (ny - 0.16) ** 2 * 10)) * 0.14;
+      const luz = 0.86 - nx * 0.34 - Math.max(0, ny) * 0.32 - pomuloHueco + (ruido2(x, y) - 0.5) * 0.08;
       const esc = Math.max(0, Math.min(1, luz)) * (paleta.length - 1);
       const base = Math.max(0, Math.min(paleta.length - 2, Math.floor(esc)));
       const ci = esc - base > umbral(x, y) ? base + 1 : base;
@@ -296,48 +303,61 @@ export function texturaMascaraBufon(): THREE.CanvasTexture {
   }
   ctx.putImageData(img, 0, 0);
 
-  // Sombra sutil del tabique nasal
-  ctx.fillStyle = 'rgba(72, 56, 82, 0.35)';
-  ctx.fillRect(30, 24, 4, 14);
+  // Sombra angular del tabique nasal
+  ctx.fillStyle = '#2a1a38';
+  ctx.fillRect(30, 22, 3, 15);
+  ctx.fillStyle = '#0a0612';
+  ctx.fillRect(32, 24, 2, 13);
 
-  // Cuencas oscuras almendradas inclinadas hacia las sienes (mirada felina y ladina)
-  ctx.fillStyle = '#0d0614';
-  for (let i = 0; i < 13; i++) {
-    const t = i / 12;
-    const h = Math.round(5 + Math.sin(t * Math.PI) * 5);
+  // Cuencas abismales profundas (#05020a) con borde tramado para que los ojos brillen desde la penumbra
+  for (let i = 0; i < 14; i++) {
+    const t = i / 13;
+    const h = Math.round(6 + Math.sin(t * Math.PI) * 7);
     const yL = Math.round(25 - t * 4 - h * 0.5);
     const yR = Math.round(25 - t * 4 - h * 0.5);
-    ctx.fillRect(14 + i, yL, 1, h);
-    ctx.fillRect(49 - i, yR, 1, h);
+    ctx.fillStyle = '#2a1a38';
+    ctx.fillRect(13 + i, yL - 1, 1, h + 2);
+    ctx.fillRect(50 - i, yR - 1, 1, h + 2);
+    ctx.fillStyle = '#05020a';
+    ctx.fillRect(13 + i, yL, 1, h);
+    ctx.fillRect(50 - i, yR, 1, h);
   }
 
-  // Cejas finas y arqueadas
-  ctx.fillStyle = '#1b0b26';
+  // Cejas afiladas de teatro en V hacia el entrecejo
+  ctx.fillStyle = '#090410';
   for (let i = 0; i < 15; i++) {
     const t = i / 14;
-    const yArc = Math.round(18 - Math.sin(t * Math.PI) * 4 - t * 2);
-    ctx.fillRect(13 + i, yArc, 2, 2);
-    ctx.fillRect(49 - i, yArc, 2, 2);
+    const yCeja = Math.round(14 + t * 5 - Math.sin(t * Math.PI) * 2);
+    ctx.fillRect(12 + i, yCeja, 2, 2);
+    ctx.fillRect(50 - i, yCeja, 2, 2);
   }
 
-  // Lágrima romboidal carmesí bajo la cuenca izquierda + rubor sutil en pómulos
-  ctx.fillStyle = '#d41145';
-  ctx.fillRect(16, 33, 3, 2);
-  ctx.fillRect(17, 32, 1, 5);
-  ctx.fillStyle = 'rgba(196, 18, 66, 0.35)';
-  ctx.fillRect(11, 35, 5, 3);
-  ctx.fillRect(48, 35, 5, 3);
+  // Lágrima romboidal carmesí bajo la cuenca derecha
+  ctx.fillStyle = '#d81446';
+  ctx.fillRect(45, 34, 3, 2);
+  ctx.fillRect(46, 33, 1, 5);
 
-  // Sonrisa veneciana curva y afilada (sin dientes de bloque)
-  ctx.fillStyle = '#14081d';
-  for (let x = 18; x <= 46; x++) {
-    const u = (x - 32) / 14;
-    const ySonrisa = Math.round(47 - u * u * 6);
-    ctx.fillRect(x, ySonrisa, 1, 2);
+  // Costuras verticales de mandíbula de títere
+  ctx.fillStyle = '#1b0e26';
+  ctx.fillRect(20, 44, 1, 12);
+  ctx.fillRect(43, 44, 1, 12);
+
+  // Sonrisa ancha y torcida con comisuras afiladas y destellos de dientes de marfil
+  ctx.fillStyle = '#07030f';
+  for (let x = 16; x <= 48; x++) {
+    const u = (x - 32) / 16;
+    const ySonrisa = Math.round(48 - u * u * 7);
+    ctx.fillRect(x, ySonrisa, 1, 3);
   }
-  ctx.fillStyle = '#d41145';
-  ctx.fillRect(17, 40, 2, 2);
-  ctx.fillRect(45, 40, 2, 2);
+  ctx.fillStyle = '#e8dfd0';
+  for (const dx of [22, 27, 32, 37, 42]) {
+    const u = (dx - 32) / 16;
+    const yD = Math.round(48 - u * u * 7);
+    ctx.fillRect(dx, yD + 1, 2, 1);
+  }
+  ctx.fillStyle = '#d81446';
+  ctx.fillRect(15, 40, 2, 2);
+  ctx.fillRect(47, 40, 2, 2);
 
   const tex = aTexturaPixel(c);
   cache.set(k, tex);
@@ -475,6 +495,9 @@ export function texturaTiza(): THREE.CanvasTexture {
   return tex;
 }
 
+
+
+
 /** Cuero oscuro curtido con trama Bayer y pespunte dorado en los bordes para la mesa de ruta. */
 export function texturaCuero(): THREE.CanvasTexture {
   const k = 'mat:cuero';
@@ -520,6 +543,9 @@ export function texturaCuero(): THREE.CanvasTexture {
   return tex;
 }
 
+
+
+
 /** Piedra volcánica facetada en trama Bayer para las rocas del fogón nocturno. */
 export function texturaPiedra(): THREE.CanvasTexture {
   const k = 'mat:piedra';
@@ -539,6 +565,108 @@ export function texturaPiedra(): THREE.CanvasTexture {
       const idx = (y * W + x) * 4;
       const grieta = Math.abs(Math.sin(x * 0.24 + y * 0.14)) < 0.08 ? 0.28 : 1;
       const v = Math.max(0, Math.min(1, (0.24 + ruido2(x >> 1, y >> 1) * 0.66) * grieta));
+      const esc = v * (paleta.length - 1);
+      const base = Math.max(0, Math.min(paleta.length - 2, Math.floor(esc)));
+      const ci = esc - base > umbral(x, y) ? base + 1 : base;
+      const col = paleta[ci];
+      img.data[idx] = col[0];
+      img.data[idx + 1] = col[1];
+      img.data[idx + 2] = col[2];
+      img.data[idx + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const tex = aTexturaPixel(c);
+  cache.set(k, tex);
+  return tex;
+}
+
+/** Cera antigua de sebo tramada en Bayer con chorreaduras verticales y borde superior tostado por el hollín. */
+export function texturaCera(): THREE.CanvasTexture {
+  const k = 'mat:cera';
+  if (cache.has(k)) return cache.get(k)!;
+  const W = 32;
+  const H = 64;
+  const [c, ctx] = crearCanvas(W, H);
+  const img = ctx.createImageData(W, H);
+  const paleta = [
+    [92, 56, 36],
+    [184, 147, 106],
+    [242, 226, 194],
+  ];
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const idx = (y * W + x) * 4;
+      const chorreadura = Math.sin(x * 0.72) > 0.45 && y < 38 ? 0.16 : 0;
+      const hollin = y < 5 ? -0.35 : 0;
+      const v = Math.max(0, Math.min(1, 0.72 - (y / H) * 0.25 + chorreadura + hollin + (ruido2(x, y) - 0.5) * 0.14));
+      const esc = v * (paleta.length - 1);
+      const base = Math.max(0, Math.min(paleta.length - 2, Math.floor(esc)));
+      const ci = esc - base > umbral(x, y) ? base + 1 : base;
+      const col = paleta[ci];
+      img.data[idx] = col[0];
+      img.data[idx + 1] = col[1];
+      img.data[idx + 2] = col[2];
+      img.data[idx + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const tex = aTexturaPixel(c);
+  cache.set(k, tex);
+  return tex;
+}
+
+/** Oro antiguo martillado en trama Bayer con estrías de canto para pilas de monedas y cetro. */
+export function texturaOroMoneda(): THREE.CanvasTexture {
+  const k = 'mat:oro-moneda';
+  if (cache.has(k)) return cache.get(k)!;
+  const W = 32;
+  const H = 32;
+  const [c, ctx] = crearCanvas(W, H);
+  const img = ctx.createImageData(W, H);
+  const paleta = [
+    [110, 68, 12],
+    [212, 154, 36],
+    [255, 227, 110],
+  ];
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const idx = (y * W + x) * 4;
+      const estria = y % 4 === 0 ? -0.25 : 0.12;
+      const v = Math.max(0, Math.min(1, 0.58 + estria + (ruido2(x, y) - 0.5) * 0.18));
+      const esc = v * (paleta.length - 1);
+      const base = Math.max(0, Math.min(paleta.length - 2, Math.floor(esc)));
+      const ci = esc - base > umbral(x, y) ? base + 1 : base;
+      const col = paleta[ci];
+      img.data[idx] = col[0];
+      img.data[idx + 1] = col[1];
+      img.data[idx + 2] = col[2];
+      img.data[idx + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const tex = aTexturaPixel(c);
+  cache.set(k, tex);
+  return tex;
+}
+
+/** Latón envejecido tramado en Bayer para palmatorias, cascabeles, tachuelas, brújula y cuenco. */
+export function texturaLaton(): THREE.CanvasTexture {
+  const k = 'mat:laton';
+  if (cache.has(k)) return cache.get(k)!;
+  const W = 32;
+  const H = 32;
+  const [c, ctx] = crearCanvas(W, H);
+  const img = ctx.createImageData(W, H);
+  const paleta = [
+    [58, 38, 16],
+    [138, 101, 34],
+    [217, 177, 84],
+  ];
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const idx = (y * W + x) * 4;
+      const v = Math.max(0, Math.min(1, 0.48 + (ruido2(x >> 1, y >> 1) - 0.5) * 0.35));
       const esc = v * (paleta.length - 1);
       const base = Math.max(0, Math.min(paleta.length - 2, Math.floor(esc)));
       const ci = esc - base > umbral(x, y) ? base + 1 : base;

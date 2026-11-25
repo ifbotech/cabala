@@ -3,6 +3,19 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.43.0 · Cirugía Visual Total: Bufón Dark Dithered, Cero Parches 2D y Escritorio Sin Brechas (2026-11-24)
+
+Primera gran cirugía visual del Pilar A: el Bufón 3D adopta claroscuro partido *Dark Dithered* estilo *Leshy*/*COMODÍN*, desaparecen los parches 2D flotantes en todas las resoluciones, se cierra la brecha de media queries `1700px+` y se eliminan los solapes sobre `LA CORTE` y el borde izquierdo. *(Música, voces y balance sin cambios.)*
+
+**Bufón 3D Estilo *Leshy* y Materiales Bayer (`src/client/escena3d/bufon3d.ts`, `texturas.ts`, `pulperia.ts`, `escenarios3d.ts`)**
+- **Máscara tallada de tarot oscuro:** contorno angular cincelado de madera/marfil mate (`roughness: 0.86`), claroscuro partido en trama Bayer, cuencas abismales, cejas en V, costuras de títere, sonrisa ladina, ojos luminosos inclinados con pupilas verticales y cintas asimétricas de arlequín.
+- **Utilería 3D cohesiva:** nuevas texturas tramadas en Bayer (`texturaCera`, `texturaLaton`, `texturaOroMoneda`), llama de vela en 3 capas translúcidas, monedas octogonales y mazo/monedas 3D apartados del corredor de texto izquierdo.
+
+**Cero Parches 2D, Escritorio Sin Brechas y `LA CORTE` Limpia (`mesa.css`, `base.css`, `desglose.ts`, `mano.ts`, `ui.ts`)**
+- **Cero parches 2D:** `.e-pano` y `.pul-bufon::after` ocultos en `html.modo-3d`.
+- **Cobertura completa `1700px+`:** eliminada la cota `max-height: 1250px` y cubierto `(min-width: 1700px) and (max-height: 949px)` para ventanas reales de navegador (`1920×920`, `2560×1320`).
+- **Solapes y bordes:** `margin-left: -32px` en `.mesa .corte`, padding en `.mesa-top .btn`, protección de `.mesa .corte`, `.mesa .esc-tit` y `.mesa .pano-regla` en `TAPA_NUNCA`, margen izquierdo `≥ 18 px` y respaldo oscuro legible en `.pano-regla.costado`.
+
 ## 0.42.0 · Pulpería Viva: Mapa 3D sobre Cuero, Fogón 3D con Brasas, Mostrador 3D y Estallidos de Palo (2026-11-24)
 
 Tercera entrega de la transformación 3D: cada pantalla secundaria de la travesía cobra cuerpo físico sobre la mesa nocturna (Mapa de cuero curtido, Fogón vivo de piedras y brasas, Mostrador de la Pulpería y marco de Mazos) y los golpes en combate desatan estallidos 3D del palo con retroceso físico del tótem enemigo. *(Música, voces y balance sin cambios.)*

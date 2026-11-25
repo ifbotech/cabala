@@ -487,6 +487,16 @@ piezas con icono de Vida máxima, grito junto al retrato; Vida máxima por Rey p
 
 **Medición.** Jurado 7,6 · 7,5 · 8,0 · 7,6. Panel 70,0 % (IC95 57–80 %); Deck 33 % (n = 9), Móvil 93 % (n = 15).
 
+## 0.43.0 · Cirugía Visual Total y Cohesión Pixel-3D (publicada)
+
+**Qué se buscó.** Resolver de raíz los defectos detectados en la Auditoría Adversarial #0 sobre `v0.42.0` (Bufón 3D plástico, óvalo violeta `.e-pano` en `1920×920`, brecha de media queries `1700px+`, solape de `SEL JUGADAS` y tooltips sobre `LA CORTE`, y textos pegados al borde izquierdo).
+
+**Qué entró.** `bufon3d.ts` + `texturas.ts` (máscara angular de tarot oscuro con claroscuro Bayer partido, cuencas abismales, cintas de arlequín y ojos *Leshy*, más `texturaCera`, `texturaLaton` y `texturaOroMoneda`); `pulperia.ts` + `escenarios3d.ts` (vela de 3 capas, monedas octogonales y mazo apartado); `mesa.css` + `base.css` (`.e-pano` y `.pul-bufon::after` ocultos en 3D, cierre de brecha `1700px+`, `margin-left: -32px` en `.mesa .corte`); `desglose.ts` + `mano.ts` + `ui.ts` (margen izquierdo `≥ 18 px` y `TAPA_NUNCA` ampliado).
+
+**Lecciones.**
+- Probar ventanas reales de navegador (`1920×920` y `2560×1320`) destapó una brecha en `@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px)` que dejaba fuera la altura útil de Chrome con barra de marcadores y hacía reaparecer el óvalo 2D `.e-pano`.
+- Pasar de una máscara ovalada lisa con luz frontal a una geometría angular cincelada con claroscuro Bayer partido integró al Bufón 3D al nivel del *Dark Dithered Pixel Art* de los 5 Dorsos.
+
 ## 0.42.0 · Pulpería Viva 3D (publicada)
 
 **Qué se buscó.** Llevar la presencia física 3D más allá del combate a todas las pantallas clave de la travesía (Mapa sobre cuero, Fogón vivo, Mostrador de Pulpería y Elegir Mazo), sumar estallidos 3D de palo en cada golpe y cerrar los detalles finales del Bufón 3D y del foco en Steam Deck.

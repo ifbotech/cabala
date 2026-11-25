@@ -819,7 +819,7 @@ html[data-entrada='teclado'] .pano-regla .p-mando .g-tecla {
 
 /* ───────────── 1080p: los sprites van al doble y el alto no sobra ───────────── */
 
-@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+@media (min-width: 1700px) and (min-height: 950px) {
   .mesa .cuenta {
     --kd: 3;
     --kf: 1;
@@ -1165,7 +1165,7 @@ html[data-entrada='teclado'] .pano-regla .p-mando .g-tecla {
   margin-left: 0;
 }
 /* 1080p: la mano entera a la vista (el enemigo va un punto más chico y la mano no se mete detrás del HUD) */
-@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+@media (min-width: 1700px) and (min-height: 950px) {
   .mesa {
     --k-enemigo: 2;
   }
@@ -1182,7 +1182,7 @@ html[data-entrada='teclado'] .pano-regla .p-mando .g-tecla {
     gap: 6px;
   }
 }
-@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+@media (min-width: 1700px) and (min-height: 950px) {
   /* a 1080p el ancho sobra y el alto no: la cuenta va en un renglón y la pila de la Corte, más chica que el enemigo */
   .cuenta .c-chips {
     flex-basis: auto;
@@ -1222,7 +1222,7 @@ html[data-entrada='teclado'] .pano-regla .p-mando .g-tecla {
 .hud-nada {
   align-self: center;
 }
-@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+@media (min-width: 1700px) and (min-height: 950px) {
   /* a 1080p la mano usa todo el ancho: la zona de descarte aparece solo mientras arrastrás */
   .mesa .mano-zona {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -1503,7 +1503,7 @@ html[data-entrada='teclado'] .pano-regla .p-mando .g-tecla {
 
 /* ───────────── 0.13.0: pulido para leer a 40 cm (portátil y Steam Deck) ───────────── */
 
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   /* la bandeja del HUD va al doble: los iconos se reconocen sin acercarse */
   button.hud-tiras {
     --k: 2;
@@ -1970,7 +1970,7 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 }
 
 /* ── portátil y Steam Deck: el rótulo va a 24 px ── */
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   /* el alto no sobra (768 y 800 px) y la cuenta ganó un renglón: la cabecera de la mesa flota sobre la escena (el
      tramo a la izquierda, JUGADAS y MENÚ a la derecha; el enemigo, en el centro, no los toca) y la cuenta va como a
      1080p: la fórmula y lo que pasa en un renglón, el desglose debajo, a todo el ancho */
@@ -2524,7 +2524,7 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 }
 
 /* ── la bandeja del HUD en el portátil y la Steam Deck: dos filas de fichas de 42 px en vez de esconder piezas ── */
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   button.hud-tiras {
     --filas: 2;
     row-gap: 4px;
@@ -3616,7 +3616,7 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
    como el Rey) y el Rey se recorta a busto sobre su barra (asoma lo que deje el alto, como en el teléfono). La mano
    se mete un poco detrás del HUD (las cartas descansan con el pie tapado; elegidas, suben enteras). Con mano de 7 u
    8 (Chinchón, el Mentiroso) los naipes se montan en una fila: cada uno muestra su índice y media cara ── */
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   .mesa {
     --k-naipe: 2;
     /* (el Bufón a 1×: su bocadillo entra entre la cabecera y su gorro sin taparle la cara) */
@@ -3937,7 +3937,7 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 /* ── la Steam Deck y el portátil (1100–1699 px): la mesa no salta al elegir la primera carta (la cuenta tiene siempre
    el alto de la previa: la pista de reposo va centrada en ese mismo hueco); las elegidas suben enteras sobre el HUD; La
    Corte va en una fila (su pila y, al costado, el rótulo y cuántos quedan), al pie de la escena, lejos de JUGADAS ── */
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   .mesa [data-cuenta] {
     min-height: 104px;
     display: flex;
@@ -3978,7 +3978,7 @@ html:is([data-entrada='mando'], [data-entrada='teclado']) .cuenta.reposo .p-punt
 }
 
 /* la mesa quieta también en 1080p: la cuenta tiene siempre el alto de la previa (con su desglose de dos renglones) */
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   .mesa [data-cuenta] {
     min-height: 110px;
   }
@@ -4167,7 +4167,7 @@ html[data-entrada='mando'] :is(.opcion, button):focus-visible > .op-glifo {
 
 /* ── 0.21: el paño de las Postas en el portátil bajo (1366×768): la mano entera sobre el HUD y el paño más bajo; la
    escena cede lo que falta ── */
-@media (min-width: 1100px) and (max-width: 1699px) and (max-height: 780px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) and (max-height: 780px) {
   .mesa .mano {
     --asoma: 36px;
     margin-bottom: 0;
@@ -4620,7 +4620,7 @@ button.chiche:focus-visible {
 }
 /* (0.22) en el portátil y la Deck, el bocadillo del Bufón se corre a la izquierda de su cabeza: con la escena baja
    (1366×768) su pie caía sobre el gorro y la cara */
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   .mesa .esc-bufon .bocadillo {
     right: calc(20px * var(--k-bufon) + 64px);
     max-width: min(13em, 24vw);
@@ -4798,7 +4798,7 @@ body.mueve-pano [data-cuenta] .cuenta.previa {
 /* ───────────── 0.24 · claridad en la mesa ───────────── */
 /* a 1080p la columna de botones (Chiches, GOLPEAR, DESCARTAR) no cabía en sus 220 px y DESCARTAR se metía en el HUD:
    toma el alto entero de la zona de la mano, apoyada abajo */
-@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+@media (min-width: 1700px) and (min-height: 950px) {
   .mesa .botones {
     max-height: none;
     align-self: end;
@@ -5560,7 +5560,7 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
 /* 1080p: lo jugado a 1× (a 2× la franja se comía la escena: el enemigo quedaba en un busto de 150 px y en reposo el
    centro de la mesa era un hueco de 300), CENTRADO sobre la mano, con el desglose a su izquierda; la mano, entera
    sobre el HUD (ya no mete el pie detrás) */
-@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+@media (min-width: 1700px) and (min-height: 950px) {
   .mesa .mano {
     --k-pano-fijo: 2;
     --asoma: 0px;
@@ -5572,7 +5572,7 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
 }
 /* la Deck y el portátil (800 y 768 px de alto): el HUD cede alto antes que la escena. El retrato sigue a 2×, recortado
    a la franja de la cara (36 de sus 64 celdas de alto) */
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   .hud .hud-retrato {
     height: calc(36px * var(--k-retrato) + 16px * var(--kf));
   }
@@ -5586,7 +5586,7 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
     min-height: 56px;
   }
 }
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   /* (y sus pozos, con el marco hundido a 1×: el alto que ganan es de la escena) */
   .hud .hud-pozo {
     --kf: 1;
@@ -5597,7 +5597,7 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
     line-height: 1;
   }
 }
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   .hud .hud-tiras .ficha:not(.carga) {
     width: 38px;
     height: 38px;
@@ -5618,7 +5618,7 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
   display: none;
   font-style: normal;
 }
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   .mesa .enemigo:has(.e-barras > .e-rasgo) .e-furia {
     position: relative;
   }
@@ -5695,7 +5695,7 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
     line-height: 18px;
   }
 }
-@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+@media (min-width: 1700px) and (min-height: 950px) {
   /* la cabecera flota sobre la escena (como en la Deck): el alto que deja es del enemigo, que sigue entero */
   .mesa .mesa-top {
     position: absolute;
@@ -5714,7 +5714,7 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
     bottom: min(calc(96px * var(--k-bufon)), calc(100cqh - 5.2em - 18px - 64px));
   }
 }
-@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+@media (min-width: 1700px) and (min-height: 950px) {
   /* el chip de la Furia no pisa la causa del TE PEGA («21 − 3 ESCUDO») */
   .mesa .e-ataque .e-furia {
     margin-top: 10px;
@@ -5864,7 +5864,7 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
 }
 /* la Deck y el portátil: lo que dice el Bufón cuelga bajo la cabecera y crece hacia ABAJO (tres renglones ya no
    trepan sobre «EL REÑIDERO · GUARDIA») */
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   .mesa .esc-bufon .bocadillo {
     top: -22px;
     bottom: auto;
@@ -6141,7 +6141,7 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
     z-index: 120;
   }
 }
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   @container escena (max-height: 162px) {
     /* (portátil: el Bufón ya está pegado a la cabecera; lo que dice arranca a su altura) */
     .mesa .esc-bufon .bocadillo {
@@ -6248,7 +6248,7 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
   }
 }
 /* la Deck: la bandeja le deja su esquina al glifo RT (con las fichas de 38 px la carga del Filo le quedaba debajo) */
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   html[data-entrada='mando'] .hud button.hud-tiras {
     padding-right: 46px;
   }
@@ -6397,7 +6397,7 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
    su barra, la cuenta en su renglón, lo jugado a 2× (naipes del tamaño de los de la mano) CENTRADO sobre la mano, con
    el desglose en dos columnas a sus costados (DAÑO a la izquierda, MULTI a la derecha: la misma fórmula de arriba,
    abierta), la mano entera y el HUD. El Bufón va a 2× con lo que dice al costado de su cabeza: se le ve la cara. */
-@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+@media (min-width: 1700px) and (min-height: 950px) {
   .mesa {
     --k-bufon: 2;
   }
@@ -6448,6 +6448,11 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
   .mesa .corte {
     align-self: end;
     margin-bottom: 6px;
+    margin-left: -32px;
+  }
+  .mesa .mesa-top .btn {
+    padding-left: 14px;
+    padding-right: 14px;
   }
   /* el HUD de la mesa cede aire (no cifras): ese alto es del busto */
   /* (el escudo del INMUNE a 2×: con su rótulo debajo entra en la escena sin trepar a la cabecera) */
@@ -6492,7 +6497,7 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
 /* el desglose a 1080p: dos columnas a los costados del paño (DAÑO a la izquierda, MULTI a la derecha), un término por
    renglón como en un ticket: su icono, su nombre y, alineada a la derecha, su cifra. La letra la elige `desglose.ts`
    (30 px si entra; nunca menos de 20) */
-@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+@media (min-width: 1700px) and (min-height: 950px) {
   .mesa .cuenta .c-bajo.dos-col {
     display: grid;
     grid-template-columns: var(--col-izq) var(--col-pano) var(--col-der);
@@ -6855,7 +6860,7 @@ button.hud-tiras:focus-visible .ficha {
     display: none;
   }
 }
-@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+@media (min-width: 1700px) and (min-height: 950px) {
   .pano-regla {
     font-size: 22px;
     line-height: 28px;
@@ -7103,7 +7108,7 @@ button.hud-tiras:focus-visible .ficha {
 }
 /* la mano de 8 de la Deck y el portátil: un poco más de ancho, y la carta con el foco se abre entera sin partirle el
    índice a su vecina */
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   .mesa .mano {
     margin-inline: calc(var(--u) * 1.75);
   }
@@ -7129,7 +7134,7 @@ button.hud-tiras:focus-visible .ficha {
 }
 /* (0.29) el busto del portátil (768 px de alto: ~112 px de naipe a la vista): el naipe sube 12 px bajo el borde de la
    pantalla (se va el filo de arriba del papel, no el índice): entran la cara entera y el arranque del pecho */
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   @container escena (max-height: 162px) {
     .mesa .e-centro .e-carta {
       margin-top: -12px;
@@ -7192,7 +7197,7 @@ button.hud-tiras:focus-visible .ficha {
     white-space: nowrap;
   }
 }
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   .mesa .esc-bufon .bocadillo {
     right: calc(20px * var(--k-bufon) + 40px);
     max-width: min(12.5em, 20.5vw);
@@ -7203,7 +7208,7 @@ button.hud-tiras:focus-visible .ficha {
     max-width: min(11.5em, 18.5vw);
   }
 }
-@media (min-width: 1700px) and (min-height: 950px) and (max-height: 1250px) {
+@media (min-width: 1700px) and (min-height: 950px) {
   .mesa .e-ataque {
     width: 260px;
     min-width: 260px;
@@ -7699,7 +7704,7 @@ button.hud-tiras:focus-visible .ficha {
     flex-wrap: nowrap;
   }
 }
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   .mesa .cuenta-zona > .cuenta {
     gap: 6px;
     padding-inline: 10px;
@@ -7753,7 +7758,7 @@ button.hud-tiras:focus-visible .ficha {
 }
 
 /* ───────────── 0.33.0 · Aire derecho en 1280×800 con doble canto + 360px Chinchón Fila 1 limpia ───────────── */
-@media (min-width: 1100px) and (max-width: 1699px) {
+@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
   .mesa .cuenta-zona > .cuenta:has(.c-canto) {
     gap: 4px;
     padding-inline: 6px;
@@ -7811,6 +7816,15 @@ html.modo-3d .portada .anfitrion .bufon .px {
   background-image: none !important;
 }
 @media (min-width: 701px) {
+  html.modo-3d .mesa .e-pano,
+  html.modo-3d .pulperia .pul-bufon::after {
+    display: none !important;
+  }
+  html.modo-3d .mesa .pano-regla.costado {
+    background: rgba(9, 7, 15, 0.74);
+    padding: 8px 12px;
+    box-shadow: 0 0 0 1px rgba(74, 58, 102, 0.55);
+  }
   html.modo-3d .mesa .esc-bufon .bufon .px,
   html.modo-3d .mapa .mapa-bufon .bufon .px,
   html.modo-3d .pulperia .pul-bufon .bufon .px,

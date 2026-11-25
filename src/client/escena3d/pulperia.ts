@@ -4,7 +4,7 @@ import type { Palo } from '../../rules/cartas';
 import { MAZOS, type MazoId } from '../../rules/mazos';
 import type { Escena } from '../fx/escenas';
 import { armoniaActual } from '../musica';
-import { texturaCantoCarta, texturaDorso, texturaHalo, texturaMadera, texturaPano, texturaPared, texturaParticula } from './texturas';
+import { texturaCantoCarta, texturaCera, texturaDorso, texturaHalo, texturaLaton, texturaMadera, texturaOroMoneda, texturaPano, texturaPared, texturaParticula } from './texturas';
 
 const CLIMA_TINTE: Record<Palo, number> = {
   S: 0x4cc9ff,
@@ -183,23 +183,22 @@ export class MundoPulperia {
     this.farolPivote.add(haloFarol, this.luzFarol);
     this.raiz.add(this.farolPivote);
 
-    // Vela cálida 3D despejada por encima de CHICHES con collarín, llama animada y halo
+    // Vela cálida 3D despejada por encima de CHICHES con palmatoria de latón, cera tramada y llama de 3 capas
     this.grupoVela.position.set(esMovil ? 2.8 : 6.1, 0, esMovil ? -2.7 : -2.1);
-    const platillo = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.34, 0.26, 0.07, 10),
-      new THREE.MeshStandardMaterial({ color: 0x2d243b, metalness: 0.55, roughness: 0.5 }),
-    );
-    platillo.position.set(0, 0.035, 0);
-    const cera = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.13, 0.16, 0.78, 10),
-      new THREE.MeshStandardMaterial({ color: 0xf4e3c1, emissive: 0x6b3a12, emissiveIntensity: 0.42, roughness: 0.65 }),
-    );
+    const matLatonVela = new THREE.MeshStandardMaterial({ map: texturaLaton(), color: 0xc99c46, metalness: 0.65, roughness: 0.38 });
+    const matCeraVela = new THREE.MeshStandardMaterial({
+      map: texturaCera(),
+      color: 0xf4e3c1,
+      emissive: 0x6b3a12,
+      emissiveIntensity: 0.36,
+      roughness: 0.88,
+    });
+    const platillo = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.26, 0.08, 8), matLatonVela);
+    platillo.position.set(0, 0.04, 0);
+    const cera = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.16, 0.78, 8), matCeraVela);
     cera.position.set(0, 0.44, 0);
     cera.castShadow = true;
-    const collarin = new THREE.Mesh(
-      new THREE.TorusGeometry(0.13, 0.032, 6, 10),
-      new THREE.MeshStandardMaterial({ color: 0xf4e3c1, emissive: 0x6b3a12, emissiveIntensity: 0.42, roughness: 0.6 }),
-    );
+    const collarin = new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.032, 5, 8), matCeraVela);
     collarin.rotation.x = Math.PI / 2;
     collarin.position.set(0, 0.82, 0);
     const mecha = new THREE.Mesh(
@@ -208,17 +207,23 @@ export class MundoPulperia {
     );
     mecha.position.set(0, 0.88, 0);
     this.llamaExt = new THREE.Mesh(
-      new THREE.OctahedronGeometry(0.12, 0),
-      new THREE.MeshBasicMaterial({ color: 0xff8a1e }),
+      new THREE.OctahedronGeometry(0.13, 0),
+      new THREE.MeshBasicMaterial({ color: 0xff4800, transparent: true, opacity: 0.44, depthWrite: false }),
     );
-    this.llamaExt.scale.set(0.7, 1.75, 0.7);
-    this.llamaExt.position.set(0, 1.03, 0);
+    this.llamaExt.scale.set(0.75, 1.85, 0.75);
+    this.llamaExt.position.set(0, 1.04, 0);
+    const llamaMed = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.095, 0),
+      new THREE.MeshBasicMaterial({ color: 0xffaa22, transparent: true, opacity: 0.78, depthWrite: false }),
+    );
+    llamaMed.scale.set(0.7, 1.55, 0.7);
+    llamaMed.position.set(0, 1.02, 0);
     this.llamaInt = new THREE.Mesh(
-      new THREE.OctahedronGeometry(0.07, 0),
-      new THREE.MeshBasicMaterial({ color: 0xfff3a8 }),
+      new THREE.OctahedronGeometry(0.06, 0),
+      new THREE.MeshBasicMaterial({ color: 0xfff5a8 }),
     );
-    this.llamaInt.scale.set(0.65, 1.4, 0.65);
-    this.llamaInt.position.set(0, 1.01, 0);
+    this.llamaInt.scale.set(0.65, 1.35, 0.65);
+    this.llamaInt.position.set(0, 0.99, 0);
     const haloVela = new THREE.Sprite(
       new THREE.SpriteMaterial({
         map: texturaHalo(),
@@ -238,7 +243,7 @@ export class MundoPulperia {
     this.luzVela.shadow.mapSize.set(esMovil ? 512 : 1024, esMovil ? 512 : 1024);
     this.luzVela.shadow.bias = -0.0005;
     this.luzVela.shadow.radius = 2;
-    this.grupoVela.add(platillo, cera, collarin, mecha, this.llamaExt, this.llamaInt, haloVela, this.luzVela);
+    this.grupoVela.add(platillo, cera, collarin, mecha, this.llamaExt, llamaMed, this.llamaInt, haloVela, this.luzVela);
     this.raiz.add(this.grupoVela);
 
     // Mazo físico 3D del jugador (costado izquierdo despejado)
@@ -255,13 +260,13 @@ export class MundoPulperia {
     this.pilaMazo.castShadow = true;
     this.pilaMazo.receiveShadow = true;
     this.grupoMazo.add(this.pilaMazo);
-    this.grupoMazo.position.set(-5.75, 0, 1.15);
+    this.grupoMazo.position.set(-6.45, 0, 1.55);
     this.grupoMazo.rotation.y = 0.14;
     this.raiz.add(this.grupoMazo);
 
-    // Pilas de monedas de oro 3D
-    const geoMoneda = new THREE.CylinderGeometry(0.15, 0.15, 1, 10);
-    const matOro = new THREE.MeshStandardMaterial({ color: 0xffd23f, metalness: 0.68, roughness: 0.3 });
+    // Pilas de monedas de oro 3D facetadas
+    const geoMoneda = new THREE.CylinderGeometry(0.15, 0.15, 1, 8);
+    const matOro = new THREE.MeshStandardMaterial({ map: texturaOroMoneda(), color: 0xffd23f, metalness: 0.68, roughness: 0.32 });
     for (let i = 0; i < 3; i++) {
       const m = new THREE.Mesh(geoMoneda, matOro);
       m.position.set(i * 0.34, 0, (i % 2) * 0.22);
@@ -269,7 +274,7 @@ export class MundoPulperia {
       this.pilasMonedas.push(m);
       this.grupoMonedas.add(m);
     }
-    this.grupoMonedas.position.set(-4.85, 0, 2.35);
+    this.grupoMonedas.position.set(-5.65, 0, 2.35);
     this.raiz.add(this.grupoMonedas);
 
     // 5 Mazos físicos 3D en abanico limpio en el flanco derecho de Portada

@@ -236,7 +236,7 @@ function mostrarTip(el: HTMLElement): void {
 export const TAPA_NUNCA = 'button, .titulo, .hud [data-n], .mesa [data-ataque], .mesa .e-barras, .mesa [data-carta], .mesa [data-cuenta] .cuenta:not(.reposo), .mesa .e-sellos > *, .esc-bufon .bocadillo, .mesa .e-dice, ' +
   // (0.28) con mando la ayuda está siempre abierta: tampoco pisa el desglose de la cuenta, el naipe de La Corte, el
   // renglón de botones, el rótulo de la bandeja de Chiches, los naipes de la mano ni al Bufón con su globo
-  '.mesa .chiches .ch-rot, .mesa [data-cuenta] .c-bajo, .mesa [data-cuenta] .cuenta.reposo .pista, .mesa .corte .corte-carta, .mesa [data-mano] .carta, .anfitrion .bufon, .anfitrion .bocadillo, .esc-bufon .bufon';
+  '.mesa .chiches .ch-rot, .mesa [data-cuenta] .c-bajo, .mesa [data-cuenta] .cuenta.reposo .pista, .mesa .corte, .mesa .corte > *, .mesa .esc-tit, .mesa .pano-regla, .mesa [data-mano] .carta, .anfitrion .bufon, .anfitrion .bocadillo, .esc-bufon .bufon';
 function obstaculos(ancla: HTMLElement): DOMRect[] {
   // (y la pieza misma: la ayuda no tapa lo que se está mirando)
   const out: DOMRect[] = [ancla.getBoundingClientRect()];
@@ -246,7 +246,7 @@ function obstaculos(ancla: HTMLElement): DOMRect[] {
     if (o === ancla || o.contains(ancla) || ancla.contains(o) || o.closest('.tip, .calienta') || o.matches('.nodo.hecho, .nodo.pasado, .nodo.actual')) continue;
     // (0.26: en el teléfono tampoco va sobre el naipe del enemigo —la excepción de la 0.25 lo tapaba—; el globo del
     // Bufón, que es de paso, sí: es el único hueco entre el enemigo y la mano)
-    if (innerWidth <= 700 && o.matches('.esc-bufon .bocadillo')) continue;
+    if (innerWidth <= 700 && o.matches('.esc-bufon .bocadillo, .mesa .pano-regla, .mesa .esc-tit, .mesa .corte, .mesa .corte > :not(.corte-carta)')) continue;
     const r = o.getBoundingClientRect();
     if (r.width < 2 || r.height < 2 || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) continue;
     const s = getComputedStyle(o);

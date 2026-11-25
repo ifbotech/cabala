@@ -575,7 +575,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       // (0.27: y calla mientras se juega el golpe: el desglose de la cuenta sigue ahí al lado)
       const tel = telefono();
       regla.classList.toggle('costado', !tel);
-      if (!tel) regla.style.maxWidth = `${Math.max(120, izq - 24)}px`;
+      if (!tel) regla.style.maxWidth = `${Math.max(120, izq - 36)}px`;
       regla.hidden = bloqueada || raiz.classList.contains('arrastrando') || (tel ? techoTel() : raiz.clientHeight - h) < 24;
       // (0.29) escritorio: si la regla no entra en el alto de la franja (la columna angosta junto al paño de 5 Postas),
       // primero pasa a su forma corta y después cede el renglón del Comodín
@@ -588,7 +588,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       if (!regla.hidden && tel && regla.offsetHeight > lp.hp - 4) regla.classList.remove('con-comodin');
       // (0.28) escritorio: a la izquierda del paño, centrada en su franja; en el teléfono, centrada dentro de la franja del paño
       if (!regla.hidden)
-        ponerEn(regla, tel ? Math.round((ancho - regla.offsetWidth) / 2) : Math.max(4, Math.round((izq - regla.offsetWidth) / 2)), tel ? Math.max(2, Math.round(lp.y + (lp.hp - regla.offsetHeight) / 2)) : Math.max(2, Math.round(lp.y + (lp.hp - regla.offsetHeight) / 2)), Z.pano);
+        ponerEn(regla, tel ? Math.round((ancho - regla.offsetWidth) / 2) : Math.max(18, Math.round((izq - regla.offsetWidth) / 2)), tel ? Math.max(2, Math.round(lp.y + (lp.hp - regla.offsetHeight) / 2)) : Math.max(2, Math.round(lp.y + (lp.hp - regla.offsetHeight) / 2)), Z.pano);
     } else regla.hidden = true;
     // la marca del Medio va pegada a su naipe (si lo hay), a la derecha de su número
     const enMedio = enPosta[medio];

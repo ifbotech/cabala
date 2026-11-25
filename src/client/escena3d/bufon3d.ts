@@ -1,7 +1,7 @@
 // Bufón veneciano esculpido en 3D en la penumbra + Máscaras venecianas y Coronas 3D de los 4 Reyes Jefe.
 import * as THREE from 'three';
 import type { Palo } from '../../rules/cartas';
-import { texturaMascaraBufon, texturaTelaBufon } from './texturas';
+import { texturaLaton, texturaMascaraBufon, texturaOroMoneda, texturaTelaBufon } from './texturas';
 
 const COLOR_REY: Record<Palo, number> = {
   S: 0x00e5ff,
@@ -26,23 +26,29 @@ function normalizarUvsPlanar(geo: THREE.BufferGeometry, minX: number, maxX: numb
 
 function geometriaMascaraVeneciana(): THREE.ExtrudeGeometry {
   const s = new THREE.Shape();
-  s.moveTo(0, -0.24);
-  s.quadraticCurveTo(-0.11, -0.17, -0.165, -0.02);
-  s.quadraticCurveTo(-0.185, 0.08, -0.175, 0.14);
-  s.quadraticCurveTo(-0.135, 0.215, -0.09, 0.22);
-  s.quadraticCurveTo(0, 0.245, 0.09, 0.22);
-  s.quadraticCurveTo(0.135, 0.215, 0.175, 0.14);
-  s.quadraticCurveTo(0.185, 0.08, 0.165, -0.02);
-  s.quadraticCurveTo(0.11, -0.17, 0, -0.24);
+  // Máscara tallada de tarot oscuro: frente ancha, pómulos afilados, mejillas hundidas y mentón puntiagudo
+  s.moveTo(0, -0.255);
+  s.lineTo(-0.1, -0.145);
+  s.lineTo(-0.14, -0.07);
+  s.lineTo(-0.195, 0.04);
+  s.lineTo(-0.17, 0.16);
+  s.lineTo(-0.095, 0.225);
+  s.lineTo(0, 0.24);
+  s.lineTo(0.095, 0.225);
+  s.lineTo(0.17, 0.16);
+  s.lineTo(0.195, 0.04);
+  s.lineTo(0.14, -0.07);
+  s.lineTo(0.1, -0.145);
+  s.closePath();
 
   const geo = new THREE.ExtrudeGeometry(s, {
-    depth: 0.1,
+    depth: 0.08,
     bevelEnabled: true,
-    bevelThickness: 0.045,
-    bevelSize: 0.028,
-    bevelSegments: 2,
+    bevelThickness: 0.025,
+    bevelSize: 0.016,
+    bevelSegments: 1,
   });
-  normalizarUvsPlanar(geo, -0.2, 0.2, -0.26, 0.26);
+  normalizarUvsPlanar(geo, -0.21, 0.21, -0.27, 0.255);
   return geo;
 }
 
@@ -109,28 +115,29 @@ export class Bufon3D {
       metalness: 0.06,
     });
     const matCapa = new THREE.MeshStandardMaterial({
-      color: 0x10071a,
-      roughness: 0.98,
+      color: 0x07030e,
+      roughness: 0.99,
       metalness: 0.0,
     });
     const matCapucha = new THREE.MeshStandardMaterial({
-      color: 0x12081e,
-      roughness: 0.96,
+      color: 0x0b0516,
+      roughness: 0.98,
       metalness: 0.0,
     });
     const matOro = new THREE.MeshStandardMaterial({
+      map: texturaOroMoneda(),
       color: 0xffd500,
-      metalness: 0.78,
-      roughness: 0.24,
-      emissive: 0x4f3600,
-      emissiveIntensity: 0.32,
+      metalness: 0.65,
+      roughness: 0.34,
+      emissive: 0x3b2600,
+      emissiveIntensity: 0.25,
     });
     const matMascara = new THREE.MeshStandardMaterial({
       map: texturaMascaraBufon(),
-      roughness: 0.62,
-      metalness: 0.02,
-      emissive: 0x3b3038,
-      emissiveIntensity: 0.22,
+      roughness: 0.86,
+      metalness: 0.04,
+      emissive: 0x160c20,
+      emissiveIntensity: 0.16,
     });
 
     // Manto oscuro mate en ángulos góticos + 8 puntas de gorguera arlequín con cascabeles dorados
@@ -158,9 +165,24 @@ export class Bufon3D {
       punta.rotation.z = Math.sin(a) * 0.65;
       this.cuerpo.add(punta);
 
-      const cuenta = new THREE.Mesh(new THREE.SphereGeometry(0.022, 6, 5), matOro);
+      const cuenta = new THREE.Mesh(new THREE.OctahedronGeometry(0.026, 0), matOro);
       cuenta.position.set(Math.sin(a) * 0.28, -0.29, Math.cos(a) * 0.17);
       this.cuerpo.add(cuenta);
+    }
+
+    // Cintas asimétricas de arlequín flameando desde el cuello
+    const matCintaIzq = new THREE.MeshStandardMaterial({ map: texturaTelaBufon('carmesi'), side: THREE.DoubleSide, roughness: 0.82 });
+    const matCintaDer = new THREE.MeshStandardMaterial({ map: texturaTelaBufon('purpura'), side: THREE.DoubleSide, roughness: 0.82 });
+    for (const [cx, cy, cz, rx, rz, matC] of [
+      [-0.25, -0.26, 0.08, 0.22, 0.48, matCintaIzq],
+      [-0.31, -0.34, 0.04, 0.18, 0.72, matCintaDer],
+      [0.25, -0.26, 0.08, 0.22, -0.46, matCintaDer],
+      [0.31, -0.34, 0.04, 0.18, -0.7, matCintaIzq],
+    ] as const) {
+      const cinta = new THREE.Mesh(new THREE.PlaneGeometry(0.055, 0.24), matC);
+      cinta.position.set(cx, cy, cz);
+      cinta.rotation.set(rx, 0, rz);
+      this.cuerpo.add(cinta);
     }
 
     // Cabeza articulada con capucha de terciopelo negro y máscara veneciana esculpida
@@ -175,27 +197,23 @@ export class Bufon3D {
     mascara.castShadow = true;
     this.cabeza.add(mascara);
 
-    // Ojos almendrados luminosos inclinados + pupilas afiladas
-    const matIris = new THREE.MeshBasicMaterial({ color: 0xffe054 });
-    const matPupila = new THREE.MeshBasicMaterial({ color: 0x09070f });
-    const geoOjo = new THREE.CircleGeometry(0.042, 4);
-    const geoPupila = new THREE.CircleGeometry(0.018, 6);
+    // Ojos luminosos estilo Leshy suspendidos en las cuencas abismales + pupilas verticales afiladas
+    const matIris = new THREE.MeshBasicMaterial({ color: 0xffe84a });
+    const matPupila = new THREE.MeshBasicMaterial({ color: 0x05020a });
+    const geoOjo = new THREE.PlaneGeometry(0.056, 0.028);
+    const geoPupila = new THREE.PlaneGeometry(0.014, 0.024);
 
     this.ojoIzq = new THREE.Mesh(geoOjo, matIris);
-    this.ojoIzq.scale.set(1.15, 0.58, 1);
-    this.ojoIzq.rotation.z = -0.22;
-    this.ojoIzq.position.set(-0.072, 0.058, 0.165);
+    this.ojoIzq.rotation.z = -0.24;
+    this.ojoIzq.position.set(-0.072, 0.056, 0.145);
     this.pupilaIzq = new THREE.Mesh(geoPupila, matPupila);
-    this.pupilaIzq.scale.set(0.75, 1.15, 1);
     this.pupilaIzq.position.set(0, 0, 0.003);
     this.ojoIzq.add(this.pupilaIzq);
 
     this.ojoDer = new THREE.Mesh(geoOjo, matIris);
-    this.ojoDer.scale.set(1.15, 0.58, 1);
-    this.ojoDer.rotation.z = 0.22;
-    this.ojoDer.position.set(0.072, 0.058, 0.165);
+    this.ojoDer.rotation.z = 0.24;
+    this.ojoDer.position.set(0.072, 0.056, 0.145);
     this.pupilaDer = new THREE.Mesh(geoPupila, matPupila);
-    this.pupilaDer.scale.set(0.75, 1.15, 1);
     this.pupilaDer.position.set(0, 0, 0.003);
     this.ojoDer.add(this.pupilaDer);
     this.cabeza.add(this.ojoIzq, this.ojoDer);
@@ -210,16 +228,16 @@ export class Bufon3D {
 
     const armarCuerno = (grupo: THREE.Group, signo: -1 | 1, mat: THREE.Material): THREE.Mesh => {
       grupo.position.set(signo * 0.11, 0.22, 0.01);
-      const s1 = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.09, 0.2, 6), mat);
+      const s1 = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.09, 0.2, 5), mat);
       s1.position.set(signo * 0.07, 0.08, 0);
       s1.rotation.z = -signo * 0.58;
-      const s2 = new THREE.Mesh(new THREE.CylinderGeometry(0.044, 0.068, 0.18, 6), mat);
+      const s2 = new THREE.Mesh(new THREE.CylinderGeometry(0.044, 0.068, 0.18, 5), mat);
       s2.position.set(signo * 0.18, 0.17, 0.02);
       s2.rotation.z = -signo * 1.08;
-      const s3 = new THREE.Mesh(new THREE.ConeGeometry(0.044, 0.14, 6), mat);
+      const s3 = new THREE.Mesh(new THREE.ConeGeometry(0.044, 0.14, 5), mat);
       s3.position.set(signo * 0.27, 0.13, 0.04);
       s3.rotation.z = -signo * 2.18;
-      const cascabel = new THREE.Mesh(new THREE.SphereGeometry(0.048, 8, 6), matOro);
+      const cascabel = new THREE.Mesh(new THREE.OctahedronGeometry(0.052, 0), matOro);
       cascabel.position.set(signo * 0.32, 0.06, 0.05);
       grupo.add(s1, s2, s3, cascabel);
       return cascabel;
@@ -279,9 +297,9 @@ export class Bufon3D {
 
     this.cuerpo.add(this.manoIzq, this.manoDer, this.cetro);
 
-    // Luz focalizada corta solo sobre la máscara y cascabeles (sin lavar el manto oscuro)
-    this.luzMascara = new THREE.PointLight(0xffb464, 1.8, 1.6, 2);
-    this.luzMascara.position.set(0, 0.08, 0.48);
+    // Luz rasante de claroscuro desde abajo a la izquierda (como candil cercano, sin lavar el lado derecho)
+    this.luzMascara = new THREE.PointLight(0xffb24c, 1.8, 1.45, 2);
+    this.luzMascara.position.set(-0.28, -0.18, 0.62);
     this.raiz.add(this.cuerpo, this.luzMascara);
     this.raiz.visible = false;
     escena.add(this.raiz);

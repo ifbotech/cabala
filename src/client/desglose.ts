@@ -23,7 +23,7 @@ export function nombreHtml(de: string, entero: string): string {
 
 const NIVELES = ['sin-pista', 'junto', 'cortos', 'dos-col'] as const;
 /** La ventana de 1080p (la misma consulta que usa la hoja de estilos de la mesa). */
-const ES_1080 = '(min-width: 1700px) and (min-height: 950px) and (max-height: 1250px)';
+const ES_1080 = '(min-width: 1700px) and (min-height: 950px)';
 
 /** Deshace los «otras +N»: cada término vuelve a su renglón. */
 function soltarOtras(bajo: HTMLElement): void {
@@ -76,7 +76,7 @@ export function encajarDesglose(o: { bajo: HTMLElement; cu: HTMLElement; izq: nu
   bajo.classList.remove(...NIVELES, 'chico', 'chico-2', 'chico-3', 'chico-4');
   bajo.style.removeProperty('--fs-desglose');
   const dos = matchMedia(ES_1080).matches && izq !== null && der !== null;
-  const x = 8;
+  const x = 14;
   const rc = cu.getBoundingClientRect();
   // (se mide con desplazamientos, no con cajas: la cuenta entra con una animación que la corre unos píxeles)
   bajo.style.left = `${Math.round(x - cu.offsetLeft - cu.clientLeft)}px`;
