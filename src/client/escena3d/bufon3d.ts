@@ -1,7 +1,7 @@
-// El Bufón en Voxel Art 3D con AO horneado, gorro de 3 puntas, cetro Marotte y abanico de naipes.
+// El Bufón en Dark-Gothic Pixel-3D de alta densidad (V = 0.018), máscara de tarot y cuernos orgánicos.
 import * as THREE from 'three';
 import type { Palo } from '../../rules/cartas';
-import { VoxelGrid, construirMallaVoxel, type VoxelMat } from './voxel';
+import { VoxelGrid, construirMallaVoxel } from './voxel';
 
 const COLOR_REY: Record<Palo, number> = {
   S: 0x00e5ff,
@@ -10,18 +10,20 @@ const COLOR_REY: Record<Palo, number> = {
   H: 0xff1e5c,
 };
 
-const CELESTE = 0x4cc2eb;
-const CELESTE_OSC = 0x2994bf;
-const MARFIL = 0xf4ede0;
-const MARFIL_OSC = 0xd9ccb8;
-const ORO = 0xf5b52e;
-const ORO_OSC = 0xd48814;
-const CARMESI = 0xcf2440;
-const CARMESI_OSC = 0x8f1428;
-const CUERO = 0x6b391c;
-const SOMBRA = 0x180f24;
+const CARMESI = 0x7a0e28;
+const CARMESI_OSC = 0x470620;
+const PURPURA = 0x3e1366;
+const PURPURA_OSC = 0x22093b;
+const MARFIL = 0xcfc2aa;
+const MARFIL_SOMBRA = 0x7a6275;
+const HUESO = 0xd9ceb4;
+const ORO = 0xc98c1e;
+const ORO_OSC = 0x78430b;
+const CAPA = 0x120a24;
+const CUERO = 0x3b1b14;
+const ABISMO = 0x0b0711;
 
-const V = 0.032;
+const V = 0.018;
 
 export class Bufon3D {
   readonly raiz = new THREE.Group();
@@ -55,211 +57,186 @@ export class Bufon3D {
   private readonly plano = new THREE.Plane();
 
   constructor(escena: THREE.Scene) {
-    // ── Torso arlequín celeste/marfil/oro + piernas asimétricas + gola + naipes en la faja ──
+    // ── Torso arlequín entallado, piernas estilizadas, gola dentada y capa abismal ──
     const gTorso = new VoxelGrid();
-    // Botas curvas de bufón + piernas bicolores
-    gTorso.box(-4, -13, -1, -2, -11, 3, ORO, 'metal');
-    gTorso.set(-3, -10, 4, ORO, 'metal').set(-3, -11, 4, ORO, 'metal');
-    gTorso.box(-4, -10, -1, -2, -5, 1, CELESTE);
-    gTorso.box(-4, -8, -1, -2, -7, 1, MARFIL);
 
-    gTorso.box(2, -13, -1, 4, -11, 3, CELESTE_OSC);
-    gTorso.set(3, -10, 4, ORO, 'metal').set(3, -11, 4, ORO, 'metal');
-    gTorso.box(2, -10, -1, 4, -5, 1, ORO);
-    gTorso.box(2, -8, -1, 4, -7, 1, ORO_OSC);
+    // Piernas estilizadas y botas curvas con cascabeles de oro antiguo
+    gTorso.taperedCylinder(-4, -20, -6, 0, 2.2, 2.2, 2.8, 2.6, PURPURA_OSC);
+    gTorso.taperedCylinder(4, -20, -6, 0, 2.2, 2.2, 2.8, 2.6, CARMESI_OSC);
+    gTorso.box(-6, -24, -2, -2, -20, 4, CUERO);
+    gTorso.box(2, -24, -2, 6, -20, 4, CUERO);
+    gTorso.curve3D([[-4, -22, 4], [-4, -21, 7], [-4, -19, 8]], 1.2, 0.7, ORO, 'metal');
+    gTorso.curve3D([[4, -22, 4], [4, -21, 7], [4, -19, 8]], 1.2, 0.7, ORO, 'metal');
 
-    // Jubón arlequín
-    gTorso.box(-4, -4, -2, 0, 5, 2, CELESTE);
-    gTorso.box(1, -4, -2, 4, 5, 2, MARFIL);
-    // Rombos en el pecho
-    gTorso.set(-2, 2, 2, MARFIL).set(-1, 1, 2, MARFIL).set(-3, 1, 2, MARFIL).set(-2, 0, 2, MARFIL);
-    gTorso.set(2, 2, 2, CELESTE).set(1, 1, 2, CELESTE).set(3, 1, 2, CELESTE).set(2, 0, 2, CELESTE);
-    gTorso.set(2, -2, 2, ORO, 'metal');
+    // Jubón entallado con dithered bipartido
+    gTorso.taperedCylinder(0, -6, 10, 0, 7.6, 4.2, 8.6, 4.6, PURPURA);
+    gTorso.ditherBox(1, -6, -4, 8, 10, 4, CARMESI, CARMESI_OSC);
+    gTorso.ditherBox(-8, -6, -4, 0, 10, 4, PURPURA, PURPURA_OSC);
 
-    // Cinturón de cuero y hebilla de oro
-    gTorso.box(-4, -1, -2, 4, 0, 2, CUERO);
-    gTorso.box(-1, -1, 3, 1, 0, 3, ORO, 'metal');
-
-    // Cartas españolas metidas en la cintura
-    gTorso.box(-5, -3, 1, -4, 0, 2, MARFIL);
-    gTorso.set(-4, -1, 2, CARMESI);
-    gTorso.box(4, -3, 1, 5, 0, 2, MARFIL);
-    gTorso.set(4, -1, 2, CELESTE_OSC);
-
-    // Gola de picos de arlequín alrededor del cuello
-    gTorso.box(-6, 5, -3, 0, 6, 3, CELESTE);
-    gTorso.box(1, 5, -3, 6, 6, 3, ORO);
-    for (const [gx, gz] of [
-      [-6, 2],
-      [-3, 3],
-      [0, 3],
-      [3, 3],
-      [6, 2],
-      [-5, -3],
-      [5, -3],
+    // Rombos de tarot en el pecho
+    for (const [rx, ry, col] of [
+      [-4, 5, CARMESI],
+      [4, 5, PURPURA],
+      [-4, 0, ORO],
+      [4, 0, ORO],
     ] as const) {
-      gTorso.set(gx, 4, gz, ORO, 'metal');
+      gTorso.set(rx, ry + 1, 5, col).set(rx - 1, ry, 5, col).set(rx + 1, ry, 5, col).set(rx, ry - 1, 5, col);
     }
 
-    const torsoMesh = construirMallaVoxel(gTorso, V, [0, 3, 0]);
-    this.cuerpo.add(torsoMesh);
+    // Cinturón de cuero y hebilla de oro antiguo
+    gTorso.taperedCylinder(0, -2, 0, 0, 8.0, 4.6, 8.0, 4.6, CUERO);
+    gTorso.box(-2, -2, 5, 2, 0, 5, ORO, 'metal');
 
-    // ── Cabeza / Máscara de Arlequín ──
-    this.cabeza.position.set(0, 5.5 * V, 0);
+    // Naipes envejecidos metidos en la faja
+    gTorso.box(-9, -4, 2, -7, 2, 3, HUESO);
+    gTorso.set(-8, 0, 3, CARMESI);
+    gTorso.box(7, -4, 2, 9, 2, 3, HUESO);
+    gTorso.set(8, 0, 3, PURPURA);
+
+    // Capa abismal detrás
+    gTorso.taperedCylinder(0, -18, 10, -4, 11.5, 2.2, 7.5, 2.0, CAPA);
+
+    // Gola dentada oscura con cascabeles
+    gTorso.taperedCylinder(0, 9, 12, 0, 10.6, 6.2, 6.2, 4.2, CARMESI_OSC);
+    gTorso.ditherBox(-10, 9, -5, 0, 11, 5, PURPURA_OSC, CAPA);
+    for (let i = -9; i <= 9; i += 3) {
+      gTorso.set(i, 8, 5, ORO, 'metal');
+      gTorso.set(i, 8, -5, ORO_OSC, 'metal');
+    }
+
+    this.cuerpo.add(construirMallaVoxel(gTorso, V, [0, 6, 0]));
+
+    // ── Cabeza / Máscara Veneciana esculpida (Cero bloque cuadrado) ──
+    this.cabeza.position.set(0, 7.5 * V, 0);
     const gCab = new VoxelGrid();
-    // Base marfil redondeada
-    gCab.box(-4, 0, -3, 4, 8, 3, MARFIL);
-    gCab.box(-3, 0, 4, 3, 7, 4, MARFIL);
-    // Capucha trasera/superior bipartida celeste y oro
-    gCab.box(-5, 2, -4, 0, 9, 0, CELESTE);
-    gCab.box(1, 2, -4, 5, 9, 0, ORO);
-    gCab.box(-5, 7, -3, 0, 9, 3, CELESTE);
-    gCab.box(1, 7, -3, 5, 9, 3, ORO);
+    gCab.sculptHead(0, 7, 0, 5.8, 7.2, 5.2, MARFIL, MARFIL_SOMBRA);
 
-    // Rostro teatral (cejas, cuencas hondas, nariz y sonrisa carmesí)
-    const palCab: Record<string, number> = {
-      S: SOMBRA,
-      R: CARMESI,
-      D: CARMESI_OSC,
-      N: MARFIL_OSC,
-    };
+    // Capucha arlequín trasera y superior bipartida
+    gCab.taperedCylinder(0, 2, 14, -2, 6.6, 4.8, 5.8, 4.2, CAPA);
+    gCab.ditherBox(-6, 4, -6, 0, 15, 2, PURPURA, PURPURA_OSC);
+    gCab.ditherBox(1, 4, -6, 6, 15, 2, CARMESI, CARMESI_OSC);
+
+    // Ribete de oro antiguo sobre la frente
+    gCab.box(-5, 12, 4, 5, 13, 5, ORO, 'metal');
+
+    // Cuencas oculares talladas y oscuras + nariz afilada + lágrima + sonrisa ladina
+    for (const sx of [-1, 1] as const) {
+      gCab.box(sx * 2, 8, 5, sx * 3, 9, 6, ABISMO);
+      gCab.set(sx * 2, 8, 4, ABISMO).set(sx * 3, 8, 4, ABISMO);
+      gCab.set(sx * 2, 9, 4, ABISMO).set(sx * 3, 9, 4, ABISMO);
+    }
+    // Nariz afilada
+    gCab.box(0, 5, 5, 0, 7, 6, MARFIL_SOMBRA);
+    gCab.set(0, 6, 6, MARFIL);
+    // Lágrima de rombo bajo el ojo izquierdo
+    gCab.set(-3, 6, 5, PURPURA_OSC).set(-3, 5, 5, ABISMO);
+    // Sonrisa carmesí de títere
     gCab.paintFront(
       -3,
-      6,
       4,
+      5,
       [
-        'SS...SS',
-        'SS...SS',
-        '...N...',
-        'R..N..R',
+        'R.....R',
         '.RRRRR.',
         '..DDD..',
       ],
-      palCab,
+      { R: CARMESI, D: CARMESI_OSC },
       1,
-      'matte',
     );
-    gCab.set(0, 3, 5, MARFIL_OSC);
-    const cabMesh = construirMallaVoxel(gCab, V, [0, 0, 0]);
-    this.cabeza.add(cabMesh);
 
-    // Ojos luminosos móviles + pupilas (z = 5.06*V delante del bloque z=4..5)
-    const matIris = new THREE.MeshBasicMaterial({ color: 0xffe875 });
-    const matPupila = new THREE.MeshBasicMaterial({ color: 0x0b0514 });
-    const geoOjo = new THREE.PlaneGeometry(1.7 * V, 1.0 * V);
-    const geoPupila = new THREE.PlaneGeometry(0.65 * V, 0.9 * V);
+    this.cabeza.add(construirMallaVoxel(gCab, V, [0, 0, 0]));
+
+    // Ojos luminosos ámbar con pupilas verticales móviles
+    const matIris = new THREE.MeshBasicMaterial({ color: 0xffcf4a });
+    const matPupila = new THREE.MeshBasicMaterial({ color: 0x0b0711 });
+    const geoOjo = new THREE.PlaneGeometry(2.1 * V, 1.3 * V);
+    const geoPupila = new THREE.PlaneGeometry(0.75 * V, 1.2 * V);
 
     this.ojoIzq = new THREE.Mesh(geoOjo, matIris);
-    this.ojoIzq.position.set(-1.9 * V, 5.1 * V, 5.06 * V);
+    this.ojoIzq.rotation.z = -0.16;
+    this.ojoIzq.position.set(-2.5 * V, 8.6 * V, 6.08 * V);
     this.pupilaIzq = new THREE.Mesh(geoPupila, matPupila);
     this.pupilaIzq.position.set(0, 0, 0.004);
     this.ojoIzq.add(this.pupilaIzq);
 
     this.ojoDer = new THREE.Mesh(geoOjo, matIris);
-    this.ojoDer.position.set(1.9 * V, 5.1 * V, 5.06 * V);
+    this.ojoDer.rotation.z = 0.16;
+    this.ojoDer.position.set(2.5 * V, 8.6 * V, 6.08 * V);
     this.pupilaDer = new THREE.Mesh(geoPupila, matPupila);
     this.pupilaDer.position.set(0, 0, 0.004);
     this.ojoDer.add(this.pupilaDer);
     this.cabeza.add(this.ojoIzq, this.ojoDer);
 
-    // 3 Cuernos curvos de gorro con cascabeles de oro
+    // 3 Cuernos largos y curvos con curve3D + cascabeles de oro antiguo
     const gCuernoI = new VoxelGrid();
-    gCuernoI.line3D(0, 0, 0, -4, 4, 1, 1.5, CELESTE);
-    gCuernoI.line3D(-4, 4, 1, -7, 2, 2, 1.0, CELESTE_OSC);
-    gCuernoI.ellipsoid(-7, 1, 2, 1.1, 1.1, 1.1, ORO, 'metal');
+    gCuernoI.curve3D([[0, 0, 0], [-4, 6, 1], [-10, 7, 2], [-14, 2, 3]], 2.4, 0.9, PURPURA);
+    gCuernoI.ellipsoid(-14, 0, 3, 1.5, 1.5, 1.5, ORO, 'metal');
     this.cuernoIzq.add(construirMallaVoxel(gCuernoI, V, [0, 0, 0]));
-    this.cuernoIzq.position.set(-3 * V, 8.2 * V, 0);
+    this.cuernoIzq.position.set(-4 * V, 13.5 * V, -1 * V);
 
     const gCuernoC = new VoxelGrid();
-    gCuernoC.line3D(0, 0, 0, 0, 5, 1, 1.4, CELESTE);
-    gCuernoC.box(1, 0, 0, 1, 5, 2, ORO);
-    gCuernoC.line3D(0, 5, 1, 0, 7, -1, 1.0, ORO);
-    gCuernoC.ellipsoid(0, 8, -1, 1.0, 1.0, 1.0, ORO_OSC, 'metal');
+    gCuernoC.curve3D([[0, 0, 0], [0, 7, 0], [1, 12, -4], [2, 9, -8]], 2.2, 0.9, CARMESI);
+    gCuernoC.ellipsoid(2, 7, -8, 1.4, 1.4, 1.4, ORO_OSC, 'metal');
     this.cuernoCentro.add(construirMallaVoxel(gCuernoC, V, [0, 0, 0]));
-    this.cuernoCentro.position.set(0, 8.8 * V, -0.5 * V);
+    this.cuernoCentro.position.set(0, 14 * V, -1 * V);
 
     const gCuernoD = new VoxelGrid();
-    gCuernoD.line3D(0, 0, 0, 4, 4, 1, 1.5, MARFIL);
-    gCuernoD.line3D(4, 4, 1, 7, 2, 2, 1.0, ORO);
-    gCuernoD.ellipsoid(7, 1, 2, 1.1, 1.1, 1.1, ORO, 'metal');
+    gCuernoD.curve3D([[0, 0, 0], [4, 7, 1], [10, 8, 2], [14, 3, 3]], 2.4, 0.9, CARMESI);
+    gCuernoD.ellipsoid(14, 1, 3, 1.5, 1.5, 1.5, ORO, 'metal');
     this.cuernoDer.add(construirMallaVoxel(gCuernoD, V, [0, 0, 0]));
-    this.cuernoDer.position.set(3 * V, 8.2 * V, 0);
+    this.cuernoDer.position.set(4 * V, 13.5 * V, -1 * V);
 
     this.cabeza.add(this.cuernoIzq, this.cuernoCentro, this.cuernoDer);
     this.cuerpo.add(this.cabeza);
 
-    // ── Brazo izquierdo (-X) con Cetro Marotte ──
-    this.brazoIzq.position.set(-5.2 * V, 4.2 * V, 0.5 * V);
+    // ── Brazo izquierdo (-X) con Cetro Marotte gótico ──
+    this.brazoIzq.position.set(-9.5 * V, 6.2 * V, 0.5 * V);
     const gBI = new VoxelGrid();
-    gBI.box(-1, -5, -1, 1, 0, 1, CELESTE);
-    gBI.box(-1, -6, 0, 1, -5, 2, ORO, 'metal');
-    gBI.box(-1, -8, 1, 1, -6, 3, MARFIL);
+    gBI.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, PURPURA);
+    gBI.box(-2, -11, -1, 2, -10, 2, ORO, 'metal');
+    gBI.box(-1, -14, 0, 1, -11, 3, MARFIL);
     this.brazoIzq.add(construirMallaVoxel(gBI, V, [0, 0, 0]));
 
     const gCetro = new VoxelGrid();
-    gCetro.box(0, -4, 0, 0, 8, 0, CARMESI);
-    gCetro.set(0, -4, 0, ORO, 'metal').set(0, 8, 0, ORO, 'metal');
-    // Mini cabeza de Bufón en la punta del cetro
-    gCetro.box(-2, 9, -1, 2, 12, 1, MARFIL);
-    gCetro.set(-1, 11, 1, SOMBRA).set(1, 11, 1, SOMBRA);
-    gCetro.box(-1, 10, 1, 1, 10, 1, CARMESI);
-    gCetro.box(-3, 13, 0, -1, 14, 0, CELESTE);
-    gCetro.box(1, 13, 0, 3, 14, 0, ORO);
-    gCetro.set(-3, 12, 0, ORO, 'metal').set(3, 12, 0, ORO, 'metal');
+    gCetro.cylinderY(0, -8, 15, 0, 0.9, 0.9, CARMESI_OSC);
+    gCetro.box(-1, -8, -1, 1, -7, 1, ORO, 'metal');
+    gCetro.box(-1, 14, -1, 1, 15, 1, ORO, 'metal');
+    gCetro.sculptHead(0, 18, 0, 2.8, 3.2, 2.4, MARFIL, MARFIL_SOMBRA);
+    gCetro.set(-1, 19, 3, ABISMO).set(1, 19, 3, ABISMO);
+    gCetro.box(-1, 17, 3, 1, 17, 3, CARMESI);
+    gCetro.curve3D([[-1, 21, 0], [-4, 23, 0]], 1.0, 0.6, PURPURA);
+    gCetro.curve3D([[1, 21, 0], [4, 23, 0]], 1.0, 0.6, CARMESI);
+    gCetro.set(-4, 23, 0, ORO, 'metal').set(4, 23, 0, ORO, 'metal');
     this.cetro.add(construirMallaVoxel(gCetro, V, [0, 0, 0]));
-    this.cetro.position.set(-0.5 * V, -7 * V, 2.5 * V);
-    this.cetro.rotation.set(0.18, 0, 0.25);
+    this.cetro.position.set(-1 * V, -13 * V, 3 * V);
+    this.cetro.rotation.set(0.2, 0, 0.25);
     this.brazoIzq.add(this.cetro);
 
-    // ── Brazo derecho (+X) con Abanico de 3 Naipes Españoles ──
-    this.brazoDer.position.set(5.2 * V, 4.2 * V, 0.5 * V);
+    // ── Brazo derecho (+X) con Abanico de 3 Naipes envejecidos ──
+    this.brazoDer.position.set(9.5 * V, 6.2 * V, 0.5 * V);
     const gBD = new VoxelGrid();
-    gBD.box(-1, -5, -1, 1, 0, 1, MARFIL_OSC);
-    gBD.box(-1, -6, 0, 1, -5, 2, ORO, 'metal');
-    gBD.box(-1, -8, 1, 1, -6, 3, MARFIL);
+    gBD.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, CARMESI);
+    gBD.box(-2, -11, -1, 2, -10, 2, ORO, 'metal');
+    gBD.box(-1, -14, 0, 1, -11, 3, MARFIL);
     this.brazoDer.add(construirMallaVoxel(gBD, V, [0, 0, 0]));
 
     const gAbanico = new VoxelGrid();
-    const palCartas: Record<string, number> = { M: MARFIL, R: CARMESI, O: ORO, S: 0x1d88d9, C: 0x1e9c40 };
-    const carta = [
-      'MMMMM',
-      'MRMRM',
-      'MMOMM',
-      'MRMRM',
-      'MMMMM',
-      'MMMMM',
-    ];
-    gAbanico.extrude2D(carta, palCartas, 1, -2, 0, 0, 'matte');
-    gAbanico.extrude2D(
-      ['MMMMM', 'MMSMM', 'MMSMM', 'MMOMM', 'MMMMM', 'MMMMM'],
-      palCartas,
-      1,
-      1,
-      2,
-      1,
-      'matte',
-    );
-    gAbanico.extrude2D(
-      ['MMMMM', 'MMOMM', 'MOOOM', 'MMOMM', 'MMMMM', 'MMMMM'],
-      palCartas,
-      1,
-      4,
-      1,
-      2,
-      'matte',
-    );
-    this.abanico.add(construirMallaVoxel(gAbanico, V * 0.78, [0, 0, 0]));
-    this.abanico.position.set(0.5 * V, -7.2 * V, 3.2 * V);
-    this.abanico.rotation.set(-0.25, -0.2, -0.18);
+    const palCartas: Record<string, number> = { M: HUESO, R: CARMESI, O: ORO, S: 0x1440b8 };
+    gAbanico.extrude2D(['MMMMMM', 'MRMMRM', 'MMOOMM', 'MRMMRM', 'MMMMMM', 'MMMMMM', 'MMMMMM'], palCartas, 1, -3, 0, 0);
+    gAbanico.extrude2D(['MMMMMM', 'MMSSMM', 'MMSSMM', 'MMOOMM', 'MMMMMM', 'MMMMMM', 'MMMMMM'], palCartas, 1, 1, 2, 1);
+    gAbanico.extrude2D(['MMMMMM', 'MMOOMM', 'MOOOOM', 'MMOOMM', 'MMMMMM', 'MMMMMM', 'MMMMMM'], palCartas, 1, 5, 1, 2);
+    this.abanico.add(construirMallaVoxel(gAbanico, V * 0.9, [0, 0, 0]));
+    this.abanico.position.set(1 * V, -13 * V, 4 * V);
+    this.abanico.rotation.set(-0.22, -0.22, -0.18);
     this.brazoDer.add(this.abanico);
 
     this.cuerpo.add(this.brazoIzq, this.brazoDer);
 
-    // Iluminación dedicada para que siempre destaque con volumen y color vivo
-    this.luzFrente = new THREE.PointLight(0xffeacc, 1.45, 3.6, 1.5);
+    // Iluminación nocturna de claroscuro (fiel al tono oscuro del juego)
+    this.luzFrente = new THREE.PointLight(0xffc880, 1.35, 3.6, 1.5);
     this.luzFrente.position.set(-0.35, 0.45, 1.25);
-    this.luzMascara = new THREE.PointLight(0xffbe5c, 1.15, 2.8, 1.8);
-    this.luzMascara.position.set(0.42, 0.15, 0.85);
+    this.luzMascara = new THREE.PointLight(0x9e58ff, 1.05, 2.8, 1.8);
+    this.luzMascara.position.set(0.45, 0.15, 0.85);
     this.raiz.add(this.cuerpo, this.luzFrente, this.luzMascara);
     this.raiz.visible = false;
     escena.add(this.raiz);
@@ -341,10 +318,10 @@ export class Bufon3D {
     const enModal = !!el.closest('#capa .velo');
     if (paloRey) {
       this.luzMascara.color.setHex(COLOR_REY[paloRey]);
-      this.luzMascara.intensity = segundaRey ? 1.4 : 1.15;
+      this.luzMascara.intensity = segundaRey ? 1.35 : 1.05;
     } else {
-      this.luzMascara.color.setHex(0xffbe5c);
-      this.luzMascara.intensity = enModal ? 1.35 : 1.15;
+      this.luzMascara.color.setHex(0xffaa44);
+      this.luzMascara.intensity = enModal ? 1.3 : 1.05;
     }
 
     let objX = punteroX;
@@ -376,13 +353,13 @@ export class Bufon3D {
       this.cuerpo.position.set(0, 0, 0);
       this.ojoIzq.scale.set(1, 1, 1);
       this.ojoDer.scale.set(1, 1, 1);
-      const pxQ = THREE.MathUtils.clamp(relX * 0.45 * V, -0.45 * V, 0.45 * V);
+      const pxQ = THREE.MathUtils.clamp(relX * 0.55 * V, -0.55 * V, 0.55 * V);
       const pyQ = THREE.MathUtils.clamp(-relY * 0.25 * V, -0.25 * V, 0.25 * V);
       this.pupilaIzq.position.set(pxQ, pyQ, 0.004);
       this.pupilaDer.position.set(pxQ, pyQ, 0.004);
       this.brazoIzq.rotation.set(0.08, 0, 0.1);
       this.brazoDer.rotation.set(0.06, 0, -0.1);
-      this.cetro.rotation.set(0.18, 0, 0.25);
+      this.cetro.rotation.set(0.2, 0, 0.25);
       return;
     }
 
@@ -413,9 +390,9 @@ export class Bufon3D {
     const gestoDer = habla || festeja ? Math.sin(reloj * 10 + 0.8) * 0.22 : Math.sin(reloj * 1.5 + 1.1) * 0.07;
     this.brazoIzq.rotation.set(-hablaCetro * 0.5, 0, 0.1 + hablaCetro * 0.3);
     this.brazoDer.rotation.set(-0.18 - Math.abs(gestoDer) * 0.4, this.miraX * 0.16, -0.1 - gestoDer * 0.3);
-    this.cetro.rotation.set(0.18 + hablaCetro * 0.45, 0, 0.25 + hablaCetro);
+    this.cetro.rotation.set(0.2 + hablaCetro * 0.45, 0, 0.25 + hablaCetro);
 
-    const px = THREE.MathUtils.clamp(this.miraX * 0.45 * V, -0.45 * V, 0.45 * V);
+    const px = THREE.MathUtils.clamp(this.miraX * 0.55 * V, -0.55 * V, 0.55 * V);
     const py = THREE.MathUtils.clamp(-this.miraY * 0.25 * V, -0.25 * V, 0.25 * V);
     this.pupilaIzq.position.set(px, py, 0.004);
     this.pupilaDer.position.set(px, py, 0.004);

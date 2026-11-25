@@ -3,6 +3,14 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.55.0 · Rediseño Dark-Gothic 2× de Alta Densidad — Bufón y 5 Héroes (2026-11-25)
+
+Segunda iteración de la serie de 5 versiones: reconstrucción completa del Bufón y los 5 Héroes de Mazo al doble de resolución (`V = 0.018`), con proporciones estilizadas, paleta *Dark Tarot* y cero bloques *Minecraft*. *(Reglas, música, voces y balance 100 % congelados.)*
+
+- **Bufón Dark-Gothic (`bufon3d.ts`):** máscara veneciana de marfil envejecido esculpida (`sculptHead`), cuencas talladas con ojos ámbar y pupilas verticales, lágrima de rombo, 3 cuernos orgánicos curvos (`curve3D`) en carmesí/púrpura abismal con cascabeles de oro antiguo, gola dentada, cetro *Marotte* gótico y abanico de naipes hueso.
+- **5 Héroes de Mazo 2× (`heroes3d.ts`):** La Barrendera, El Paisano Bravo, La Estratega, El Enmascarado y El Guardián esculpidos en alta densidad con ponchos/capas drapeadas, armas y escudos detallados.
+- **Intro por Mazo (`pantallas.css`):** tarjeta compacta ajustada para mantener siempre 1 fila prolija de cartas en `1920×1080`, `1280×800` y móvil.
+
 ## 0.54.0 · Motor Dark-Dithered Pixel-3D + Intro 3D Abierta (2026-11-25)
 
 Primera iteración de la serie de 5 versiones de revisión visual profunda: evolución del motor 3D hacia *Dark Dithered Pixel Art* y apertura total del escenario 3D en la intro de cada Mazo. *(Reglas, música, voces y balance 100 % congelados.)*

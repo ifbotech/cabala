@@ -20,6 +20,7 @@ Registro vivo del Estudio Autónomo. Cada versión se audita con lupa adversaria
 | **J. Intro 3D por Mazo, Tarjetas 0,2 s y Descarte Táctico** | Intro animada en 3 golpes por Personaje, fichas icónicas de lectura en 0,2 s para Amuletos/Cábalas/Bendiciones, cabecera de reglas por Mazo en `? JUGADAS` y descarte táctico multi-carta; doble Auditoría Adversarial limpia | **Completado (`v0.52.0`)** |
 | **K. Elenco Voxel 3D con AO Horneado y Reyes sin Naipe 12** | Motor `voxel.ts` con AO por vértice; 4 Reyes, Bufón y 5 Héroes en Voxel 3D; cero cartas `12` en combate, La Corte, Pared de la Gloria 3D y Final; fix `.pano-regla.costado` | **Completado (`v0.53.0`)** |
 | **L. Dark-Dithered Pixel-3D & Intro 3D Abierta (Rev. 1/5)** | `voxel.ts` con sombras violáceas `#120a24`, Bayer 4×4 3D y primitivas orgánicas; escenario 3D abierto en `intro-mazo` verificado en `1920×1080`, `1280×800` y `390×844` | **Completado (`v0.54.0`)** |
+| **M. Bufón y 5 Héroes Dark-Gothic 2× (Rev. 2/5)** | Reconstrucción a `V = 0.018` sin bloques *Minecraft*: máscara veneciana de tarot, cuernos orgánicos, paleta oscura de `paleta.ts`, 5 Héroes estilizados | **Completado (`v0.55.0`)** |
 
 ---
 

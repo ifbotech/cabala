@@ -1,15 +1,16 @@
-// Los 5 Héroes de Mazo en Voxel Art 3D con AO horneado (escoba, truco, chinchón, mentiroso, chancho).
+// Los 5 Héroes de Mazo en Dark-Gothic Pixel-3D de alta densidad (V = 0.018, cero bloques Minecraft).
 import * as THREE from 'three';
 import type { MazoId } from '../../rules/mazos';
 import { VoxelGrid, construirMallaVoxel } from './voxel';
 
-const V = 0.032;
-const PIEL = 0xe8b288;
-const PIEL_OSC = 0xc98b60;
-const BOTA = 0x3b2116;
-const ORO = 0xf5b52e;
-const CUERO = 0x6b391c;
-const OJOS = 0x160c1c;
+const V = 0.018;
+const PIEL = 0xc78d6b;
+const PIEL_SOMBRA = 0x7a4458;
+const BOTA = 0x241410;
+const ORO = 0xc98c1e;
+const CUERO = 0x422116;
+const ABISMO = 0x0b0711;
+const HUESO = 0xd9ceb4;
 
 interface HeroeArticulado {
   grupo: THREE.Group;
@@ -45,44 +46,44 @@ export class Heroes3D {
       this.raiz.add(this.heroes[m].grupo);
     }
 
-    this.luzFrente = new THREE.PointLight(0xffe7c4, 1.55, 4.0, 1.4);
+    this.luzFrente = new THREE.PointLight(0xffcf94, 1.45, 4.0, 1.4);
     this.luzFrente.position.set(-0.3, 0.5, 1.3);
-    this.luzRim = new THREE.PointLight(0xffb44d, 1.15, 3.2, 1.6);
+    this.luzRim = new THREE.PointLight(0xd9842b, 1.05, 3.2, 1.6);
     this.luzRim.position.set(0.55, 0.35, -0.4);
     this.raiz.add(this.luzFrente, this.luzRim);
     this.raiz.visible = false;
     escena.add(this.raiz);
   }
 
-  private baseCuerpo(ropa: number, ropaOsc: number, pantalon: number, cinturon = true): VoxelGrid {
+  private baseCuerpo(ropa: number, ropaOsc: number, pantalon: number, ancho = 7.4, cinturon = true): VoxelGrid {
     const g = new VoxelGrid();
-    g.mirrorX(1, -9, -1, 3, -7, 2, BOTA);
-    g.mirrorX(1, -6, -1, 3, -1, 1, pantalon);
-    g.box(-4, 0, -2, 4, 8, 2, ropa);
-    g.box(-4, 0, -2, 4, 1, 2, ropaOsc);
+    g.mirrorX(2, -19, -2, 5, -15, 3, BOTA);
+    g.taperedCylinder(-3.5, -14, -2, 0, 2.2, 2.2, 2.8, 2.6, pantalon);
+    g.taperedCylinder(3.5, -14, -2, 0, 2.2, 2.2, 2.8, 2.6, pantalon);
+    g.taperedCylinder(0, -2, 14, 0, ancho, 4.0, ancho + 0.8, 4.4, ropa);
+    g.ditherBox(-Math.floor(ancho), -2, -4, Math.floor(ancho), 2, 4, ropaOsc, ropa);
     if (cinturon) {
-      g.box(-4, 2, -2, 4, 3, 2, CUERO);
-      g.box(-1, 2, 3, 1, 3, 3, ORO, 'metal');
+      g.taperedCylinder(0, 3, 5, 0, ancho + 0.4, 4.4, ancho + 0.4, 4.4, CUERO);
+      g.box(-2, 3, 5, 2, 5, 5, ORO, 'metal');
     }
     return g;
   }
 
   private baseCabeza(pelo: number): VoxelGrid {
     const g = new VoxelGrid();
-    g.box(-3, 0, -3, 3, 6, 3, PIEL);
-    g.box(-3, 1, -4, 3, 6, -2, pelo);
-    g.box(-3, 6, -3, 3, 7, 2, pelo);
-    g.mirrorX(3, 2, -3, 3, 6, 0, pelo);
+    g.sculptHead(0, 6, 0, 5.2, 6.4, 4.8, PIEL, PIEL_SOMBRA);
+    g.taperedCylinder(0, 4, 13, -1, 5.8, 4.8, 5.0, 4.2, pelo);
+    g.box(-5, 9, -4, 5, 13, 3, pelo);
     g.paintFront(
-      -2,
-      4,
-      3,
+      -3,
+      8,
+      5,
       [
-        'O...O',
-        '..N..',
-        '.MMM.',
+        'O.....O',
+        '...N...',
+        '..MMM..',
       ],
-      { O: OJOS, N: PIEL_OSC, M: 0x7d3b32 },
+      { O: ABISMO, N: PIEL_SOMBRA, M: 0x5c2424 },
       1,
     );
     return g;
@@ -91,33 +92,34 @@ export class Heroes3D {
   private crearEscoba(): HeroeArticulado {
     const grupo = new THREE.Group();
     const cuerpo = new THREE.Group();
-    const gT = this.baseCuerpo(0x7d192e, 0x540e1d, 0x3b1822, false);
-    gT.box(-3, 0, 2, 3, 5, 3, 0xc7b299); // Delantal
+    const gT = this.baseCuerpo(0x5e1126, 0x3b0817, 0x260d18, 7.2, false);
+    gT.taperedCylinder(0, -3, 10, 1, 6.4, 3.6, 5.4, 3.2, 0x9e8c76); // Delantal envejecido
     cuerpo.add(construirMallaVoxel(gT, V, [0, 0, 0]));
 
     const cabeza = new THREE.Group();
-    const gC = this.baseCabeza(0x961f3f);
-    gC.mirrorX(3, -1, -2, 4, 5, 0, 0x961f3f);
+    const gC = this.baseCabeza(0x591124);
+    gC.taperedCylinder(-4.5, 0, 9, -1, 2.0, 2.2, 1.8, 2.0, 0x591124);
+    gC.taperedCylinder(4.5, 0, 9, -1, 2.0, 2.2, 1.8, 2.0, 0x591124);
     cabeza.add(construirMallaVoxel(gC, V, [0, 0, 0]));
-    cabeza.position.set(0, 8.5 * V, 0);
+    cabeza.position.set(0, 14.5 * V, 0);
 
     const brazoIzq = new THREE.Group();
     const gBI = new VoxelGrid();
-    gBI.box(-1, -5, -1, 1, 0, 1, 0x7d192e);
-    gBI.box(-1, -7, -1, 1, -5, 1, PIEL);
-    // Escoba de paja
-    gBI.box(0, -13, 1, 0, 8, 1, CUERO);
-    gBI.box(-2, -16, 0, 2, -12, 2, 0xe3b13b);
-    gBI.box(-2, -18, 0, 2, -16, 2, 0xc48b22);
+    gBI.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, 0x5e1126);
+    gBI.box(-1, -13, -1, 1, -10, 1, PIEL);
+    // Escoba larga con paja escalonada oscura
+    gBI.cylinderY(0, -24, 16, 2, 0.8, 0.8, CUERO);
+    gBI.taperedCylinder(0, -33, -23, 2, 4.2, 2.4, 1.8, 1.4, 0xb88224);
+    gBI.ditherBox(-4, -33, 0, 4, -28, 4, 0x9e6a18, 0x6e440c);
     brazoIzq.add(construirMallaVoxel(gBI, V, [0, 0, 0]));
-    brazoIzq.position.set(-5 * V, 7.5 * V, 0.5 * V);
+    brazoIzq.position.set(-9 * V, 13 * V, 0.5 * V);
 
     const brazoDer = new THREE.Group();
     const gBD = new VoxelGrid();
-    gBD.box(-1, -5, -1, 1, 0, 1, 0x7d192e);
-    gBD.box(-1, -7, -1, 1, -5, 1, PIEL);
+    gBD.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, 0x5e1126);
+    gBD.box(-1, -13, -1, 1, -10, 1, PIEL);
     brazoDer.add(construirMallaVoxel(gBD, V, [0, 0, 0]));
-    brazoDer.position.set(5 * V, 7.5 * V, 0);
+    brazoDer.position.set(9 * V, 13 * V, 0);
 
     cuerpo.add(cabeza, brazoIzq, brazoDer);
     grupo.add(cuerpo);
@@ -127,42 +129,43 @@ export class Heroes3D {
   private crearTruco(): HeroeArticulado {
     const grupo = new THREE.Group();
     const cuerpo = new THREE.Group();
-    const gT = this.baseCuerpo(0x1f499c, 0x142e69, 0x16223b);
-    // Poncho a rayas azul/carmesí/marfil
-    gT.box(-5, 3, -3, 5, 8, 3, 0x1f499c);
-    gT.box(-5, 5, -3, 5, 5, 3, 0xd62845);
-    gT.box(-5, 4, -3, 5, 4, 3, 0xf2ebe1);
+    const gT = this.baseCuerpo(0x162e66, 0x0e1d42, 0x111829, 7.6);
+    // Poncho triangular drapeado en índigo oscuro, borgoña y hueso
+    gT.taperedCylinder(0, 4, 14, 0, 9.6, 5.4, 6.2, 4.2, 0x162e66);
+    gT.ditherBox(-8, 7, -4, 8, 9, 4, 0x7a0e28, 0x470620);
+    gT.box(-7, 6, -4, 7, 6, 4, HUESO);
     cuerpo.add(construirMallaVoxel(gT, V, [0, 0, 0]));
 
     const cabeza = new THREE.Group();
-    const gC = this.baseCabeza(0x241612);
-    // Bigote gaucho
-    gC.box(-3, 2, 4, -1, 2, 4, 0x1a0f0c).box(1, 2, 4, 3, 2, 4, 0x1a0f0c);
-    // Sombrero gaucho con cinta roja
-    gC.box(-6, 7, -6, 6, 7, 6, 0x1d1726);
-    gC.box(-4, 8, -4, 4, 8, 4, 0xd62845);
-    gC.box(-4, 9, -4, 4, 11, 4, 0x1d1726);
+    const gC = this.baseCabeza(0x1a0f0c);
+    gC.box(-4, 4, 5, 4, 5, 5, 0x140b09); // Bigote gaucho espeso
+    // Sombrero gaucho oscuro con cinta carmesí
+    gC.taperedCylinder(0, 11, 12, 0, 9.5, 9.5, 8.8, 8.8, 0x140e1c);
+    gC.taperedCylinder(0, 13, 14, 0, 5.6, 5.6, 5.4, 5.4, 0x8c122e);
+    gC.taperedCylinder(0, 15, 19, 0, 5.4, 5.4, 4.8, 4.8, 0x140e1c);
     cabeza.add(construirMallaVoxel(gC, V, [0, 0, 0]));
-    cabeza.position.set(0, 8.5 * V, 0);
+    cabeza.position.set(0, 14.5 * V, 0);
 
     const brazoIzq = new THREE.Group();
     const gBI = new VoxelGrid();
-    gBI.box(-1, -5, -1, 1, 0, 1, 0x1f499c);
-    gBI.box(-1, -7, -1, 1, -5, 1, PIEL);
-    // Espada de acero
-    gBI.box(-2, -6, 1, 2, -5, 2, ORO, 'metal');
-    gBI.box(0, -4, 1, 0, 9, 2, 0x9ed8f5, 'metal');
+    gBI.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, 0x162e66);
+    gBI.box(-1, -13, -1, 1, -10, 1, PIEL);
+    // Espada de acero oscuro
+    gBI.box(-3, -11, 2, 3, -10, 3, ORO, 'metal');
+    gBI.box(-1, -9, 2, 1, 16, 3, 0x73b3db, 'metal');
+    gBI.box(0, -8, 3, 0, 18, 3, 0xc2efff, 'emissive');
     brazoIzq.add(construirMallaVoxel(gBI, V, [0, 0, 0]));
-    brazoIzq.position.set(-5.5 * V, 7.5 * V, 0.5 * V);
+    brazoIzq.position.set(-9.5 * V, 13 * V, 0.5 * V);
 
     const brazoDer = new THREE.Group();
     const gBD = new VoxelGrid();
-    gBD.box(-1, -5, -1, 1, 0, 1, 0x1f499c);
-    gBD.box(-1, -7, -1, 1, -5, 1, PIEL);
-    // Basto verde nudoso
-    gBD.box(-1, -6, 1, 1, 8, 2, 0x248c38);
+    gBD.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, 0x162e66);
+    gBD.box(-1, -13, -1, 1, -10, 1, PIEL);
+    // Basto nudoso con curve3D
+    gBD.curve3D([[0, -12, 2], [1, 0, 3], [0, 14, 2]], 1.4, 2.1, 0x195e28);
+    gBD.set(1, 5, 4, 0x22d95b, 'emissive').set(-1, 11, 3, 0x22d95b, 'emissive');
     brazoDer.add(construirMallaVoxel(gBD, V, [0, 0, 0]));
-    brazoDer.position.set(5.5 * V, 7.5 * V, 0.5 * V);
+    brazoDer.position.set(9.5 * V, 13 * V, 0.5 * V);
 
     cuerpo.add(cabeza, brazoIzq, brazoDer);
     grupo.add(cuerpo);
@@ -172,36 +175,37 @@ export class Heroes3D {
   private crearChinchon(): HeroeArticulado {
     const grupo = new THREE.Group();
     const cuerpo = new THREE.Group();
-    const gT = this.baseCuerpo(0x1b7a2f, 0x114f1e, 0x3b2416);
-    gT.box(-1, 3, 2, 1, 8, 2, 0xf2ebe1);
+    const gT = this.baseCuerpo(0x104d24, 0x0a3317, 0x2b1a14, 7.2);
+    gT.box(-2, 5, 4, 2, 14, 4, HUESO);
     cuerpo.add(construirMallaVoxel(gT, V, [0, 0, 0]));
 
     const cabeza = new THREE.Group();
-    const gC = this.baseCabeza(0x472816);
-    // Anteojos y boina verde a rayas
-    gC.box(-3, 4, 4, -1, 5, 4, 0x1a1423).box(1, 4, 4, 3, 5, 4, 0x1a1423);
-    gC.set(-2, 4, 4, 0xb8f0ff, 'emissive').set(2, 4, 4, 0xb8f0ff, 'emissive');
-    gC.box(-4, 7, -4, 4, 9, 4, 0x1b7a2f);
-    gC.box(-4, 8, -4, 4, 8, 4, 0x67d675);
+    const gC = this.baseCabeza(0x361e12);
+    // Anteojos de latón con brillo sutil
+    gC.box(-4, 7, 5, -1, 9, 5, 0x1a1423).box(1, 7, 5, 4, 9, 5, 0x1a1423);
+    gC.set(-3, 8, 5, 0x7be0ff, 'emissive').set(2, 8, 5, 0x7be0ff, 'emissive');
+    // Boina verde bosque
+    gC.taperedCylinder(0, 11, 16, 0, 6.2, 6.2, 5.2, 5.2, 0x104d24);
+    gC.box(-5, 13, -5, 5, 14, 5, 0x1d7536);
     cabeza.add(construirMallaVoxel(gC, V, [0, 0, 0]));
-    cabeza.position.set(0, 8.5 * V, 0);
+    cabeza.position.set(0, 14.5 * V, 0);
 
     const brazoIzq = new THREE.Group();
     const gBI = new VoxelGrid();
-    gBI.box(-1, -5, -1, 1, 0, 1, 0x1b7a2f);
-    gBI.box(-1, -7, -1, 1, -5, 1, PIEL);
-    gBI.ellipsoid(0, -6, 3, 1.8, 1.8, 0.8, 0x2fd65a); // Ficha verde
+    gBI.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, 0x104d24);
+    gBI.box(-1, -13, -1, 1, -10, 1, PIEL);
+    gBI.ellipsoid(0, -11, 4, 2.8, 2.8, 1.0, 0x1d8c3e);
     brazoIzq.add(construirMallaVoxel(gBI, V, [0, 0, 0]));
-    brazoIzq.position.set(-5 * V, 7.5 * V, 0.5 * V);
+    brazoIzq.position.set(-9 * V, 13 * V, 0.5 * V);
 
     const brazoDer = new THREE.Group();
     const gBD = new VoxelGrid();
-    gBD.box(-1, -5, -1, 1, 0, 1, 0x1b7a2f);
-    gBD.box(-1, -7, -1, 1, -5, 1, PIEL);
-    gBD.box(-1, -6, 2, 2, -1, 3, 0xf4ede0); // Cartas
-    gBD.set(0, -3, 3, 0xd62845);
+    gBD.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, 0x104d24);
+    gBD.box(-1, -13, -1, 1, -10, 1, PIEL);
+    gBD.box(-2, -12, 3, 3, -3, 4, HUESO);
+    gBD.set(0, -7, 4, 0x8c122e);
     brazoDer.add(construirMallaVoxel(gBD, V, [0, 0, 0]));
-    brazoDer.position.set(5 * V, 7.5 * V, 0.5 * V);
+    brazoDer.position.set(9 * V, 13 * V, 0.5 * V);
 
     cuerpo.add(cabeza, brazoIzq, brazoDer);
     grupo.add(cuerpo);
@@ -211,34 +215,35 @@ export class Heroes3D {
   private crearMentiroso(): HeroeArticulado {
     const grupo = new THREE.Group();
     const cuerpo = new THREE.Group();
-    const gT = this.baseCuerpo(0x6e1f9c, 0x451166, 0x261238);
-    gT.box(-5, 0, -3, 5, 8, -2, 0x451166); // Capa púrpura
+    const gT = this.baseCuerpo(0x3e1366, 0x22093b, 0x160a24, 7.4);
+    gT.taperedCylinder(0, -6, 15, -4, 9.5, 2.0, 6.5, 1.8, 0x22093b); // Capa púrpura abismal
     cuerpo.add(construirMallaVoxel(gT, V, [0, 0, 0]));
 
     const cabeza = new THREE.Group();
-    const gC = this.baseCabeza(0x1f142b);
-    // Antifaz de carnaval púrpura con plumas carmesí
-    gC.box(-3, 4, 4, 3, 5, 4, 0x8f28c9);
-    gC.set(-2, 4, 4, 0xffe44d, 'emissive').set(2, 4, 4, 0xffe44d, 'emissive');
-    gC.set(-2, 7, 3, 0xcf2440).set(0, 8, 3, 0xcf2440).set(2, 7, 3, 0xcf2440);
+    const gC = this.baseCabeza(0x160c21);
+    // Antifaz veneciano púrpura/carmesí
+    gC.box(-5, 7, 5, 5, 9, 5, 0x6b1d9e);
+    gC.set(-3, 8, 5, 0xffd500, 'emissive').set(3, 8, 5, 0xffd500, 'emissive');
+    gC.curve3D([[-2, 11, 4], [-4, 15, 3]], 1.0, 0.5, 0x8c122e);
+    gC.curve3D([[2, 11, 4], [4, 15, 3]], 1.0, 0.5, 0x8c122e);
     cabeza.add(construirMallaVoxel(gC, V, [0, 0, 0]));
-    cabeza.position.set(0, 8.5 * V, 0);
+    cabeza.position.set(0, 14.5 * V, 0);
 
     const brazoIzq = new THREE.Group();
     const gBI = new VoxelGrid();
-    gBI.box(-1, -5, -1, 1, 0, 1, 0x6e1f9c);
-    gBI.box(-1, -7, -1, 1, -5, 1, PIEL);
+    gBI.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, 0x3e1366);
+    gBI.box(-1, -13, -1, 1, -10, 1, PIEL);
     brazoIzq.add(construirMallaVoxel(gBI, V, [0, 0, 0]));
-    brazoIzq.position.set(-5 * V, 7.5 * V, 0);
+    brazoIzq.position.set(-9 * V, 13 * V, 0);
 
     const brazoDer = new THREE.Group();
     const gBD = new VoxelGrid();
-    gBD.box(-1, -5, -1, 1, 0, 1, 0x6e1f9c);
-    gBD.box(-1, -7, -1, 1, -5, 1, PIEL);
-    gBD.box(-1, -6, 2, 2, -1, 3, 0xf4ede0); // Carta trucada
-    gBD.set(0, -3, 3, 0x160c1c);
+    gBD.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, 0x3e1366);
+    gBD.box(-1, -13, -1, 1, -10, 1, PIEL);
+    gBD.box(-2, -12, 3, 3, -3, 4, HUESO);
+    gBD.set(0, -7, 4, ABISMO);
     brazoDer.add(construirMallaVoxel(gBD, V, [0, 0, 0]));
-    brazoDer.position.set(5 * V, 7.5 * V, 0.5 * V);
+    brazoDer.position.set(9 * V, 13 * V, 0.5 * V);
 
     cuerpo.add(cabeza, brazoIzq, brazoDer);
     grupo.add(cuerpo);
@@ -248,31 +253,33 @@ export class Heroes3D {
   private crearChancho(): HeroeArticulado {
     const grupo = new THREE.Group();
     const cuerpo = new THREE.Group();
-    const gT = this.baseCuerpo(0x28324a, 0x1a2030, 0x2b1d17);
-    // Escudo de chancho con candado dorado en el pecho/frente
-    gT.box(-4, 1, 3, 4, 7, 4, 0xa84c24);
-    gT.set(-3, 8, 3, 0xa84c24).set(3, 8, 3, 0xa84c24); // Orejas del escudo
-    gT.box(-1, 2, 5, 1, 4, 5, ORO, 'metal'); // Candado
-    gT.set(0, 5, 5, ORO, 'metal');
+    const gT = this.baseCuerpo(0x212033, 0x131221, 0x241610, 8.4);
+    // Escudo de jabalí tallado en madera oscura + candado de oro antiguo
+    gT.ellipsoid(0, 6, 6, 7.2, 6.2, 1.5, 0x5c2818);
+    gT.box(-6, 11, 5, -4, 14, 6, 0x5c2818).box(4, 11, 5, 6, 14, 6, 0x5c2818); // Orejas
+    gT.set(-5, 3, 7, HUESO).set(5, 3, 7, HUESO); // Colmillos
+    gT.box(-2, 3, 8, 2, 7, 8, ORO, 'metal'); // Candado
+    gT.box(-1, 8, 8, 1, 9, 8, ORO, 'metal');
     cuerpo.add(construirMallaVoxel(gT, V, [0, 0, 0]));
 
     const cabeza = new THREE.Group();
-    const gC = this.baseCabeza(0x2e1a14);
-    gC.box(-4, 5, -3, 4, 6, 4, 0xcf2440); // Vincha roja
+    const gC = this.baseCabeza(0x241410);
+    gC.box(-6, 9, -5, 6, 11, 5, 0x8c122e); // Vincha carmesí
+    gC.curve3D([[-5, 10, -5], [-7, 7, -6]], 0.9, 0.5, 0x8c122e);
     cabeza.add(construirMallaVoxel(gC, V, [0, 0, 0]));
-    cabeza.position.set(0, 8.5 * V, 0);
+    cabeza.position.set(0, 14.5 * V, 0);
 
     const brazoIzq = new THREE.Group();
     const gBI = new VoxelGrid();
-    gBI.box(-1, -6, -1, 1, 0, 1, PIEL);
+    gBI.taperedCylinder(0, -11, 0, 0, 2.0, 2.0, 2.6, 2.6, PIEL);
     brazoIzq.add(construirMallaVoxel(gBI, V, [0, 0, 0]));
-    brazoIzq.position.set(-5.2 * V, 7.5 * V, 0);
+    brazoIzq.position.set(-9.5 * V, 13 * V, 0);
 
     const brazoDer = new THREE.Group();
     const gBD = new VoxelGrid();
-    gBD.box(-1, -6, -1, 1, 0, 1, PIEL);
+    gBD.taperedCylinder(0, -11, 0, 0, 2.0, 2.0, 2.6, 2.6, PIEL);
     brazoDer.add(construirMallaVoxel(gBD, V, [0, 0, 0]));
-    brazoDer.position.set(5.2 * V, 7.5 * V, 0);
+    brazoDer.position.set(9.5 * V, 13 * V, 0);
 
     cuerpo.add(cabeza, brazoIzq, brazoDer);
     grupo.add(cuerpo);
@@ -308,7 +315,7 @@ export class Heroes3D {
     }
     const mazo = (el.dataset.mazo || 'escoba') as MazoId;
     const worldH = this.proyectar(cam, r.left + r.width / 2, r.top + r.height * 0.56, r.height, 5.4, this.raiz.position);
-    this.raiz.scale.setScalar(worldH * 0.82);
+    this.raiz.scale.setScalar(worldH * 0.86);
     this.raiz.quaternion.copy(cam.quaternion);
     this.raiz.visible = true;
 
