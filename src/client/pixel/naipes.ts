@@ -178,7 +178,7 @@ export function naipeMapa(s: Palo, rango: number): string[] {
     l.pegar(reyMapa(REY_PX[s], 'calma'), OX + 16, 36);
     const p = pintaNaipe(s, 'chica', 0);
     const [pw, ph] = medida(p);
-    l.pegar(p, Math.round(NAIPE_W / 2 - pw / 2), Math.round(117 - ph / 2));
+    l.pegar(p, Math.round(NAIPE_W / 2 - pw / 2), Math.round(121 - ph / 2));
   } else if (rango >= 10) l.pegar(figuraLienzo(s, rango as 10 | 11 | 12), OX, 0);
   else if (rango === 1) l.pegar(asMapa(s), OX, 0);
   else for (const p of pintasColocadas(s, rango)) l.pegar(p.m, OX + p.x, p.y);

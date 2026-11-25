@@ -3,6 +3,13 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.50.0 · Los 4 Reyes Malvados en 3D saliendo de la Carta + Poderes VFX (2026-11-25)
+
+Irrupción física 3D de los 4 Reyes Jefe desde su naipe `12` durante el combate, con arma y corona propias y coreografía VFX 3D en cada poder o embestida. *(Reglas, música, voces y balance 100 % congelados.)*
+
+- **Reyes Malvados 3D (`reyes3d.ts`, `escena3d/index.ts`, `mesa.ts`):** El Caudillo (sable cian), El Cacique (garrote esmeralda), El Caudal (cetro de oro) y El Bacanal (cáliz carmesí) emergen del naipe `12` con manto tramado en Bayer, luz propia y transformación de Segunda Cara.
+- **VFX 3D por palo (`poderRey3d`):** tajos de energía cian (`S`), estacas esmeralda brotando del paño (`C`), lluvia de monedas malditas (`D`) y anillo/orbes de bruma carmesí (`H`), con sacudida de cámara y fogonazo del candil.
+
 ## 0.49.0 · Bufón 3D Vivo, Mirada Calibrada, Mapa Limpio y Tablón de Colección (2026-11-25)
 
 Primera gran entrega del nuevo mandato: eliminación del calabozo 2D (`palacio.ts`), Bufón 3D de cuerpo completo articulado en todo el juego (cero sprite 2D viejo), mirada diagonal calibrada al centro de la mesa, Mapa sin flechas guía, Reyes Malvados en los naipes `12` y placas de Amuletos/Cábalas en La Pared de la Gloria. *(Reglas, música, voces y balance 100 % congelados.)*

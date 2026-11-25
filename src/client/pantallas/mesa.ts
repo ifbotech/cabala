@@ -21,7 +21,7 @@ import { ajustes, alAzar, guardarPerfil, idioma, perfil, t, tx } from '../almace
 import { agacharMusica, nota, sonar } from '../audio';
 import { cantar, estadoCombate, ponerFuego, remateMusica, stinger } from '../musica';
 import { teclear } from '../habla';
-import { estallidoPalo3d, marcarSucio3d, partirEnemigo3d } from '../escena3d';
+import { estallidoPalo3d, marcarSucio3d, partirEnemigo3d, poderRey3d } from '../escena3d';
 import { RAMPA_CURA, RAMPA_ESCUDO, RAMPA_GOLPE, RAMPA_PALO, chispas, destello, haloRey, limpiarNumeros, lluviaDeMonedas, monedas, motas, numero, partirNaipe, quiebre, tajo, tajoDeReves, type Carril } from '../fx/efectos';
 import { alCeder, cajaDe, pisan, reservar, soltar as soltarTurno, tomadas, ubicar } from '../fx/director';
 import { S, congelar, enFoto, fogonazoCandil, ponerClima, sacudir } from '../fx/motor';
@@ -1422,6 +1422,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           el?.classList.remove('embiste');
           void (el as HTMLElement | null)?.offsetWidth;
           el?.classList.add('embiste');
+          if (enemigo?.jefe && !quieto()) poderRey3d(enemigo.palo);
           // (0.29: el apagado forzado de tu número dura 220 ms: el «−N» nace cuando ya no queda nada de él)
           await pausa(quieto() ? 140 : 240);
           const en = centro($('[data-hud-vida]'));
@@ -1485,6 +1486,7 @@ export function pantallaMesa(p: Partida): Pantalla {
         case 'rey':
           await respiro();
           quitarCartelSegunda();
+          if (enemigo && !quieto()) poderRey3d(enemigo.palo);
           await poderRey(ev.que, ev.n);
           break;
         case 'roba': {

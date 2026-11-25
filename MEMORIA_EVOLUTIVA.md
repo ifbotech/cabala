@@ -4,6 +4,14 @@ Lo que se probó, lo que funcionó y lo que no, versión por versión. Sirve par
 cada cosa está como está. Las mediciones del panel de jugadores son **simuladas** (modelos de lenguaje con capturas y
 reglas): orientan, no demuestran.
 
+## 0.50.0 · Los 4 Reyes Malvados en 3D saliendo de la Carta + Poderes VFX (publicada)
+
+**Qué se buscó.** Que cada Rey Jefe salga físicamente en 3D de su carta `12` en combate y dispare efectos VFX 3D propios de su palo al atacar o activar su poder.
+
+**Qué entró.** `Reyes3D` (`src/client/escena3d/reyes3d.ts`) conectado a `Motor3D` y `mesa.ts` (`poderRey3d`) con manto tramado en Bayer, armas/coronas únicas y 4 coreografías de partículas 3D.
+
+**Lecciones.** Escalar el Rey 3D a `0.76 × worldH` centrado en `0.64` de la altura del naipe evita que la corona se recorte arriba en `1920/1280/390` y deja legible el índice `12` detrás.
+
 ## 0.49.0 · Bufón 3D Vivo, Mirada Calibrada, Mapa Limpio y Tablón de Colección (publicada)
 
 **Qué se buscó.** Eliminar el calabozo 2D ajeno a la mesa, unificar el juego en un único Bufón 3D de cuerpo completo con mirada natural hacia el jugador, limpiar flechas del Mapa y llevar el arte de Reyes Malvados a los naipes y al Tablón 3D.

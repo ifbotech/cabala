@@ -12,6 +12,7 @@ import { CuartoPulperia3D, type RinconId } from './cuarto3d';
 export type { RinconId } from './cuarto3d';
 import { Escenarios3D } from './escenarios3d';
 import { MundoPulperia } from './pulperia';
+import { Reyes3D } from './reyes3d';
 import { CaminoSolDeMayo3D } from './solDeMayo3d';
 
 class Motor3D {
@@ -25,6 +26,7 @@ class Motor3D {
   readonly escenarios: Escenarios3D;
   readonly cuarto: CuartoPulperia3D;
   readonly solDeMayo: CaminoSolDeMayo3D;
+  readonly reyes: Reyes3D;
   rinconResaltado: RinconId | null = null;
 
   private raf = 0;
@@ -60,6 +62,7 @@ class Motor3D {
     this.cuarto = new CuartoPulperia3D(this.escena);
     this.cuarto.sincronizarPerfil(perfil);
     this.solDeMayo = new CaminoSolDeMayo3D(this.escena);
+    this.reyes = new Reyes3D(this.escena);
 
     window.addEventListener('resize', () => this.redimensionar());
     window.addEventListener(
@@ -195,6 +198,7 @@ class Motor3D {
     this.escenarios.actualizar(this.camara.cam, dt, quieto, this.reloj, p?.mazoId ?? 'escoba', infoCartaF);
     this.cuarto.actualizar(dt, quieto, this.reloj, this.rinconResaltado, this.camara.cam.position);
     this.solDeMayo.actualizar(dt, quieto, this.reloj);
+    this.reyes.sincronizar(this.camara.cam, dt, quieto, this.reloj);
     this.renderer.render(this.escena, this.camara.cam);
   }
 
@@ -251,6 +255,12 @@ export const sacudirCamara3d = (fuerza = 1): void => motor?.camara.sacudir(fuerz
 export const partirEnemigo3d = (palo: Palo, rango: number, segunda = false): void =>
   motor?.cartas.partirEnemigo(motor.camara.cam, palo, rango, segunda);
 export const estallidoPalo3d = (palo: Palo, fuerza = 1): void => motor?.cartas.estallidoPalo(motor.camara.cam, palo, fuerza);
+export const poderRey3d = (palo: Palo): void => {
+  if (!motor) return;
+  motor.reyes.lanzarPoder(motor.camara.cam, palo);
+  motor.mundo.fogonazoCandil(1.4);
+  motor.camara.sacudir(1.0);
+};
 export const modoFoto3d = (si: boolean): void => motor?.ponerModoFoto(si);
 export const marcarSucio3d = (): void => motor?.marcarSucio();
 export const forzarCuadro3d = (): void => motor?.forzarCuadro();
