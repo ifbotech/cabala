@@ -13,7 +13,7 @@ Registro vivo del Estudio Autónomo. Cada versión se audita con lupa adversaria
 | **C. Clímax Argentino — «El Camino al Sol de Mayo»** | Puerta doble abierta en el clímax del Tramo 3, empedrado porteño nocturno entre niebla, faroles, banderines celestes y blancos, arcos de naipes españoles, Sol de Mayo colosal *dithered*, Mesa de la Gloria y Carta de Gloria clavada en la pared | **Completado (`v0.45.0`)** |
 | **D. Pulido Artesanal Total y Doble Auditoría Limpia** | Física táctil de cartas, expresividad completa del elenco y **2 Auditorías Adversariales consecutivas con 0 defectos**, `CLS = 0`, `≥ 60 FPS`, ES/EN verdes en vivo | **Completado (`v0.46.0`)** |
 | **E. Navegación Discreta *Inscryption*, Bufón Esculpido y Fix de Mesa** | Navegación 3D por nodos discretos (`▲/▼/◀/▶` + `WASD`), rediseño total del Bufón 3D con rostro esculpido y colas curvas, fix de listeners filtrados al combate | **Completado (`v0.47.0`)** |
-| **F. El Palacio del Rey (*Pokémon* Top-Down)** | Calabozo cenital 2D/3D antes de cada Rey Jefe con cofres de mejoras chetadas y acertijo aleatorio | **Siguiente (`v0.48.0`)** |
+| **F. El Palacio del Rey (*Pokémon* Top-Down)** | Calabozo cenital HD-2D antes de cada Rey Jefe con 4 palacios por palo, 3 cofres de mejoras chetadas y 3 acertijos aleatorios | **Completado (`v0.48.0`)** |
 
 ---
 

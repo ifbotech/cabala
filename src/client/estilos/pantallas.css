@@ -6101,3 +6101,122 @@ main.fogon.forjando [data-accion='seguir'] {
   max-width: 100%;
   margin-bottom: 4px;
 }
+
+/* ── 0.48 · El Palacio del Rey (Calabozo cenital HD-2D) ── */
+.pantalla.palacio [hidden] {
+  display: none !important;
+}
+.pantalla.palacio {
+  justify-content: space-between;
+  gap: 8px;
+  padding: calc(var(--u) * 1.2);
+}
+.palacio-top {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.palacio-titulo-caja {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.palacio-sub {
+  font-size: max(14px, var(--fs-s));
+  color: var(--hueso-2);
+}
+.palacio-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.palacio-meta .marco.chico {
+  padding: 4px 10px;
+  font-size: max(14px, var(--fs-s));
+}
+.palacio-pista {
+  font-family: var(--rot);
+  font-size: max(14px, var(--fs-s));
+  color: var(--oro);
+  text-align: center;
+  background: rgba(9, 7, 15, 0.84);
+  padding: 4px 12px;
+  box-shadow: inset 0 0 0 1px #4c3b66;
+}
+.palacio-escena {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.palacio-marco {
+  width: fit-content;
+  height: fit-content;
+  max-width: 100%;
+  max-height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 0;
+  background: #07040d;
+  line-height: 0;
+}
+canvas.palacio-canvas {
+  display: block;
+  width: min(calc(100vw - 48px), calc((100dvh - 180px) * 15 / 11), 1140px);
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 15 / 11;
+  image-rendering: pixelated;
+  cursor: pointer;
+}
+.palacio-toast {
+  position: fixed;
+  bottom: 84px;
+  left: 50%;
+  translate: -50% 0;
+  z-index: 30;
+  background: rgba(9, 7, 15, 0.94);
+  box-shadow: inset 0 0 0 2px var(--oro);
+  color: var(--hueso);
+  padding: 8px 14px;
+  font-size: max(14px, var(--fs-s));
+  text-align: center;
+}
+.palacio-pie {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.palacio-controles {
+  font-size: max(14px, var(--fs-s));
+  color: var(--hueso-2);
+}
+.palacio-dpad {
+  display: none;
+  gap: 6px;
+}
+@media (max-width: 700px) {
+  canvas.palacio-canvas {
+    width: min(calc(100vw - 40px), calc((100dvh - 280px) * 15 / 11));
+    max-width: 100%;
+  }
+  .palacio-controles {
+    display: none;
+  }
+  .palacio-dpad {
+    display: flex;
+  }
+  .palacio-dpad .btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

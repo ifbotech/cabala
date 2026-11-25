@@ -3,6 +3,13 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.48.0 · El Palacio del Rey (2026-11-25)
+
+Nuevo calabozo cenital HD-2D estilo *Pokémon* antes de cada Rey Jefe (Tramos 1, 2 y 3): explorá el palacio del palo correspondiente, abrí 3 cofres con mejoras reales, resolvé 1 de 3 acertijos aleatorios y cruzá la Puerta del Trono. *(Reglas, música, voces y balance 100 % congelados e intactos.)*
+
+- **Calabozo cenital HD-2D (`palacio.ts`, `juego.ts`, `camino.ts`, `qa.ts`, `pantallas.css`):** mapa `15×11` con 4 paletas por palo (`Fortín de Acero`, `Empalizada del Monte`, `Bóveda del Caudal`, `Salón del Banquete`), muros 2.5D, estandartes, antorchas con halos de luz cálida, caminata por `WASD`/flechas, clic con pathfinding BFS y D-pad móvil.
+- **3 cofres reales + 3 acertijos:** `+22 Oro y +15 Vida`, `+6 Temple` al naipe más alto, `+8 Vida Máx, +2 Carga y Chiche`; acertijos de suma 15, 4 braseros y orden de palos.
+
 ## 0.47.0 · Navegación Discreta Estilo Inscryption, Bufón Esculpido y Fix de Mesa (2026-11-25)
 
 Rediseño de la exploración 3D y del Bufón tras UAT humano: navegación discreta por vistas sin arrastre de cámara, rostro esculpido del Bufón en 3D y corrección del bug que devolvía al menú al hacer clic en la mesa. *(Reglas, música, voces y balance 100 % congelados e intactos.)*

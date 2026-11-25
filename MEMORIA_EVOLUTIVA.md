@@ -4,6 +4,14 @@ Lo que se probó, lo que funcionó y lo que no, versión por versión. Sirve par
 cada cosa está como está. Las mediciones del panel de jugadores son **simuladas** (modelos de lenguaje con capturas y
 reglas): orientan, no demuestran.
 
+## 0.48.0 · El Palacio del Rey (publicada)
+
+**Qué se buscó.** Sumar un calabozo cenital estilo *Pokémon* antes de cada Rey Jefe con cofres de mejoras reales y acertijos aleatorios sin tocar `src/rules/`.
+
+**Qué entró.** `src/client/pantallas/palacio.ts` (`15×11` HD-2D con pathfinding BFS, 3 cofres, 3 acertijos y D-pad móvil), conectado desde `camino.ts` en nodos `rey` (con bypass `RAPIDO` para `qa:smoke`).
+
+**Lecciones.** `.btn { display: inline-flex }` pisa `[hidden]` si no se agrega `[hidden] { display: none !important; }` en la pantalla; y `box-sizing: border-box; overflow: hidden;` en `.palacio-marco` evita desbordes del borde en `390×844`.
+
 ## 0.47.0 · Navegación Discreta Estilo Inscryption y Bufón Esculpido (publicada)
 
 **Qué se buscó.** Corregir el bug de retorno al menú al hacer clic en la mesa durante combate, reemplazar la cámara libre por navegación discreta estilo *Inscryption* y reconstruir el Bufón 3D con estética dark-dithered coherente.
