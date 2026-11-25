@@ -172,7 +172,7 @@ export function pantallaIntroMazo(mazo: MazoId, alTerminar: () => void): Pantall
         </header>
         <div class="intro-escena marco">
           <div class="intro-pj">
-            <i class="intro-retrato" style="background-image:url(${urlRetrato(mazo, CUADRO0)})"></i>
+            <i class="intro-retrato" data-mazo="${mazo}" style="background-image:url(${urlRetrato(mazo, CUADRO0)})"></i>
             <div class="intro-texto">
               <b class="rotulo dorado">${esc(pAct.titulo[lang])}</b>
               <p class="bocadillo sin-cola">${esc(pAct.texto[lang])}</p>

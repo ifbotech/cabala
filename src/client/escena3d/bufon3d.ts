@@ -1,7 +1,7 @@
-// Bufón veneciano esculpido en 3D en la penumbra + Máscaras venecianas y Coronas 3D de los 4 Reyes Jefe.
+// El Bufón en Voxel Art 3D con AO horneado, gorro de 3 puntas, cetro Marotte y abanico de naipes.
 import * as THREE from 'three';
 import type { Palo } from '../../rules/cartas';
-import { texturaLaton, texturaMascaraBufon, texturaOroMoneda, texturaTelaBufon } from './texturas';
+import { VoxelGrid, construirMallaVoxel, type VoxelMat } from './voxel';
 
 const COLOR_REY: Record<Palo, number> = {
   S: 0x00e5ff,
@@ -10,82 +10,40 @@ const COLOR_REY: Record<Palo, number> = {
   H: 0xff1e5c,
 };
 
-function normalizarUvsPlanar(geo: THREE.BufferGeometry, minX: number, maxX: number, minY: number, maxY: number): void {
-  const pos = geo.getAttribute('position');
-  const uv = geo.getAttribute('uv');
-  if (!pos || !uv) return;
-  const spanX = Math.max(0.001, maxX - minX);
-  const spanY = Math.max(0.001, maxY - minY);
-  for (let i = 0; i < pos.count; i++) {
-    const u = THREE.MathUtils.clamp((pos.getX(i) - minX) / spanX, 0, 1);
-    const v = THREE.MathUtils.clamp((pos.getY(i) - minY) / spanY, 0, 1);
-    uv.setXY(i, u, v);
-  }
-  uv.needsUpdate = true;
-}
+const CELESTE = 0x4cc2eb;
+const CELESTE_OSC = 0x2994bf;
+const MARFIL = 0xf4ede0;
+const MARFIL_OSC = 0xd9ccb8;
+const ORO = 0xf5b52e;
+const ORO_OSC = 0xd48814;
+const CARMESI = 0xcf2440;
+const CARMESI_OSC = 0x8f1428;
+const CUERO = 0x6b391c;
+const SOMBRA = 0x180f24;
 
-function geometriaRostroBufon(): THREE.BufferGeometry {
-  const geo = new THREE.SphereGeometry(0.195, 12, 10);
-  const pos = geo.getAttribute('position');
-  for (let i = 0; i < pos.count; i++) {
-    let x = pos.getX(i) * 0.92;
-    const y = pos.getY(i) * 1.06;
-    const z = pos.getZ(i) * 0.78;
-    // Mandíbula orgánica levemente afinada sin púa triangular
-    if (y < -0.02) {
-      const f = THREE.MathUtils.clamp((-y - 0.02) / 0.2, 0, 1);
-      x *= 1 - f * 0.24;
-    }
-    pos.setXYZ(i, x, y, z);
-  }
-  geo.computeVertexNormals();
-  normalizarUvsPlanar(geo, -0.18, 0.18, -0.2, 0.2);
-  return geo;
-}
-
-function geometriaDominoRey(): THREE.ExtrudeGeometry {
-  const s = new THREE.Shape();
-  s.moveTo(0, -0.045);
-  s.quadraticCurveTo(-0.08, 0.015, -0.22, 0.065);
-  s.quadraticCurveTo(-0.2, 0.15, -0.1, 0.155);
-  s.quadraticCurveTo(0, 0.125, 0.1, 0.155);
-  s.quadraticCurveTo(0.2, 0.15, 0.22, 0.065);
-  s.quadraticCurveTo(0.08, 0.015, 0, -0.045);
-  return new THREE.ExtrudeGeometry(s, {
-    depth: 0.045,
-    bevelEnabled: true,
-    bevelThickness: 0.015,
-    bevelSize: 0.012,
-    bevelSegments: 1,
-  });
-}
+const V = 0.032;
 
 export class Bufon3D {
   readonly raiz = new THREE.Group();
   private readonly cuerpo = new THREE.Group();
   private readonly cabeza = new THREE.Group();
   private readonly cuernoIzq = new THREE.Group();
+  private readonly cuernoCentro = new THREE.Group();
   private readonly cuernoDer = new THREE.Group();
-  private readonly cascabelIzq: THREE.Mesh;
-  private readonly cascabelDer: THREE.Mesh;
   private readonly ojoIzq: THREE.Mesh;
   private readonly ojoDer: THREE.Mesh;
   private readonly pupilaIzq: THREE.Mesh;
   private readonly pupilaDer: THREE.Mesh;
-  private readonly manoIzq = new THREE.Group();
-  private readonly manoDer = new THREE.Group();
   private readonly brazoIzq = new THREE.Group();
   private readonly brazoDer = new THREE.Group();
   private readonly cetro = new THREE.Group();
+  private readonly abanico = new THREE.Group();
   private readonly luzMascara: THREE.PointLight;
-  private readonly mascarasRey: Record<Palo, THREE.Group>;
-  private readonly ojosReyMat: Record<Palo, THREE.MeshBasicMaterial>;
+  private readonly luzFrente: THREE.PointLight;
 
   private miraX = 0;
   private miraY = 0;
   private inclina = 0;
-  private reyActual: Palo | null = null;
-  private reyProgreso = 0;
   private parpadeoHasta = 0;
   private proxParpadeo = 2.6;
 
@@ -97,304 +55,214 @@ export class Bufon3D {
   private readonly plano = new THREE.Plane();
 
   constructor(escena: THREE.Scene) {
-    const matCarmesi = new THREE.MeshStandardMaterial({
-      map: texturaTelaBufon('carmesi'),
-      roughness: 0.78,
-      metalness: 0.06,
-    });
-    const matPurpura = new THREE.MeshStandardMaterial({
-      map: texturaTelaBufon('purpura'),
-      roughness: 0.78,
-      metalness: 0.06,
-    });
-    const matCapa = new THREE.MeshStandardMaterial({
-      color: 0x07030e,
-      roughness: 0.99,
-      metalness: 0.0,
-    });
-    const matCapucha = new THREE.MeshStandardMaterial({
-      color: 0x0b0516,
-      roughness: 0.98,
-      metalness: 0.0,
-    });
-    const matOro = new THREE.MeshStandardMaterial({
-      map: texturaOroMoneda(),
-      color: 0xffd500,
-      metalness: 0.65,
-      roughness: 0.34,
-      emissive: 0x3b2600,
-      emissiveIntensity: 0.25,
-    });
-    const matMascara = new THREE.MeshStandardMaterial({
-      map: texturaMascaraBufon(),
-      roughness: 0.86,
-      metalness: 0.04,
-      emissive: 0x261a2e,
-      emissiveIntensity: 0.26,
-    });
+    // ── Torso arlequín celeste/marfil/oro + piernas asimétricas + gola + naipes en la faja ──
+    const gTorso = new VoxelGrid();
+    // Botas curvas de bufón + piernas bicolores
+    gTorso.box(-4, -13, -1, -2, -11, 3, ORO, 'metal');
+    gTorso.set(-3, -10, 4, ORO, 'metal').set(-3, -11, 4, ORO, 'metal');
+    gTorso.box(-4, -10, -1, -2, -5, 1, CELESTE);
+    gTorso.box(-4, -8, -1, -2, -7, 1, MARFIL);
 
-    // Torso de jubón arlequín bicolor + faja con hebilla dorada + capa oscura + hombreras + gorguera de 12 puntas
-    const jubon = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.28, 0.48, 8), matCapa);
-    jubon.position.set(0, -0.32, -0.04);
-    jubon.castShadow = true;
-    const pechoIzq = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.34, 0.14), matPurpura);
-    pechoIzq.position.set(-0.085, -0.28, 0.06);
-    pechoIzq.rotation.z = 0.08;
-    const pechoDer = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.34, 0.14), matCarmesi);
-    pechoDer.position.set(0.085, -0.28, 0.06);
-    pechoDer.rotation.z = -0.08;
-    const faja = new THREE.Mesh(new THREE.CylinderGeometry(0.245, 0.275, 0.08, 8), matCapucha);
-    faja.position.set(0, -0.47, -0.01);
-    const hebilla = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.085, 0.05), matOro);
-    hebilla.position.set(0, -0.47, 0.22);
-    const capa = new THREE.Mesh(new THREE.ConeGeometry(0.46, 0.72, 8, 1, true, Math.PI * 0.65, Math.PI * 0.7), matCapa);
-    capa.position.set(0, -0.34, -0.14);
-    capa.material.side = THREE.DoubleSide;
-    this.cuerpo.add(jubon, pechoIzq, pechoDer, faja, hebilla, capa);
+    gTorso.box(2, -13, -1, 4, -11, 3, CELESTE_OSC);
+    gTorso.set(3, -10, 4, ORO, 'metal').set(3, -11, 4, ORO, 'metal');
+    gTorso.box(2, -10, -1, 4, -5, 1, ORO);
+    gTorso.box(2, -8, -1, 4, -7, 1, ORO_OSC);
 
-    for (let b = 0; b < 3; b++) {
-      const boton = new THREE.Mesh(new THREE.OctahedronGeometry(0.022, 0), matOro);
-      boton.position.set(0, -0.22 - b * 0.085, 0.14);
-      this.cuerpo.add(boton);
-    }
+    // Jubón arlequín
+    gTorso.box(-4, -4, -2, 0, 5, 2, CELESTE);
+    gTorso.box(1, -4, -2, 4, 5, 2, MARFIL);
+    // Rombos en el pecho
+    gTorso.set(-2, 2, 2, MARFIL).set(-1, 1, 2, MARFIL).set(-3, 1, 2, MARFIL).set(-2, 0, 2, MARFIL);
+    gTorso.set(2, 2, 2, CELESTE).set(1, 1, 2, CELESTE).set(3, 1, 2, CELESTE).set(2, 0, 2, CELESTE);
+    gTorso.set(2, -2, 2, ORO, 'metal');
 
-    const hombreraIzq = new THREE.Mesh(new THREE.SphereGeometry(0.15, 7, 6), matPurpura);
-    hombreraIzq.scale.set(1.12, 0.88, 0.88);
-    hombreraIzq.position.set(-0.24, -0.15, -0.02);
-    const hombreraDer = new THREE.Mesh(new THREE.SphereGeometry(0.15, 7, 6), matCarmesi);
-    hombreraDer.scale.set(1.12, 0.88, 0.88);
-    hombreraDer.position.set(0.24, -0.15, -0.02);
-    this.cuerpo.add(hombreraIzq, hombreraDer);
+    // Cinturón de cuero y hebilla de oro
+    gTorso.box(-4, -1, -2, 4, 0, 2, CUERO);
+    gTorso.box(-1, -1, 3, 1, 0, 3, ORO, 'metal');
 
-    for (let i = 0; i < 12; i++) {
-      const a = ((i + 0.5) / 12) * Math.PI * 2;
-      const punta = new THREE.Mesh(new THREE.ConeGeometry(0.048, 0.18, 4), i % 2 === 0 ? matCarmesi : matPurpura);
-      punta.position.set(Math.sin(a) * 0.21, -0.17, Math.cos(a) * 0.13);
-      punta.rotation.x = Math.PI - Math.cos(a) * 0.72;
-      punta.rotation.z = Math.sin(a) * 0.72;
-      this.cuerpo.add(punta);
+    // Cartas españolas metidas en la cintura
+    gTorso.box(-5, -3, 1, -4, 0, 2, MARFIL);
+    gTorso.set(-4, -1, 2, CARMESI);
+    gTorso.box(4, -3, 1, 5, 0, 2, MARFIL);
+    gTorso.set(4, -1, 2, CELESTE_OSC);
 
-      const cuenta = new THREE.Mesh(new THREE.OctahedronGeometry(0.024, 0), matOro);
-      cuenta.position.set(Math.sin(a) * 0.28, -0.24, Math.cos(a) * 0.19);
-      this.cuerpo.add(cuenta);
-    }
-
-    // Cintas asimétricas de arlequín flameando desde el cuello
-    const matCintaIzq = new THREE.MeshStandardMaterial({ map: texturaTelaBufon('carmesi'), side: THREE.DoubleSide, roughness: 0.82 });
-    const matCintaDer = new THREE.MeshStandardMaterial({ map: texturaTelaBufon('purpura'), side: THREE.DoubleSide, roughness: 0.82 });
-    for (const [cx, cy, cz, rx, rz, matC] of [
-      [-0.25, -0.26, 0.08, 0.22, 0.48, matCintaIzq],
-      [-0.31, -0.34, 0.04, 0.18, 0.72, matCintaDer],
-      [0.25, -0.26, 0.08, 0.22, -0.46, matCintaDer],
-      [0.31, -0.34, 0.04, 0.18, -0.7, matCintaIzq],
+    // Gola de picos de arlequín alrededor del cuello
+    gTorso.box(-6, 5, -3, 0, 6, 3, CELESTE);
+    gTorso.box(1, 5, -3, 6, 6, 3, ORO);
+    for (const [gx, gz] of [
+      [-6, 2],
+      [-3, 3],
+      [0, 3],
+      [3, 3],
+      [6, 2],
+      [-5, -3],
+      [5, -3],
     ] as const) {
-      const cinta = new THREE.Mesh(new THREE.PlaneGeometry(0.055, 0.24), matC);
-      cinta.position.set(cx, cy, cz);
-      cinta.rotation.set(rx, 0, rz);
-      this.cuerpo.add(cinta);
+      gTorso.set(gx, 4, gz, ORO, 'metal');
     }
 
-    // Cabeza articulada con capucha arlequín bicolor envolvente y rostro esculpido 3D con volumen real
-    this.cabeza.position.set(0, 0.15, 0.03);
-    const capuchaIzq = new THREE.Mesh(new THREE.SphereGeometry(0.215, 10, 8, Math.PI * 0.5, Math.PI), matPurpura);
-    capuchaIzq.scale.set(1.05, 1.06, 0.72);
-    capuchaIzq.position.set(0, 0.02, -0.055);
-    const capuchaDer = new THREE.Mesh(new THREE.SphereGeometry(0.215, 10, 8, -Math.PI * 0.5, Math.PI), matCarmesi);
-    capuchaDer.scale.set(1.05, 1.06, 0.72);
-    capuchaDer.position.set(0, 0.02, -0.055);
-    const bandaFrente = new THREE.Mesh(new THREE.TorusGeometry(0.185, 0.017, 5, 14, Math.PI * 0.85), matOro);
-    bandaFrente.rotation.set(-0.42, 0, Math.PI * 0.075);
-    bandaFrente.position.set(0, 0.04, 0.055);
-    this.cabeza.add(capuchaIzq, capuchaDer, bandaFrente);
+    const torsoMesh = construirMallaVoxel(gTorso, V, [0, 3, 0]);
+    this.cuerpo.add(torsoMesh);
 
-    const mascara = new THREE.Mesh(geometriaRostroBufon(), matMascara);
-    mascara.position.set(0, 0.01, 0.045);
-    mascara.castShadow = true;
-    this.cabeza.add(mascara);
+    // ── Cabeza / Máscara de Arlequín ──
+    this.cabeza.position.set(0, 5.5 * V, 0);
+    const gCab = new VoxelGrid();
+    // Base marfil redondeada
+    gCab.box(-4, 0, -3, 4, 8, 3, MARFIL);
+    gCab.box(-3, 0, 4, 3, 7, 4, MARFIL);
+    // Capucha trasera/superior bipartida celeste y oro
+    gCab.box(-5, 2, -4, 0, 9, 0, CELESTE);
+    gCab.box(1, 2, -4, 5, 9, 0, ORO);
+    gCab.box(-5, 7, -3, 0, 9, 3, CELESTE);
+    gCab.box(1, 7, -3, 5, 9, 3, ORO);
 
-    const nariz = new THREE.Mesh(new THREE.ConeGeometry(0.02, 0.055, 4), matMascara);
-    nariz.rotation.x = Math.PI * 0.5;
-    nariz.position.set(0, 0.005, 0.198);
-    this.cabeza.add(nariz);
+    // Rostro teatral (cejas, cuencas hondas, nariz y sonrisa carmesí)
+    const palCab: Record<string, number> = {
+      S: SOMBRA,
+      R: CARMESI,
+      D: CARMESI_OSC,
+      N: MARFIL_OSC,
+    };
+    gCab.paintFront(
+      -3,
+      6,
+      4,
+      [
+        'SS...SS',
+        'SS...SS',
+        '...N...',
+        'R..N..R',
+        '.RRRRR.',
+        '..DDD..',
+      ],
+      palCab,
+      1,
+      'matte',
+    );
+    gCab.set(0, 3, 5, MARFIL_OSC);
+    const cabMesh = construirMallaVoxel(gCab, V, [0, 0, 0]);
+    this.cabeza.add(cabMesh);
 
-    // Ojos luminosos estilo Leshy suspendidos en las cuencas + pupilas verticales afiladas
-    const matIris = new THREE.MeshBasicMaterial({ color: 0xffe84a });
-    const matPupila = new THREE.MeshBasicMaterial({ color: 0x05020a });
-    const geoOjo = new THREE.PlaneGeometry(0.054, 0.026);
-    const geoPupila = new THREE.PlaneGeometry(0.014, 0.024);
+    // Ojos luminosos móviles + pupilas (z = 5.06*V delante del bloque z=4..5)
+    const matIris = new THREE.MeshBasicMaterial({ color: 0xffe875 });
+    const matPupila = new THREE.MeshBasicMaterial({ color: 0x0b0514 });
+    const geoOjo = new THREE.PlaneGeometry(1.7 * V, 1.0 * V);
+    const geoPupila = new THREE.PlaneGeometry(0.65 * V, 0.9 * V);
 
     this.ojoIzq = new THREE.Mesh(geoOjo, matIris);
-    this.ojoIzq.rotation.z = -0.2;
-    this.ojoIzq.position.set(-0.065, 0.052, 0.192);
+    this.ojoIzq.position.set(-1.9 * V, 5.1 * V, 5.06 * V);
     this.pupilaIzq = new THREE.Mesh(geoPupila, matPupila);
-    this.pupilaIzq.position.set(0, 0, 0.003);
+    this.pupilaIzq.position.set(0, 0, 0.004);
     this.ojoIzq.add(this.pupilaIzq);
 
     this.ojoDer = new THREE.Mesh(geoOjo, matIris);
-    this.ojoDer.rotation.z = 0.2;
-    this.ojoDer.position.set(0.065, 0.052, 0.192);
+    this.ojoDer.position.set(1.9 * V, 5.1 * V, 5.06 * V);
     this.pupilaDer = new THREE.Mesh(geoPupila, matPupila);
-    this.pupilaDer.position.set(0, 0, 0.003);
+    this.pupilaDer.position.set(0, 0, 0.004);
     this.ojoDer.add(this.pupilaDer);
     this.cabeza.add(this.ojoIzq, this.ojoDer);
 
-    // 3 Colas de gorro curvas con peso natural (izquierda, derecha y trasera central)
-    const armarColaGorro = (grupo: THREE.Group, pts: [number, number, number][], mat: THREE.Material): THREE.Mesh => {
-      const curva = new THREE.CatmullRomCurve3(pts.map((p) => new THREE.Vector3(...p)));
-      const tubo = new THREE.Mesh(new THREE.TubeGeometry(curva, 10, 0.058, 6, false), mat);
-      const ult = pts[pts.length - 1];
-      const cascabel = new THREE.Mesh(new THREE.OctahedronGeometry(0.052, 0), matOro);
-      cascabel.position.set(ult[0], ult[1] - 0.03, ult[2]);
-      grupo.add(tubo, cascabel);
-      return cascabel;
-    };
-    this.cascabelIzq = armarColaGorro(
-      this.cuernoIzq,
-      [[-0.08, 0.18, 0], [-0.22, 0.34, 0.02], [-0.36, 0.28, 0.05], [-0.42, 0.14, 0.07]],
-      matPurpura,
-    );
-    this.cascabelDer = armarColaGorro(
-      this.cuernoDer,
-      [[0.08, 0.18, 0], [0.22, 0.38, 0.02], [0.38, 0.32, 0.05], [0.43, 0.17, 0.07]],
-      matCarmesi,
-    );
-    const colaAtras = new THREE.Group();
-    armarColaGorro(colaAtras, [[0, 0.2, -0.06], [0, 0.36, -0.2], [0.02, 0.24, -0.32]], matCarmesi);
-    this.cabeza.add(this.cuernoIzq, this.cuernoDer, colaAtras);
+    // 3 Cuernos curvos de gorro con cascabeles de oro
+    const gCuernoI = new VoxelGrid();
+    gCuernoI.line3D(0, 0, 0, -4, 4, 1, 1.5, CELESTE);
+    gCuernoI.line3D(-4, 4, 1, -7, 2, 2, 1.0, CELESTE_OSC);
+    gCuernoI.ellipsoid(-7, 1, 2, 1.1, 1.1, 1.1, ORO, 'metal');
+    this.cuernoIzq.add(construirMallaVoxel(gCuernoI, V, [0, 0, 0]));
+    this.cuernoIzq.position.set(-3 * V, 8.2 * V, 0);
 
-    // Máscaras venecianas y coronas de los 4 Reyes Jefe
-    const ojosReyMat = {
-      S: new THREE.MeshBasicMaterial({ color: COLOR_REY.S }),
-      C: new THREE.MeshBasicMaterial({ color: COLOR_REY.C }),
-      D: new THREE.MeshBasicMaterial({ color: COLOR_REY.D }),
-      H: new THREE.MeshBasicMaterial({ color: COLOR_REY.H }),
-    };
-    this.ojosReyMat = ojosReyMat;
-    this.mascarasRey = {
-      S: this.crearMascaraRey('S', ojosReyMat.S, matOro),
-      C: this.crearMascaraRey('C', ojosReyMat.C, matOro),
-      D: this.crearMascaraRey('D', ojosReyMat.D, matOro),
-      H: this.crearMascaraRey('H', ojosReyMat.H, matOro),
-    };
-    for (const palo of ['S', 'C', 'D', 'H'] as const) {
-      this.mascarasRey[palo].visible = false;
-      this.cabeza.add(this.mascarasRey[palo]);
-    }
+    const gCuernoC = new VoxelGrid();
+    gCuernoC.line3D(0, 0, 0, 0, 5, 1, 1.4, CELESTE);
+    gCuernoC.box(1, 0, 0, 1, 5, 2, ORO);
+    gCuernoC.line3D(0, 5, 1, 0, 7, -1, 1.0, ORO);
+    gCuernoC.ellipsoid(0, 8, -1, 1.0, 1.0, 1.0, ORO_OSC, 'metal');
+    this.cuernoCentro.add(construirMallaVoxel(gCuernoC, V, [0, 0, 0]));
+    this.cuernoCentro.position.set(0, 8.8 * V, -0.5 * V);
 
+    const gCuernoD = new VoxelGrid();
+    gCuernoD.line3D(0, 0, 0, 4, 4, 1, 1.5, MARFIL);
+    gCuernoD.line3D(4, 4, 1, 7, 2, 2, 1.0, ORO);
+    gCuernoD.ellipsoid(7, 1, 2, 1.1, 1.1, 1.1, ORO, 'metal');
+    this.cuernoDer.add(construirMallaVoxel(gCuernoD, V, [0, 0, 0]));
+    this.cuernoDer.position.set(3 * V, 8.2 * V, 0);
+
+    this.cabeza.add(this.cuernoIzq, this.cuernoCentro, this.cuernoDer);
     this.cuerpo.add(this.cabeza);
 
-    // Brazos y manos enguantadas articulados desde los hombros + cetro dorado con miniatura veneciana
-    const matGuante = new THREE.MeshStandardMaterial({ color: 0x1d0b2c, roughness: 0.72 });
-    const armarBrazo = (brazo: THREE.Group, mano: THREE.Group, sx: number, matManga: THREE.Material): void => {
-      brazo.position.set(sx * 0.25, -0.17, 0.01);
-      const alto = new THREE.Mesh(new THREE.CylinderGeometry(0.048, 0.058, 0.22, 6), matManga);
-      alto.position.set(sx * 0.04, -0.11, 0.06);
-      alto.rotation.set(0.32, 0, sx * -0.18);
-      const codo = new THREE.Mesh(new THREE.SphereGeometry(0.052, 6, 5), matOro);
-      codo.position.set(sx * 0.07, -0.21, 0.11);
-      const ante = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.05, 0.18, 6), matManga);
-      ante.position.set(sx * 0.05, -0.22, 0.2);
-      ante.rotation.set(1.15, 0, sx * 0.12);
-      const palma = new THREE.Mesh(new THREE.ConeGeometry(0.058, 0.13, 5), matGuante);
-      palma.rotation.x = Math.PI * 0.78;
-      const puno = new THREE.Mesh(new THREE.CylinderGeometry(0.046, 0.058, 0.085, 6), matCarmesi);
-      puno.position.set(0, -0.055, -0.02);
-      mano.add(palma, puno);
-      mano.position.set(sx * 0.04, -0.22, 0.28);
-      brazo.add(alto, codo, ante, mano);
-    };
-    armarBrazo(this.brazoIzq, this.manoIzq, -1, matPurpura);
-    armarBrazo(this.brazoDer, this.manoDer, 1, matCarmesi);
+    // ── Brazo izquierdo (-X) con Cetro Marotte ──
+    this.brazoIzq.position.set(-5.2 * V, 4.2 * V, 0.5 * V);
+    const gBI = new VoxelGrid();
+    gBI.box(-1, -5, -1, 1, 0, 1, CELESTE);
+    gBI.box(-1, -6, 0, 1, -5, 2, ORO, 'metal');
+    gBI.box(-1, -8, 1, 1, -6, 3, MARFIL);
+    this.brazoIzq.add(construirMallaVoxel(gBI, V, [0, 0, 0]));
 
-    const asta = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.024, 0.66, 6), matOro);
-    asta.position.set(0, 0.08, 0);
-    const remate = new THREE.Mesh(new THREE.OctahedronGeometry(0.062, 0), matMascara);
-    remate.scale.set(0.85, 1.15, 0.65);
-    remate.position.set(0, 0.44, 0);
-    const cuernoMiniL = new THREE.Mesh(new THREE.ConeGeometry(0.024, 0.075, 5), matPurpura);
-    cuernoMiniL.position.set(-0.042, 0.495, 0);
-    cuernoMiniL.rotation.z = 0.65;
-    const cuernoMiniR = new THREE.Mesh(new THREE.ConeGeometry(0.024, 0.075, 5), matCarmesi);
-    cuernoMiniR.position.set(0.042, 0.495, 0);
-    cuernoMiniR.rotation.z = -0.65;
-    this.cetro.add(asta, remate, cuernoMiniL, cuernoMiniR);
-    this.cetro.position.set(-0.03, -0.18, 0.29);
-    this.cetro.rotation.z = 0.36;
+    const gCetro = new VoxelGrid();
+    gCetro.box(0, -4, 0, 0, 8, 0, CARMESI);
+    gCetro.set(0, -4, 0, ORO, 'metal').set(0, 8, 0, ORO, 'metal');
+    // Mini cabeza de Bufón en la punta del cetro
+    gCetro.box(-2, 9, -1, 2, 12, 1, MARFIL);
+    gCetro.set(-1, 11, 1, SOMBRA).set(1, 11, 1, SOMBRA);
+    gCetro.box(-1, 10, 1, 1, 10, 1, CARMESI);
+    gCetro.box(-3, 13, 0, -1, 14, 0, CELESTE);
+    gCetro.box(1, 13, 0, 3, 14, 0, ORO);
+    gCetro.set(-3, 12, 0, ORO, 'metal').set(3, 12, 0, ORO, 'metal');
+    this.cetro.add(construirMallaVoxel(gCetro, V, [0, 0, 0]));
+    this.cetro.position.set(-0.5 * V, -7 * V, 2.5 * V);
+    this.cetro.rotation.set(0.18, 0, 0.25);
     this.brazoIzq.add(this.cetro);
+
+    // ── Brazo derecho (+X) con Abanico de 3 Naipes Españoles ──
+    this.brazoDer.position.set(5.2 * V, 4.2 * V, 0.5 * V);
+    const gBD = new VoxelGrid();
+    gBD.box(-1, -5, -1, 1, 0, 1, MARFIL_OSC);
+    gBD.box(-1, -6, 0, 1, -5, 2, ORO, 'metal');
+    gBD.box(-1, -8, 1, 1, -6, 3, MARFIL);
+    this.brazoDer.add(construirMallaVoxel(gBD, V, [0, 0, 0]));
+
+    const gAbanico = new VoxelGrid();
+    const palCartas: Record<string, number> = { M: MARFIL, R: CARMESI, O: ORO, S: 0x1d88d9, C: 0x1e9c40 };
+    const carta = [
+      'MMMMM',
+      'MRMRM',
+      'MMOMM',
+      'MRMRM',
+      'MMMMM',
+      'MMMMM',
+    ];
+    gAbanico.extrude2D(carta, palCartas, 1, -2, 0, 0, 'matte');
+    gAbanico.extrude2D(
+      ['MMMMM', 'MMSMM', 'MMSMM', 'MMOMM', 'MMMMM', 'MMMMM'],
+      palCartas,
+      1,
+      1,
+      2,
+      1,
+      'matte',
+    );
+    gAbanico.extrude2D(
+      ['MMMMM', 'MMOMM', 'MOOOM', 'MMOMM', 'MMMMM', 'MMMMM'],
+      palCartas,
+      1,
+      4,
+      1,
+      2,
+      'matte',
+    );
+    this.abanico.add(construirMallaVoxel(gAbanico, V * 0.78, [0, 0, 0]));
+    this.abanico.position.set(0.5 * V, -7.2 * V, 3.2 * V);
+    this.abanico.rotation.set(-0.25, -0.2, -0.18);
+    this.brazoDer.add(this.abanico);
 
     this.cuerpo.add(this.brazoIzq, this.brazoDer);
 
-    // Luz rasante de claroscuro desde abajo a la izquierda (como candil cercano, sin lavar el lado derecho)
-    this.luzMascara = new THREE.PointLight(0xffbe5c, 2.5, 2.0, 2);
-    this.luzMascara.position.set(-0.26, 0.06, 0.72);
-    this.raiz.add(this.cuerpo, this.luzMascara);
+    // Iluminación dedicada para que siempre destaque con volumen y color vivo
+    this.luzFrente = new THREE.PointLight(0xffeacc, 1.45, 3.6, 1.5);
+    this.luzFrente.position.set(-0.35, 0.45, 1.25);
+    this.luzMascara = new THREE.PointLight(0xffbe5c, 1.15, 2.8, 1.8);
+    this.luzMascara.position.set(0.42, 0.15, 0.85);
+    this.raiz.add(this.cuerpo, this.luzFrente, this.luzMascara);
     this.raiz.visible = false;
     escena.add(this.raiz);
-  }
-
-  private crearMascaraRey(palo: Palo, matOjos: THREE.MeshBasicMaterial, matOro: THREE.Material): THREE.Group {
-    const g = new THREE.Group();
-    const colorMetal =
-      palo === 'S' ? 0x2b4560 : palo === 'C' ? 0x263d28 : palo === 'D' ? 0xd9a826 : 0x5c1129;
-    const matVisor = new THREE.MeshStandardMaterial({
-      color: colorMetal,
-      metalness: palo === 'S' || palo === 'D' ? 0.72 : 0.25,
-      roughness: palo === 'C' ? 0.75 : 0.35,
-    });
-
-    // Antifaz dominó veneciano puntiagudo sobre ojos y puente nasal
-    const domino = new THREE.Mesh(geometriaDominoRey(), matVisor);
-    domino.position.set(0, 0.015, 0.188);
-    g.add(domino);
-
-    const geoRendija = new THREE.CircleGeometry(0.038, 4);
-    for (const signo of [-1, 1] as const) {
-      const r = new THREE.Mesh(geoRendija, matOjos);
-      r.scale.set(1.28, 0.52, 1);
-      r.rotation.z = -signo * 0.22;
-      r.position.set(signo * 0.072, 0.068, 0.238);
-      g.add(r);
-    }
-
-    // Corona distintiva de cada Rey (proporcionada para no recortarse en la cabecera)
-    const aro = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.19, 0.048, 8), palo === 'D' ? matOro : matVisor);
-    aro.position.set(0, 0.24, 0.03);
-    g.add(aro);
-
-    if (palo === 'S') {
-      for (let i = -2; i <= 2; i++) {
-        const punta = new THREE.Mesh(new THREE.ConeGeometry(0.034, i === 0 ? 0.16 : 0.11, 4), matVisor);
-        punta.position.set(i * 0.072, 0.31, 0.1 - Math.abs(i) * 0.025);
-        g.add(punta);
-      }
-    } else if (palo === 'C') {
-      for (const s of [-1, 1]) {
-        const rama = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.032, 0.18, 5), matVisor);
-        rama.position.set(s * 0.12, 0.31, 0.04);
-        rama.rotation.z = -s * 0.48;
-        const brote = new THREE.Mesh(new THREE.OctahedronGeometry(0.036, 0), matOjos);
-        brote.position.set(s * 0.17, 0.39, 0.04);
-        g.add(rama, brote);
-      }
-    } else if (palo === 'D') {
-      for (let i = -2; i <= 2; i++) {
-        const rayo = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.15 - Math.abs(i) * 0.02, 4), matOro);
-        rayo.position.set(i * 0.072, 0.32, 0.09 - Math.abs(i) * 0.02);
-        rayo.rotation.z = -i * 0.16;
-        g.add(rayo);
-      }
-      const gema = new THREE.Mesh(new THREE.OctahedronGeometry(0.038, 0), new THREE.MeshBasicMaterial({ color: 0xff2b55 }));
-      gema.position.set(0, 0.245, 0.21);
-      g.add(gema);
-    } else {
-      const caliz = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.048, 0.13, 7), matVisor);
-      caliz.position.set(0, 0.31, 0.06);
-      const filo = new THREE.Mesh(new THREE.TorusGeometry(0.088, 0.015, 5, 8), matOro);
-      filo.rotation.x = Math.PI / 2;
-      filo.position.set(0, 0.37, 0.06);
-      g.add(caliz, filo);
-    }
-    return g;
   }
 
   private anfitrionVisible(): HTMLElement | null {
@@ -458,10 +326,10 @@ export class Bufon3D {
     const r = el.getBoundingClientRect();
     const enMesa = !!el.closest('.mesa');
     const esMovilPortada = !enMesa && window.innerWidth <= 700 && !!el.closest('.portada');
-    const factorY = enMesa ? 0.62 : esMovilPortada ? 0.45 : 0.5;
-    const factorEscala = enMesa ? 0.84 : esMovilPortada ? 0.94 : 1.02;
+    const factorY = enMesa ? 0.58 : esMovilPortada ? 0.45 : 0.5;
+    const factorEscala = enMesa ? 0.88 : esMovilPortada ? 0.96 : 1.06;
 
-    const tam = this.proyectarRect(cam, r.left + r.width / 2, r.top + r.height * factorY, r.width, r.height, 5.95, this.raiz.position);
+    const tam = this.proyectarRect(cam, r.left + r.width / 2, r.top + r.height * factorY, r.width, r.height, 5.85, this.raiz.position);
     this.raiz.scale.setScalar(tam.worldH * factorEscala);
     this.raiz.quaternion.copy(cam.quaternion);
     this.raiz.visible = true;
@@ -470,33 +338,13 @@ export class Bufon3D {
     const paloRey = eEl ? ((eEl.dataset.palo || 'S') as Palo) : null;
     const segundaRey = eEl?.dataset.segunda === '1';
 
-    if (paloRey !== this.reyActual) {
-      this.reyActual = paloRey;
-      this.reyProgreso = quieto ? 1 : 0;
-    } else if (paloRey && !quieto) {
-      this.reyProgreso = Math.min(1, this.reyProgreso + dt * 2.8);
-    }
-
-    for (const p of ['S', 'C', 'D', 'H'] as const) {
-      const m = this.mascarasRey[p];
-      const activo = p === paloRey;
-      m.visible = activo;
-      if (activo) {
-        const yOff = quieto ? 0 : (1 - this.reyProgreso) * 0.34;
-        m.position.set(0, yOff, 0);
-        this.ojosReyMat[p].color.setHex(segundaRey ? 0xffffff : COLOR_REY[p]);
-      }
-    }
-
     const enModal = !!el.closest('#capa .velo');
     if (paloRey) {
       this.luzMascara.color.setHex(COLOR_REY[paloRey]);
-      this.luzMascara.intensity = segundaRey ? 2.9 : 2.4;
-      this.luzMascara.distance = 2.0;
+      this.luzMascara.intensity = segundaRey ? 1.4 : 1.15;
     } else {
       this.luzMascara.color.setHex(0xffbe5c);
-      this.luzMascara.intensity = enModal ? 2.9 : 2.5;
-      this.luzMascara.distance = 2.0;
+      this.luzMascara.intensity = enModal ? 1.35 : 1.15;
     }
 
     let objX = punteroX;
@@ -511,7 +359,7 @@ export class Bufon3D {
     const bufonNdcX = ((r.left + r.width / 2) / Math.max(1, window.innerWidth)) * 2 - 1;
     const bufonNdcY = ((r.top + r.height * factorY) / Math.max(1, window.innerHeight)) * 2 - 1;
     const aimX = quieto ? 0 : objX;
-    const aimY = quieto ? 0.08 : objY;
+    const aimY = quieto ? 0.06 : objY;
     const relX = THREE.MathUtils.clamp((aimX - bufonNdcX) * 0.85, -1, 1);
     const relY = THREE.MathUtils.clamp((aimY - bufonNdcY) * 0.65, -0.85, 0.85);
 
@@ -523,62 +371,61 @@ export class Bufon3D {
     if (quieto) {
       this.miraX = relX;
       this.miraY = relY;
-      this.cabeza.rotation.set((expr === 'sombria' ? 0.14 : -0.02) + relY * 0.18, relX * 0.42, expr === 'burla' ? -0.1 : 0);
-      this.cuerpo.rotation.set(0.04, relX * 0.2, 0);
+      this.cabeza.rotation.set((expr === 'sombria' ? 0.14 : -0.02) + relY * 0.16, relX * 0.36, expr === 'burla' ? -0.1 : 0);
+      this.cuerpo.rotation.set(0.03, relX * 0.18 + 0.08, 0);
       this.cuerpo.position.set(0, 0, 0);
-      this.ojoIzq.scale.set(1.15, 0.58, 1);
-      this.ojoDer.scale.set(1.15, 0.58, 1);
-      const pxQ = THREE.MathUtils.clamp(relX * 0.015, -0.013, 0.013);
-      const pyQ = THREE.MathUtils.clamp(-relY * 0.008, -0.008, 0.008);
-      this.pupilaIzq.position.set(pxQ, pyQ, 0.003);
-      this.pupilaDer.position.set(pxQ, pyQ, 0.003);
-      this.brazoIzq.rotation.set(0.06, 0, 0.08);
-      this.brazoDer.rotation.set(0.08, 0, -0.08);
-      this.cetro.rotation.set(0, 0, 0.36);
+      this.ojoIzq.scale.set(1, 1, 1);
+      this.ojoDer.scale.set(1, 1, 1);
+      const pxQ = THREE.MathUtils.clamp(relX * 0.45 * V, -0.45 * V, 0.45 * V);
+      const pyQ = THREE.MathUtils.clamp(-relY * 0.25 * V, -0.25 * V, 0.25 * V);
+      this.pupilaIzq.position.set(pxQ, pyQ, 0.004);
+      this.pupilaDer.position.set(pxQ, pyQ, 0.004);
+      this.brazoIzq.rotation.set(0.08, 0, 0.1);
+      this.brazoDer.rotation.set(0.06, 0, -0.1);
+      this.cetro.rotation.set(0.18, 0, 0.25);
       return;
     }
 
     const k = 1 - Math.exp(-8 * dt);
     this.miraX += (relX - this.miraX) * k;
     this.miraY += (relY - this.miraY) * k;
-    const metaInclina = habla || expr === 'brillo' || expr === 'sombria' ? 0.14 : 0;
+    const metaInclina = habla || expr === 'brillo' || expr === 'sombria' ? 0.12 : 0;
     this.inclina += (metaInclina - this.inclina) * k;
 
     const risaOsc = expr === 'risa' || expr === 'burla' || festeja ? Math.sin(reloj * 14) * 0.09 : 0;
     const penaOsc = lamenta ? Math.sin(reloj * 18) * 0.05 : 0;
-    const respY = Math.sin(reloj * 1.9) * 0.022;
+    const respY = Math.sin(reloj * 2.1) * 0.022;
 
-    this.cuerpo.position.set(0, respY + (festeja ? Math.abs(Math.sin(reloj * 10)) * 0.045 : 0), this.inclina * 0.35);
-    this.cuerpo.rotation.set(this.inclina + (lamenta ? 0.15 : 0), this.miraX * 0.2, risaOsc * 0.4 + penaOsc);
+    this.cuerpo.position.set(0, respY + (festeja ? Math.abs(Math.sin(reloj * 10)) * 0.045 : 0), this.inclina * 0.3);
+    this.cuerpo.rotation.set(this.inclina + (lamenta ? 0.14 : 0), this.miraX * 0.2 + 0.08, risaOsc * 0.35 + penaOsc);
 
     this.cabeza.rotation.set(
-      (expr === 'sombria' ? 0.16 : 0) + this.miraY * 0.22 + risaOsc,
-      this.miraX * 0.42,
+      (expr === 'sombria' ? 0.15 : 0) + this.miraY * 0.2 + risaOsc,
+      this.miraX * 0.38,
       (expr === 'burla' ? -0.12 : 0) + penaOsc,
     );
 
-    this.cuernoIzq.rotation.z = Math.sin(reloj * 2.4) * 0.05 + risaOsc * 0.4;
-    this.cuernoDer.rotation.z = -Math.sin(reloj * 2.4 + 0.6) * 0.05 - risaOsc * 0.4;
-    this.cascabelIzq.position.y = 0.06 + Math.sin(reloj * 4.5) * 0.012;
-    this.cascabelDer.position.y = 0.06 + Math.cos(reloj * 4.5) * 0.012;
+    this.cuernoIzq.rotation.z = Math.sin(reloj * 2.6) * 0.05 + risaOsc * 0.35;
+    this.cuernoCentro.rotation.z = Math.cos(reloj * 2.3) * 0.04;
+    this.cuernoDer.rotation.z = -Math.sin(reloj * 2.6 + 0.6) * 0.05 - risaOsc * 0.35;
 
-    const hablaCetro = habla ? Math.sin(reloj * 12) * 0.16 : Math.sin(reloj * 1.6) * 0.06;
-    const gestoDer = habla || festeja ? Math.sin(reloj * 10 + 0.8) * 0.22 : Math.sin(reloj * 1.4 + 1.2) * 0.06;
-    this.brazoIzq.rotation.set(-hablaCetro * 0.5, 0, 0.08 + hablaCetro * 0.3);
-    this.brazoDer.rotation.set(-0.18 - Math.abs(gestoDer) * 0.45, this.miraX * 0.18, -0.12 - gestoDer * 0.35);
-    this.cetro.rotation.set(hablaCetro * 0.5, 0, 0.36 + hablaCetro);
+    const hablaCetro = habla ? Math.sin(reloj * 12) * 0.16 : Math.sin(reloj * 1.7) * 0.06;
+    const gestoDer = habla || festeja ? Math.sin(reloj * 10 + 0.8) * 0.22 : Math.sin(reloj * 1.5 + 1.1) * 0.07;
+    this.brazoIzq.rotation.set(-hablaCetro * 0.5, 0, 0.1 + hablaCetro * 0.3);
+    this.brazoDer.rotation.set(-0.18 - Math.abs(gestoDer) * 0.4, this.miraX * 0.16, -0.1 - gestoDer * 0.3);
+    this.cetro.rotation.set(0.18 + hablaCetro * 0.45, 0, 0.25 + hablaCetro);
 
-    const px = THREE.MathUtils.clamp(this.miraX * 0.015, -0.013, 0.013);
-    const py = THREE.MathUtils.clamp(-this.miraY * 0.008, -0.008, 0.008);
-    this.pupilaIzq.position.set(px, py, 0.003);
-    this.pupilaDer.position.set(px, py, 0.003);
+    const px = THREE.MathUtils.clamp(this.miraX * 0.45 * V, -0.45 * V, 0.45 * V);
+    const py = THREE.MathUtils.clamp(-this.miraY * 0.25 * V, -0.25 * V, 0.25 * V);
+    this.pupilaIzq.position.set(px, py, 0.004);
+    this.pupilaDer.position.set(px, py, 0.004);
 
     if (reloj >= this.proxParpadeo) {
       this.parpadeoHasta = reloj + 0.13;
       this.proxParpadeo = reloj + 2.4 + Math.random() * 2.8;
     }
     const parpadea = reloj < this.parpadeoHasta;
-    this.ojoIzq.scale.set(1.15, parpadea ? 0.08 : 0.58, 1);
-    this.ojoDer.scale.set(1.15, parpadea ? 0.08 : 0.58, 1);
+    this.ojoIzq.scale.set(1, parpadea ? 0.1 : 1, 1);
+    this.ojoDer.scale.set(1, parpadea ? 0.1 : 1, 1);
   }
 }

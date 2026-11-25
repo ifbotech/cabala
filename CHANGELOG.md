@@ -3,6 +3,16 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.53.0 · Personajes Voxel Art 3D (4 Reyes, Bufón y 5 Héroes) y Reyes sin Naipe 12 (2026-11-25)
+
+Salto visual completo del elenco 3D a **Voxel Art artesanal con Ambient Occlusion horneado por vértice** (`voxel.ts`), eliminación total de las cartas `12` con palos repetidos de los 4 Reyes en todo el juego y corrección de recorte izquierdo en mesa. *(Reglas, música, voces y balance 100 % certificados e intactos.)*
+
+- **Motor Voxel 3D (`voxel.ts`):** culling de caras internas, AO horneado por vértice con flip de diagonal, micro-textura determinista y materiales `matte` / `metal` / `emissive`.
+- **4 Reyes Malvados Voxel 3D (`reyes3d.ts`):** El Caudillo (corona de aceros + doble espada + cicatriz), El Cacique (ramas esmeralda + garrotes nudosos + barba tupida), El Caudal (corona solar + escudo-moneda gigante) y El Bacanal (corona real + cáliz carmesí + melena/barba blanca), con animaciones de golpe, ataque, segunda cara y VFX 3D en voxels.
+- **Bufón Voxel 3D (`bufon3d.ts`) y 5 Héroes de Mazo (`heroes3d.ts`):** Bufón celeste/marfil/oro con gorro de 3 puntas, ojos móviles con parpadeo, cetro Marotte y abanico de naipes; más los 5 Héroes Voxel 3D en `intro-mazo`.
+- **Reyes solos sin carta `12` (`cartas3d.ts`, `cuarto3d.ts`, `texturas.ts`, `mesa.ts`, `camino.ts`, `mesa.css`, `pantallas.css`):** eliminadas las cartas `12` detrás de los Reyes en combate, La Corte, Pared de la Gloria 3D (ahora 4 retratos reales enmarcados en latón) y pantalla Final.
+- **Fix UI (`mano.ts`, `mesa.css`):** corregido el alineado y ancho máximo de `.pano-regla.costado` para evitar cualquier recorte en el borde izquierdo.
+
 ## 0.52.0 · Intro 3D del Personaje por Mazo, Tarjetas Icónicas 0,2 s y Descarte Táctico (2026-11-25)
 
 Cierre del mandato autónomo: Intro animada en 3 golpes para cada Personaje de Mazo, tarjetas de Amuletos/Cábalas/Bendiciones legibles en 0,2 s con bloque de beneficio icónico, cabecera de reglas propias en `? JUGADAS` y descarte táctico multi-carta pulido. *(Reglas, música, voces y balance 100 % certificados e intactos.)*

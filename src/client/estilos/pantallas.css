@@ -5172,9 +5172,26 @@ main.fogon.forjando [data-accion='seguir'] {
   }
 }
 
-.fin-naipe {
+.fin-naipe,
+.fin-retrato-rey {
   display: block;
   line-height: 0;
+}
+.fin-retrato-rey .rey {
+  --k-rey: 1;
+}
+@media (min-width: 701px) {
+  .fin-retrato-rey .rey {
+    --k-rey: 2;
+  }
+}
+.fin-rey.verdugo .fin-retrato-rey .rey {
+  box-shadow:
+    0 0 0 1px var(--abismo),
+    0 0 0 3px #ff1453;
+}
+.fin-rey.espera .fin-retrato-rey .rey {
+  filter: brightness(0.6) saturate(0.7);
 }
 
 /* (0.29) los escudos de Inmune bajo cada combate del Mapa, un escalón más grandes fuera del teléfono (medían ~28 px y
@@ -6275,6 +6292,17 @@ main.fogon.forjando [data-accion='seguir'] {
   background-size: 100% 100%;
   image-rendering: pixelated;
   box-shadow: 0 0 0 2px #09070f, 0 0 0 4px var(--oro);
+}
+html.modo-3d .intro-mazo .intro-escena {
+  border-image: none;
+  background: rgba(11, 7, 17, 0.36);
+  box-shadow: inset 0 0 0 2px #4a3a66, 0 0 0 2px #0b0711;
+}
+html.modo-3d .intro-mazo .intro-retrato {
+  width: 136px;
+  height: 136px;
+  background-image: none !important;
+  box-shadow: none !important;
 }
 .intro-texto {
   display: flex;

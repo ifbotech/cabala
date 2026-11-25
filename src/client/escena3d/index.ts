@@ -11,6 +11,7 @@ import { Chiches3D } from './chiches3d';
 import { CuartoPulperia3D, type RinconId } from './cuarto3d';
 export type { RinconId } from './cuarto3d';
 import { Escenarios3D } from './escenarios3d';
+import { Heroes3D } from './heroes3d';
 import { MundoPulperia } from './pulperia';
 import { Reyes3D } from './reyes3d';
 import { CaminoSolDeMayo3D } from './solDeMayo3d';
@@ -27,6 +28,7 @@ class Motor3D {
   readonly cuarto: CuartoPulperia3D;
   readonly solDeMayo: CaminoSolDeMayo3D;
   readonly reyes: Reyes3D;
+  readonly heroes: Heroes3D;
   rinconResaltado: RinconId | null = null;
 
   private raf = 0;
@@ -63,6 +65,7 @@ class Motor3D {
     this.cuarto.sincronizarPerfil(perfil);
     this.solDeMayo = new CaminoSolDeMayo3D(this.escena);
     this.reyes = new Reyes3D(this.escena);
+    this.heroes = new Heroes3D(this.escena);
 
     window.addEventListener('resize', () => this.redimensionar());
     window.addEventListener(
@@ -125,6 +128,8 @@ class Motor3D {
       case 'mazo':
         return 'mazos';
       case 'mesa':
+      case 'duelo-bufon':
+      case 'intro-mazo':
         return 'mesa';
       case 'mapa':
         return 'mapa';
@@ -199,6 +204,7 @@ class Motor3D {
     this.cuarto.actualizar(dt, quieto, this.reloj, this.rinconResaltado, this.camara.cam.position);
     this.solDeMayo.actualizar(dt, quieto, this.reloj);
     this.reyes.sincronizar(this.camara.cam, dt, quieto, this.reloj);
+    this.heroes.sincronizar(this.camara.cam, quieto, this.reloj);
     this.renderer.render(this.escena, this.camara.cam);
   }
 

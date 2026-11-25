@@ -1527,9 +1527,9 @@ export function pantallaFin(p: Partida): Pantalla {
   const verdugo = gano ? -1 : reyes.findIndex((r) => !r.vencido);
   const naipeRey = (palo: Palo, i: number): string => {
     const nombre = `<b class="fin-rey-nombre rotulo">${esc(tx(REY_DEF[palo].apodo))}</b>`;
-    if (reyes[i].vencido) return `<div class="fin-rey caido" style="--i:${i}"><span class="fin-partido">${pxMitades(`naipe:${palo}12`, () => naipeMapa(palo, 12), i + 1, 'naipe')}</span>${nombre}</div>`;
-    if (i === verdugo) return `<div class="fin-rey verdugo" style="--i:${i}"><span class="fin-naipe">${pxNaipeSegunda(palo)}</span>${nombre}</div>`;
-    return `<div class="fin-rey espera" style="--i:${i}"><span class="fin-naipe">${pxNaipe({ palo, n: 12 })}</span>${nombre}</div>`;
+    if (reyes[i].vencido) return `<div class="fin-rey caido" style="--i:${i}"><span class="fin-retrato-rey">${reyHtml(palo, 'vencido')}</span>${nombre}</div>`;
+    if (i === verdugo) return `<div class="fin-rey verdugo" style="--i:${i}"><span class="fin-retrato-rey">${reyHtml(palo, 'habla')}</span>${nombre}</div>`;
+    return `<div class="fin-rey espera" style="--i:${i}"><span class="fin-retrato-rey">${reyHtml(palo, 'calma')}</span>${nombre}</div>`;
   };
   const heroe = gano
     ? `<div class="fin-heroe"><i class="fin-cara" style="background-image:url(${urlRetrato(p.mazoId, cuadro)})"></i></div>`

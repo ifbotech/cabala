@@ -18,6 +18,7 @@ Registro vivo del Estudio Autónomo. Cada versión se audita con lupa adversaria
 | **H. Reyes Malvados 3D saliendo de la Carta + Poderes VFX** | Figuras 3D de los 4 Reyes saliendo del naipe `12` con corona, arma de palo y VFX propios (tajos cian, estacas esmeralda, lluvia de monedas, bruma carmesí) | **Completado (`v0.50.0`)** |
 | **I. La Mano contra el Bufón + La Bendición del Bufón** | Duelo 3D de mesa antes de cada Rey Jefe jugando 1 mano auténtica del Mazo actual (Truco, Escoba, Chinchón, El Mentiroso, Chancho Va) para ganar La Bendición del Bufón | **Completado (`v0.51.0`)** |
 | **J. Intro 3D por Mazo, Tarjetas 0,2 s y Descarte Táctico** | Intro animada en 3 golpes por Personaje, fichas icónicas de lectura en 0,2 s para Amuletos/Cábalas/Bendiciones, cabecera de reglas por Mazo en `? JUGADAS` y descarte táctico multi-carta; doble Auditoría Adversarial limpia | **Completado (`v0.52.0`)** |
+| **K. Elenco Voxel 3D con AO Horneado y Reyes sin Naipe 12** | Motor `voxel.ts` con AO por vértice; 4 Reyes, Bufón y 5 Héroes en Voxel 3D; cero cartas `12` en combate, La Corte, Pared de la Gloria 3D y Final; fix `.pano-regla.costado` | **Completado (`v0.53.0`)** |
 
 ---
 

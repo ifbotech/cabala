@@ -8,6 +8,7 @@ import { comodinMapa, dorsoNaipe, naipeMapa, naipeSegundaMapa } from '../pixel/n
 import { tintas } from '../pixel/paleta';
 import { mitad } from '../pixel/partido';
 import { pixeles } from '../pixel/raster';
+import { REY_PX, reyRetrato, type Animo } from '../pixel/reyes';
 import { lienzo, lienzoNaipe, lienzoNaipeSegunda } from '../sprites';
 
 const T = tintas();
@@ -181,6 +182,15 @@ export function texturaNaipe(palo: Palo | 'X', n: number, segunda = false): THRE
         ? lienzoNaipeSegunda(palo)
         : lienzoNaipe(palo, n);
   const tex = aTexturaPixel(canvas);
+  cache.set(k, tex);
+  return tex;
+}
+
+/** Retrato solo del Rey (sin carta 12 ni palo repetido) para la Pared de la Gloria 3D. */
+export function texturaRey(palo: Palo, animo: Animo = 'calma'): THREE.CanvasTexture {
+  const k = `rey:${palo}:${animo}`;
+  if (cache.has(k)) return cache.get(k)!;
+  const tex = aTexturaPixel(lienzo(`rey:${palo}:${animo}`, () => reyRetrato(REY_PX[palo], animo)));
   cache.set(k, tex);
   return tex;
 }

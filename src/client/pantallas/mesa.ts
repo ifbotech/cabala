@@ -238,7 +238,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     return `<div class="e-sellos">${inmune}${estados}</div>
       <div class="e-centro" data-soltar="enemigo">
         <i class="e-pano"></i>
-        <div class="e-carta ${e.jefe ? 'jefe' : ''} ${e.segunda ? 'segunda' : ''} ${e.aturdido > 0 ? 'aturdido' : ''} ${furia > 0 ? 'con-furia' : ''}" data-carta data-palo="${e.palo}" data-rango="${e.rango}" data-jefe="${e.jefe ? '1' : '0'}" data-segunda="${e.segunda ? '1' : '0'}" style="--aura:${e.segunda ? AURA_SEGUNDA[e.palo] : AURA[e.palo]}">${e.jefe && e.segunda ? pxNaipeSegunda(e.palo) : pxNaipe({ palo: e.palo, n: e.rango })}<i class="e-indice" aria-hidden="true"></i>${e.aturdido > 0 ? '<span class="e-estrellas" aria-hidden="true"><i>★</i><i>★</i><i>★</i></span>' : ''}</div>
+        <div class="e-carta ${e.jefe ? 'jefe' : ''} ${e.segunda ? 'segunda' : ''} ${e.aturdido > 0 ? 'aturdido' : ''} ${furia > 0 ? 'con-furia' : ''}" data-carta data-palo="${e.palo}" data-rango="${e.rango}" data-jefe="${e.jefe ? '1' : '0'}" data-segunda="${e.segunda ? '1' : '0'}" style="--aura:${e.segunda ? AURA_SEGUNDA[e.palo] : AURA[e.palo]}">${e.jefe ? reyHtml(e.palo, e.segunda ? 'habla' : 'calma') : pxNaipe({ palo: e.palo, n: e.rango })}<i class="e-indice" aria-hidden="true"></i>${e.aturdido > 0 ? '<span class="e-estrellas" aria-hidden="true"><i>★</i><i>★</i><i>★</i></span>' : ''}</div>
         <i class="e-halo" aria-hidden="true"></i>
         <span class="e-suelta chip canto">${t('soltaAca')}</span>
       </div>
@@ -261,7 +261,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     if (!resto.length) return '';
     return `<span class="rotulo">${t('corte')}</span>
       <div class="corte-pila">${resto
-        .map((e, i) => `<span class="corte-carta mirable" tabindex="0" style="--i:${i}" ${tip(nombreEnemigo(e), `${t('vida')} ${e.vida} · ${t('tePegaRotulo')} ${e.ataque}`, e.jefe ? tx(REY_DEF[e.palo].rasgoDesc) : '')}>${pxNaipe({ palo: e.palo, n: e.rango })}</span>`)
+        .map((e, i) => `<span class="corte-carta ${e.jefe ? 'corte-rey' : ''} mirable" tabindex="0" style="--i:${i}" ${tip(nombreEnemigo(e), `${t('vida')} ${e.vida} · ${t('tePegaRotulo')} ${e.ataque}`, e.jefe ? tx(REY_DEF[e.palo].rasgoDesc) : '')}>${e.jefe ? reyHtml(e.palo, 'calma') : pxNaipe({ palo: e.palo, n: e.rango })}</span>`)
         .join('')}</div>
       <b class="rotulo corte-quedan">${t(resto.length === 1 ? 'queda' : 'quedan', { n: resto.length })}</b><span class="corte-n">${cifra(resto.length, 'hueso', 'grande')}</span>`;
   }

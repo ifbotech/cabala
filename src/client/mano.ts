@@ -575,20 +575,22 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
       // (0.27: y calla mientras se juega el golpe: el desglose de la cuenta sigue ahí al lado)
       const tel = telefono();
       regla.classList.toggle('costado', !tel);
-      if (!tel) regla.style.maxWidth = `${Math.max(120, izq - 36)}px`;
+      if (!tel) regla.style.maxWidth = `${Math.max(110, izq - 24)}px`;
       regla.hidden = bloqueada || raiz.classList.contains('arrastrando') || (tel ? techoTel() : raiz.clientHeight - h) < 24;
       // (0.29) escritorio: si la regla no entra en el alto de la franja (la columna angosta junto al paño de 5 Postas),
       // primero pasa a su forma corta y después cede el renglón del Comodín
       regla.classList.remove('corta');
       if (!regla.hidden && !tel) {
-        if (regla.offsetHeight > lp.hp - 8) regla.classList.add('corta');
-        if (regla.offsetHeight > lp.hp - 8) regla.classList.remove('con-comodin');
+        if (regla.offsetHeight > lp.hp - 8 || regla.offsetWidth > izq - 16) regla.classList.add('corta');
+        if (regla.offsetHeight > lp.hp - 8 || regla.offsetWidth > izq - 16) regla.classList.remove('con-comodin');
       }
       // (0.29: en el teléfono, si con el renglón del Comodín no entra en la franja del paño, ese renglón cede)
       if (!regla.hidden && tel && regla.offsetHeight > lp.hp - 4) regla.classList.remove('con-comodin');
       // (0.28) escritorio: a la izquierda del paño, centrada en su franja; en el teléfono, centrada dentro de la franja del paño
-      if (!regla.hidden)
-        ponerEn(regla, tel ? Math.round((ancho - regla.offsetWidth) / 2) : Math.max(18, Math.round((izq - regla.offsetWidth) / 2)), tel ? Math.max(2, Math.round(lp.y + (lp.hp - regla.offsetHeight) / 2)) : Math.max(2, Math.round(lp.y + (lp.hp - regla.offsetHeight) / 2)), Z.pano);
+      if (!regla.hidden) {
+        const xDesk = Math.max(12, Math.min(Math.max(12, izq - regla.offsetWidth - 10), Math.round((izq - regla.offsetWidth) / 2)));
+        ponerEn(regla, tel ? Math.round((ancho - regla.offsetWidth) / 2) : xDesk, Math.max(2, Math.round(lp.y + (lp.hp - regla.offsetHeight) / 2)), Z.pano);
+      }
     } else regla.hidden = true;
     // la marca del Medio va pegada a su naipe (si lo hay), a la derecha de su número
     const enMedio = enPosta[medio];

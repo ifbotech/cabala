@@ -21,6 +21,7 @@ import {
   texturaPano,
   texturaPared,
   texturaPiedra,
+  texturaRey,
 } from './texturas';
 
 export type RinconId = 'mesa' | 'altar' | 'coleccion' | 'fogon' | 'cronica' | 'ajustes' | 'puerta';
@@ -297,10 +298,10 @@ export class CuartoPulperia3D {
       g.add(carta);
     });
 
-    // 4 Reyes Malvados en fila media (izquierda)
+    // 4 Reyes Malvados en fila media (retratos reales enmarcados en latón, sin carta 12 ni palo repetido)
     PALOS.forEach((palo, i) => {
-      const matR = new THREE.MeshStandardMaterial({ map: texturaNaipe(palo, 12), roughness: 0.6 });
-      const carta = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.94, 0.04), [
+      const matR = new THREE.MeshStandardMaterial({ map: texturaRey(palo, 'calma'), roughness: 0.56 });
+      const cuadro = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.05), [
         matLaton,
         matLaton,
         matLaton,
@@ -308,8 +309,8 @@ export class CuartoPulperia3D {
         matR,
         matLaton,
       ]);
-      carta.position.set(-2.2 + i * 0.92, 0.08, 0.09);
-      g.add(carta);
+      cuadro.position.set(-2.2 + i * 0.92, 0.08, 0.09);
+      g.add(cuadro);
     });
 
     const luz = new THREE.PointLight(0xffd27a, 14, 10, 1.35);

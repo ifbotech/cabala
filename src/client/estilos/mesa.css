@@ -561,11 +561,16 @@
 }
 .pano-regla.costado {
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 8px;
-  text-align: right;
+  text-align: left;
+  box-sizing: border-box;
   white-space: normal;
   opacity: 1;
+}
+.pano-regla.costado .p-linea {
+  max-width: 100%;
+  flex-wrap: wrap;
 }
 /* (el Escalón armado, cuando su chip no entra a la derecha del paño: se enciende su renglón) */
 .pano-regla.arma .p-esc {
@@ -7808,6 +7813,30 @@ html.modo-3d .mesa .mano .carta.elegida .c-espectro,
 html.modo-3d .mesa .mano .carta.elegida .c-espectro .px,
 html.modo-3d .mesa .e-carta > .px {
   background-image: none !important;
+}
+html.modo-3d .mesa .e-carta.jefe {
+  box-shadow: none !important;
+  background: transparent !important;
+}
+html.modo-3d .mesa .e-carta.jefe > .rey,
+html.modo-3d .mesa .e-carta.jefe > .rey .px {
+  opacity: 0 !important;
+}
+.mesa .e-carta.jefe {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0b0711;
+}
+.mesa .corte .corte-carta.corte-rey {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #0b0711;
+  box-shadow: 0 0 0 1px var(--oro-osc);
+}
+.mesa .corte .corte-carta.corte-rey .rey {
+  --k-rey: 1;
 }
 html.modo-3d .mesa .pano-postas {
   background: transparent !important;

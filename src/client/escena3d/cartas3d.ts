@@ -132,27 +132,45 @@ export class SincroCartas3D {
     const h = r && r.height > 4 ? r.height : 196;
 
     const tam = this.proyectarRect(cam, cx, cy, w, h, 5.9, this.vHit);
-    for (const lado of ['izq', 'der'] as const) {
-      const sign = lado === 'izq' ? -1 : 1;
-      const tex = texturaNaipeMitad(palo, rango, lado, segunda);
-      const mat = new THREE.MeshStandardMaterial({
-        map: tex,
-        transparent: true,
-        roughness: 0.55,
-        emissive: 0xffffff,
-        emissiveMap: tex,
-        emissiveIntensity: 0.35,
-      });
-      const m = new THREE.Mesh(new THREE.PlaneGeometry(tam.worldW, tam.worldH), mat);
-      m.position.copy(this.vHit);
-      m.quaternion.copy(cam.quaternion);
-      this.raiz.add(m);
-      this.piezas.push({
-        malla: m,
-        vel: new THREE.Vector3(sign * (1.8 + Math.random() * 0.8), 1.6 + Math.random() * 0.8, 1.1),
-        rotVel: new THREE.Vector3(0.4, sign * 1.4, -sign * 2.2),
-        vida: 0.95,
-      });
+    if (rango === 12) {
+      const colPalo = palo === 'S' ? 0x00e5ff : palo === 'C' ? 0x22f06a : palo === 'D' ? 0xffd500 : 0xff1e5c;
+      const geoAstilla = new THREE.BoxGeometry(0.16, 0.16, 0.16);
+      const matAstilla = new THREE.MeshStandardMaterial({ color: colPalo, emissive: colPalo, emissiveIntensity: 0.45, roughness: 0.4 });
+      for (let i = 0; i < 12; i++) {
+        const a = (i / 12) * Math.PI * 2;
+        const m = new THREE.Mesh(geoAstilla, matAstilla);
+        m.position.copy(this.vHit).add(new THREE.Vector3(Math.cos(a) * 0.3, Math.sin(a) * 0.25, 0.1));
+        this.raiz.add(m);
+        this.piezas.push({
+          malla: m,
+          vel: new THREE.Vector3(Math.cos(a) * (1.8 + Math.random()), 1.8 + Math.random() * 1.6, 1.4),
+          rotVel: new THREE.Vector3(6, 8, 5),
+          vida: 0.95,
+        });
+      }
+    } else {
+      for (const lado of ['izq', 'der'] as const) {
+        const sign = lado === 'izq' ? -1 : 1;
+        const tex = texturaNaipeMitad(palo, rango, lado, segunda);
+        const mat = new THREE.MeshStandardMaterial({
+          map: tex,
+          transparent: true,
+          roughness: 0.55,
+          emissive: 0xffffff,
+          emissiveMap: tex,
+          emissiveIntensity: 0.35,
+        });
+        const m = new THREE.Mesh(new THREE.PlaneGeometry(tam.worldW, tam.worldH), mat);
+        m.position.copy(this.vHit);
+        m.quaternion.copy(cam.quaternion);
+        this.raiz.add(m);
+        this.piezas.push({
+          malla: m,
+          vel: new THREE.Vector3(sign * (1.8 + Math.random() * 0.8), 1.6 + Math.random() * 0.8, 1.1),
+          rotVel: new THREE.Vector3(0.4, sign * 1.4, -sign * 2.2),
+          vida: 0.95,
+        });
+      }
     }
 
     for (let i = 0; i < 8; i++) {
@@ -293,11 +311,11 @@ export class SincroCartas3D {
         entry.sombra.visible = true;
       });
 
-      // Tótem 3D del enemigo activo
+      // Tótem 3D del enemigo activo (los Reyes Jefe van con su modelo Voxel 3D, sin carta 12)
       const eEl = document.querySelector<HTMLElement>('.mesa .e-carta');
       const eCentro = document.querySelector<HTMLElement>('.mesa .e-centro');
       const eBarra = document.querySelector<HTMLElement>('.mesa .e-barras');
-      if (eEl && !eEl.classList.contains('partida')) {
+      if (eEl && !eEl.classList.contains('partida') && eEl.dataset.jefe !== '1') {
         const r = eEl.getBoundingClientRect();
         const rc = eCentro?.getBoundingClientRect() ?? r;
         const rb = eBarra?.getBoundingClientRect();
