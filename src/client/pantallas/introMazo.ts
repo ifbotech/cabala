@@ -170,19 +170,21 @@ export function pantallaIntroMazo(mazo: MazoId, alTerminar: () => void): Pantall
           </div>
           <button class="btn marco chico" data-accion="saltar">${t('introSaltar')}</button>
         </header>
-        <div class="intro-escena marco">
-          <div class="intro-pj">
+        <div class="intro-layout">
+          <div class="intro-palco" aria-hidden="true">
             <i class="intro-retrato" data-mazo="${mazo}" style="background-image:url(${urlRetrato(mazo, CUADRO0)})"></i>
+          </div>
+          <div class="intro-tarjeta">
             <div class="intro-texto">
               <b class="rotulo dorado">${esc(pAct.titulo[lang])}</b>
               <p class="bocadillo sin-cola">${esc(pAct.texto[lang])}</p>
             </div>
-          </div>
-          <div class="intro-cartas">
-            ${pAct.cartas.map((c) => `<span class="intro-carta">${pxNaipe(c)}</span>`).join('')}
-          </div>
-          <div class="intro-pie">
-            <button class="btn marco oro grande" data-accion="siguiente" data-inicio>${esUltimo ? t('introEmpezar') : t('introSiguiente')}</button>
+            <div class="intro-cartas">
+              ${pAct.cartas.map((c) => `<span class="intro-carta">${pxNaipe(c)}</span>`).join('')}
+            </div>
+            <div class="intro-pie">
+              <button class="btn marco oro grande" data-accion="siguiente" data-inicio>${esUltimo ? t('introEmpezar') : t('introSiguiente')}</button>
+            </div>
           </div>
         </div>
       </main>`;

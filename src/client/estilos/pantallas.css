@@ -6264,49 +6264,53 @@ main.fogon.forjando [data-accion='seguir'] {
   justify-content: space-between;
   background: transparent;
 }
-.intro-escena {
+.intro-layout {
   flex: 1;
   min-height: 0;
-  width: min(92vw, 760px);
+  width: min(94vw, 980px);
   margin: auto;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
-  gap: calc(var(--u) * 1.6);
-  padding: calc(var(--u) * 2);
-  background: rgba(9, 7, 15, 0.82);
+  justify-content: center;
+  gap: clamp(20px, 4vw, 56px);
 }
-.intro-pj {
+.intro-palco {
+  flex: none;
   display: flex;
   align-items: center;
-  gap: calc(var(--u) * 1.5);
-  width: 100%;
   justify-content: center;
+  background: transparent;
+}
+.intro-tarjeta {
+  width: min(92vw, 540px);
+  padding: calc(var(--u) * 2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 1.4);
+  background: rgba(11, 7, 17, 0.88);
+  box-shadow: inset 0 0 0 2px #4a3a66, 0 0 0 2px #09070f;
 }
 .intro-retrato {
   display: block;
-  width: 84px;
-  height: 84px;
+  width: 128px;
+  height: 128px;
   flex: none;
   background-size: 100% 100%;
   image-rendering: pixelated;
   box-shadow: 0 0 0 2px #09070f, 0 0 0 4px var(--oro);
 }
-html.modo-3d .intro-mazo .intro-escena {
-  border-image: none;
-  background: rgba(11, 7, 17, 0.36);
-  box-shadow: inset 0 0 0 2px #4a3a66, 0 0 0 2px #0b0711;
-}
 html.modo-3d .intro-mazo .intro-retrato {
-  width: 136px;
-  height: 136px;
+  width: 240px;
+  height: 290px;
   background-image: none !important;
   box-shadow: none !important;
 }
 .intro-texto {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
   gap: 6px;
   max-width: 34em;
 }
@@ -6321,9 +6325,17 @@ html.modo-3d .intro-mazo .intro-retrato {
   height: calc(118px * var(--k, 1));
 }
 @media (max-width: 700px) {
-  .intro-pj {
+  .intro-layout {
     flex-direction: column;
-    text-align: center;
+    gap: 12px;
+  }
+  html.modo-3d .intro-mazo .intro-retrato {
+    width: 150px;
+    height: 160px;
+  }
+  .intro-tarjeta {
+    padding: calc(var(--u) * 1.4);
+    gap: var(--u);
   }
   .intro-carta .px {
     width: 60px;

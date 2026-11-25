@@ -307,8 +307,8 @@ export class Heroes3D {
       return;
     }
     const mazo = (el.dataset.mazo || 'escoba') as MazoId;
-    const worldH = this.proyectar(cam, r.left + r.width / 2, r.top + r.height * 0.62, r.height, 5.4, this.raiz.position);
-    this.raiz.scale.setScalar(worldH * 1.12);
+    const worldH = this.proyectar(cam, r.left + r.width / 2, r.top + r.height * 0.56, r.height, 5.4, this.raiz.position);
+    this.raiz.scale.setScalar(worldH * 0.82);
     this.raiz.quaternion.copy(cam.quaternion);
     this.raiz.visible = true;
 

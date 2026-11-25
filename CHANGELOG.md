@@ -3,6 +3,13 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.54.0 · Motor Dark-Dithered Pixel-3D + Intro 3D Abierta (2026-11-25)
+
+Primera iteración de la serie de 5 versiones de revisión visual profunda: evolución del motor 3D hacia *Dark Dithered Pixel Art* y apertura total del escenario 3D en la intro de cada Mazo. *(Reglas, música, voces y balance 100 % congelados.)*
+
+- **Motor Dark-Dithered Pixel-3D (`voxel.ts`):** sombras violáceas (`#120a24`), Ambient Occlusion horneado dramático (`[0.38, 0.62, 0.82, 1.0]`), tramado Bayer 4×4 3D y nuevas primitivas orgánicas (`sculptHead`, `taperedCylinder`, `curve3D`, `ditherBox`).
+- **Intro 3D abierta (`introMazo.ts`, `pantallas.css`, `heroes3d.ts`):** eliminada la caja opaca que tapaba al Héroe; ahora el Héroe 3D se luce libre en `1920×1080`, `1280×800` y `390×844` junto a la tarjeta compacta.
+
 ## 0.53.0 · Personajes Voxel Art 3D (4 Reyes, Bufón y 5 Héroes) y Reyes sin Naipe 12 (2026-11-25)
 
 Salto visual completo del elenco 3D a **Voxel Art artesanal con Ambient Occlusion horneado por vértice** (`voxel.ts`), eliminación total de las cartas `12` con palos repetidos de los 4 Reyes en todo el juego y corrección de recorte izquierdo en mesa. *(Reglas, música, voces y balance 100 % certificados e intactos.)*
