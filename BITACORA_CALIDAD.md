@@ -23,6 +23,7 @@ Registro vivo del Estudio Autónomo. Cada versión se audita con lupa adversaria
 | **M. Bufón y 5 Héroes Dark-Gothic 2× (Rev. 2/5)** | Reconstrucción a `V = 0.018` sin bloques *Minecraft*: máscara veneciana de tarot, cuernos orgánicos, paleta oscura de `paleta.ts`, 5 Héroes estilizados | **Completado (`v0.55.0`)** |
 | **N. 4 Reyes Malvados Dark-Gothic 2× (Rev. 3/5)** | Reconstrucción a `V = 0.017` de los 4 Reyes Jefe con armas/coronas orgánicas, paleta regia oscura, jerarquía de escala sobre el Bufón y 0 recorte en `1920`/`1280`/`390` | **Completado (`v0.56.0`)** |
 | **O. Artesanía 3D de La Pulpería (Rev. 4/5)** | Nuevas texturas pixel-art (`texturaPaginaCronica`, `texturaVinilo`, `texturaMantelAltar`) y modelos 3D detallados para Altar, Crónica y Fonógrafo verificados en los 5 rincones | **Completado (`v0.57.0`)** |
+| **P. Pulso 3-3-2 y detalles finales 3D (Rev. 5/5)** | Sincronización de `Bufon3D`, `Reyes3D` y `Heroes3D` al pulso `3-3-2` (`armoniaActual()`), bocina del Fonógrafo orientada al jugador, llamas animadas en Crónica/Altar y QA visual ES/EN completo | **Completado (`v0.58.0`)** |
 
 ---
 

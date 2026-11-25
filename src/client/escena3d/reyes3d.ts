@@ -1,6 +1,7 @@
 // Los 4 Reyes Malvados en Dark-Gothic Pixel-3D de alta densidad (V = 0.017, cero bloques Minecraft).
 import * as THREE from 'three';
 import type { Palo } from '../../rules/cartas';
+import { armoniaActual } from '../musica';
 import { VoxelGrid, construirMallaVoxel, type VoxelMat } from './voxel';
 
 const COLOR_REY: Record<Palo, number> = {
@@ -112,6 +113,7 @@ export class Reyes3D {
   private castTimer = 0;
   private golpeTimer = 0;
   private eraHerido = false;
+  private pulsoSuave = 0;
 
   private readonly vFwd = new THREE.Vector3();
   private readonly vCentroPlano = new THREE.Vector3();
@@ -569,13 +571,17 @@ export class Reyes3D {
     if (this.castTimer > 0 && !quieto) this.castTimer = Math.max(0, this.castTimer - dt);
     if (this.golpeTimer > 0 && !quieto) this.golpeTimer = Math.max(0, this.golpeTimer - dt);
 
-    const worldH = this.proyectar(cam, r.left + r.width / 2, r.top + r.height * 0.65, r.height, 5.55, this.raiz.position);
-    this.raiz.scale.setScalar(worldH * 0.72);
+    const arm = armoniaActual();
+    const pulsoMeta = !quieto && arm && (arm.paso === 0 || arm.paso === 6 || arm.paso === 12) ? 1 : 0;
+    this.pulsoSuave += (pulsoMeta - this.pulsoSuave) * (1 - Math.exp(-10 * dt));
+
+    const worldH = this.proyectar(cam, r.left + r.width / 2, r.top + r.height * 0.64, r.height, 5.55, this.raiz.position);
+    this.raiz.scale.setScalar(worldH * 0.76);
     this.raiz.quaternion.copy(cam.quaternion);
     this.raiz.visible = true;
 
     this.luzRey.color.setHex(COLOR_REY[palo]);
-    this.luzRey.intensity = (segunda ? 2.05 : 1.35) + (this.castTimer > 0 ? 1.15 : 0);
+    this.luzRey.intensity = (segunda ? 2.05 : 1.35) + (this.castTimer > 0 ? 1.15 : 0) + this.pulsoSuave * 0.4;
     this.luzFrente.intensity = this.golpeTimer > 0 ? 2.8 : 1.45;
 
     for (const k of ['S', 'C', 'D', 'H'] as const) {
@@ -590,7 +596,7 @@ export class Reyes3D {
       const zSale = (quieto ? 0.15 : 0.15 * this.entrada) + emb - hitPhase * 0.25;
       const temblor = grieta && !quieto ? Math.sin(reloj * 38) * 0.04 : 0;
 
-      fig.cuerpo.position.set(temblor, bob - 0.16, zSale);
+      fig.cuerpo.position.set(temblor, bob - 0.15 + this.pulsoSuave * 0.018, zSale);
       fig.cuerpo.rotation.set(
         emb * 0.35 - hitPhase * 0.32 + (segunda ? 0.08 : 0),
         quieto ? -0.08 : Math.sin(reloj * 1.15) * 0.15 - 0.06,

@@ -3,6 +3,13 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.58.0 · Pulso 3-3-2, bocina del Fonógrafo y cierre de revisión 3D (2026-11-25)
+
+Quinta y última iteración de la serie de 5 versiones: sincronización rítmica de todo el elenco 3D con la milonga `3-3-2`, ajuste de orientación en el Fonógrafo y animación viva de velas en Altar y Crónica. *(Reglas, música, voces y balance 100 % congelados.)*
+
+- **Pulso `3-3-2` en personajes 3D (`bufon3d.ts`, `reyes3d.ts`, `heroes3d.ts`):** Lectura en vivo de `armoniaActual()` para acentuar respiración, cadencia y luz cálida en los pasos `0, 6, 12`, junto con refinamiento de encuadre y escala de Reyes (`0.76`).
+- **La Pulpería viva (`cuarto3d.ts`):** Orientación de la bocina acampanada del Fonógrafo hacia el jugador (`-Math.PI * 0.62`) y parpadeo orgánico de las llamas y halos del candelabro de Crónica y las velas del Altar.
+
 ## 0.57.0 · Artesanía 3D de La Pulpería — Altar, Crónica y Fonógrafo (2026-11-25)
 
 Cuarta iteración de la serie de 5 versiones: reconstrucción artesanal de los rincones 3D del cuarto caminable con nuevas texturas pixeladas y luminarias cálidas. *(Reglas, música, voces y balance 100 % congelados.)*

@@ -1,6 +1,7 @@
 // El Bufón en Dark-Gothic Pixel-3D de alta densidad (V = 0.018), máscara de tarot y cuernos orgánicos.
 import * as THREE from 'three';
 import type { Palo } from '../../rules/cartas';
+import { armoniaActual } from '../musica';
 import { VoxelGrid, construirMallaVoxel } from './voxel';
 
 const COLOR_REY: Record<Palo, number> = {
@@ -48,6 +49,7 @@ export class Bufon3D {
   private inclina = 0;
   private parpadeoHasta = 0;
   private proxParpadeo = 2.6;
+  private pulsoSuave = 0;
 
   private readonly vFwd = new THREE.Vector3();
   private readonly vCentroPlano = new THREE.Vector3();
@@ -315,13 +317,17 @@ export class Bufon3D {
     const paloRey = eEl ? ((eEl.dataset.palo || 'S') as Palo) : null;
     const segundaRey = eEl?.dataset.segunda === '1';
 
+    const arm = armoniaActual();
+    const pulsoMeta = !quieto && arm && (arm.paso === 0 || arm.paso === 6 || arm.paso === 12) ? 1 : 0;
+    this.pulsoSuave += (pulsoMeta - this.pulsoSuave) * (1 - Math.exp(-10 * dt));
+
     const enModal = !!el.closest('#capa .velo');
     if (paloRey) {
       this.luzMascara.color.setHex(COLOR_REY[paloRey]);
-      this.luzMascara.intensity = segundaRey ? 1.35 : 1.05;
+      this.luzMascara.intensity = (segundaRey ? 1.35 : 1.05) + this.pulsoSuave * 0.35;
     } else {
       this.luzMascara.color.setHex(0xffaa44);
-      this.luzMascara.intensity = enModal ? 1.3 : 1.05;
+      this.luzMascara.intensity = (enModal ? 1.3 : 1.05) + this.pulsoSuave * 0.35;
     }
 
     let objX = punteroX;
@@ -371,7 +377,7 @@ export class Bufon3D {
 
     const risaOsc = expr === 'risa' || expr === 'burla' || festeja ? Math.sin(reloj * 14) * 0.09 : 0;
     const penaOsc = lamenta ? Math.sin(reloj * 18) * 0.05 : 0;
-    const respY = Math.sin(reloj * 2.1) * 0.022;
+    const respY = Math.sin(reloj * 2.1) * 0.022 + this.pulsoSuave * 0.018;
 
     this.cuerpo.position.set(0, respY + (festeja ? Math.abs(Math.sin(reloj * 10)) * 0.045 : 0), this.inclina * 0.3);
     this.cuerpo.rotation.set(this.inclina + (lamenta ? 0.14 : 0), this.miraX * 0.2 + 0.08, risaOsc * 0.35 + penaOsc);

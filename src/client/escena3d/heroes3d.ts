@@ -1,6 +1,7 @@
 // Los 5 Héroes de Mazo en Dark-Gothic Pixel-3D de alta densidad (V = 0.018, cero bloques Minecraft).
 import * as THREE from 'three';
 import type { MazoId } from '../../rules/mazos';
+import { armoniaActual } from '../musica';
 import { VoxelGrid, construirMallaVoxel } from './voxel';
 
 const V = 0.018;
@@ -25,6 +26,7 @@ export class Heroes3D {
   private readonly heroes: Record<MazoId, HeroeArticulado>;
   private readonly luzFrente: THREE.PointLight;
   private readonly luzRim: THREE.PointLight;
+  private pulsoSuave = 0;
 
   private readonly vFwd = new THREE.Vector3();
   private readonly vCentroPlano = new THREE.Vector3();
@@ -319,11 +321,16 @@ export class Heroes3D {
     this.raiz.quaternion.copy(cam.quaternion);
     this.raiz.visible = true;
 
+    const arm = armoniaActual();
+    const pulsoMeta = !quieto && arm && (arm.paso === 0 || arm.paso === 6 || arm.paso === 12) ? 1 : 0;
+    this.pulsoSuave += (pulsoMeta - this.pulsoSuave) * 0.16;
+    this.luzFrente.intensity = 1.65 + this.pulsoSuave * 0.35;
+
     for (const m of ['escoba', 'truco', 'chinchon', 'mentiroso', 'chancho'] as const) {
       const h = this.heroes[m];
       h.grupo.visible = m === mazo;
       if (!h.grupo.visible) continue;
-      h.cuerpo.position.y = quieto ? 0 : Math.sin(reloj * 2.4) * 0.025;
+      h.cuerpo.position.y = (quieto ? 0 : Math.sin(reloj * 2.4) * 0.025) + this.pulsoSuave * 0.018;
       h.cuerpo.rotation.y = quieto ? -0.18 : Math.sin(reloj * 1.2) * 0.22 - 0.1;
       h.cabeza.rotation.y = quieto ? 0.12 : Math.sin(reloj * 1.6) * 0.14;
       h.brazoDer.rotation.x = -0.25 + (quieto ? 0 : Math.sin(reloj * 2.1) * 0.12);

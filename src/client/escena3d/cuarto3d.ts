@@ -63,6 +63,7 @@ export class CuartoPulperia3D {
   private trancaPuerta!: THREE.Mesh;
   private readonly discoFonografo: THREE.Mesh;
   private readonly bocinaFonografo: THREE.Group;
+  private llamaCronica!: THREE.Mesh;
   private readonly raycaster = new THREE.Raycaster();
   private readonly vNdc = new THREE.Vector2();
   private readonly vDelta = new THREE.Vector3();
@@ -560,6 +561,7 @@ export class CuartoPulperia3D {
     );
     llama.scale.set(0.7, 1.6, 0.7);
     llama.position.set(0.24, 2.02, 0.78);
+    this.llamaCronica = llama;
     const luz = new THREE.PointLight(0xffb44d, 7.5, 8, 1.4);
     luz.position.set(-0.35, 2.45, 0.2);
     g.add(candBase, vela, llama, luz);
@@ -628,8 +630,8 @@ export class CuartoPulperia3D {
     codo.position.set(-0.1, 0.1, 0);
     const campana = new THREE.Mesh(new THREE.ConeGeometry(0.44, 0.66, 10, 1, true), matLaton);
     campana.material.side = THREE.DoubleSide;
-    campana.position.set(-0.38, 0.34, 0);
-    campana.rotation.z = Math.PI * 0.62;
+    campana.position.set(-0.44, 0.38, 0);
+    campana.rotation.z = -Math.PI * 0.62;
     const aroCampana = new THREE.Mesh(new THREE.TorusGeometry(0.44, 0.032, 6, 12), matLaton);
     aroCampana.rotation.x = Math.PI / 2;
     aroCampana.position.set(0, -0.33, 0);
@@ -853,6 +855,17 @@ export class CuartoPulperia3D {
       });
 
       this.luzPuerta.intensity = 7 + pulso * 5 + Math.sin(reloj * 2.1) * 1.6;
+      if (this.llamaCronica) {
+        const sc = 1 + Math.sin(reloj * 13.5) * 0.14 + pulso * 0.25;
+        this.llamaCronica.scale.set(0.7, 1.6 * sc, 0.7);
+        this.llamaCronica.rotation.y += dt * 1.9;
+      }
+      this.velasAltar.forEach((v, i) => {
+        if (!v.llama.visible) return;
+        const sc = 1 + Math.sin(reloj * 12 + i * 1.7) * 0.15 + pulso * 0.22;
+        v.llama.scale.set(0.65, 1.55 * sc, 0.65);
+        v.halo.scale.setScalar(0.32 + pulso * 0.08 + Math.sin(reloj * 9 + i) * 0.025);
+      });
     }
 
     for (const z of this.zonas) {
