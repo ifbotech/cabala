@@ -24,31 +24,22 @@ function normalizarUvsPlanar(geo: THREE.BufferGeometry, minX: number, maxX: numb
   uv.needsUpdate = true;
 }
 
-function geometriaMascaraVeneciana(): THREE.ExtrudeGeometry {
-  const s = new THREE.Shape();
-  // Máscara tallada de tarot oscuro: frente ancha, pómulos afilados, mejillas hundidas y mentón puntiagudo
-  s.moveTo(0, -0.255);
-  s.lineTo(-0.1, -0.145);
-  s.lineTo(-0.14, -0.07);
-  s.lineTo(-0.195, 0.04);
-  s.lineTo(-0.17, 0.16);
-  s.lineTo(-0.095, 0.225);
-  s.lineTo(0, 0.24);
-  s.lineTo(0.095, 0.225);
-  s.lineTo(0.17, 0.16);
-  s.lineTo(0.195, 0.04);
-  s.lineTo(0.14, -0.07);
-  s.lineTo(0.1, -0.145);
-  s.closePath();
-
-  const geo = new THREE.ExtrudeGeometry(s, {
-    depth: 0.08,
-    bevelEnabled: true,
-    bevelThickness: 0.025,
-    bevelSize: 0.016,
-    bevelSegments: 1,
-  });
-  normalizarUvsPlanar(geo, -0.21, 0.21, -0.27, 0.255);
+function geometriaRostroBufon(): THREE.BufferGeometry {
+  const geo = new THREE.SphereGeometry(0.195, 12, 10);
+  const pos = geo.getAttribute('position');
+  for (let i = 0; i < pos.count; i++) {
+    let x = pos.getX(i) * 0.92;
+    const y = pos.getY(i) * 1.06;
+    const z = pos.getZ(i) * 0.78;
+    // Mandíbula orgánica levemente afinada sin púa triangular
+    if (y < -0.02) {
+      const f = THREE.MathUtils.clamp((-y - 0.02) / 0.2, 0, 1);
+      x *= 1 - f * 0.24;
+    }
+    pos.setXYZ(i, x, y, z);
+  }
+  geo.computeVertexNormals();
+  normalizarUvsPlanar(geo, -0.18, 0.18, -0.2, 0.2);
   return geo;
 }
 
@@ -136,37 +127,34 @@ export class Bufon3D {
       map: texturaMascaraBufon(),
       roughness: 0.86,
       metalness: 0.04,
-      emissive: 0x160c20,
-      emissiveIntensity: 0.16,
+      emissive: 0x261a2e,
+      emissiveIntensity: 0.26,
     });
 
-    // Manto oscuro mate en ángulos góticos + 8 puntas de gorguera arlequín con cascabeles dorados
-    const manto = new THREE.Mesh(new THREE.ConeGeometry(0.46, 0.44, 6), matCapa);
-    manto.scale.set(1.12, 1, 0.56);
-    manto.position.set(0, -0.27, -0.05);
-    manto.castShadow = true;
-    this.cuerpo.add(manto);
+    // Torso de jubón oscuro + hombreras abullonadas bicolor + doble gorguera isabelina con cuentas doradas
+    const jubon = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.27, 0.36, 8), matCapa);
+    jubon.position.set(0, -0.27, -0.04);
+    jubon.castShadow = true;
+    this.cuerpo.add(jubon);
 
-    const hombreraIzq = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.34, 5), matCapa);
-    hombreraIzq.scale.set(1, 1, 0.55);
-    hombreraIzq.position.set(-0.24, -0.22, -0.02);
-    hombreraIzq.rotation.z = 0.26;
-    const hombreraDer = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.34, 5), matCapa);
-    hombreraDer.scale.set(1, 1, 0.55);
-    hombreraDer.position.set(0.24, -0.22, -0.02);
-    hombreraDer.rotation.z = -0.26;
+    const hombreraIzq = new THREE.Mesh(new THREE.SphereGeometry(0.14, 7, 6), matPurpura);
+    hombreraIzq.scale.set(1.1, 0.85, 0.85);
+    hombreraIzq.position.set(-0.22, -0.16, -0.02);
+    const hombreraDer = new THREE.Mesh(new THREE.SphereGeometry(0.14, 7, 6), matCarmesi);
+    hombreraDer.scale.set(1.1, 0.85, 0.85);
+    hombreraDer.position.set(0.22, -0.16, -0.02);
     this.cuerpo.add(hombreraIzq, hombreraDer);
 
-    for (let i = 0; i < 8; i++) {
-      const a = ((i + 0.5) / 8) * Math.PI * 2;
-      const punta = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.19, 4), i % 2 === 0 ? matCarmesi : matPurpura);
-      punta.position.set(Math.sin(a) * 0.21, -0.21, Math.cos(a) * 0.11);
-      punta.rotation.x = Math.PI - Math.cos(a) * 0.65;
-      punta.rotation.z = Math.sin(a) * 0.65;
+    for (let i = 0; i < 10; i++) {
+      const a = ((i + 0.5) / 10) * Math.PI * 2;
+      const punta = new THREE.Mesh(new THREE.ConeGeometry(0.052, 0.18, 4), i % 2 === 0 ? matCarmesi : matPurpura);
+      punta.position.set(Math.sin(a) * 0.2, -0.19, Math.cos(a) * 0.12);
+      punta.rotation.x = Math.PI - Math.cos(a) * 0.72;
+      punta.rotation.z = Math.sin(a) * 0.72;
       this.cuerpo.add(punta);
 
-      const cuenta = new THREE.Mesh(new THREE.OctahedronGeometry(0.026, 0), matOro);
-      cuenta.position.set(Math.sin(a) * 0.28, -0.29, Math.cos(a) * 0.17);
+      const cuenta = new THREE.Mesh(new THREE.OctahedronGeometry(0.024, 0), matOro);
+      cuenta.position.set(Math.sin(a) * 0.27, -0.26, Math.cos(a) * 0.18);
       this.cuerpo.add(cuenta);
     }
 
@@ -185,66 +173,73 @@ export class Bufon3D {
       this.cuerpo.add(cinta);
     }
 
-    // Cabeza articulada con capucha de terciopelo negro y máscara veneciana esculpida
+    // Cabeza articulada con capucha arlequín bicolor envolvente y rostro esculpido 3D con volumen real
     this.cabeza.position.set(0, 0.15, 0.03);
-    const capucha = new THREE.Mesh(new THREE.ConeGeometry(0.26, 0.46, 7), matCapucha);
-    capucha.scale.set(1.02, 1, 0.62);
-    capucha.position.set(0, 0.06, -0.11);
-    this.cabeza.add(capucha);
+    const capuchaIzq = new THREE.Mesh(new THREE.SphereGeometry(0.215, 10, 8, Math.PI * 0.5, Math.PI), matPurpura);
+    capuchaIzq.scale.set(1.05, 1.06, 0.72);
+    capuchaIzq.position.set(0, 0.02, -0.055);
+    const capuchaDer = new THREE.Mesh(new THREE.SphereGeometry(0.215, 10, 8, -Math.PI * 0.5, Math.PI), matCarmesi);
+    capuchaDer.scale.set(1.05, 1.06, 0.72);
+    capuchaDer.position.set(0, 0.02, -0.055);
+    const bandaFrente = new THREE.Mesh(new THREE.TorusGeometry(0.185, 0.017, 5, 14, Math.PI * 0.85), matOro);
+    bandaFrente.rotation.set(-0.42, 0, Math.PI * 0.075);
+    bandaFrente.position.set(0, 0.04, 0.055);
+    this.cabeza.add(capuchaIzq, capuchaDer, bandaFrente);
 
-    const mascara = new THREE.Mesh(geometriaMascaraVeneciana(), matMascara);
-    mascara.position.set(0, 0.01, 0.015);
+    const mascara = new THREE.Mesh(geometriaRostroBufon(), matMascara);
+    mascara.position.set(0, 0.01, 0.045);
     mascara.castShadow = true;
     this.cabeza.add(mascara);
 
-    // Ojos luminosos estilo Leshy suspendidos en las cuencas abismales + pupilas verticales afiladas
+    const nariz = new THREE.Mesh(new THREE.ConeGeometry(0.02, 0.055, 4), matMascara);
+    nariz.rotation.x = Math.PI * 0.5;
+    nariz.position.set(0, 0.005, 0.198);
+    this.cabeza.add(nariz);
+
+    // Ojos luminosos estilo Leshy suspendidos en las cuencas + pupilas verticales afiladas
     const matIris = new THREE.MeshBasicMaterial({ color: 0xffe84a });
     const matPupila = new THREE.MeshBasicMaterial({ color: 0x05020a });
-    const geoOjo = new THREE.PlaneGeometry(0.056, 0.028);
+    const geoOjo = new THREE.PlaneGeometry(0.054, 0.026);
     const geoPupila = new THREE.PlaneGeometry(0.014, 0.024);
 
     this.ojoIzq = new THREE.Mesh(geoOjo, matIris);
-    this.ojoIzq.rotation.z = -0.24;
-    this.ojoIzq.position.set(-0.072, 0.056, 0.145);
+    this.ojoIzq.rotation.z = -0.2;
+    this.ojoIzq.position.set(-0.065, 0.052, 0.192);
     this.pupilaIzq = new THREE.Mesh(geoPupila, matPupila);
     this.pupilaIzq.position.set(0, 0, 0.003);
     this.ojoIzq.add(this.pupilaIzq);
 
     this.ojoDer = new THREE.Mesh(geoOjo, matIris);
-    this.ojoDer.rotation.z = 0.24;
-    this.ojoDer.position.set(0.072, 0.056, 0.145);
+    this.ojoDer.rotation.z = 0.2;
+    this.ojoDer.position.set(0.065, 0.052, 0.192);
     this.pupilaDer = new THREE.Mesh(geoPupila, matPupila);
     this.pupilaDer.position.set(0, 0, 0.003);
     this.ojoDer.add(this.pupilaDer);
     this.cabeza.add(this.ojoIzq, this.ojoDer);
 
-    // Diadema puntiaguda arlequín + dos cuernos curvados con cascabeles móviles
-    for (let i = -2; i <= 2; i++) {
-      const pico = new THREE.Mesh(new THREE.ConeGeometry(0.036, 0.075, 4), i === 0 ? matOro : i % 2 === 0 ? matCarmesi : matPurpura);
-      pico.position.set(i * 0.068, 0.235 - Math.abs(i) * 0.012, 0.115 - Math.abs(i) * 0.015);
-      pico.rotation.x = 0.2;
-      this.cabeza.add(pico);
-    }
-
-    const armarCuerno = (grupo: THREE.Group, signo: -1 | 1, mat: THREE.Material): THREE.Mesh => {
-      grupo.position.set(signo * 0.11, 0.22, 0.01);
-      const s1 = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.09, 0.2, 5), mat);
-      s1.position.set(signo * 0.07, 0.08, 0);
-      s1.rotation.z = -signo * 0.58;
-      const s2 = new THREE.Mesh(new THREE.CylinderGeometry(0.044, 0.068, 0.18, 5), mat);
-      s2.position.set(signo * 0.18, 0.17, 0.02);
-      s2.rotation.z = -signo * 1.08;
-      const s3 = new THREE.Mesh(new THREE.ConeGeometry(0.044, 0.14, 5), mat);
-      s3.position.set(signo * 0.27, 0.13, 0.04);
-      s3.rotation.z = -signo * 2.18;
+    // 3 Colas de gorro curvas con peso natural (izquierda, derecha y trasera central)
+    const armarColaGorro = (grupo: THREE.Group, pts: [number, number, number][], mat: THREE.Material): THREE.Mesh => {
+      const curva = new THREE.CatmullRomCurve3(pts.map((p) => new THREE.Vector3(...p)));
+      const tubo = new THREE.Mesh(new THREE.TubeGeometry(curva, 10, 0.058, 6, false), mat);
+      const ult = pts[pts.length - 1];
       const cascabel = new THREE.Mesh(new THREE.OctahedronGeometry(0.052, 0), matOro);
-      cascabel.position.set(signo * 0.32, 0.06, 0.05);
-      grupo.add(s1, s2, s3, cascabel);
+      cascabel.position.set(ult[0], ult[1] - 0.03, ult[2]);
+      grupo.add(tubo, cascabel);
       return cascabel;
     };
-    this.cascabelIzq = armarCuerno(this.cuernoIzq, -1, matPurpura);
-    this.cascabelDer = armarCuerno(this.cuernoDer, 1, matCarmesi);
-    this.cabeza.add(this.cuernoIzq, this.cuernoDer);
+    this.cascabelIzq = armarColaGorro(
+      this.cuernoIzq,
+      [[-0.08, 0.18, 0], [-0.22, 0.34, 0.02], [-0.36, 0.28, 0.05], [-0.42, 0.14, 0.07]],
+      matPurpura,
+    );
+    this.cascabelDer = armarColaGorro(
+      this.cuernoDer,
+      [[0.08, 0.18, 0], [0.22, 0.38, 0.02], [0.38, 0.32, 0.05], [0.43, 0.17, 0.07]],
+      matCarmesi,
+    );
+    const colaAtras = new THREE.Group();
+    armarColaGorro(colaAtras, [[0, 0.2, -0.06], [0, 0.36, -0.2], [0.02, 0.24, -0.32]], matCarmesi);
+    this.cabeza.add(this.cuernoIzq, this.cuernoDer, colaAtras);
 
     // Máscaras venecianas y coronas de los 4 Reyes Jefe
     const ojosReyMat = {
@@ -298,8 +293,8 @@ export class Bufon3D {
     this.cuerpo.add(this.manoIzq, this.manoDer, this.cetro);
 
     // Luz rasante de claroscuro desde abajo a la izquierda (como candil cercano, sin lavar el lado derecho)
-    this.luzMascara = new THREE.PointLight(0xffb24c, 1.8, 1.45, 2);
-    this.luzMascara.position.set(-0.28, -0.18, 0.62);
+    this.luzMascara = new THREE.PointLight(0xffbe5c, 2.5, 2.0, 2);
+    this.luzMascara.position.set(-0.26, 0.06, 0.72);
     this.raiz.add(this.cuerpo, this.luzMascara);
     this.raiz.visible = false;
     escena.add(this.raiz);
@@ -317,7 +312,7 @@ export class Bufon3D {
 
     // Antifaz dominó veneciano puntiagudo sobre ojos y puente nasal
     const domino = new THREE.Mesh(geometriaDominoRey(), matVisor);
-    domino.position.set(0, 0.015, 0.135);
+    domino.position.set(0, 0.015, 0.188);
     g.add(domino);
 
     const geoRendija = new THREE.CircleGeometry(0.038, 4);
@@ -325,7 +320,7 @@ export class Bufon3D {
       const r = new THREE.Mesh(geoRendija, matOjos);
       r.scale.set(1.28, 0.52, 1);
       r.rotation.z = -signo * 0.22;
-      r.position.set(signo * 0.075, 0.068, 0.212);
+      r.position.set(signo * 0.072, 0.068, 0.238);
       g.add(r);
     }
 

@@ -13,9 +13,10 @@ import { gritar } from './hud';
 import { GRITO } from './voces';
 import { modoFoto } from './fx/motor';
 import { enfocarRincon3d, forzarCuadro3d, type RinconId } from './escena3d';
-import { irAjustes, irAltar, irColeccion, irCronica, irExplorar, irMazo, irPortada, pintarFase, sesion } from './juego';
+import { irAjustes, irAltar, irCaminoSol, irColeccion, irCronica, irExplorar, irMazo, irPortada, pintarFase, sesion } from './juego';
 import { $, enfocarJugador } from './ui';
 import { mascaraHtml } from './pantallas/mesa';
+import { vistaCuartoInicial } from './pantallas/menu';
 import { BENDICION, BENDICIONES, type BendicionId } from '../rules/reyes';
 import type { Palo } from '../rules/cartas';
 import { jackpotEvolucion } from './evolucion';
@@ -121,9 +122,7 @@ export function montarQa(estado: string): void {
         { palo: 'H', n: 7, mazo: 'chinchon', reinado: 1, fecha: 3 },
       ]);
       if (q.get('abierta') === '1') perfil.stats.victorias = Math.max(1, perfil.stats.victorias);
-      irExplorar();
-      const r = q.get('rincon') as RinconId | null;
-      if (r) enfocarRincon3d(r, true);
+      irExplorar(vistaCuartoInicial(q.get('rincon')));
       break;
     }
     case 'elegir-mazo':
@@ -705,10 +704,7 @@ export function montarQa(estado: string): void {
       break;
     }
     case 'sol-de-mayo' as EstadoQa: {
-      void import('./juego').then((j) => {
-        j.irCaminoSol(false);
-        void import('./escena3d').then((e) => e.entrarSolDeMayo3d(true));
-      });
+      irCaminoSol(false);
       break;
     }
     default:

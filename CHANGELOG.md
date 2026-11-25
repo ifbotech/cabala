@@ -3,6 +3,15 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.47.0 · Navegación Discreta Estilo Inscryption, Bufón Esculpido y Fix de Mesa (2026-11-25)
+
+Rediseño de la exploración 3D y del Bufón tras UAT humano: navegación discreta por vistas sin arrastre de cámara, rostro esculpido del Bufón en 3D y corrección del bug que devolvía al menú al hacer clic en la mesa. *(Reglas, música, voces y balance 100 % congelados e intactos.)*
+
+- **Fix crítico de clic en mesa (`menu.ts`, `juego.ts`):** limpieza explícita `alSalir()` de listeners en `window` y guardas `pantallaActual()?.nombre` para que ningún evento de exploración se filtre al combate.
+- **Navegación discreta estilo *Inscryption* (`menu.ts`, `camara.ts`, `index.ts`, `pantallas.css`):** grafo de 8 vistas en La Pulpería y 4 tramos en El Camino al Sol de Mayo con flechas cardinales (`▲`, `▼`, `◀`, `▶`) y `WASD`/flechas, sin rotación libre con mouse.
+- **Bufón 3D esculpido (`bufon3d.ts`, `texturas.ts`):** máscara de porcelana con volumen real, sonrisa carmesí ladina, ojos ámbar luminosos, lágrima carmesí, 3 colas curvas (`TubeGeometry`) con cascabeles dorados, hombreras arlequín y antifaces venecianos para los 4 Reyes.
+- **Móvil `390×844` (`pantallas.css`):** cabecera apilada sin solapes y separación limpia de los controles cardinales.
+
 ## 0.46.0 · Pulido Artesanal Total y Doble Auditoría Limpia (2026-11-25)
 
 Cierre del Pilar D: física táctil 3D en los naipes, bisagras reales con portal celeste-dorado en La Puerta Doble, aire vertical en escritorio bajo (`1920×920`) y aprobación en doble Auditoría Adversarial consecutiva (#4b y #5) con `0` defectos en todas las pantallas y resoluciones. *(Reglas, música, voces y balance 100 % congelados e intactos.)*

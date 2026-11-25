@@ -4,6 +4,14 @@ Lo que se probó, lo que funcionó y lo que no, versión por versión. Sirve par
 cada cosa está como está. Las mediciones del panel de jugadores son **simuladas** (modelos de lenguaje con capturas y
 reglas): orientan, no demuestran.
 
+## 0.47.0 · Navegación Discreta Estilo Inscryption y Bufón Esculpido (publicada)
+
+**Qué se buscó.** Corregir el bug de retorno al menú al hacer clic en la mesa durante combate, reemplazar la cámara libre por navegación discreta estilo *Inscryption* y reconstruir el Bufón 3D con estética dark-dithered coherente.
+
+**Qué entró.** `alSalir()` + `pantallaActual()?.nombre` en `pantallaExplorar`/`pantallaCaminoSol`, grafo discreto `VISTAS_CUARTO` + `PASOS_SOL` con `ponerPoseDiscreta3d()`, y `Bufon3D` esculpido con `TubeGeometry` y máscara de porcelana.
+
+**Lecciones.** `raiz.isConnected` sobre `#app` nunca se desconecta entre pantallas: toda pantalla con listeners en `window` debe limpiarlos en `alSalir()`. Además, `forzarCuadro()` no debe pisar `poseDiscreta` con `ponerModo`.
+
 ## 0.46.0 · Pulido Artesanal Total (publicada)
 
 **Qué se buscó.** Cerrar el Pilar D con física táctil 3D en naipes, bisagras reales en La Puerta Doble y doble Auditoría Adversarial consecutiva sin defectos.

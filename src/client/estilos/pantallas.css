@@ -5896,7 +5896,6 @@ main.fogon.forjando [data-accion='seguir'] {
 }
 .pantalla.explorar {
   background: transparent;
-  pointer-events: none;
   justify-content: space-between;
   padding: calc(var(--u) * 1.5);
 }
@@ -5962,19 +5961,81 @@ main.fogon.forjando [data-accion='seguir'] {
   gap: 6px;
   pointer-events: auto;
 }
-@media (min-width: 900px) {
-  .explorar-barra {
-    flex-wrap: nowrap;
-    gap: 6px;
-  }
-  .explorar-barra .exp-btn {
-    padding: 6px 10px;
-    font-size: 14px;
-    min-height: 44px;
-    white-space: nowrap;
-  }
+/* ── 0.47 · Navegación discreta estilo Inscryption ── */
+.explorar-pie {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  pointer-events: auto;
+}
+.explorar-pie .btn,
+.pantalla.explorar .explorar-top .btn {
+  min-height: 44px;
+}
+.nav-dir {
+  position: fixed;
+  z-index: 20;
+  min-width: 48px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(9, 7, 15, 0.82);
+  color: var(--oro);
+  font-size: 20px;
+  pointer-events: auto;
+}
+.nav-arr {
+  top: 72px;
+  left: 50%;
+  translate: -50% 0;
+}
+.nav-aba {
+  bottom: 92px;
+  left: 50%;
+  translate: -50% 0;
+}
+.nav-izq {
+  left: 16px;
+  top: 50%;
+  translate: 0 -50%;
+}
+.nav-der {
+  right: 16px;
+  top: 50%;
+  translate: 0 -50%;
 }
 @media (max-width: 700px) {
+  .pantalla.explorar {
+    padding: 10px;
+  }
+  .pantalla.explorar .explorar-top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .pantalla.explorar .sol-titulo-caja {
+    width: 100%;
+  }
+  .pantalla.explorar .sol-titulo {
+    font-size: 14px;
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+    white-space: normal;
+  }
+  .pantalla.explorar .explorar-top .btn {
+    align-self: flex-end;
+    font-size: 14px;
+    padding: 6px 12px;
+    min-height: 44px;
+  }
+  .nav-arr {
+    top: 112px;
+  }
+  .nav-aba {
+    bottom: 84px;
+  }
   .explorar-guia {
     display: none;
   }
@@ -5991,7 +6052,6 @@ main.fogon.forjando [data-accion='seguir'] {
 /* ── 0.45 · El Camino al Sol de Mayo ── */
 .pantalla.sol-de-mayo {
   background: transparent;
-  pointer-events: none;
   justify-content: space-between;
   padding: calc(var(--u) * 1.5);
 }

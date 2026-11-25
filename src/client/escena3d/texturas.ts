@@ -267,7 +267,7 @@ export function texturaHalo(): THREE.CanvasTexture {
 
 
 
-/** Máscara de tarot oscuro tramada en Bayer: claroscuro partido, cuencas abismales, cejas en V, costuras de títere y sonrisa ladina. */
+/** Máscara de porcelana marfil de teatro oscuro tramada en Bayer: claroscuro suave, cuencas almendradas, cejas asimétricas y sonrisa pícara. */
 export function texturaMascaraBufon(): THREE.CanvasTexture {
   const k = 'mat:mascara-bufon';
   if (cache.has(k)) return cache.get(k)!;
@@ -276,10 +276,9 @@ export function texturaMascaraBufon(): THREE.CanvasTexture {
   const [c, ctx] = crearCanvas(W, H);
   const img = ctx.createImageData(W, H);
   const paleta = [
-    [10, 6, 18],
-    [42, 26, 56],
-    [118, 102, 122],
-    [204, 192, 184],
+    [43, 24, 58],
+    [145, 125, 153],
+    [216, 203, 184],
     [246, 240, 224],
   ];
   for (let y = 0; y < H; y++) {
@@ -287,10 +286,9 @@ export function texturaMascaraBufon(): THREE.CanvasTexture {
       const idx = (y * W + x) * 4;
       const nx = (x - 31.5) / 31.5;
       const ny = (y - 31.5) / 31.5;
-      // Claroscuro partido: luz fría arriba a la izquierda, sombra violácea abismal a la derecha y en pómulos hundidos
-      const pomuloHueco = Math.exp(-((nx - 0.45) ** 2 * 7 + (ny - 0.14) ** 2 * 10)) * 0.28 +
-        Math.exp(-((nx + 0.48) ** 2 * 8 + (ny - 0.16) ** 2 * 10)) * 0.14;
-      const luz = 0.86 - nx * 0.34 - Math.max(0, ny) * 0.32 - pomuloHueco + (ruido2(x, y) - 0.5) * 0.08;
+      const rubor = Math.exp(-((nx - 0.36) ** 2 * 10 + (ny - 0.14) ** 2 * 14)) * 0.18 +
+        Math.exp(-((nx + 0.36) ** 2 * 10 + (ny - 0.14) ** 2 * 14)) * 0.12;
+      const luz = 0.88 - nx * 0.28 - Math.max(0, ny) * 0.24 - rubor + (ruido2(x, y) - 0.5) * 0.06;
       const esc = Math.max(0, Math.min(1, luz)) * (paleta.length - 1);
       const base = Math.max(0, Math.min(paleta.length - 2, Math.floor(esc)));
       const ci = esc - base > umbral(x, y) ? base + 1 : base;
@@ -303,61 +301,63 @@ export function texturaMascaraBufon(): THREE.CanvasTexture {
   }
   ctx.putImageData(img, 0, 0);
 
-  // Sombra angular del tabique nasal
-  ctx.fillStyle = '#2a1a38';
-  ctx.fillRect(30, 22, 3, 15);
-  ctx.fillStyle = '#0a0612';
-  ctx.fillRect(32, 24, 2, 13);
+  // Sombra sutil del tabique nasal
+  ctx.fillStyle = '#917d99';
+  ctx.fillRect(31, 22, 2, 13);
 
-  // Cuencas abismales profundas (#05020a) con borde tramado para que los ojos brillen desde la penumbra
-  for (let i = 0; i < 14; i++) {
-    const t = i / 13;
-    const h = Math.round(6 + Math.sin(t * Math.PI) * 7);
-    const yL = Math.round(25 - t * 4 - h * 0.5);
-    const yR = Math.round(25 - t * 4 - h * 0.5);
-    ctx.fillStyle = '#2a1a38';
-    ctx.fillRect(13 + i, yL - 1, 1, h + 2);
-    ctx.fillRect(50 - i, yR - 1, 1, h + 2);
-    ctx.fillStyle = '#05020a';
-    ctx.fillRect(13 + i, yL, 1, h);
-    ctx.fillRect(50 - i, yR, 1, h);
+  // Cuencas almendradas expresivas
+  for (let i = 0; i < 12; i++) {
+    const t = i / 11;
+    const h = Math.round(5 + Math.sin(t * Math.PI) * 5);
+    const yL = Math.round(25 - t * 3 - h * 0.5);
+    const yR = Math.round(25 - t * 3 - h * 0.5);
+    ctx.fillStyle = '#2b183a';
+    ctx.fillRect(15 + i, yL - 1, 1, h + 2);
+    ctx.fillRect(48 - i, yR - 1, 1, h + 2);
+    ctx.fillStyle = '#07030f';
+    ctx.fillRect(15 + i, yL, 1, h);
+    ctx.fillRect(48 - i, yR, 1, h);
   }
 
-  // Cejas afiladas de teatro en V hacia el entrecejo
+  // Cejas teatrales asimétricas: izquierda arqueada socarrona, derecha baja inquisitiva
   ctx.fillStyle = '#090410';
-  for (let i = 0; i < 15; i++) {
-    const t = i / 14;
-    const yCeja = Math.round(14 + t * 5 - Math.sin(t * Math.PI) * 2);
-    ctx.fillRect(12 + i, yCeja, 2, 2);
-    ctx.fillRect(50 - i, yCeja, 2, 2);
+  for (let i = 0; i < 13; i++) {
+    const t = i / 12;
+    const yIzq = Math.round(16 - Math.sin(t * Math.PI) * 4);
+    const yDer = Math.round(14 + t * 4);
+    ctx.fillRect(14 + i, yIzq, 2, 3);
+    ctx.fillRect(49 - i, yDer, 2, 3);
   }
 
   // Lágrima romboidal carmesí bajo la cuenca derecha
   ctx.fillStyle = '#d81446';
-  ctx.fillRect(45, 34, 3, 2);
-  ctx.fillRect(46, 33, 1, 5);
+  ctx.fillRect(43, 33, 4, 2);
+  ctx.fillRect(44, 31, 2, 6);
 
-  // Costuras verticales de mandíbula de títere
-  ctx.fillStyle = '#1b0e26';
-  ctx.fillRect(20, 44, 1, 12);
-  ctx.fillRect(43, 44, 1, 12);
+  // Costuras finas de títere
+  ctx.fillStyle = '#2b183a';
+  ctx.fillRect(21, 44, 1, 10);
+  ctx.fillRect(42, 44, 1, 10);
 
-  // Sonrisa ancha y torcida con comisuras afiladas y destellos de dientes de marfil
-  ctx.fillStyle = '#07030f';
-  for (let x = 16; x <= 48; x++) {
-    const u = (x - 32) / 16;
-    const ySonrisa = Math.round(48 - u * u * 7);
-    ctx.fillRect(x, ySonrisa, 1, 3);
+  // Sonrisa pícara pintada en carmesí oscuro y tinta con destellos de marfil
+  ctx.fillStyle = '#7a0e2c';
+  for (let x = 18; x <= 46; x++) {
+    const u = (x - 32) / 14;
+    const ySonrisa = Math.round(46 - u * u * 6);
+    ctx.fillRect(x, ySonrisa - 1, 1, 5);
   }
-  ctx.fillStyle = '#e8dfd0';
-  for (const dx of [22, 27, 32, 37, 42]) {
-    const u = (dx - 32) / 16;
-    const yD = Math.round(48 - u * u * 7);
-    ctx.fillRect(dx, yD + 1, 2, 1);
+  ctx.fillStyle = '#090410';
+  for (let x = 19; x <= 45; x++) {
+    const u = (x - 32) / 14;
+    const ySonrisa = Math.round(46 - u * u * 6);
+    ctx.fillRect(x, ySonrisa, 1, 2);
   }
-  ctx.fillStyle = '#d81446';
-  ctx.fillRect(15, 40, 2, 2);
-  ctx.fillRect(47, 40, 2, 2);
+  ctx.fillStyle = '#f6f0e0';
+  for (const dx of [24, 29, 34, 39]) {
+    const u = (dx - 32) / 14;
+    const yD = Math.round(46 - u * u * 6);
+    ctx.fillRect(dx, yD, 2, 1);
+  }
 
   const tex = aTexturaPixel(c);
   cache.set(k, tex);

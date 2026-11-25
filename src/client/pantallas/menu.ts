@@ -21,25 +21,16 @@ import { glifo } from '../nav';
 import { nombreCarga } from '../hud';
 import { continuar, empezar, hayPartida, irAjustes, irAltar, irCaminoSol, irColeccion, irCronica, irExplorar, irMazo, irPortada, pintarFase, sesion } from '../juego';
 import {
-  distanciaMesaGloria3d,
-  enfocarRincon3d,
-  entrarExploracion3d,
-  entrarSolDeMayo3d,
-  moverExploracion3d,
-  raycastRincon3d,
-  resaltarRincon3d,
-  rinconFrente3d,
-  rotarExploracion3d,
+  limpiarPoseDiscreta3d,
+  ponerPoseDiscreta3d,
   salirExploracion3d,
-  salirSolDeMayo3d,
-  type RinconId,
 } from '../escena3d';
 import { CUADRO0 } from '../pixel/personajes';
 import { cifra, pxAmuleto, pxAumento, pxBendicion, pxDorso, pxHud, pxLogo, pxPalo, urlRetrato } from '../sprites';
 import { TRAMO_NOMBRE } from '../textos';
 import { VOZ } from '../voces';
 import { bufonDice } from '../bufon-vivo';
-import { $, abrirModal, anfitrion, cerrarModal, esc, miniAnfitrion, repintar, reyHtml, tip, type Pantalla } from '../ui';
+import { $, abrirModal, anfitrion, cerrarModal, esc, miniAnfitrion, pantallaActual, repintar, reyHtml, tip, type Pantalla } from '../ui';
 
 // ───────────────────────── portada ─────────────────────────
 
@@ -105,7 +96,7 @@ export function pantallaPortada(): Pantalla {
       coleccion: irColeccion,
       cronica: irCronica,
       ajustes: irAjustes,
-      levantarse: irExplorar,
+      levantarse: () => irExplorar(),
       es: () => {
         fijarIdioma('es');
         repintar();
@@ -118,333 +109,316 @@ export function pantallaPortada(): Pantalla {
   };
 }
 
-export function pantallaExplorar(): Pantalla {
-  const RINCONES: { id: RinconId; clave: Parameters<typeof t>[0] }[] = [
-    { id: 'mesa', clave: 'rinconMesa' },
-    { id: 'altar', clave: 'rinconAltar' },
-    { id: 'coleccion', clave: 'rinconColeccion' },
-    { id: 'fogon', clave: 'rinconFogon' },
-    { id: 'cronica', clave: 'rinconCronica' },
-    { id: 'ajustes', clave: 'rinconAjustes' },
-    { id: 'puerta', clave: 'rinconPuerta' },
-  ];
-  const nombreDe = (id: RinconId): string => t(RINCONES.find((r) => r.id === id)?.clave ?? 'rinconMesa');
+// ───────────────────────── La Pulpería 3D Discreta (estilo Inscryption) ─────────────────────────
+
+export type VistaCuartoId = 'mesa' | 'centro' | 'puerta' | 'altar' | 'fogon' | 'coleccion' | 'ajustes' | 'cronica';
+
+interface VistaCuarto {
+  titulo: () => string;
+  pos: [number, number, number];
+  mira: [number, number, number];
+  adelante?: VistaCuartoId;
+  atras?: VistaCuartoId | 'portada';
+  izq?: VistaCuartoId;
+  der?: VistaCuartoId;
+  accionTexto?: () => string;
+}
+
+const VISTAS_CUARTO: Record<VistaCuartoId, VistaCuarto> = {
+  mesa: {
+    titulo: () => t('rinconMesa'),
+    pos: [0, 2.55, 4.9],
+    mira: [0, 1.9, -6.5],
+    adelante: 'centro',
+    atras: 'portada',
+    izq: 'altar',
+    der: 'cronica',
+    accionTexto: () => t('accionMesa'),
+  },
+  centro: {
+    titulo: () => t('pulperiaCabecera'),
+    pos: [0, 2.5, -1.6],
+    mira: [0, 2.1, -8.1],
+    adelante: 'puerta',
+    atras: 'mesa',
+    izq: 'fogon',
+    der: 'coleccion',
+  },
+  puerta: {
+    titulo: () => t('rinconPuerta'),
+    pos: [0, 2.5, -4.1],
+    mira: [0, 2.0, -8.1],
+    atras: 'centro',
+    izq: 'fogon',
+    der: 'coleccion',
+    accionTexto: () => t('accionPuerta'),
+  },
+  altar: {
+    titulo: () => t('rinconAltar'),
+    pos: [-4.2, 2.65, -1.5],
+    mira: [-7.4, 1.15, -2.5],
+    der: 'fogon',
+    atras: 'mesa',
+    accionTexto: () => t('accionAltar'),
+  },
+  fogon: {
+    titulo: () => t('rinconFogon'),
+    pos: [-4.2, 2.4, -3.9],
+    mira: [-6.4, 0.85, -7.2],
+    izq: 'altar',
+    der: 'puerta',
+    atras: 'centro',
+  },
+  coleccion: {
+    titulo: () => t('rinconColeccion'),
+    pos: [4.6, 2.55, -3.5],
+    mira: [5.6, 2.35, -8.0],
+    izq: 'puerta',
+    der: 'ajustes',
+    atras: 'centro',
+    accionTexto: () => t('accionColeccion'),
+  },
+  ajustes: {
+    titulo: () => t('rinconAjustes'),
+    pos: [4.1, 2.65, -2.5],
+    mira: [7.2, 1.25, -3.2],
+    izq: 'coleccion',
+    der: 'cronica',
+    atras: 'centro',
+    accionTexto: () => t('accionAjustes'),
+  },
+  cronica: {
+    titulo: () => t('rinconCronica'),
+    pos: [4.0, 2.6, 1.8],
+    mira: [7.2, 0.85, 1.2],
+    izq: 'ajustes',
+    atras: 'mesa',
+    accionTexto: () => t('accionCronica'),
+  },
+};
+
+export function vistaCuartoInicial(id?: string | null): VistaCuartoId {
+  return id && id in VISTAS_CUARTO ? (id as VistaCuartoId) : 'mesa';
+}
+
+export function pantallaExplorar(vistaInicial: VistaCuartoId = 'mesa'): Pantalla {
+  let vista: VistaCuartoId = vistaInicial;
+  let onKeyDown: ((ev: KeyboardEvent) => void) | null = null;
+  let timerSusurro = 0;
+
+  const decir = (msg: string): void => {
+    const susurro = $<HTMLElement>('.explorar-susurro');
+    if (!susurro) return;
+    susurro.textContent = msg;
+    susurro.hidden = false;
+    window.clearTimeout(timerSusurro);
+    timerSusurro = window.setTimeout(() => {
+      if (susurro.isConnected) susurro.hidden = true;
+    }, 3600);
+  };
+
+  const irVista = (dest: VistaCuartoId | 'portada' | undefined, sonido: 'paso' | 'clic' = 'paso'): void => {
+    if (!dest) return;
+    if (dest === 'portada') {
+      sonar('clic');
+      limpiarPoseDiscreta3d();
+      irPortada();
+      return;
+    }
+    sonar(sonido);
+    vista = dest;
+    const v = VISTAS_CUARTO[vista];
+    ponerPoseDiscreta3d(v.pos, v.mira, 50, enFoto());
+    repintar();
+  };
+
+  const ejecutarAccion = (): void => {
+    sonar('clic');
+    if (vista === 'mesa') {
+      limpiarPoseDiscreta3d();
+      irMazo();
+    } else if (vista === 'altar') {
+      limpiarPoseDiscreta3d();
+      irAltar();
+    } else if (vista === 'coleccion') {
+      limpiarPoseDiscreta3d();
+      irColeccion();
+    } else if (vista === 'cronica') {
+      limpiarPoseDiscreta3d();
+      irCronica();
+    } else if (vista === 'ajustes') {
+      limpiarPoseDiscreta3d();
+      irAjustes();
+    } else if (vista === 'puerta') {
+      if (perfil.stats.victorias > 0) {
+        limpiarPoseDiscreta3d();
+        irCaminoSol(false);
+      } else {
+        decir(t('puertaTrancada'));
+      }
+    } else if (vista === 'fogon') {
+      decir(t('fogonReposo'));
+    }
+  };
 
   return {
     nombre: 'explorar',
     atras: () => {
-      salirExploracion3d();
+      sonar('clic');
+      limpiarPoseDiscreta3d();
       irPortada();
     },
-    html: () => `<main class="pantalla explorar">
-      <header class="explorar-top">
-        <span class="explorar-guia sub">${t('explorarGuia')}</span>
-        <button class="btn marco chico" data-accion="sentarse" data-foco="sentarse" data-inicio>${t('volverMesa')}</button>
-      </header>
-      <div class="explorar-mira" aria-hidden="true">
-        <i class="mira-punto"></i>
-        <b class="mira-cartel" hidden></b>
-      </div>
-      <p class="explorar-susurro" hidden role="status"></p>
-      <nav class="explorar-barra" aria-label="${t('levantarse')}">
-        ${RINCONES.map((r) => `<button class="btn marco chico exp-btn" data-accion="ir-${r.id}" data-rincon="${r.id}">${t(r.clave)}</button>`).join('')}
-      </nav>
-    </main>`,
-    alMontar: (raiz) => {
-      entrarExploracion3d(enFoto());
-      const cartel = raiz.querySelector<HTMLElement>('.mira-cartel');
-      const susurro = raiz.querySelector<HTMLElement>('.explorar-susurro');
-      let activo: RinconId | null = null;
-      let timerSusurro = 0;
-      const decir = (msg: string): void => {
-        if (!susurro) return;
-        susurro.textContent = msg;
-        susurro.hidden = false;
-        window.clearTimeout(timerSusurro);
-        timerSusurro = window.setTimeout(() => {
-          if (susurro.isConnected) susurro.hidden = true;
-        }, 3600);
-      };
-      const abrirRincon = (id: RinconId): void => {
-        sonar('clic');
-        if (id === 'mesa') {
-          salirExploracion3d();
-          irMazo();
-        } else if (id === 'altar') {
-          salirExploracion3d();
-          irAltar();
-        } else if (id === 'coleccion') {
-          salirExploracion3d();
-          irColeccion();
-        } else if (id === 'cronica') {
-          salirExploracion3d();
-          irCronica();
-        } else if (id === 'ajustes') {
-          salirExploracion3d();
-          irAjustes();
-        } else if (id === 'puerta') {
-          enfocarRincon3d('puerta');
-          decir(t('puertaTrancada'));
-        } else if (id === 'fogon') {
-          enfocarRincon3d('fogon');
-          decir(t('fogonReposo'));
-        }
-      };
-
-      const teclas = new Set<string>();
-      const onKeyDown = (ev: KeyboardEvent): void => {
-        if (!raiz.isConnected) return;
+    alSalir: () => {
+      window.clearTimeout(timerSusurro);
+      if (onKeyDown) {
+        window.removeEventListener('keydown', onKeyDown);
+        onKeyDown = null;
+      }
+    },
+    html: () => {
+      const v = VISTAS_CUARTO[vista];
+      const flecha = (dir: 'adelante' | 'atras' | 'izq' | 'der', cls: string, sim: string): string =>
+        v[dir] ? `<button class="btn marco nav-dir ${cls}" data-accion="dir-${dir}" data-foco="dir-${dir}" aria-label="${dir}">${sim}</button>` : '';
+      return `<main class="pantalla explorar">
+        <header class="explorar-top">
+          <div class="sol-titulo-caja">
+            <b class="rotulo dorado sol-titulo">${t('pulperiaCabecera')} · ${v.titulo()}</b>
+          </div>
+          <button class="btn marco chico" data-accion="sentarse" data-foco="sentarse" data-inicio>${t('volverMesa')}</button>
+        </header>
+        ${flecha('adelante', 'nav-arr', '▲')}
+        ${flecha('izq', 'nav-izq', '◀')}
+        ${flecha('der', 'nav-der', '▶')}
+        ${flecha('atras', 'nav-aba', '▼')}
+        <p class="explorar-susurro" hidden role="status"></p>
+        <footer class="explorar-pie">
+          ${v.accionTexto ? `<button class="btn marco oro grande" data-accion="usar-rincon" data-foco="usar-rincon">${v.accionTexto()}</button>` : ''}
+        </footer>
+      </main>`;
+    },
+    alMontar: () => {
+      const v = VISTAS_CUARTO[vista];
+      ponerPoseDiscreta3d(v.pos, v.mira, 50, enFoto());
+      if (onKeyDown) window.removeEventListener('keydown', onKeyDown);
+      onKeyDown = (ev: KeyboardEvent): void => {
+        if (pantallaActual()?.nombre !== 'explorar') return;
         const k = ev.key.toLowerCase();
-        teclas.add(k);
-        if (k === 'e' && activo) {
+        const cur = VISTAS_CUARTO[vista];
+        if (k === 'w' || k === 'arrowup') {
           ev.preventDefault();
-          abrirRincon(activo);
+          irVista(cur.adelante, 'paso');
+        } else if (k === 's' || k === 'arrowdown') {
+          ev.preventDefault();
+          irVista(cur.atras, 'paso');
+        } else if (k === 'a' || k === 'arrowleft') {
+          ev.preventDefault();
+          irVista(cur.izq, 'clic');
+        } else if (k === 'd' || k === 'arrowright') {
+          ev.preventDefault();
+          irVista(cur.der, 'clic');
+        } else if (k === 'e' || k === 'enter') {
+          if ((document.activeElement as HTMLElement)?.tagName === 'BUTTON') return;
+          ev.preventDefault();
+          ejecutarAccion();
         }
       };
-      const onKeyUp = (ev: KeyboardEvent): void => {
-        teclas.delete(ev.key.toLowerCase());
-      };
-
-      let arrastrando = false;
-      let moved = false;
-      let lastX = 0;
-      let lastY = 0;
-      const onDown = (ev: PointerEvent): void => {
-        if ((ev.target as HTMLElement).closest('button')) return;
-        arrastrando = true;
-        moved = false;
-        lastX = ev.clientX;
-        lastY = ev.clientY;
-      };
-      const onMove = (ev: PointerEvent): void => {
-        if (arrastrando) {
-          const dx = ev.clientX - lastX;
-          const dy = ev.clientY - lastY;
-          if (Math.hypot(dx, dy) > 4) moved = true;
-          lastX = ev.clientX;
-          lastY = ev.clientY;
-          rotarExploracion3d(-dx * 0.0045, -dy * 0.0035);
-          return;
-        }
-        if ((ev.target as HTMLElement).closest('button')) return;
-        const ndcX = (ev.clientX / Math.max(1, innerWidth)) * 2 - 1;
-        const ndcY = -(ev.clientY / Math.max(1, innerHeight)) * 2 + 1;
-        const hit = raycastRincon3d(ndcX, ndcY);
-        if (hit !== activo) {
-          activo = hit;
-          resaltarRincon3d(hit);
-        }
-      };
-      const onUp = (ev: PointerEvent): void => {
-        if (!arrastrando) return;
-        arrastrando = false;
-        if (!moved && !(ev.target as HTMLElement).closest('button')) {
-          const ndcX = (ev.clientX / Math.max(1, innerWidth)) * 2 - 1;
-          const ndcY = -(ev.clientY / Math.max(1, innerHeight)) * 2 + 1;
-          const hit = raycastRincon3d(ndcX, ndcY) ?? activo;
-          if (hit) abrirRincon(hit);
-        }
-      };
-
       window.addEventListener('keydown', onKeyDown);
-      window.addEventListener('keyup', onKeyUp);
-      window.addEventListener('pointerdown', onDown);
-      window.addEventListener('pointermove', onMove, { passive: true });
-      window.addEventListener('pointerup', onUp);
-
-      let tPrev = performance.now();
-      let raf = 0;
-      const bucle = (ahora: number): void => {
-        if (!raiz.isConnected) {
-          window.removeEventListener('keydown', onKeyDown);
-          window.removeEventListener('keyup', onKeyUp);
-          window.removeEventListener('pointerdown', onDown);
-          window.removeEventListener('pointermove', onMove);
-          window.removeEventListener('pointerup', onUp);
-          return;
-        }
-        const dt = Math.min(0.05, Math.max(0.001, (ahora - tPrev) / 1000));
-        tPrev = ahora;
-        let adel = (teclas.has('w') || teclas.has('arrowup') ? 1 : 0) - (teclas.has('s') || teclas.has('arrowdown') ? 1 : 0);
-        let der = (teclas.has('d') ? 1 : 0) - (teclas.has('a') ? 1 : 0);
-        const giro = (teclas.has('arrowleft') || teclas.has('q') ? 1 : 0) - (teclas.has('arrowright') ? 1 : 0);
-        if (giro !== 0) rotarExploracion3d(giro * 1.9 * dt, 0);
-
-        const pad = navigator.getGamepads?.()[0];
-        if (pad) {
-          if (Math.abs(pad.axes[1]) > 0.2) adel -= pad.axes[1];
-          if (Math.abs(pad.axes[0]) > 0.2) der += pad.axes[0];
-          if (Math.abs(pad.axes[2]) > 0.2) rotarExploracion3d(-pad.axes[2] * 2.2 * dt, 0);
-          if (Math.abs(pad.axes[3]) > 0.2) rotarExploracion3d(0, -pad.axes[3] * 1.6 * dt);
-        }
-
-        if (moverExploracion3d(adel, der, dt)) sonar('paso');
-
-        const frente = rinconFrente3d();
-        if (frente && !arrastrando) {
-          activo = frente;
-          resaltarRincon3d(frente);
-        }
-        if (cartel) {
-          if (activo) {
-            cartel.textContent = `[E] · ${nombreDe(activo)}`;
-            cartel.hidden = false;
-          } else {
-            cartel.hidden = true;
-          }
-        }
-        raf = requestAnimationFrame(bucle);
-      };
-      raf = requestAnimationFrame(bucle);
-      void raf;
     },
     acciones: {
       sentarse: () => {
         sonar('clic');
-        salirExploracion3d();
+        limpiarPoseDiscreta3d();
         irPortada();
       },
-      ...Object.fromEntries(
-        RINCONES.map((r) => [
-          `ir-${r.id}`,
-          () => {
-            sonar('clic');
-            if (r.id === 'puerta') {
-              if (perfil.stats.victorias > 0) {
-                salirExploracion3d();
-                irCaminoSol(false);
-                return;
-              }
-              enfocarRincon3d('puerta');
-              const s = $<HTMLElement>('.explorar-susurro');
-              if (s) {
-                s.textContent = t('puertaTrancada');
-                s.hidden = false;
-              }
-            } else if (r.id === 'fogon') {
-              enfocarRincon3d('fogon');
-              const s = $<HTMLElement>('.explorar-susurro');
-              if (s) {
-                s.textContent = t('fogonReposo');
-                s.hidden = false;
-              }
-            } else {
-              salirExploracion3d();
-              if (r.id === 'mesa') irMazo();
-              else if (r.id === 'altar') irAltar();
-              else if (r.id === 'coleccion') irColeccion();
-              else if (r.id === 'cronica') irCronica();
-              else if (r.id === 'ajustes') irAjustes();
-            }
-          },
-        ]),
-      ),
+      'usar-rincon': ejecutarAccion,
+      'dir-adelante': () => irVista(VISTAS_CUARTO[vista].adelante, 'paso'),
+      'dir-atras': () => irVista(VISTAS_CUARTO[vista].atras, 'paso'),
+      'dir-izq': () => irVista(VISTAS_CUARTO[vista].izq, 'clic'),
+      'dir-der': () => irVista(VISTAS_CUARTO[vista].der, 'clic'),
     },
   };
 }
 
-// ───────────────────────── Camino al Sol de Mayo ─────────────────────────
+// ───────────────────────── Camino al Sol de Mayo (discreto estilo Inscryption) ─────────────────────────
+
+const PASOS_SOL: Array<{ pos: [number, number, number]; mira: [number, number, number] }> = [
+  { pos: [0, 1.85, 6.2], mira: [0, 3.2, -28] },
+  { pos: [0, 1.85, -1.2], mira: [0, 3.4, -28] },
+  { pos: [0, 1.85, -8.8], mira: [0, 3.6, -28] },
+  { pos: [0, 1.95, -15.6], mira: [0, 3.8, -28] },
+];
 
 export function pantallaCaminoSol(enClimax = false): Pantalla {
+  let paso = 0;
   let saliendo = false;
+  let onKeyDown: ((ev: KeyboardEvent) => void) | null = null;
+
   const salir = (): void => {
     if (saliendo) return;
     saliendo = true;
     sonar('clic');
-    salirSolDeMayo3d();
+    salirExploracion3d();
     if (enClimax) pintarFase();
     else irExplorar();
   };
+
+  const moverPaso = (delta: number): void => {
+    const prox = Math.max(0, Math.min(PASOS_SOL.length - 1, paso + delta));
+    if (prox === paso) {
+      if (enClimax && delta > 0 && paso === PASOS_SOL.length - 1) salir();
+      return;
+    }
+    paso = prox;
+    sonar('paso');
+    const p = PASOS_SOL[paso];
+    ponerPoseDiscreta3d(p.pos, p.mira, 50, enFoto());
+    repintar();
+  };
+
   return {
     nombre: 'sol-de-mayo',
     atras: salir,
+    alSalir: () => {
+      if (onKeyDown) {
+        window.removeEventListener('keydown', onKeyDown);
+        onKeyDown = null;
+      }
+    },
     html: () => `<main class="pantalla sol-de-mayo">
       <header class="sol-top">
         <div class="sol-titulo-caja">
           <b class="rotulo dorado sol-titulo">${t('solDeMayoTitulo')}</b>
-          <span class="sub explorar-guia">${t('solDeMayoGuia')}</span>
         </div>
       </header>
+      ${paso < PASOS_SOL.length - 1 ? `<button class="btn marco nav-dir nav-arr" data-accion="sol-adelante" aria-label="${t('avanzarCamino')}">▲</button>` : ''}
+      ${paso > 0 ? `<button class="btn marco nav-dir nav-aba" data-accion="sol-atras" aria-label="${t('retrocederCamino')}">▼</button>` : ''}
       <footer class="sol-pie">
         <button class="btn marco oro grande" data-accion="salir-sol" data-foco="avanzar-sol" data-inicio>${enClimax ? t('enfrentarReyFinal') : t('volverPulperia')}</button>
       </footer>
     </main>`,
-    alMontar: (raiz) => {
-      entrarSolDeMayo3d(enFoto());
-      const teclas = new Set<string>();
-      const onKeyDown = (ev: KeyboardEvent): void => {
-        if (!raiz.isConnected) return;
+    alMontar: () => {
+      const p = PASOS_SOL[paso];
+      ponerPoseDiscreta3d(p.pos, p.mira, 50, enFoto());
+      if (onKeyDown) window.removeEventListener('keydown', onKeyDown);
+      onKeyDown = (ev: KeyboardEvent): void => {
+        if (pantallaActual()?.nombre !== 'sol-de-mayo') return;
         const k = ev.key.toLowerCase();
-        teclas.add(k);
-        if (k === 'e') {
+        if (k === 'w' || k === 'arrowup') {
+          ev.preventDefault();
+          moverPaso(1);
+        } else if (k === 's' || k === 'arrowdown') {
+          ev.preventDefault();
+          moverPaso(-1);
+        } else if (k === 'e') {
           ev.preventDefault();
           salir();
         }
       };
-      const onKeyUp = (ev: KeyboardEvent): void => {
-        teclas.delete(ev.key.toLowerCase());
-      };
-      let arrastrando = false;
-      let lastX = 0;
-      let lastY = 0;
-      const onDown = (ev: PointerEvent): void => {
-        if ((ev.target as HTMLElement).closest('button')) return;
-        arrastrando = true;
-        lastX = ev.clientX;
-        lastY = ev.clientY;
-      };
-      const onMove = (ev: PointerEvent): void => {
-        if (!arrastrando) return;
-        const dx = ev.clientX - lastX;
-        const dy = ev.clientY - lastY;
-        lastX = ev.clientX;
-        lastY = ev.clientY;
-        rotarExploracion3d(-dx * 0.0045, -dy * 0.0035);
-      };
-      const onUp = (): void => {
-        arrastrando = false;
-      };
       window.addEventListener('keydown', onKeyDown);
-      window.addEventListener('keyup', onKeyUp);
-      window.addEventListener('pointerdown', onDown);
-      window.addEventListener('pointermove', onMove, { passive: true });
-      window.addEventListener('pointerup', onUp);
-
-      let tPrev = performance.now();
-      const bucle = (ahora: number): void => {
-        if (!raiz.isConnected) {
-          window.removeEventListener('keydown', onKeyDown);
-          window.removeEventListener('keyup', onKeyUp);
-          window.removeEventListener('pointerdown', onDown);
-          window.removeEventListener('pointermove', onMove);
-          window.removeEventListener('pointerup', onUp);
-          return;
-        }
-        const dt = Math.min(0.05, Math.max(0.001, (ahora - tPrev) / 1000));
-        tPrev = ahora;
-        let adel = (teclas.has('w') || teclas.has('arrowup') ? 1 : 0) - (teclas.has('s') || teclas.has('arrowdown') ? 1 : 0);
-        let der = (teclas.has('d') ? 1 : 0) - (teclas.has('a') ? 1 : 0);
-        const giro = (teclas.has('arrowleft') || teclas.has('q') ? 1 : 0) - (teclas.has('arrowright') ? 1 : 0);
-        if (giro !== 0) rotarExploracion3d(giro * 1.9 * dt, 0);
-
-        const pad = navigator.getGamepads?.()[0];
-        if (pad) {
-          if (Math.abs(pad.axes[1]) > 0.2) adel -= pad.axes[1];
-          if (Math.abs(pad.axes[0]) > 0.2) der += pad.axes[0];
-          if (Math.abs(pad.axes[2]) > 0.2) rotarExploracion3d(-pad.axes[2] * 2.2 * dt, 0);
-          if (Math.abs(pad.axes[3]) > 0.2) rotarExploracion3d(0, -pad.axes[3] * 1.6 * dt);
-        }
-
-        if (moverExploracion3d(adel, der, dt)) sonar('paso');
-        if (enClimax && distanciaMesaGloria3d() < 4.5) {
-          salir();
-          return;
-        }
-        requestAnimationFrame(bucle);
-      };
-      requestAnimationFrame(bucle);
     },
     acciones: {
+      'sol-adelante': () => moverPaso(1),
+      'sol-atras': () => moverPaso(-1),
       'salir-sol': salir,
     },
   };

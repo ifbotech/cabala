@@ -199,7 +199,6 @@ class Motor3D {
   }
 
   forzarCuadro(): void {
-    this.camara.ponerModo(this.modoDe(this.ultimaPantalla), true);
     this.paso(0.016);
   }
 
@@ -286,3 +285,9 @@ export const entrarSolDeMayo3d = (inmediato = false): void => {
 };
 export const salirSolDeMayo3d = (): void => motor?.camara.salirExploracion();
 export const distanciaMesaGloria3d = (): number => (motor ? Math.abs(motor.camara.posLibre.z - -20.5) : 99);
+export const ponerPoseDiscreta3d = (pos: [number, number, number], mira: [number, number, number], fov = 50, inmediato = false): void => {
+  if (!motor) return;
+  motor.camara.moverAPose(pos, mira, fov, inmediato);
+  if (inmediato) motor.forzarCuadro();
+};
+export const limpiarPoseDiscreta3d = (): void => motor?.camara.salirExploracion();

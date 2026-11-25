@@ -62,6 +62,7 @@ export class CamaraPulperia {
   private metaPos: THREE.Vector3 | null = null;
   private metaYaw: number | null = null;
   private metaPitch: number | null = null;
+  private poseDiscreta: { pos: THREE.Vector3; mira: THREE.Vector3; fov: number } | null = null;
 
   constructor(aspecto: number) {
     this.cam = new THREE.PerspectiveCamera(42, aspecto, 0.1, 60);
@@ -71,7 +72,10 @@ export class CamaraPulperia {
 
   ponerModo(modo: ModoCamara, inmediato = false): void {
     this.modo = modo;
-    if (modo !== 'explorar' && modo !== 'sol-de-mayo') this.libre = false;
+    if (modo !== 'explorar' && modo !== 'sol-de-mayo') {
+      this.libre = false;
+      this.poseDiscreta = null;
+    }
     if (inmediato) this.encajar();
   }
 
@@ -92,7 +96,18 @@ export class CamaraPulperia {
   salirExploracion(): void {
     this.libre = false;
     this.metaPos = null;
+    this.poseDiscreta = null;
     this.modo = 'portada';
+  }
+
+  moverAPose(pos: [number, number, number], mira: [number, number, number], fov = 50, inmediato = false): void {
+    this.libre = false;
+    this.poseDiscreta = {
+      pos: new THREE.Vector3(pos[0], pos[1], pos[2]),
+      mira: new THREE.Vector3(mira[0], mira[1], mira[2]),
+      fov,
+    };
+    if (inmediato) this.encajar();
   }
 
   entrarSolDeMayo(inmediato = false): void {
@@ -203,6 +218,11 @@ export class CamaraPulperia {
   }
 
   private objetivo(outPos: THREE.Vector3, outMira: THREE.Vector3): number {
+    if (this.poseDiscreta) {
+      outPos.copy(this.poseDiscreta.pos);
+      outMira.copy(this.poseDiscreta.mira);
+      return this.poseDiscreta.fov;
+    }
     const p = POSES[this.modo];
     const esMovil = this.cam.aspect < 0.85;
     outPos.set(p.pos[0], p.pos[1] + (esMovil ? 0.25 : 0), p.pos[2] + (esMovil ? 1.15 : 0));

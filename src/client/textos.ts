@@ -418,6 +418,15 @@ export const ES = {
   puertaAbierta: 'Las puertas se abren hacia el empedrado nocturno…',
   cartaGloria: 'CARTA DE GLORIA',
   cartaGloriaClavada: 'Clavada en La Pared de la Gloria',
+  accionMesa: 'SENTARSE A JUGAR',
+  accionAltar: 'ABRIR EL ALTAR',
+  accionColeccion: 'VER COLECCIÓN',
+  accionCronica: 'LEER CRÓNICA',
+  accionAjustes: 'ABRIR AJUSTES',
+  accionPuerta: 'CRUZAR LA PUERTA',
+  avanzarCamino: 'AVANZAR',
+  retrocederCamino: 'RETROCEDER',
+  pulperiaCabecera: 'LA PULPERÍA',
 };
 
 export const EN: Record<keyof typeof ES, string> = {
@@ -819,6 +828,15 @@ export const EN: Record<keyof typeof ES, string> = {
   puertaAbierta: 'The doors swing wide to the nocturnal cobblestones…',
   cartaGloria: 'CARD OF GLORY',
   cartaGloriaClavada: 'Pinned to the Wall of Glory',
+  accionMesa: 'SIT & PLAY',
+  accionAltar: 'OPEN ALTAR',
+  accionColeccion: 'VIEW COLLECTION',
+  accionCronica: 'READ CHRONICLE',
+  accionAjustes: 'OPEN SETTINGS',
+  accionPuerta: 'CROSS THE DOORS',
+  avanzarCamino: 'STEP FORWARD',
+  retrocederCamino: 'STEP BACK',
+  pulperiaCabecera: 'THE PULPERÍA',
 };
 
 export type Clave = keyof typeof ES;
