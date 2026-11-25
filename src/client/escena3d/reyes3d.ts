@@ -1,4 +1,4 @@
-// Los 4 Reyes Malvados en Voxel Art 3D con AO horneado, armas icónicas y VFX 3D en combate.
+// Los 4 Reyes Malvados en Dark-Gothic Pixel-3D de alta densidad (V = 0.017, cero bloques Minecraft).
 import * as THREE from 'three';
 import type { Palo } from '../../rules/cartas';
 import { VoxelGrid, construirMallaVoxel, type VoxelMat } from './voxel';
@@ -15,64 +15,69 @@ interface ReyConfig {
   tunicaOsc: number;
   capa: number;
   piel: number;
+  pielSombra: number;
   pelo: number;
   peloLuz: number;
   ojo: number;
-  anchoHombro: number;
+  anchoExtra: number;
 }
 
 const CFG: Record<Palo, ReyConfig> = {
   S: {
-    tunica: 0x1d52cc,
-    tunicaOsc: 0x123285,
-    capa: 0x0e1c4a,
-    piel: 0xe2a87e,
-    pelo: 0x22171a,
-    peloLuz: 0x3b2a2f,
-    ojo: 0x5be8ff,
-    anchoHombro: 0,
+    tunica: 0x132b6e,
+    tunicaOsc: 0x0a1742,
+    capa: 0x090f29,
+    piel: 0xc78d6b,
+    pielSombra: 0x7a4458,
+    pelo: 0x1c1016,
+    peloLuz: 0x36222c,
+    ojo: 0x00e5ff,
+    anchoExtra: 0,
   },
   C: {
-    tunica: 0x1b8a32,
-    tunicaOsc: 0x115c20,
-    capa: 0x0d3616,
-    piel: 0xdfa278,
-    pelo: 0x6b3418,
-    peloLuz: 0x914c26,
-    ojo: 0x4cff88,
-    anchoHombro: 1,
+    tunica: 0x0d4222,
+    tunicaOsc: 0x072413,
+    capa: 0x061a0e,
+    piel: 0xc48866,
+    pielSombra: 0x754052,
+    pelo: 0x5c2814,
+    peloLuz: 0x7d3b1e,
+    ojo: 0x22f06a,
+    anchoExtra: 2,
   },
   D: {
-    tunica: 0x6e1f9c,
-    tunicaOsc: 0x48106b,
-    capa: 0x2b0a42,
-    piel: 0xe6ad82,
-    pelo: 0x5c3318,
-    peloLuz: 0x7d4724,
-    ojo: 0xffe44d,
-    anchoHombro: 0,
+    tunica: 0x3a1059,
+    tunicaOsc: 0x210836,
+    capa: 0x160726,
+    piel: 0xc9916d,
+    pielSombra: 0x7a4458,
+    pelo: 0x4d2614,
+    peloLuz: 0x6e3a20,
+    ojo: 0xffd500,
+    anchoExtra: 0,
   },
   H: {
-    tunica: 0xb81a2e,
-    tunicaOsc: 0x7a0d1c,
-    capa: 0x450814,
-    piel: 0xe8c7bc,
-    pelo: 0xe6dfd5,
-    peloLuz: 0xffffff,
-    ojo: 0xff3b6e,
-    anchoHombro: 0,
+    tunica: 0x6e0c22,
+    tunicaOsc: 0x400514,
+    capa: 0x24040d,
+    piel: 0xbfa8a0,
+    pielSombra: 0x6e5660,
+    pelo: 0xcfc8c2,
+    peloLuz: 0xede6df,
+    ojo: 0xff1e5c,
+    anchoExtra: 0,
   },
 };
 
-const ORO = 0xf7c531;
-const ORO_OSC = 0xc98a18;
-const CUERO = 0x542c16;
-const BOTA = 0x241410;
-const ARMINO = 0xf2ebe1;
-const ARMINO_MOTA = 0x1e1326;
-const RUBI = 0xe81e42;
-const ACERO = 0x9ed8f5;
-const ACERO_LUZ = 0xdff6ff;
+const ORO = 0xc98c1e;
+const ORO_OSC = 0x78430b;
+const CUERO = 0x3b1b14;
+const BOTA = 0x1c0f12;
+const ARMINO = 0xcfc3ad;
+const ABISMO = 0x0b0711;
+const RUBI = 0xc4143a;
+const ACERO = 0x6b9ac4;
+const ACERO_LUZ = 0xb8f6ff;
 
 interface ReyArticulado {
   grupo: THREE.Group;
@@ -93,7 +98,7 @@ interface ParticulaVfx {
   esOnda?: boolean;
 }
 
-const V = 0.036;
+const V = 0.017;
 
 export class Reyes3D {
   readonly raiz = new THREE.Group();
@@ -127,10 +132,9 @@ export class Reyes3D {
       this.raiz.add(this.figuras[p].grupo);
     }
 
-    // Luz frontal cálida para lectura cristalina del rostro y vestiduras + luz de palo
-    this.luzFrente = new THREE.PointLight(0xffe7c4, 1.6, 4.2, 1.4);
+    this.luzFrente = new THREE.PointLight(0xffcf94, 1.45, 4.2, 1.4);
     this.luzFrente.position.set(-0.35, 0.55, 1.35);
-    this.luzRey = new THREE.PointLight(0x00e5ff, 1.45, 3.8, 1.5);
+    this.luzRey = new THREE.PointLight(0x00e5ff, 1.35, 3.8, 1.5);
     this.luzRey.position.set(0.55, 0.45, 0.9);
     this.raiz.add(this.luzFrente, this.luzRey);
     this.raiz.visible = false;
@@ -141,214 +145,199 @@ export class Reyes3D {
   private construirTorso(palo: Palo): THREE.Group {
     const c = CFG[palo];
     const g = new VoxelGrid();
-    const w = 4 + c.anchoHombro;
+    const w = 8 + c.anchoExtra;
 
-    // Piernas y botas
-    g.mirrorX(1, -6, -1, 3, -4, 2, BOTA);
-    g.mirrorX(1, -3, -1, 3, -1, 1, 0x160d1c);
+    // Botas y piernas
+    g.mirrorX(2, -11, -2, 5, -7, 3, BOTA);
+    g.taperedCylinder(-3.5, -7, 0, 0, 2.5, 2.5, 3.0, 2.8, c.capa);
+    g.taperedCylinder(3.5, -7, 0, 0, 2.5, 2.5, 3.0, 2.8, c.capa);
 
-    // Túnica real con faldón y ribetes dorados
-    g.box(-w, 0, -2, w, 11, 2, c.tunica);
-    g.box(-w, 0, -2, w, 1, 2, c.tunicaOsc);
-    // Ribete vertical dorado central y borde inferior
-    g.box(-1, 0, 2, 1, 10, 2, ORO, 'metal');
-    g.box(-w, 0, 2, w, 0, 2, ORO, 'metal');
-    g.mirrorX(w, 1, 2, w, 4, 2, c.tunicaOsc);
+    // Túnica real entallada con dithering
+    g.taperedCylinder(0, 0, 18, 0, w + 1.2, 4.6, w, 4.4, c.tunica);
+    g.ditherBox(-w, 0, -4, w, 4, 4, c.tunicaOsc, c.tunica);
+    g.box(-1, 1, 4, 1, 16, 5, ORO, 'metal');
+    g.box(-w, 0, 4, w, 1, 5, ORO_OSC, 'metal');
 
-    // Cinturón de cuero y hebilla de oro
-    g.box(-w, 5, -2, w, 6, 2, CUERO);
-    g.box(-1, 5, 3, 1, 6, 3, ORO, 'metal');
+    // Cinturón de cuero y hebilla
+    g.taperedCylinder(0, 7, 9, 0, w + 0.5, 4.8, w + 0.5, 4.8, CUERO);
+    g.box(-2, 7, 5, 2, 9, 5, ORO, 'metal');
 
-    // Cuello de armiño blanco con motas oscuras
-    g.box(-w, 11, -2, w, 12, 2, ARMINO);
-    g.set(-3, 12, 2, ARMINO_MOTA).set(3, 12, 2, ARMINO_MOTA).set(0, 11, 2, ARMINO_MOTA);
-    g.set(-2, 11, 2, ARMINO_MOTA).set(2, 11, 2, ARMINO_MOTA);
+    // Cuello de armiño envejecido + motas abismales
+    g.taperedCylinder(0, 17, 20, 0, w + 1.2, 4.8, w - 0.5, 4.4, ARMINO);
+    for (const mx of [-5, -2, 2, 5]) {
+      g.set(mx, 19, 4, ABISMO).set(mx - 1, 18, 4, ABISMO);
+    }
 
-    // Cadena real de oro con gema rubí
-    g.box(-3, 10, 3, 3, 10, 3, ORO, 'metal');
-    g.set(0, 9, 3, RUBI, 'metal');
+    // Cadena real + rubí
+    g.box(-5, 16, 5, 5, 16, 5, ORO, 'metal');
+    g.box(-1, 14, 5, 1, 15, 5, RUBI, 'metal');
 
-    // Hombreras reales
-    g.mirrorX(w, 10, -2, w + 1, 12, 2, c.tunicaOsc);
-    g.mirrorX(w + 1, 11, -1, w + 1, 12, 1, ORO, 'metal');
+    // Hombreras reales esculpidas
+    g.mirrorX(w - 1, 16, -3, w + 3, 20, 3, c.tunicaOsc);
+    g.mirrorX(w + 1, 18, -2, w + 3, 20, 2, ORO, 'metal');
 
-    return construirMallaVoxel(g, V, [0, 4, 0]);
+    return construirMallaVoxel(g, V, [0, 7, 0]);
   }
 
   private construirCapa(palo: Palo): THREE.Group {
     const c = CFG[palo];
     const g = new VoxelGrid();
-    const w = 5 + c.anchoHombro;
-    g.box(-w, -4, -1, w, 12, 0, c.capa);
-    g.box(-w + 1, -5, -1, w - 1, -4, 0, c.tunicaOsc);
-    g.mirrorX(w, -4, 0, w, 11, 0, ORO_OSC, 'metal');
-    return construirMallaVoxel(g, V, [0, 12, 0]);
+    const w = 10 + c.anchoExtra;
+    g.taperedCylinder(0, -18, 1, 0, w + 2, 2.4, w - 2, 1.8, c.capa);
+    g.ditherBox(-w, -18, -2, w, -14, 0, c.tunicaOsc, c.capa);
+    g.mirrorX(w - 1, -17, 0, w, 0, 0, ORO_OSC, 'metal');
+    return construirMallaVoxel(g, V, [0, 1, 0]);
   }
 
   private construirCabeza(palo: Palo): THREE.Group {
     const c = CFG[palo];
     const g = new VoxelGrid();
 
-    // Cráneo base
-    g.box(-4, 0, -3, 4, 7, 3, c.piel);
-    // Cabello lateral y trasero
-    g.box(-4, 1, -4, 4, 7, -2, c.pelo);
-    g.mirrorX(4, 2, -3, 4, 7, 1, c.pelo);
-    g.box(-4, 7, -3, 4, 7, 2, c.pelo);
+    // Cabeza esculpida (cero bloque cuadrado)
+    g.sculptHead(0, 6.5, 0, 5.4, 6.8, 5.0, c.piel, c.pielSombra);
 
-    // Rostro expresivo
+    // Cabello lateral y trasero
+    g.taperedCylinder(0, 3, 13, -1, 6.0, 5.0, 5.4, 4.4, c.pelo);
+    g.box(-5, 9, -4, 5, 13, 2, c.pelo);
+
     const pal: Record<string, number> = {
       C: c.pelo,
       L: c.peloLuz,
       O: c.ojo,
-      B: 0x160c1c,
+      B: ABISMO,
       R: RUBI,
-      N: 0xc98a63,
-      S: c.piel,
-      M: 0x3b151e,
+      N: c.pielSombra,
+      M: 0x3b1218,
     };
     const matMap: Record<string, VoxelMat> = { O: 'emissive' };
 
     if (palo === 'S') {
-      // Ceño fiero, ojos cian, cicatriz diagonal carmesí y barba negra en punta
       g.paintFront(
-        -3,
-        6,
-        3,
+        -4,
+        10,
+        5,
         [
-          'CC...CC',
-          'BO...OR',
-          '...N.R.',
-          'CC.N.CR',
-          'CCCCCCC',
-          '.CCCCC.',
-          '..CCC..',
+          'CC.....CC',
+          'BOO...OOR',
+          '....N..R.',
+          'CCC.N.CCR',
+          '.CCCCCCC.',
+          '..CCCCC..',
         ],
         pal,
         1,
         'matte',
         matMap,
       );
-      g.box(-2, -1, 2, 2, 0, 3, c.pelo);
-      g.box(-1, -2, 2, 1, -1, 3, c.pelo);
+      g.taperedCylinder(0, -3, 2, 3, 1.6, 1.4, 3.6, 2.0, c.pelo);
     } else if (palo === 'C') {
-      // Cejas gruesas, barba castaño-rojiza muy tupida
       g.paintFront(
-        -3,
-        6,
-        3,
+        -4,
+        10,
+        5,
         [
-          'CC...CC',
-          'BO...OB',
-          '...N...',
-          'LLLLLLL',
-          'CCCCCCC',
-          'CLCCCLC',
-          '.CCCCC.',
+          'CCC...CCC',
+          'BOO...OOB',
+          '....N....',
+          'LLLLLLLLL',
+          'CCCCCCCCC',
         ],
         pal,
         1,
         'matte',
         matMap,
       );
-      g.box(-4, -2, 1, 4, 1, 4, c.pelo);
-      g.box(-3, -3, 2, 3, -2, 4, c.peloLuz);
+      g.taperedCylinder(0, -4, 4, 3, 3.2, 2.2, 5.4, 2.8, c.pelo);
+      g.ditherBox(-4, -3, 4, 4, 2, 6, c.peloLuz, c.pelo);
     } else if (palo === 'D') {
-      // Bigote retorcido, barba perfilada y mirada dorada
       g.paintFront(
-        -3,
-        6,
-        3,
+        -4,
+        10,
+        5,
         [
-          'CC...CC',
-          'BO...OB',
-          '...N...',
-          'C..M..C',
-          'CCCCCCC',
-          '.CCLCC.',
-          '..CCC..',
+          'CC.....CC',
+          'BOO...OOB',
+          '....N....',
+          'C...M...C',
+          '.CCCCCCC.',
         ],
         pal,
         1,
         'matte',
         matMap,
       );
-      g.box(-2, -1, 2, 2, 0, 3, c.pelo);
+      g.taperedCylinder(0, -2, 3, 3, 2.4, 1.8, 4.2, 2.2, c.pelo);
     } else {
-      // Rey de Copas: melena blanca, barba blanca larga, ojos rubí
-      g.box(-5, -1, -3, -4, 6, 1, c.pelo);
-      g.box(4, -1, -3, 5, 6, 1, c.pelo);
+      // Melena y barba blanca larga
+      g.taperedCylinder(-5.2, -3, 9, -1, 1.8, 2.2, 1.6, 2.0, c.pelo);
+      g.taperedCylinder(5.2, -3, 9, -1, 1.8, 2.2, 1.6, 2.0, c.pelo);
       g.paintFront(
-        -3,
-        6,
-        3,
+        -4,
+        10,
+        5,
         [
-          'CC...CC',
-          'BO...OB',
-          '...N...',
-          '.MM.MM.',
-          'LLLLLLL',
-          'LCCCCCL',
-          '.LLLLL.',
+          'CC.....CC',
+          'BOO...OOB',
+          '....N....',
+          '..MM.MM..',
+          '.LLLLLLL.',
         ],
         pal,
         1,
         'matte',
         matMap,
       );
-      g.box(-3, -3, 2, 3, 0, 4, c.pelo);
-      g.box(-2, -5, 2, 2, -3, 4, c.peloLuz);
+      g.taperedCylinder(0, -7, 3, 3, 2.2, 1.8, 4.4, 2.4, c.pelo);
+      g.ditherBox(-3, -6, 4, 3, 0, 5, c.peloLuz, c.pelo);
     }
 
-    // Aro de la corona
-    g.box(-5, 8, -4, 5, 9, 4, ORO, 'metal');
-    g.set(-3, 8, 4, COLOR_REY[palo], 'emissive');
-    g.set(0, 8, 4, RUBI, 'metal');
-    g.set(3, 8, 4, COLOR_REY[palo], 'emissive');
+    // Aro de la corona en oro antiguo
+    g.taperedCylinder(0, 12, 14, 0, 6.2, 5.8, 6.4, 6.0, ORO, 'metal');
+    g.set(-3, 13, 6, COLOR_REY[palo], 'emissive');
+    g.set(0, 13, 6, RUBI, 'metal');
+    g.set(3, 13, 6, COLOR_REY[palo], 'emissive');
 
-    // Corona única de cada Rey
     if (palo === 'S') {
-      // 5 hojas de acero
+      // 5 hojas afiladas de acero oscuro
       for (const [dx, h] of [
-        [-4, 4],
-        [-2, 5],
-        [0, 7],
-        [2, 5],
-        [4, 4],
+        [-5, 6],
+        [-2.5, 8],
+        [0, 11],
+        [2.5, 8],
+        [5, 6],
       ] as const) {
-        g.box(dx, 10, 2, dx, 9 + h, 3, ACERO, 'metal');
-        g.set(dx, 9 + h, 3, ACERO_LUZ, 'emissive');
+        g.taperedCylinder(dx, 14, 14 + h, 4, 1.1, 0.9, 0.5, 0.5, ACERO, 'metal');
+        g.set(Math.round(dx), 14 + h, 4, ACERO_LUZ, 'emissive');
       }
-      g.mirrorX(4, 10, -2, 4, 13, 0, ACERO, 'metal');
+      g.mirrorX(5, 14, -3, 5, 19, 1, ACERO, 'metal');
     } else if (palo === 'C') {
-      // Ramas nudosas con brotes esmeralda
-      g.line3D(-3, 10, 1, -5, 15, 2, 0.8, CUERO);
-      g.line3D(3, 10, 1, 5, 15, 2, 0.8, CUERO);
-      g.box(-1, 10, 2, 1, 14, 3, CUERO);
-      g.ellipsoid(-5, 16, 2, 1.2, 1.2, 1.2, 0x22f06a, 'emissive');
-      g.ellipsoid(5, 16, 2, 1.2, 1.2, 1.2, 0x22f06a, 'emissive');
-      g.ellipsoid(0, 15, 3, 1.4, 1.3, 1.2, 0x22f06a, 'emissive');
+      // Ramas orgánicas con curve3D + brotes esmeralda
+      g.curve3D([[-4, 14, 2], [-7, 20, 3], [-9, 23, 3]], 1.4, 0.7, CUERO);
+      g.curve3D([[4, 14, 2], [7, 20, 3], [9, 23, 3]], 1.4, 0.7, CUERO);
+      g.curve3D([[0, 14, 4], [1, 21, 5]], 1.3, 0.7, CUERO);
+      g.ellipsoid(-9, 24, 3, 1.7, 1.5, 1.5, 0x22f06a, 'emissive');
+      g.ellipsoid(9, 24, 3, 1.7, 1.5, 1.5, 0x22f06a, 'emissive');
+      g.ellipsoid(1, 22, 5, 1.8, 1.6, 1.5, 0x22f06a, 'emissive');
     } else if (palo === 'D') {
-      // Corona solar alta de oro
-      for (let i = -4; i <= 4; i += 2) {
-        const h = i === 0 ? 7 : Math.abs(i) === 2 ? 5 : 4;
-        g.box(i, 10, 3, i, 9 + h, 3, ORO, 'metal');
-        g.box(i, 10, -3, i, 9 + h - 1, -3, ORO_OSC, 'metal');
+      // Corona solar gótica
+      for (let i = -5; i <= 5; i += 2) {
+        const h = i === 0 ? 11 : Math.abs(i) === 3 ? 8 : 6;
+        g.taperedCylinder(i, 14, 14 + h, 4, 1.0, 0.9, 0.5, 0.5, ORO, 'metal');
       }
-      g.mirrorX(4, 10, -2, 4, 13, 2, ORO, 'metal');
+      g.mirrorX(5, 14, -3, 5, 19, 2, ORO_OSC, 'metal');
     } else {
-      // Corona real de Copas con cresta carmesí
+      // Corona real de Copas
       for (const [dx, h] of [
-        [-4, 4],
-        [-2, 5],
-        [0, 6],
-        [2, 5],
-        [4, 4],
+        [-5, 6],
+        [-2.5, 8],
+        [0, 10],
+        [2.5, 8],
+        [5, 6],
       ] as const) {
-        g.box(dx, 10, 3, dx, 9 + h, 3, ORO, 'metal');
+        g.taperedCylinder(dx, 14, 14 + h, 4, 1.0, 0.9, 0.5, 0.5, ORO, 'metal');
       }
-      g.box(-1, 12, 3, 1, 14, 3, RUBI, 'emissive');
-      g.mirrorX(4, 10, -2, 4, 12, 1, ORO, 'metal');
+      g.box(-1, 18, 4, 1, 22, 5, RUBI, 'emissive');
+      g.mirrorX(5, 14, -3, 5, 18, 2, ORO, 'metal');
     }
 
     return construirMallaVoxel(g, V, [0, 0, 0]);
@@ -358,64 +347,61 @@ export class Reyes3D {
     const c = CFG[palo];
     const g = new VoxelGrid();
 
-    // Manga y puño
-    g.box(-1, -6, -1, 1, 0, 1, c.tunica);
-    g.box(-1, -7, -1, 1, -6, 1, ORO, 'metal');
-    g.box(-1, -9, -1, 1, -7, 1, c.piel);
+    g.taperedCylinder(0, -11, 0, 0, 2.0, 2.0, 2.6, 2.6, c.tunica);
+    g.box(-2, -12, -1, 2, -11, 2, ORO, 'metal');
+    g.box(-2, -15, -1, 2, -12, 2, c.piel);
 
     if (lado === 'der') {
       if (palo === 'S') {
-        // Gran Espada voxel alzada
-        g.box(-1, -10, 1, 1, -9, 3, ORO, 'metal');
-        g.box(-3, -8, 2, 3, -7, 3, ORO, 'metal');
-        g.box(-1, -6, 2, 1, 10, 3, ACERO, 'metal');
-        g.box(0, -5, 3, 0, 12, 3, ACERO_LUZ, 'emissive');
+        // Espada larga afinada
+        g.box(-1, -17, 2, 1, -15, 4, ORO, 'metal');
+        g.box(-4, -14, 2, 4, -13, 4, ORO, 'metal');
+        g.box(-1, -12, 3, 1, 18, 4, ACERO, 'metal');
+        g.box(0, -10, 4, 0, 21, 4, ACERO_LUZ, 'emissive');
       } else if (palo === 'C') {
-        // Garrote nudoso con enredaderas esmeralda
-        g.box(-1, -11, 2, 1, -4, 3, CUERO);
-        g.box(-2, -3, 1, 2, 9, 4, 0x452410);
-        g.set(-2, 2, 4, 0x22f06a, 'emissive').set(2, 5, 4, 0x22f06a, 'emissive').set(0, 8, 4, 0x22f06a, 'emissive');
-        g.box(-1, 9, 2, 1, 11, 3, 0x2a7a38);
+        // Garrote orgánico nudoso con enredaderas
+        g.curve3D([[0, -18, 2], [1, -4, 3], [0, 16, 3]], 1.3, 3.0, CUERO);
+        g.set(-2, 4, 5, 0x22f06a, 'emissive').set(2, 9, 5, 0x22f06a, 'emissive').set(0, 14, 5, 0x22f06a, 'emissive');
       } else if (palo === 'D') {
-        // Escudo-Moneda de Oro gigante
+        // Escudo-Moneda de Oro tallado con relieve profundo
         const escudo = [
-          '..OOOOO..',
-          '.OOLLLDO.',
-          'OOLOOOLDO',
-          'OOLOOOLDO',
-          'OOLOOOLDO',
-          'OOLLLLLDO',
-          'OOLLOLDDO',
-          '.OODDDDO.',
-          '..DDDDD..',
+          '...OOOOOOO...',
+          '..OOLLLLLDO..',
+          '.OOLOOOOOLDO.',
+          'OOLOOLLL0OLDO',
+          'OOLOOLOL0OLDO',
+          'OOLOOLLL0OLDO',
+          'OOLOOOOOOOLDO',
+          '.OOLLLLLLLDO.',
+          '..OODDDDDDO..',
+          '...DDDDDDD...',
         ];
         g.extrude2D(
           escudo,
-          { O: ORO, L: 0xfff08a, D: ORO_OSC },
+          { O: ORO, L: 0xffe46b, D: ORO_OSC, '0': ORO_OSC },
+          3,
           2,
-          1,
-          -12,
-          4,
+          -20,
+          5,
           'metal',
           { L: 'emissive' },
         );
       } else {
-        // Cáliz gigante desbordante de magia carmesí
-        g.box(-2, -11, 2, 2, -10, 4, ORO, 'metal');
-        g.box(-1, -9, 2, 1, -5, 4, ORO, 'metal');
-        g.box(-4, -4, 1, 4, 3, 5, RUBI, 'metal');
-        g.box(-4, 3, 1, 4, 4, 5, ORO, 'metal');
-        g.box(-3, 4, 2, 3, 5, 4, 0xff2b64, 'emissive');
+        // Cáliz gótico esculpido (pie fino, copa acampanada y fulgor carmesí)
+        g.taperedCylinder(2, -18, -16, 4, 3.6, 3.6, 1.4, 1.4, ORO, 'metal');
+        g.cylinderY(2, -16, -9, 4, 1.1, 1.1, ORO, 'metal');
+        g.taperedCylinder(2, -9, 4, 4, 1.8, 1.8, 5.2, 5.2, RUBI, 'metal');
+        g.taperedCylinder(2, 3, 5, 4, 5.4, 5.4, 5.6, 5.6, ORO, 'metal');
+        g.ellipsoid(2, 5, 4, 4.0, 1.4, 4.0, 0xff2b64, 'emissive');
       }
     } else {
-      // Mano izquierda (arma secundaria en S y C)
       if (palo === 'S') {
-        g.box(-1, -10, 1, 1, -8, 5, ORO, 'metal');
-        g.box(0, -8, 5, 0, -2, 13, ACERO, 'metal');
-        g.set(0, -2, 14, ACERO_LUZ, 'emissive');
+        g.box(-1, -16, 2, 1, -13, 6, ORO, 'metal');
+        g.box(0, -13, 6, 0, -3, 22, ACERO, 'metal');
+        g.set(0, -3, 23, ACERO_LUZ, 'emissive');
       } else if (palo === 'C') {
-        g.box(-1, -12, 2, 1, 4, 4, CUERO);
-        g.set(-1, 1, 4, 0x22f06a, 'emissive').set(1, -2, 4, 0x22f06a, 'emissive');
+        g.curve3D([[0, -18, 2], [-1, -4, 3], [0, 10, 4]], 1.3, 2.5, CUERO);
+        g.set(-1, 2, 5, 0x22f06a, 'emissive').set(1, -3, 5, 0x22f06a, 'emissive');
       }
     }
 
@@ -428,23 +414,23 @@ export class Reyes3D {
 
     const torso = this.construirTorso(palo);
     const capa = this.construirCapa(palo);
-    capa.position.set(0, 8 * V, -2.6 * V);
+    capa.position.set(0, 11 * V, -4.8 * V);
 
     const cabeza = this.construirCabeza(palo);
-    cabeza.position.set(0, 9.2 * V, 0);
+    cabeza.position.set(0, 13 * V, 0);
 
-    const offHombro = (5.2 + CFG[palo].anchoHombro) * V;
+    const offHombro = (10 + CFG[palo].anchoExtra) * V;
     const brazoIzq = this.construirBrazo(palo, 'izq');
-    brazoIzq.position.set(-offHombro - V, 8 * V, 0.5 * V);
+    brazoIzq.position.set(-offHombro - 2 * V, 11 * V, 0.5 * V);
 
     const brazoDer = this.construirBrazo(palo, 'der');
-    brazoDer.position.set(offHombro + 2 * V, 8 * V, 0.5 * V);
+    brazoDer.position.set(offHombro + 3 * V, 11 * V, 0.5 * V);
 
     cuerpo.add(torso, capa, cabeza, brazoIzq, brazoDer);
     grupo.add(cuerpo);
 
     const orbesSegunda: THREE.Mesh[] = [];
-    const geoOrbe = new THREE.BoxGeometry(0.065, 0.065, 0.065);
+    const geoOrbe = new THREE.BoxGeometry(0.06, 0.06, 0.06);
     const matOrbe = new THREE.MeshBasicMaterial({ color: COLOR_REY[palo] });
     for (let i = 0; i < 4; i++) {
       const m = new THREE.Mesh(geoOrbe, matOrbe);
@@ -583,14 +569,14 @@ export class Reyes3D {
     if (this.castTimer > 0 && !quieto) this.castTimer = Math.max(0, this.castTimer - dt);
     if (this.golpeTimer > 0 && !quieto) this.golpeTimer = Math.max(0, this.golpeTimer - dt);
 
-    const worldH = this.proyectar(cam, r.left + r.width / 2, r.top + r.height * 0.67, r.height, 5.55, this.raiz.position);
-    this.raiz.scale.setScalar(worldH * 0.64);
+    const worldH = this.proyectar(cam, r.left + r.width / 2, r.top + r.height * 0.65, r.height, 5.55, this.raiz.position);
+    this.raiz.scale.setScalar(worldH * 0.72);
     this.raiz.quaternion.copy(cam.quaternion);
     this.raiz.visible = true;
 
     this.luzRey.color.setHex(COLOR_REY[palo]);
-    this.luzRey.intensity = (segunda ? 2.15 : 1.45) + (this.castTimer > 0 ? 1.2 : 0);
-    this.luzFrente.intensity = this.golpeTimer > 0 ? 2.9 : 1.6;
+    this.luzRey.intensity = (segunda ? 2.05 : 1.35) + (this.castTimer > 0 ? 1.15 : 0);
+    this.luzFrente.intensity = this.golpeTimer > 0 ? 2.8 : 1.45;
 
     for (const k of ['S', 'C', 'D', 'H'] as const) {
       const fig = this.figuras[k];
@@ -604,7 +590,7 @@ export class Reyes3D {
       const zSale = (quieto ? 0.15 : 0.15 * this.entrada) + emb - hitPhase * 0.25;
       const temblor = grieta && !quieto ? Math.sin(reloj * 38) * 0.04 : 0;
 
-      fig.cuerpo.position.set(temblor, bob - 0.2, zSale);
+      fig.cuerpo.position.set(temblor, bob - 0.16, zSale);
       fig.cuerpo.rotation.set(
         emb * 0.35 - hitPhase * 0.32 + (segunda ? 0.08 : 0),
         quieto ? -0.08 : Math.sin(reloj * 1.15) * 0.15 - 0.06,
@@ -626,7 +612,7 @@ export class Reyes3D {
         orb.visible = segunda;
         if (segunda) {
           const ang = (idx / 4) * Math.PI * 2 + (quieto ? 0 : reloj * 2.2);
-          orb.position.set(Math.cos(ang) * 0.56, 0.25 + Math.sin(ang * 2) * 0.12, Math.sin(ang) * 0.35);
+          orb.position.set(Math.cos(ang) * 0.54, 0.24 + Math.sin(ang * 2) * 0.12, Math.sin(ang) * 0.32);
           orb.rotation.y = ang;
         }
       });

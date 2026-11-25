@@ -304,7 +304,7 @@ export class Bufon3D {
     const enMesa = !!el.closest('.mesa');
     const esMovilPortada = !enMesa && window.innerWidth <= 700 && !!el.closest('.portada');
     const factorY = enMesa ? 0.58 : esMovilPortada ? 0.45 : 0.5;
-    const factorEscala = enMesa ? 0.88 : esMovilPortada ? 0.96 : 1.06;
+    const factorEscala = enMesa ? 0.78 : esMovilPortada ? 0.96 : 1.06;
 
     const tam = this.proyectarRect(cam, r.left + r.width / 2, r.top + r.height * factorY, r.width, r.height, 5.85, this.raiz.position);
     this.raiz.scale.setScalar(tam.worldH * factorEscala);

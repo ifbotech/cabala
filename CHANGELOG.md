@@ -3,6 +3,13 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.56.0 · Los 4 Reyes Malvados Dark-Gothic 2× + Jerarquía Imponente (2026-11-25)
+
+Tercera iteración de la serie de 5 versiones: reconstrucción completa de los 4 Reyes Malvados al doble de resolución (`V = 0.017`) con proporciones regias oscuras, armas detalladas y calibración de escala en combate. *(Reglas, música, voces y balance 100 % congelados.)*
+
+- **4 Reyes Malvados Dark-Gothic (`reyes3d.ts`):** El Caudillo (corona de 5 hojas de acero + doble espada + cicatriz), El Cacique (corona de ramas orgánicas `curve3D` + barba rojiza monumental + doble garrote), El Caudal (corona solar gótica + escudo-moneda tallado con relieve) y El Bacanal (melena y barba blanca larga + cáliz gótico esculpido), con sombras violáceas y cero bloques *Minecraft*.
+- **Jerarquía visual en combate (`bufon3d.ts`, `reyes3d.ts`):** el Rey Jefe domina el centro de la mesa con corona 100 % visible en `1920×1080`, `1280×800` y `390×844`.
+
 ## 0.55.0 · Rediseño Dark-Gothic 2× de Alta Densidad — Bufón y 5 Héroes (2026-11-25)
 
 Segunda iteración de la serie de 5 versiones: reconstrucción completa del Bufón y los 5 Héroes de Mazo al doble de resolución (`V = 0.018`), con proporciones estilizadas, paleta *Dark Tarot* y cero bloques *Minecraft*. *(Reglas, música, voces y balance 100 % congelados.)*
