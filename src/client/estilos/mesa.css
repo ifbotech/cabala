@@ -8021,3 +8021,13 @@ html.modo-3d .pulperia .pul-bufon::after {
     margin: -4px -1px;
   }
 }
+
+/* ───────────── 1.11.0 · zona de descarte despejada en 1080p ───────────── */
+@media (min-width: 1700px) and (min-height: 950px) {
+  .mesa .descarte-zona {
+    bottom: 16px;
+    left: 16px;
+    width: calc(120px * var(--k));
+    height: calc(50px * var(--k));
+  }
+}

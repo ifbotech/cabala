@@ -27,6 +27,13 @@ interface PiezaFisica {
   escalaVida?: boolean;
 }
 
+const COLOR_ONDA: Record<Palo, number> = {
+  S: 0x00e5ff,
+  C: 0x22f06a,
+  D: 0xffd500,
+  H: 0xff1e5c,
+};
+
 export class SincroCartas3D {
   readonly raiz = new THREE.Group();
   private readonly cartas = new Map<string, Naipe3D>();
@@ -34,7 +41,8 @@ export class SincroCartas3D {
   private readonly geoSombra = new THREE.PlaneGeometry(1, 1);
   private readonly geoMoneda = new THREE.CylinderGeometry(0.16, 0.16, 0.05, 8);
   private readonly geoEstallido = new THREE.PlaneGeometry(0.24, 0.24);
-  private readonly geoAstilla = new THREE.BoxGeometry(0.16, 0.16, 0.16);
+  private readonly geoAstilla = new THREE.OctahedronGeometry(0.14, 0);
+  private readonly geoOnda = new THREE.RingGeometry(0.16, 0.3, 24);
   private readonly matSombra = new THREE.MeshBasicMaterial({
     color: 0x040208,
     transparent: true,
@@ -44,6 +52,15 @@ export class SincroCartas3D {
   private readonly matOro = new THREE.MeshStandardMaterial({ map: texturaOroMoneda(), color: 0xffd23f, metalness: 0.65, roughness: 0.34 });
   private readonly matPalo: Record<Palo, THREE.MeshBasicMaterial>;
   private readonly matAstilla: Record<Palo, THREE.MeshBasicMaterial>;
+  private readonly matOnda = new THREE.MeshBasicMaterial({
+    color: 0xffd500,
+    transparent: true,
+    opacity: 0.01,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+  private readonly ondaMesh: THREE.Mesh;
+  private ondaVida = 0;
 
   private readonly enemigoTotem: THREE.Mesh;
   private readonly enemigoMats: THREE.MeshStandardMaterial[];
@@ -87,7 +104,7 @@ export class SincroCartas3D {
     this.enemigoTotem.castShadow = true;
     this.enemigoTotem.visible = false;
     this.raiz.add(this.enemigoTotem);
-    // Pre-compila shader de sprites transparentes y moneda antes del primer golpe
+    // Pre-compila shader de sprites transparentes, moneda, astilla y onda reutilizable antes del primer golpe
     const warmupSprite = new THREE.Mesh(
       this.geoEstallido,
       new THREE.MeshBasicMaterial({ map: texturaPalo('D'), transparent: true, opacity: 0.01, side: THREE.DoubleSide, depthWrite: false }),
@@ -100,8 +117,21 @@ export class SincroCartas3D {
     const warmupAstilla = new THREE.Mesh(this.geoAstilla, this.matAstilla.S);
     warmupAstilla.scale.setScalar(0.001);
     warmupAstilla.position.set(0, -10, 0);
-    this.raiz.add(warmupSprite, warmupMoneda, warmupAstilla);
+    this.ondaMesh = new THREE.Mesh(this.geoOnda, this.matOnda);
+    this.ondaMesh.scale.setScalar(0.001);
+    this.ondaMesh.position.set(0, -10, 0);
+    this.raiz.add(warmupSprite, warmupMoneda, warmupAstilla, this.ondaMesh);
     escena.add(this.raiz);
+  }
+
+  private dispararOnda(cam: THREE.PerspectiveCamera, origen: THREE.Vector3, palo: Palo, duracion: number): void {
+    this.matOnda.color.setHex(COLOR_ONDA[palo]);
+    this.matOnda.opacity = 0.88;
+    this.ondaMesh.position.copy(origen).add(new THREE.Vector3(0, 0, 0.15));
+    this.ondaMesh.quaternion.copy(cam.quaternion);
+    this.ondaMesh.scale.setScalar(1);
+    this.ondaMesh.visible = true;
+    this.ondaVida = duracion;
   }
 
   private crearCarta(id: string): Naipe3D {
@@ -167,20 +197,21 @@ export class SincroCartas3D {
     const tam = this.proyectarRect(cam, cx, cy, w, h, 5.9, this.vHit);
     if (rango === 12) {
       const mat = this.matAstilla[palo];
-      for (let i = 0; i < 12; i++) {
-        const a = (i / 12) * Math.PI * 2;
+      for (let i = 0; i < 20; i++) {
+        const a = (i / 20) * Math.PI * 2;
         const m = new THREE.Mesh(this.geoAstilla, mat);
         m.position.copy(this.vHit).add(new THREE.Vector3(Math.cos(a) * 0.3, Math.sin(a) * 0.25, 0.1));
         this.raiz.add(m);
         this.piezas.push({
           malla: m,
-          vel: new THREE.Vector3(Math.cos(a) * (1.8 + Math.random()), 1.8 + Math.random() * 1.6, 1.4),
+          vel: new THREE.Vector3(Math.cos(a) * (1.8 + Math.random() * 1.2), 1.8 + Math.random() * 1.8, 1.4),
           rotVel: new THREE.Vector3(6, 8, 5),
           vida: 0.95,
           escalaVida: true,
           disposeMat: false,
         });
       }
+      this.dispararOnda(cam, this.vHit, palo, 0.55);
     } else {
       for (const lado of ['izq', 'der'] as const) {
         const sign = lado === 'izq' ? -1 : 1;
@@ -207,7 +238,8 @@ export class SincroCartas3D {
       }
     }
 
-    for (let i = 0; i < 8; i++) {
+    const numMonedas = rango === 12 ? 14 : 8;
+    for (let i = 0; i < numMonedas; i++) {
       const m = new THREE.Mesh(this.geoMoneda, this.matOro);
       m.position.copy(this.vHit).add(new THREE.Vector3((Math.random() - 0.5) * 0.8, -0.2, 0.2));
       this.raiz.add(m);
@@ -297,6 +329,10 @@ export class SincroCartas3D {
           entry.mats[0].color.setHex(0xffd23f);
           entry.mats[0].emissive.setHex(0x704c00);
           entry.mats[0].emissiveIntensity = 0.4;
+        } else if (enfocada && !inmune) {
+          entry.mats[0].color.setHex(0xf4d98c);
+          entry.mats[0].emissive.setHex(0x3a2600);
+          entry.mats[0].emissiveIntensity = 0.25;
         } else {
           entry.mats[0].color.setHex(0xe6d7bc);
           entry.mats[0].emissive.setHex(0x000000);
@@ -451,6 +487,17 @@ export class SincroCartas3D {
       }
     }
 
+    if (this.ondaVida > 0) {
+      this.ondaVida = Math.max(0, this.ondaVida - dt);
+      if (this.ondaVida <= 0) {
+        this.ondaMesh.visible = false;
+      } else {
+        this.ondaMesh.scale.addScalar(dt * 4.6);
+        this.ondaMesh.rotateZ(dt * 2.4);
+        this.matOnda.opacity = Math.min(0.88, this.ondaVida * 2.1);
+      }
+    }
+
     return activas;
   }
 
@@ -475,6 +522,9 @@ export class SincroCartas3D {
         escalaVida: true,
         disposeMat: false,
       });
+    }
+    if (fuerza >= 1.0) {
+      this.dispararOnda(cam, origen, palo, 0.42);
     }
   }
 }

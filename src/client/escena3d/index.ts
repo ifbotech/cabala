@@ -210,6 +210,8 @@ class Motor3D {
     const p = sesion.partida;
     const cartaF = p?.fogonCarta ? p.mazo.find((k) => k.id === p.fogonCarta) : undefined;
     const infoCartaF = cartaF && cartaF.palo !== 'X' ? { palo: cartaF.palo, rango: cartaF.n } : undefined;
+    const hayTension = !quieto && this.ultimaPantalla === 'mesa' && !!document.querySelector('.mesa .cuenta.abate, .mesa .cuenta .c-exacto, .mesa .cuenta .c-canto');
+    this.mundo.ponerTension(hayTension ? 1 : 0);
     this.mundo.sincronizarPartida(p?.mazoId, p?.combate?.mazo.length, p?.oro);
     this.mundo.actualizar(dtAnim, quieto);
     this.camara.actualizar(dtAnim, quieto);

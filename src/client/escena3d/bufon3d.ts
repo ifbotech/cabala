@@ -326,12 +326,13 @@ export class Bufon3D {
     this.pulsoSuave += (pulsoMeta - this.pulsoSuave) * (1 - Math.exp(-10 * dt));
 
     const enModal = !!el.closest('#capa .velo');
+    this.luzFrente.intensity = enModal ? 2.65 : 1.75;
     if (paloRey) {
       this.luzMascara.color.setHex(COLOR_REY[paloRey]);
       this.luzMascara.intensity = (segundaRey ? 1.6 : 1.25) + this.pulsoSuave * 0.35;
     } else {
       this.luzMascara.color.setHex(0xffaa44);
-      this.luzMascara.intensity = (enModal ? 1.55 : 1.25) + this.pulsoSuave * 0.35;
+      this.luzMascara.intensity = (enModal ? 1.85 : 1.25) + this.pulsoSuave * 0.35;
     }
 
     let objX = punteroX;

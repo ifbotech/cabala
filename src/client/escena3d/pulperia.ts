@@ -47,6 +47,8 @@ export class MundoPulperia {
   private ultimoPasoMusica = -1;
   private pulsoMusica = 0;
   private fogonazo = 0;
+  private tension = 0;
+  private impulsoFarol = 0;
   private reloj = 0;
   private ultimoOro = -1;
   private ultimoMazoN = -1;
@@ -384,8 +386,13 @@ export class MundoPulperia {
     }
   }
 
+  ponerTension(v: number): void {
+    this.tension = Math.max(0, Math.min(1, v));
+  }
+
   fogonazoCandil(fuerza = 1): void {
     this.fogonazo = Math.min(1.4, Math.max(this.fogonazo, fuerza));
+    this.impulsoFarol = Math.min(1.6, this.impulsoFarol + fuerza * 0.55);
   }
 
   sincronizarPartida(mazoId?: MazoId, mazoRestante?: number, oro?: number): void {
@@ -420,6 +427,7 @@ export class MundoPulperia {
       this.reloj += dt;
       this.fogonazo = Math.max(0, this.fogonazo - dt * 4.0);
       this.pulsoMusica = Math.max(0, this.pulsoMusica - dt * 3.4);
+      this.impulsoFarol = Math.max(0, this.impulsoFarol - dt * 1.35);
 
       const arm = armoniaActual();
       if (arm && arm.paso !== this.ultimoPasoMusica) {
@@ -429,13 +437,15 @@ export class MundoPulperia {
       }
 
       const titileo = Math.sin(this.reloj * 11) * 0.07 + Math.cos(this.reloj * 17) * 0.05;
-      const pulso = Math.max(this.fogonazo, this.pulsoMusica);
+      const pulso = Math.max(this.fogonazo, this.pulsoMusica, this.tension * 0.55);
       this.luzVela.intensity = 25 + pulso * 18 + titileo * 16;
       const escLlama = 1 + pulso * 0.35 + titileo * 0.4;
       this.llamaExt.scale.set(0.7 * escLlama, 1.75 * escLlama, 0.7 * escLlama);
       this.llamaInt.scale.set(0.65 * escLlama, 1.4 * escLlama, 0.65 * escLlama);
 
-      this.farolPivote.rotation.z = Math.sin(this.reloj * 1.15) * 0.065;
+      this.farolPivote.rotation.z =
+        Math.sin(this.reloj * 1.15) * (0.065 + this.tension * 0.035) +
+        Math.sin(this.reloj * 6.4) * this.impulsoFarol * 0.14;
       const relampago = this.climaActual === 'S' && Math.sin(this.reloj * 7.3) > 0.94 ? 9 : 0;
       this.luzFarol.intensity = (this.climaActual ? 12 : 9.5) + pulso * 4 + relampago;
 
@@ -452,13 +462,14 @@ export class MundoPulperia {
           this.posParticulas[ix + 1] = py;
         } else {
           const multY =
-            this.climaActual === 'H'
+            (this.climaActual === 'H'
               ? 2.1
               : this.climaActual === 'S'
                 ? 1.85
                 : this.escenaActual === 'fogon'
                   ? 2.25
-                  : 1.15;
+                  : 1.15) *
+            (1 + this.tension * 0.45);
           let py = this.posParticulas[ix + 1] + this.velParticulas[i] * dt * multY;
           if (py > 5.4) py = 0.1;
           this.posParticulas[ix + 1] = py;

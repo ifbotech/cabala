@@ -3,6 +3,12 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 1.11.0 · Impacto 3D Visceral, Tensión en la Pulpería y Descarte 1080p (2026-11-27)
+
+- **Impacto y anticipación 3D (`cartas3d.ts`, `pulperia.ts`, `index.ts`):** Estallido octaédrico y onda expansiva de palo al golpear/abatir Reyes Jefe (20 cristales + 14 monedas 3D), pulso cálido de la vela y partículas al armar jugada letal/Exacto/Canto, retroceso físico del farol al impacto y borde dorado al enfocar cartas.
+- **Bufón en modales (`bufon3d.ts`):** Mayor luz frontal y de máscara cuando el Bufón aparece tras el velo translúcido del Botín.
+- **Descarte `1920×1080` (`mesa.css`):** Mueve `.descarte-zona` a la esquina inferior izquierda de `.mano-zona` (`bottom: 16px; left: 16px`) para no tapar `DAÑO` ni el bocadillo al arrastrar.
+
 ## 1.10.0 · Anatomía Esculpida Anti-Minecraft + Botín, Forja y Resumen Móvil (2026-11-27)
 
 - **Anatomía esculpida sin aristas cuadradas (`voxel.ts`, `bufon3d.ts`, `reyes3d.ts`, `heroes3d.ts`):** Nuevas primitivas orgánicas `sculptTorso`, `sculptCape`, `sculptDome` y `ditherRecolor` + 3 ciclos de suavizado Taubin (`±0.55`), eliminando sobrescrituras rectangulares en el Bufón, los 4 Reyes y los 5 Héroes, con brazos curvos en `curve3D` y capas con pliegues.
