@@ -69,7 +69,7 @@ export const MAZO: Record<MazoId, MazoDef> = {
     regla: L('Pierna o Escalera de palo: ¡CHINCHÓN! Cortás y tu mano es Escudo.', 'Set or suited Run: CHINCHÓN! You cut and your hand is Shield.'),
     canto: L('¡CHINCHÓN!', 'CHINCHÓN!'),
     reglas: [
-      fillL(L('Mano de {n} cartas: tus golpes llevan +{x} de Multi.', 'Hand of {n} cards: your hits carry +{x} Mult.'), { n: m.chinchon.mano, x: m.chinchon.multiMano }),
+      fillL(L('Mano de {n} cartas (del 1 al 8): tus golpes llevan +{x} de Multi.', 'Hand of {n} cards (1–8 deck): your hits carry +{x} Mult.'), { n: m.chinchon.mano, x: m.chinchon.multiMano }),
       fillL(L('Cada Pierna o Escalera de palo: ¡CHINCHÓN!, +{d} de Daño para siempre en esas jugadas.', 'Each Set or suited Run: CHINCHÓN! +{d} permanent Damage on those plays.'), { d: m.chinchon.cargaDano }),
       fillL(L('Cortás la mano: +{e} de Escudo por cada carta que te queda sin jugar (×2 y ×3 en los tramos 2 y 3).', 'You cut the hand: +{e} Shield for each card left unplayed (×2 and ×3 in stretches 2 and 3).'), { e: m.chinchon.corta }),
     ],
@@ -83,7 +83,7 @@ export const MAZO: Record<MazoId, MazoDef> = {
     regla: L('Comodines, Escudo de entrada y un Engaño por combate: mentí y cobrá.', 'Jokers, an opening Shield and one Bluff per fight: lie and collect.'),
     canto: L('¡MENTIRA!', 'LIAR!'),
     reglas: [
-      fillL(L('Mano de {n} cartas.', 'Hand of {n} cards.'), { n: m.mentiroso.mano }),
+      fillL(L('Mano de {n} cartas (del 1 al 6).', 'Hand of {n} cards (1–6 deck).'), { n: m.mentiroso.mano }),
       fillL(L('Tu Mazo lleva {n} Comodines.', 'Your deck holds {n} Jokers.'), { n: m.mentiroso.comodines }),
       fillL(L('Cara de Piedra: empezás cada combate con {e} de Escudo.', 'Stone Face: you start each fight with {e} Shield.'), { e: m.mentiroso.caraDePiedra }),
       L('Engaño, una vez por combate: todas las cartas del golpe fingen ser tu carta más alta y nada les es Inmune.', 'Bluff, once per fight: every card in the hit poses as your highest card and nothing is Immune to them.'),

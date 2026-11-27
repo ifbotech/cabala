@@ -1,5 +1,5 @@
 # CÁBALA — Reglas
-> Versión 0.29.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
+> Versión 0.60.0. Este archivo se genera con `npm run docs` a partir de los datos del motor (`src/rules`). No lo edites a mano.
 
 *Todo es cuestión de cábala.* Roguelike de baraja española para un jugador. Elegís un Mazo, el Bufón te lleva por tres tramos de caminos y al fondo de cada uno te espera un Rey. Tu mano contra la Corte: cada golpe es **DAÑO × MULTI**.
 
@@ -56,7 +56,7 @@ Las cartas del golpe se apoyan en las **Postas del paño**, tantas como tu mano 
 
 ### Los Chiches
 
-Consumibles de un solo uso que se apoyan **sobre la madera, a la derecha de la mesa** (nunca en la mano). Entran **3**. Usarlos no gasta el turno: un clic, o arrastralos al enemigo. Se compran en La Pulpería (9 de oro) y, al abatir con Golpe exacto, al pelo o cantando, la Corte a veces suelta uno como **Prenda** (35 %).
+Consumibles de un solo uso que se apoyan **sobre la madera, a la derecha de la mesa** (nunca en la mano). Entran **3**. Usarlos no gasta el turno: un clic, o arrastralos al enemigo. Se compran en La Pulpería (7 de oro) y, al abatir con Golpe exacto, al pelo o cantando, la Corte a veces suelta uno como **Prenda** (35 %).
 
 | Chiche | Efecto |
 |---|---|
@@ -74,12 +74,12 @@ Consumibles de un solo uso que se apoyan **sobre la madera, a la derecha de la m
 |---|---|---|
 | **Lanza del Caudillo** | **EL FACÓN MALDITO** | Todo golpe Perfora y lo que sobra pasa ×3. MALDICIÓN: el golpe que no abate te corta 3 de Vida. |
 | **Poncho del Cacique** | **GARROTE DEL CACIQUE** | Con 6+ de Escudo, +2 Multi; tu Escudo suma ×2 al Daño. MALDICIÓN: el golpe sin Bastos gasta medio Escudo. |
-| **Cofre del Caudal** | **SOL DE LA TIMBA** | Oros dobles, +1 Multi cada 30 de oro (tope +3) y descartes sin fin. MALDICIÓN: cada descarte, −5 de oro. |
-| **Cáliz del Bacanal** | **BRINDIS DE SANGRE** | +1 de Multi por cada 10 % de Vida que te falta. MALDICIÓN: tus Copas ya no te curan. |
+| **Cofre del Caudal** | **SOL DE LA TIMBA** | Oros dobles, +1 Multi cada 30 de oro (tope +5) y descartes sin fin. MALDICIÓN: cada descarte, −3 de oro. |
+| **Cáliz del Bacanal** | **BRINDIS DE SANGRE** | +1 de Multi por cada 8 % de Vida que te falta. MALDICIÓN: tus Copas ya no te curan. |
 
 - **Forja Brava.** El Fogón tiene 3 pasadas sobre un naipe: +4 de Daño, Templada (+1 de Multi al jugarla) y **¡FORJA BRAVA!**, que duplica el naipe entero (su número y su temple) y le deja la mutación que elijas entre dos a la vista: **Doble Filo** (+2 de Multi, te corta 2 de Vida), **Roba Carta** (robás 1) o **Chispa de Oro** (+3 de oro). La segunda pasada arriesga quemar el naipe un 35 % y la tercera un 50 %.
 - **Cábala Negra.** Una vez por partida, desde el segundo tramo, el Bufón cose naipes: **coser dos iguales** (dos del mismo número se vuelven uno que junta lo suyo y pega de más) o **trasplantar** (el primero se sacrifica y el segundo toma su palo y lo que le dejó el fuego).
-- **Tesoros a la Vista.** El Mapa muestra algunos nodos con cofre: tras la Élite se abre solo; tras la Guardia, con candado de 30 de oro. Adentro hay dos Amuletos para elegir uno.
+- **Tesoros a la Vista.** El Mapa muestra algunos nodos con cofre: tras la Élite se abre solo; tras la Guardia, con candado de 18 de oro. Adentro hay dos Amuletos para elegir uno.
 
 ### Inmune
 
@@ -105,9 +105,9 @@ Un enemigo **Aturdido** se salta su próximo Contraataque. La **Furia** es Ataqu
 
 | Tramo | Lugar | Vida | Ataque |
 |---|---|---|---|
-| 1 | El Arrabal | ×1.5 | +1 |
-| 2 | El Reñidero | ×4.75 | +12 |
-| 3 | La Corte de Medianoche | ×14.75 | +28 |
+| 1 | El Arrabal | ×1.65 | +1 |
+| 2 | El Reñidero | ×5.35 | +13 |
+| 3 | La Corte de Medianoche | ×17 | +31 |
 
 La **Guardia Brava** (élite) tiene ×1.4 de Vida y +2 de Ataque. El **Rey** de cada tramo llega detrás de su Sota y su Caballo, con ×1.4 de Vida. Por cada Bendición suya que llevés, arranca con 5 % menos de Vida (tope 20 %).
 
@@ -150,11 +150,11 @@ Tras cada combate de Guardia, tres Reyes ofrecen un don cada uno: te quedás con
 | **Copa rebosante** | El Bacanal | Cada 4 de curación que no te cabe en un golpe: +1 de Multi a ese golpe. | Cada 3 de curación que no te cabe en un golpe: +1 de Multi a ese golpe. | Cada 2 de curación que no te cabe en un golpe: +1 de Multi a ese golpe. |
 | **Sangre por sangre** | El Bacanal | Con tu Vida al 50 % o menos: +1 de Multi. | Con tu Vida al 50 % o menos: +2 de Multi. | Con tu Vida al 50 % o menos: +3 de Multi. |
 | **Otra ronda** | El Bacanal | Cada carta de Copas cura +1 más. | Cada carta de Copas cura +2 más. | Cada carta de Copas cura +3 más. |
-| **Hoja y broquel** | El Caudillo + El Cacique | Cada Golpe exacto: +5 de Escudo y +1 de Filo. | — | — |
-| **Filo dorado** | El Caudillo + El Caudal | +1 de Daño por cada 5 de oro que tengas (tope +12). | — | — |
-| **Sangría** | El Caudillo + El Bacanal | Cada enemigo abatido te cura 3. | — | — |
-| **Peaje** | El Cacique + El Caudal | Cada golpe que TE PEGAN y tu Escudo frena por la mitad o más: +2 de oro. | — | — |
-| **Rescoldo** | El Cacique + El Bacanal | Al ganar un combate, cada 2 de Escudo que te queda te cura 1. | — | — |
+| **Hoja y broquel** | El Caudillo + El Cacique | Cada Golpe exacto o al pelo: +8 de Escudo y +2 de Filo. | — | — |
+| **Filo dorado** | El Caudillo + El Caudal | +1 de Daño por cada 3 de oro que tengas (tope +30). | — | — |
+| **Sangría** | El Caudillo + El Bacanal | Cada enemigo abatido te cura 6. | — | — |
+| **Peaje** | El Cacique + El Caudal | Cada golpe que TE PEGAN y tu Escudo frena por la mitad o más: +4 de oro. | — | — |
+| **Rescoldo** | El Cacique + El Bacanal | Al ganar un combate, cada 1 de Escudo que te queda te cura 1. | — | — |
 | **Convite** | El Caudal + El Bacanal | Al ganar un combate: +1 de Vida máxima por cada 15 de oro (tope +3). | — | — |
 
 ## Amuletos
@@ -210,18 +210,18 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 
 | Mazo | Personaje | Vida · mano | Regla estrella | Se abre con |
 |---|---|---|---|---|
-| **Escoba** · Escoba del 15 | La Barrendera | 70 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×3 y más Daño para siempre. | abierto desde el principio |
+| **Escoba** · Escoba del 15 | La Barrendera | 60 · 3 | Sumá 15 justo: ¡ESCOBA!, Multi ×3 y más Daño para siempre. | abierto desde el principio |
 | **Truco** · Envido y Bravas | El Paisano Bravo | 53 · 3 | Mazo corto del 1 al 7: Bravas que matan y ¡ENVIDO! | abierto desde el principio |
-| **Chinchón** · Pierna y Escalera | La Timbera del Club | 27 · 7 | Pierna o Escalera de palo: ¡CHINCHÓN! Cortás y tu mano es Escudo. | Vencé a un Rey. |
-| **El Mentiroso** · Cara de Piedra | El Chamuyero | 29 · 8 | Comodines, Escudo de entrada y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
-| **Chancho Va** · Mano al Centro | El Manotazo | 45 · 4 | Pasá una carta gratis por turno. Tres o cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
+| **Chinchón** · Pierna y Escalera | La Timbera del Club | 28 · 7 | Pierna o Escalera de palo: ¡CHINCHÓN! Cortás y tu mano es Escudo. | Vencé a un Rey. |
+| **El Mentiroso** · Cara de Piedra | El Chamuyero | 34 · 8 | Comodines, Escudo de entrada y un Engaño por combate: mentí y cobrá. | Vencé a 3 Reyes. |
+| **Chancho Va** · Mano al Centro | El Manotazo | 41 · 4 | Pasá una carta gratis por turno. Tres o cuatro iguales: ¡CHANCHO! | Hacé un Póker (4 iguales). |
 
 **Escoba** (¡ESCOBA!)
 - Mano de 3 cartas, como en la mesa: tus golpes llevan +3 de Multi.
 - Si las cartas del golpe suman 15: ¡ESCOBA!, ×3 de Multi.
-- Cada Escoba deja +3 de Daño en todos tus golpes, para siempre.
+- Cada Escoba deja +2 de Daño en todos tus golpes, para siempre.
 - Cualquier grupo de cartas que sume 15 vale como jugada.
-- Mesa limpia: en el primer tramo arrancás cada combate con 10 de Escudo.
+- Mesa limpia: en el primer tramo arrancás cada combate con 8 de Escudo.
 
 **Truco** (¡ENVIDO!)
 - Mano de 3 cartas, como en la mesa: tus golpes llevan +7 de Multi.
@@ -230,14 +230,14 @@ Son **18**, todos pasivos: jamás entran en tu mano. Se eligen de a tres en la p
 - Dos cartas del mismo palo que sumen 8 o más: ¡ENVIDO!, Multi 2 y +25 de Daño (×2 y ×3 en los tramos 2 y 3), más +1 por cada Envido ya cantado.
 
 **Chinchón** (¡CHINCHÓN!)
-- Mano de 7 cartas: tus golpes llevan +1 de Multi.
+- Mano de 7 cartas (del 1 al 8): tus golpes llevan +1 de Multi.
 - Cada Pierna o Escalera de palo: ¡CHINCHÓN!, +2 de Daño para siempre en esas jugadas.
-- Cortás la mano: +3 de Escudo por cada carta que te queda sin jugar (×2 y ×3 en los tramos 2 y 3).
+- Cortás la mano: +2 de Escudo por cada carta que te queda sin jugar (×2 y ×3 en los tramos 2 y 3).
 
 **El Mentiroso** (¡MENTIRA!)
-- Mano de 8 cartas.
+- Mano de 8 cartas (del 1 al 6).
 - Tu Mazo lleva 3 Comodines.
-- Cara de Piedra: empezás cada combate con 29 de Escudo.
+- Cara de Piedra: empezás cada combate con 18 de Escudo.
 - Engaño, una vez por combate: todas las cartas del golpe fingen ser tu carta más alta y nada les es Inmune.
 - Si el Engaño no abate al enemigo, su Furia sube 3.
 
@@ -295,8 +295,8 @@ Ganes o pierdas, cada partida deja **Porotos** (4 por combate, 8 por Guardia Bra
 |---|---|---|---|
 | **Vida Inicial** | +3 % de Vida por nivel. | 5 | 20 · 40 · 70 · 110 · 160 |
 | **Oro de Arranque** | +1 de oro al empezar por nivel. | 5 | 20 · 40 · 70 · 110 · 160 |
-| **Descuento en Pulpería** | Todo cuesta 2 % menos por nivel. | 5 | 20 · 40 · 70 · 110 · 160 |
-| **Suerte del Bufón** | +5 % de que sus trucos te salgan bien por nivel. | 5 | 20 · 40 · 70 · 110 · 160 |
+| **Descuento en Pulpería** | Todo cuesta 3 % menos por nivel. | 5 | 20 · 40 · 70 · 110 · 160 |
+| **Suerte del Bufón** | +4 % de que sus trucos te salgan bien por nivel. | 5 | 20 · 40 · 70 · 110 · 160 |
 | **Poder de Reyes** | Tu primera Bendición llega con +1 carga por nivel. | 2 | 110 · 160 |
 | **Hueco de Amuleto** | +1 hueco de Amuleto. | 1 | 160 |
 | **Purga Barata** | Purgar cuesta 2 de oro menos por nivel. | 3 | 70 · 110 · 160 |
@@ -312,6 +312,6 @@ Ganar una partida abre el Reinado siguiente (hasta el 8). Cada uno suma su giro 
 | 3 | Corte airada | Cada combate empieza con 1 de Furia. |
 | 4 | Reyes acorazados | Los Reyes tienen 20 % más de Vida. |
 | 5 | Mano corta | 1 descarte menos por combate. |
-| 6 | Heridas viejas | Tu Vida máxima baja 8. |
-| 7 | Guardia de noche | Toda la Corte pega +1. |
-| 8 | Medianoche | Los Reyes arrancan con +3 de Furia. |
+| 6 | Heridas viejas | Tu Vida máxima baja 15 %. |
+| 7 | Guardia de noche | Rebarajar el Mazo suma +2 de Furia. |
+| 8 | Medianoche | Reyes: +3 Furia inicial y Segunda Cara al 60 %. |

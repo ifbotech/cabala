@@ -7,7 +7,7 @@ import type { AmuletoId } from './amuletos';
 import { B, L, fillL } from './balance';
 import { esComodin } from './cartas';
 import type { Carta, Palo } from './cartas';
-import { curar, pagarVidaMax, tieneAumento } from './estado';
+import { curar, pagarVidaMax, tieneAumento, valorCarta } from './estado';
 import type { Botin, Partida } from './estado';
 import { azar, elegir } from './rng';
 
@@ -96,7 +96,7 @@ export const detalleDe = (o: OpcionCabala, p: Partida): L => o.detalleEn?.(p) ??
 function masBajas(p: Partida, n: number) {
   return p.mazo
     .filter((c) => !esComodin(c) && !c.marcada)
-    .sort((a, b) => a.n - b.n)
+    .sort((a, b) => valorCarta(p, a) - valorCarta(p, b))
     .slice(0, n);
 }
 
@@ -306,7 +306,8 @@ export const CABALAS: readonly CabalaDef[] = [
       {
         id: 'si',
         texto: L('Robarle a la Corte', 'Rob the Court'),
-        ...porTramo((t) => fillL(L('Sale bien: un 9 Templado (+{t} de Daño, +1 de Multi) a tu Mazo. Si no: −{v} de Vida.', 'Goes well: a Tempered 9 (+{t} Damage, +1 Mult) to your deck. If not: −{v} Health.'), { t: k.robo.temple, v: k.robo.vida * t })),
+        detalle: fillL(L('Sale bien: un 9 Templado (+{t} de Daño, +1 de Multi) a tu Mazo. Si no: −{v} de Vida.', 'Goes well: a Tempered 9 (+{t} Damage, +1 Mult) to your deck. If not: −{v} Health.'), { t: k.robo.temple, v: k.robo.vida }),
+        detalleEn: (p) => fillL(L('Sale bien: un {n} Templado (+{t} de Daño, +1 de Multi) a tu Mazo. Si no: −{v} de Vida.', 'Goes well: a Tempered {n} (+{t} Damage, +1 Mult) to your deck. If not: −{v} Health.'), { n: B.mazos[p.mazoId].hasta, t: k.robo.temple, v: k.robo.vida * tramo(p) }),
         acepta: true,
         aSuerte: true,
         puede: (p) => p.vida > k.robo.vida * tramo(p),
@@ -317,9 +318,10 @@ export const CABALAS: readonly CabalaDef[] = [
             return { texto: fillL(L('Te vieron. −{v} de Vida y el cajón, con llave.', 'They saw you. −{v} Health, and the drawer is locked now.'), { v }), bueno: false };
           }
           const palo = elegir(p, ['S', 'C', 'D', 'H'] as const);
+          const maxN = B.mazos[p.mazoId].hasta;
           p.robadas = (p.robadas ?? 0) + 1;
-          p.mazo.push({ id: `R${palo}${p.robadas}`, palo, n: 9, temple: k.robo.temple, templada: true });
-          return { texto: L('Un 9 al rojo, de la Corte a tu Mazo.', 'A red-hot 9, from the Court to your deck.'), bueno: true };
+          p.mazo.push({ id: `R${palo}${p.robadas}`, palo, n: maxN, temple: k.robo.temple, templada: true });
+          return { texto: fillL(L('Un {n} al rojo, de la Corte a tu Mazo.', 'A red-hot {n}, from the Court to your deck.'), { n: maxN }), bueno: true };
         },
       },
       nada(L('Las manos quietas', 'Hands to myself')),

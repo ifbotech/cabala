@@ -90,20 +90,20 @@
     "escudoCaballo": 17,
     "actos": [
       {
-        "vida": 1.5,
+        "vida": 1.65,
         "ataque": 1,
         "escudo": 1,
-        "jefe": 0.85
+        "jefe": 0.9
       },
       {
-        "vida": 4.75,
-        "ataque": 12,
+        "vida": 5.35,
+        "ataque": 13,
         "escudo": 2,
         "jefe": 1
       },
       {
-        "vida": 14.75,
-        "ataque": 28,
+        "vida": 17.0,
+        "ataque": 31,
         "escudo": 4,
         "jefe": 1
       }
@@ -149,14 +149,14 @@
   },
   "mazos": {
     "escoba": {
-      "vida": 70,
+      "vida": 60,
       "mano": 3,
       "hasta": 9,
       "comodines": 2,
       "multi": 3,
-      "cargaDano": 3,
+      "cargaDano": 2,
       "multiMano": 3,
-      "mesaLimpia": 10
+      "mesaLimpia": 8
     },
     "truco": {
       "vida": 53,
@@ -175,26 +175,26 @@
       "multiMano": 7
     },
     "chinchon": {
-      "vida": 27,
+      "vida": 28,
       "mano": 7,
       "hasta": 8,
       "comodines": 2,
       "cargaDano": 2,
-      "corta": 3,
+      "corta": 2,
       "multiMano": 1
     },
     "mentiroso": {
-      "vida": 29,
+      "vida": 34,
       "mano": 8,
       "hasta": 6,
       "comodines": 3,
       "enganos": 1,
       "furiaFallo": 3,
-      "caraDePiedra": 29,
+      "caraDePiedra": 18,
       "multiMano": 0
     },
     "chancho": {
-      "vida": 45,
+      "vida": 41,
       "mano": 4,
       "hasta": 9,
       "comodines": 2,
@@ -267,16 +267,16 @@
     "gasta": 0.5,
     "sol": {
       "oroDoble": 2,
-      "tope": 3,
-      "descarte": 5
+      "tope": 5,
+      "descarte": 3
     },
     "brindis": {
-      "cada": 10,
+      "cada": 8,
       "bebe": 1
     }
   },
   "tesoros": {
-    "precio": 30,
+    "precio": 18,
     "pisos": [
       2,
       4
@@ -293,7 +293,7 @@
     "ginebra": 10,
     "dado": 3,
     "poroto": 2,
-    "precio": 9,
+    "precio": 7,
     "enTienda": 2
   },
   "bufon": {
@@ -427,16 +427,16 @@
       3
     ],
     "hojabroquel": {
-      "escudo": 5,
-      "filo": 1
+      "escudo": 8,
+      "filo": 2
     },
     "filodorado": {
-      "cada": 5,
-      "tope": 12
+      "cada": 3,
+      "tope": 30
     },
-    "sangria": 3,
-    "peaje": 2,
-    "rescoldo": 2,
+    "sangria": 6,
+    "peaje": 4,
+    "rescoldo": 1,
     "convite": {
       "cada": 15,
       "tope": 3
@@ -498,8 +498,8 @@
     ],
     "vida": 0.03,
     "oro": 1,
-    "descuento": 0.02,
-    "suerte": 0.05,
+    "descuento": 0.025,
+    "suerte": 0.04,
     "reyes": 1,
     "purga": 2
   },
@@ -515,8 +515,8 @@
     "furiaInicial": 1,
     "vidaReyes": 0.2,
     "descartes": 1,
-    "vidaMax": 8,
-    "ataque": 1,
+    "vidaMaxPct": 0.15,
+    "furiaRebarajar": 2,
     "furiaReyes": 3
   }
 }

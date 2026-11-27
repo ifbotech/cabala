@@ -75,21 +75,136 @@ export interface Efectiva {
   copia: boolean;
 }
 
+const ORDEN_JUGADA: Record<Jugada, number> = {
+  sola: 0,
+  envido: 1,
+  par: 2,
+  quince: 3,
+  doblepar: 4,
+  flor: 5,
+  pierna: 6,
+  escalera: 7,
+  full: 8,
+  escalerapalo: 9,
+  poker: 10,
+};
+
 /**
- * Resuelve los Comodines: cada uno copia la carta de mayor número del golpe (palo y número). A igualdad de número
- * prefiere un palo que no sea `evitar` (el del enemigo, que es Inmune). Sin cartas de número no hay jugada.
- * Con `engano` (El Mentiroso) todas las cartas fingen ser esa misma carta.
+ * Resuelve los Comodines: completa la mejor jugada posible (póker, escalera, 15 en Escoba, etc.) y, a empate,
+ * copia la carta de mayor número evitando el palo Inmune. Con `engano` (El Mentiroso) todas fingen ser la más alta.
  */
-export function resolver(sel: readonly Carta[], evitar?: Palo, engano = false): Efectiva[] | null {
-  const naturales = sel.filter((c) => !esComodin(c));
-  if (!naturales.length) return null;
-  let mejor = naturales[0];
-  for (const c of naturales) {
-    if (c.n > mejor.n || (c.n === mejor.n && mejor.palo === evitar && c.palo !== evitar)) mejor = c;
+export function resolver(sel: readonly Carta[], evitar?: Palo, engano = false, mazo?: MazoId): Efectiva[] | null {
+  let hasCom = false;
+  let natLen = 0;
+  let mejor: Carta | null = null;
+  for (let i = 0; i < sel.length; i++) {
+    const c = sel[i];
+    if (c.palo === 'X') {
+      hasCom = true;
+    } else {
+      natLen++;
+      if (!mejor || c.n > mejor.n || (c.n === mejor.n && mejor.palo === evitar && c.palo !== evitar)) mejor = c;
+    }
   }
-  return sel.map((c) =>
-    esComodin(c) || (engano && c !== mejor) ? { palo: mejor.palo as Palo, n: mejor.n, de: c, copia: true } : { palo: c.palo as Palo, n: c.n, de: c, copia: false },
-  );
+  if (!mejor) return null;
+  const base: Efectiva[] = new Array(sel.length);
+  const comIdx: number[] = [];
+  for (let i = 0; i < sel.length; i++) {
+    const c = sel[i];
+    const esCom = c.palo === 'X';
+    if (esCom) comIdx.push(i);
+    base[i] = esCom || (engano && c !== mejor)
+      ? { palo: mejor.palo as Palo, n: mejor.n, de: c, copia: true }
+      : { palo: c.palo as Palo, n: c.n, de: c, copia: false };
+  }
+  if (engano || !hasCom) return base;
+
+  const naturales = sel.filter((c) => c.palo !== 'X');
+  const paloNoEvitar = (PALOS.find((p) => p !== evitar) ?? 'S') as Palo;
+  const mismoPaloNat = naturales.every((c) => c.palo === naturales[0].palo);
+  const paloEscalera = mismoPaloNat ? (naturales[0].palo as Palo) : paloNoEvitar;
+  const candidatas: { palo: Palo; n: number }[][] = [];
+  let sumaNat = 0;
+  let minNat = 99;
+  let maxNat = 0;
+  let dupNat = false;
+  const vistosN = new Set<number>();
+  const vistosPN = new Set<string>();
+  for (const nat of naturales) {
+    sumaNat += nat.n;
+    if (nat.n < minNat) minNat = nat.n;
+    if (nat.n > maxNat) maxNat = nat.n;
+    if (vistosN.has(nat.n)) dupNat = true;
+    vistosN.add(nat.n);
+    const key = `${nat.palo}${nat.n}`;
+    if (!vistosPN.has(key)) {
+      vistosPN.add(key);
+      if (!(nat.palo === mejor.palo && nat.n === mejor.n)) {
+        candidatas.push(comIdx.map(() => ({ palo: nat.palo as Palo, n: nat.n })));
+      }
+    }
+  }
+
+  if (comIdx.length === 1) {
+    if (mazo === 'escoba') {
+      const falta = 15 - sumaNat;
+      if (falta >= 1 && falta <= 9) candidatas.push([{ palo: paloNoEvitar, n: falta }]);
+    }
+    if (sel.length >= 3 && !dupNat && maxNat - minNat < sel.length) {
+      for (let ini = Math.max(1, maxNat - sel.length + 1); ini <= Math.min(10 - sel.length, minNat); ini++) {
+        for (let k = 0; k < sel.length; k++) {
+          const v = ini + k;
+          if (!vistosN.has(v)) {
+            candidatas.push([{ palo: paloEscalera, n: v }]);
+            break;
+          }
+        }
+      }
+    }
+  } else if (comIdx.length === 2 && sel.length >= 3 && !dupNat && maxNat - minNat < sel.length) {
+    for (let ini = Math.max(1, maxNat - sel.length + 1); ini <= Math.min(10 - sel.length, minNat); ini++) {
+      const huecos: number[] = [];
+      for (let k = 0; k < sel.length; k++) {
+        const v = ini + k;
+        if (!vistosN.has(v)) huecos.push(v);
+      }
+      if (huecos.length === 2) {
+        candidatas.push([
+          { palo: paloEscalera, n: huecos[0] },
+          { palo: paloEscalera, n: huecos[1] },
+        ]);
+      }
+    }
+  }
+
+  if (!candidatas.length) return base;
+
+  const puntaje = (ef: Efectiva[]) => {
+    const j = clasificar(ef, mazo);
+    const rank = j ? ORDEN_JUGADA[j] : -1;
+    let sum = 0;
+    let noEv = 0;
+    for (let i = 0; i < ef.length; i++) {
+      sum += ef[i].n;
+      if (ef[i].palo !== evitar) noEv++;
+    }
+    return [rank, sum, noEv] as const;
+  };
+  let mejorEf = base;
+  let mejorPts = puntaje(base);
+  for (const cand of candidatas) {
+    const ef = base.slice();
+    for (let ci = 0; ci < comIdx.length; ci++) {
+      const idx = comIdx[ci];
+      ef[idx] = { palo: cand[ci].palo, n: cand[ci].n, de: sel[idx], copia: true };
+    }
+    const pts = puntaje(ef);
+    if (pts[0] > mejorPts[0] || (pts[0] === mejorPts[0] && (pts[1] > mejorPts[1] || (pts[1] === mejorPts[1] && pts[2] > mejorPts[2])))) {
+      mejorEf = ef;
+      mejorPts = pts;
+    }
+  }
+  return mejorEf;
 }
 
 const seguidas = (ns: number[]): boolean => ns.every((n, i) => i === 0 || n === ns[i - 1] + 1);
@@ -114,7 +229,7 @@ export function clasificar(ef: readonly Efectiva[], mazo?: MazoId): Jugada | nul
     const cuenta = [...new Set(ns)].map((r) => ns.filter((x) => x === r).length).sort((a, b) => a - b).join();
     if (n >= 3 && seguidas(ns)) j = mismoPalo ? 'escalerapalo' : 'escalera';
     else if (n === 5 && cuenta === '2,3') j = 'full';
-    else if (n === 5 && cuenta === '1,4') j = null;
+    else if (n === 5 && cuenta === '1,4') j = 'poker';
     else if (n >= 3 && mismoPalo) j = 'flor';
     else if (n === 4 && cuenta === '2,2') j = 'doblepar';
   }

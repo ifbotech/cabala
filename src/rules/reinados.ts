@@ -9,7 +9,7 @@ export const REINADOS: readonly { n: number; nombre: L; giro: L }[] = [
   { n: 3, nombre: L('Corte airada', 'Angry Court'), giro: fillL(L('Cada combate empieza con {n} de Furia.', 'Each fight starts with {n} Fury.'), { n: r.furiaInicial }) },
   { n: 4, nombre: L('Reyes acorazados', 'Armored Kings'), giro: fillL(L('Los Reyes tienen {p} % más de Vida.', 'Kings have {p}% more Health.'), { p: pct(r.vidaReyes) }) },
   { n: 5, nombre: L('Mano corta', 'Short Hand'), giro: fillL(L('{n} descarte menos por combate.', '{n} fewer discard per fight.'), { n: r.descartes }) },
-  { n: 6, nombre: L('Heridas viejas', 'Old Wounds'), giro: fillL(L('Tu Vida máxima baja {n}.', 'Your max Health drops by {n}.'), { n: r.vidaMax }) },
-  { n: 7, nombre: L('Guardia de noche', 'Night Watch'), giro: fillL(L('Toda la Corte pega +{n}.', 'The whole Court hits +{n} harder.'), { n: r.ataque }) },
-  { n: 8, nombre: L('Medianoche', 'Midnight'), giro: fillL(L('Los Reyes arrancan con +{n} de Furia.', 'Kings start with +{n} Fury.'), { n: r.furiaReyes }) },
+  { n: 6, nombre: L('Heridas viejas', 'Old Wounds'), giro: fillL(L('Tu Vida máxima baja {p} %.', 'Your max Health drops by {p}%.'), { p: pct(r.vidaMaxPct) }) },
+  { n: 7, nombre: L('Guardia de noche', 'Night Watch'), giro: fillL(L('Rebarajar el Mazo suma +{n} de Furia.', 'Reshuffling your deck adds +{n} Fury.'), { n: r.furiaRebarajar }) },
+  { n: 8, nombre: L('Medianoche', 'Midnight'), giro: fillL(L('Reyes: +{n} Furia inicial y Segunda Cara al {p} %.', 'Kings: +{n} starting Fury and Second Phase at {p}%.'), { n: r.furiaReyes, p: 60 }) },
 ];

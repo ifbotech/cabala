@@ -3,6 +3,18 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.60.0 · Cirugía de Reglas, Balance Certificado y Duelo con Agencia (2026-11-26)
+
+Primera gran iteración del plan hacia **`v1.0.0`** tras la auditoría del Panel de 5 Directores. *(Música adaptativa `musica.ts` y voces `voces.ts` intactas.)*
+
+- **Comodín inteligente y `4+1` póker (`cartas.ts`, `combate.ts`):** El Comodín ahora completa la mejor jugada posible (escalera, escalera de palo, `15` en Escoba, póker/pierna/full) evitando el palo Inmune; el póker con una carta suelta (`4+1`) pasa a ser jugada válida.
+- **Protección de Bravas y mejoras (`estado.ts`, `combate.ts`, `bufon.ts`):** Nuevo `valorCarta()` para que `Seña Falsa`, `Polvo de Tiza`, `Naipes al fuego` y `El naipe pintado` no destruyan las Bravas del Truco ni naipes forjados en el Fogón.
+- **Coherencia de reglas (`combate.ts`, `bufon.ts`, `mazos.ts`, `balance-config.json`):** `Vale Cuatro` usa `postasDe(p)`; `Cara de Piedra` calibrado a `18` (sin recorte silencioso en Tramo 1); `Mano larga` respeta el tope de cada Mazo (`hasta`); rangos `1–8` / `1–6` explicitados en Chinchón y El Mentiroso.
+- **Evoluciones, Precisión, Pactos Duales y Economía (`balance-config.json`, `combate.ts`, `reyes.ts`, `partida.ts`):** `Sol de la Timba` (`descarte: 3`, `tope: 5`) y `Brindis de Sangre` (`cada: 8`); ventana `al pelo` ampliada a `multiFinal - 1` (sostiene racha, `+1` Multi y dispara `Hoja y broquel`); Pactos Duales potenciados (`Hoja y broquel`, `Filo dorado`, `Sangría`, `Peaje`, `Rescoldo`); Chiches a `7` de oro con descuento del Altar y Tesoros cerrados a `18` de oro; descuento del Altar efectivo desde nivel 1 (`Math.floor` con `2.5 %/nivel`).
+- **Reinados 6–8 con identidad (`reinados.ts`, `partida.ts`, `combate.ts`):** R6 pasa a `-15 %` de Vida máxima proporcional; R7 suma `+2` de Furia al rebarajar el Mazo; R8 suma `+3` de Furia inicial a los Reyes y adelanta su Segunda Cara al `60 %` de Vida.
+- **La Mano contra el Bufón (`dueloBufon.ts`):** Agencia real en los 5 minijuegos (carta visible del Bufón en Truco, puntaje de Escoba, reparto real de 7s sin delación de gesto en Mentiroso, corte real de Chinchón y mano aleatoria en Chancho) y recompensas calibradas sin cura gratuita al perder.
+- **Certificación del laboratorio (`analyze:meta`, 3000 partidas/celda):** **0 avisos** (`escoba 32.3/48.9 %`, `truco 32.0/48.1 %`, `chinchon 31.4/46.1 %`, `mentiroso 31.8/48.2 %`, `chancho 32.0/45.5 %`; paridad en R8 `22.2–27.7 %`).
+
 ## 0.58.0 · Pulso 3-3-2, bocina del Fonógrafo y cierre de revisión 3D (2026-11-25)
 
 Quinta y última iteración de la serie de 5 versiones: sincronización rítmica de todo el elenco 3D con la milonga `3-3-2`, ajuste de orientación en el Fonógrafo y animación viva de velas en Altar y Crónica. *(Reglas, música, voces y balance 100 % congelados.)*

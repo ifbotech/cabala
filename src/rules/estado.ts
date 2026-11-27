@@ -258,6 +258,12 @@ export function carga(p: Partida, rey: Palo): number {
 /** El enemigo activo del combate. */
 export const activo = (p: Partida): Enemigo | undefined => p.combate?.fila[0];
 
+/** Lo que vale una carta para proteger Bravas del Truco y mejoras del Fogón al elegir «la más baja». */
+export function valorCarta(p: Pick<Partida, 'mazoId'>, c: Carta): number {
+  const brava = p.mazoId === 'truco' ? ((B.mazos.truco.bravas as Record<string, number>)[`${c.palo}${c.n}`] ?? 0) : 0;
+  return c.n + brava + (c.temple ?? 0) + (c.templada ? 8 : 0) + (c.brava ? 20 : 0);
+}
+
 /** Lo que queda de una Vida máxima `v` después de pagar `n`: un costo nunca la sube ni la deja gratis
  *  (El Mentiroso arranca con poquísima), y nunca la baja de la mitad. */
 export const vidaMaxTrasCosto = (v: number, n: number): number => Math.min(v, Math.max(Math.ceil(v / 2), Math.round(v - n)));

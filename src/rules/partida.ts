@@ -91,14 +91,18 @@ export function sortearAmuletos(p: Partida, de: 'elite' | 'rey' | 'tienda' | 'te
 // ───────────────────────── empezar ─────────────────────────
 
 /** La Vida con la que empieza un Mazo según el nivel de «Vida Inicial» del Altar. */
-export const vidaInicial = (mazo: MazoId, nivel = 0): number => Math.round(B.mazos[mazo].vida * (1 + nivel * B.altar.vida));
+export const vidaInicial = (mazo: MazoId, nivel = 0): number =>
+  nivel > 0
+    ? B.mazos[mazo].vida + Math.max(nivel, Math.round(B.mazos[mazo].vida * nivel * B.altar.vida))
+    : B.mazos[mazo].vida;
 
 export function nuevaPartida(o: OpcionesPartida): Partida {
   const altar = { ...altarVacio(), ...(o.altar ?? {}) };
   const reinado = Math.max(1, Math.min(8, o.reinado ?? 1));
   const m = B.mazos[o.mazo];
   const semilla = (o.semilla ?? 'CABALA').toUpperCase();
-  const vida = vidaMaxTrasCosto(vidaInicial(o.mazo, altar.vida), reinado >= 6 ? B.reinados.vidaMax : 0);
+  const baseVida = vidaInicial(o.mazo, altar.vida);
+  const vida = vidaMaxTrasCosto(baseVida, reinado >= 6 ? Math.round(baseVida * B.reinados.vidaMaxPct) : 0);
   const p: Partida = {
     v: 1,
     semilla,
@@ -161,7 +165,7 @@ export function filaDe(p: Partida, nodo: Nodo): Enemigo[] {
 }
 
 const descuento = (p: Partida): number => (1 - (p.altar.descuento ?? 0) * B.altar.descuento) * (tieneAumento(p, 'chamuyo') ? 1 - B.aumentos.chamuyo : 1);
-const conDescuento = (p: Partida, precio: number): number => (precio <= 0 ? 0 : Math.max(1, Math.round(precio * descuento(p))));
+const conDescuento = (p: Partida, precio: number): number => (precio <= 0 ? 0 : Math.max(1, Math.floor(precio * descuento(p))));
 export const precioAmuleto = (p: Partida, id: AmuletoId): number => conDescuento(p, precioBase(id));
 export const precioPurgar = (p: Partida): number => conDescuento(p, Math.max(0, B.pulperia.purgar + p.purgas * B.pulperia.purgarSube - (p.altar.purga ?? 0) * B.altar.purga));
 export const precioCurar = (p: Partida): number => conDescuento(p, B.pulperia.curar + p.curas * B.pulperia.curarSube);
@@ -180,7 +184,7 @@ export function elegirNodo(p: Partida, id: string): Ev[] {
     case 'pulperia':
       p.tienda = {
         amuletos: sortearAmuletos(p, 'tienda', 3).map((a) => ({ id: a, precio: precioAmuleto(p, a) })),
-        chiches: muestra(p, CHICHES, B.chiches.enTienda).map((id) => ({ id, precio: B.chiches.precio })),
+        chiches: muestra(p, CHICHES, B.chiches.enTienda).map((id) => ({ id, precio: conDescuento(p, B.chiches.precio) })),
         purgar: precioPurgar(p),
         curar: precioCurar(p),
       };

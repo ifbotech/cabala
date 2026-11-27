@@ -106,6 +106,29 @@ function fuerzaChancho(mano: readonly NaipeDuelo[]): { rango: number; par: numbe
   return { rango: maxC, par: maxN };
 }
 
+function puntosEscoba(cartas: readonly NaipeDuelo[]): number {
+  return cartas.reduce((s, c) => s + 1 + (c.palo === 'D' ? 1 : 0) + (c.palo === 'D' && c.n === 7 ? 2 : 0), 0);
+}
+
+function mejorEscobaDe(mano: readonly NaipeDuelo[], mesa: readonly NaipeDuelo[]): number {
+  let mejor = 0;
+  const n = mesa.length;
+  for (const c of mano) {
+    for (let mask = 1; mask < 1 << n; mask++) {
+      const sub: NaipeDuelo[] = [c];
+      let sum = c.n;
+      for (let i = 0; i < n; i++) {
+        if (mask & (1 << i)) {
+          sub.push(mesa[i]);
+          sum += mesa[i].n;
+        }
+      }
+      if (sum === 15) mejor = Math.max(mejor, puntosEscoba(sub));
+    }
+  }
+  return mejor;
+}
+
 export function pantallaDueloBufon(p: Partida): Pantalla {
   const next = rngDe(`${p.semilla}:duelo:${p.acto}:${p.mazoId}`);
   const hasta = p.mazoId === 'truco' ? 7 : 9;
@@ -142,21 +165,28 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
     manoBufon = robar(6);
     selJugador.add(0);
   } else if (p.mazoId === 'mentiroso') {
-    manoJugador = robar(4);
     mentiraReal = next() < 0.5;
-    manoBufon = mentiraReal
-      ? [{ palo: 'S', n: 7 }, { palo: 'D', n: 7 }]
-      : [{ palo: 'C', n: 3 }, { palo: 'H', n: 5 }];
+    if (mentiraReal) {
+      const s7 = pila.findIndex((c) => c.palo === 'S' && c.n === 7);
+      const d7 = pila.findIndex((c) => c.palo === 'D' && c.n === 7);
+      const a = s7 >= 0 ? pila.splice(s7, 1)[0] : { palo: 'S' as Palo, n: 7 };
+      const idx2 = pila.findIndex((c) => c.palo === 'D' && c.n === 7);
+      const b = idx2 >= 0 ? pila.splice(idx2, 1)[0] : d7 >= 0 ? { palo: 'D' as Palo, n: 7 } : { palo: 'D' as Palo, n: 7 };
+      manoBufon = [a, b];
+    } else {
+      manoBufon = robar(2).map((c, idx) => (c.n === 7 ? { palo: c.palo, n: idx === 0 ? 3 : 5 } : c));
+    }
+    manoJugador = robar(4);
     mentiraDice = '«Dos 7 clavados, compadre.»';
   } else {
     manoJugador = robar(4);
-    manoBufon = [{ palo: 'S', n: 4 }, { palo: 'H', n: 4 }, { palo: 'C', n: 2 }, { palo: 'D', n: 6 }];
+    manoBufon = robar(4);
   }
 
   let estado: 'jugando' | 'gano' | 'perdio' = 'jugando';
   let revelado = false;
   let vozBufon = p.mazoId === 'mentiroso' ? mentiraDice : 'Una mano rápida antes del Rey. ¿Te animás?';
-  let exprBufon: 'reposo' | 'brillo' | 'risa' | 'burla' | 'sombria' = p.mazoId === 'mentiroso' ? (mentiraReal ? 'brillo' : 'burla') : 'brillo';
+  let exprBufon: 'reposo' | 'brillo' | 'risa' | 'burla' | 'sombria' = 'brillo';
   let saliendo = false;
 
   const salirAlRey = (): void => {
@@ -180,7 +210,6 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
     } else {
       exprBufon = 'burla';
       sonar('contra');
-      p.vida = Math.min(p.vidaMax, p.vida + 8);
     }
     repintar();
   };
@@ -195,7 +224,8 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
         lista
           .map((c, i) => {
             const sel = (grupo === 'j' && selJugador.has(i)) || (grupo === 'm' && selMesa.has(i));
-            const img = ocultas ? pxDorso(p.mazoId) : pxNaipe(c);
+            const mostrar = !ocultas || (grupo === 'b' && p.mazoId === 'truco' && i === 0);
+            const img = mostrar ? pxNaipe(c) : pxDorso(p.mazoId);
             if (grupo === 'b' || estado !== 'jugando') {
               return `<span class="duelo-naipe ${sel ? 'elegida' : ''}">${img}</span>`;
             }
@@ -253,17 +283,17 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
               <button class="opcion marco dorado bendicion-bufon-op" data-accion="bendicion" data-id="mano">
                 <b class="op-nombre">MANO BENDITA</b>
                 <span class="op-desc">Oro fresco, curación y filo templado.</span>
-                <span class="op-chips"><span>● +20</span><span>♥ +20</span><span>⚔ +6</span></span>
+                <span class="op-chips"><span>● +10</span><span>♥ +10</span><span>⚔ +4</span></span>
               </button>
               <button class="opcion marco prisma bendicion-bufon-op" data-accion="bendicion" data-id="bolso">
                 <b class="op-nombre">BOLSO DEL CHANTA</b>
-                <span class="op-desc">Más aguante y chiches de pulpería.</span>
-                <span class="op-chips"><span>♥ +10 MÁX</span><span>♥ +10</span><span>★ +2 CHICHES</span></span>
+                <span class="op-desc">Más aguante y un chiche de pulpería.</span>
+                <span class="op-chips"><span>♥ +4 MÁX</span><span>♥ +4</span><span>★ +1 CHICHE</span></span>
               </button>
               <button class="opcion marco paloD bendicion-bufon-op" data-accion="bendicion" data-id="cabala">
                 <b class="op-nombre">CÁBALA MAYOR</b>
                 <span class="op-desc">Fortuna y cargas reales potenciadas.</span>
-                <span class="op-chips"><span>● +15</span><span>★ +3 CARGAS</span></span>
+                <span class="op-chips"><span>● +8</span><span>★ +1 CARGA</span></span>
               </button>
             </div>
           </div>`;
@@ -329,12 +359,17 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
         resolverResultado(gano, gano ? '¡Bien jugado, bravo! Elegí tu Bendición.' : '¡Tenía mejor brava! Suerte con el Rey.');
       },
       'jug-escoba': () => {
-        resolverResultado(true, '¡Escoba limpia de 15! Tomá tu Bendición.');
+        const jCartas = [...Array.from(selJugador).map((i) => manoJugador[i]), ...Array.from(selMesa).map((i) => mesaCartas[i])].filter(Boolean);
+        const restoMesa = mesaCartas.filter((_, i) => !selMesa.has(i));
+        const jPts = puntosEscoba(jCartas);
+        const bPts = mejorEscobaDe(manoBufon, restoMesa);
+        const gano = jPts >= bPts;
+        resolverResultado(gano, gano ? `¡Escoba de ${jPts} tantos contra ${bPts}! Tomá tu Bendición.` : `¡Mi Escoba sumó ${bPts} tantos contra ${jPts}!`);
       },
       'jug-cortar': () => {
         const descIdx = selJugador.size ? Array.from(selJugador)[0] : 0;
         const pts = puntosChinchon(manoJugador.filter((_, i) => i !== descIdx));
-        const bPts = 8 + (p.acto * 2);
+        const bPts = puntosChinchon(manoBufon);
         const gano = pts <= bPts;
         resolverResultado(gano, gano ? `Cortaste con ${pts} contra ${bPts}. ¡Merecida Bendición!` : `Cortaste con ${pts} y yo tenía ${bPts}. ¡Casi!`);
       },
@@ -355,33 +390,30 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
       bendicion: (el) => {
         const id = el.dataset.id;
         if (id === 'mano') {
-          p.oro += 20;
-          p.vida = Math.min(p.vidaMax, p.vida + 20);
+          p.oro += 10;
+          p.vida = Math.min(p.vidaMax, p.vida + 10);
           const carta = p.mazo.filter((k) => k.palo !== 'X').sort((a, b) => b.n - a.n)[0];
           if (carta) {
             if ((carta.temple ?? 0) > 0) carta.templada = true;
-            carta.temple = (carta.temple ?? 0) + 6;
+            carta.temple = (carta.temple ?? 0) + 4;
           }
         } else if (id === 'bolso') {
-          p.vidaMax += 10;
-          p.vida = Math.min(p.vidaMax, p.vida + 10);
+          p.vidaMax += 4;
+          p.vida = Math.min(p.vidaMax, p.vida + 4);
           p.chiches = huecosChiche(p.chiches);
-          let puestos = 0;
           for (const ch of ['dado', 'fosforo', 'tiza', 'ginebra', 'poroto'] as ChicheId[]) {
-            if (puestos >= 2) break;
             const idx = p.chiches.indexOf(null);
             if (idx === -1) break;
             if (!p.chiches.includes(ch)) {
               p.chiches[idx] = ch;
-              puestos++;
+              break;
             }
           }
         } else if (id === 'cabala') {
-          p.oro += 15;
-          p.cargas.S = (p.cargas.S ?? 0) + 3;
-          p.cargas.C = (p.cargas.C ?? 0) + 3;
-          p.cargas.D = (p.cargas.D ?? 0) + 3;
-          p.cargas.H = (p.cargas.H ?? 0) + 3;
+          p.oro += 8;
+          const activas = (['S', 'C', 'D', 'H'] as const).filter((k) => (p.cargas[k] ?? 0) > 0);
+          const destino = activas.length ? activas : (['S', 'C', 'D', 'H'] as const);
+          for (const k of destino) p.cargas[k] = (p.cargas[k] ?? 0) + 1;
         }
         salirAlRey();
       },

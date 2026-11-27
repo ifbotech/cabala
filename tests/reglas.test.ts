@@ -26,7 +26,7 @@ import type { BendicionId } from '../src/rules/reyes';
 const pano = (q: { pasos: { de: string; tipo: string; v: number }[] }, tipo: 'd' | 'm' = 'd'): number => q.pasos.filter((x) => x.de.startsWith('posta:') && x.tipo === tipo).reduce((s, x) => s + x.v, 0);
 const c = (palo: PaloCarta, n: number, id = `${palo}${n}${Math.random().toString(36).slice(2, 6)}`): Carta => ({ id, palo, n });
 const jugada = (cartas: Carta[], mazo?: MazoId) => {
-  const ef = resolver(cartas);
+  const ef = resolver(cartas, undefined, false, mazo);
   return ef ? clasificar(ef, mazo) : null;
 };
 
@@ -723,7 +723,7 @@ describe('0.22.0: Evoluciones, Forja Brava, Cábala Negra y Tesoros', () => {
     p.vida = Math.round(p.vidaMax * 0.65);
     const q = cuenta(p, mano);
     expect(q.pasos.some((x) => x.de === 'a:caliz')).toBe(false);
-    expect(q.pasos.find((x) => x.de === 'ev:caliz')?.v).toBe(3);
+    expect(q.pasos.find((x) => x.de === 'ev:caliz')?.v).toBe(Math.floor(((p.vidaMax - p.vida) / p.vidaMax) * 100 / B.evoluciones.brindis.cada));
   });
   it('la tercera pasada por el Fogón es la Forja Brava: número doble y una mutación', () => {
     let forjas = 0;
@@ -1036,5 +1036,33 @@ describe('0.29.0: el Envido se canta, el Garrote pide Bastos y el ¡CHANCHO! que
   it('«al pelo» paga su oro', () => {
     expect(B.exacto.oroAlPelo).toBeGreaterThan(0);
     expect(B.exacto.alPelo).toBeGreaterThanOrEqual(0.1);
+  });
+});
+
+describe('0.60.0: cirugía de reglas, Comodín inteligente y protección de Bravas', () => {
+  it('el Comodín completa escalera, 15 en Escoba y póker con 1 carta suelta (4+1)', () => {
+    expect(jugada([c('S', 4), c('C', 6), c('X', 0)])).toBe('escalera');
+    expect(jugada([c('S', 9), c('X', 0)], 'escoba')).toBe('quince');
+    expect(jugada([c('S', 5), c('C', 5), c('D', 5), c('H', 5), c('S', 2)])).toBe('poker');
+  });
+  it('Seña Falsa y Polvo de Tiza protegen las Bravas del Truco al buscar la más baja', () => {
+    const mano = [c('S', 1, 'S1'), c('D', 3, 'D3'), c('H', 4, 'H4')];
+    const p = mesa('truco', mano);
+    p.aumentos.push('senafalsa');
+    descartar(p, [mano[2].id]);
+    expect(mano[0].n).toBe(1); // el 1 de Espadas (+32) sigue intacto
+    const p2 = mesa('truco', [c('S', 1, 'S1b'), c('D', 3, 'D3b')]);
+    p2.chiches![0] = 'tiza';
+    juego.usarChiche(p2, 0);
+    expect(p2.combate!.mano[0].palo).toBe('S');
+    expect(p2.combate!.mano[1].palo).toBe('X');
+  });
+  it('Reinado 6 baja la Vida en porcentaje y el descuento del Altar baja precios desde nivel 1', () => {
+    const p1 = juego.nuevaPartida({ mazo: 'chinchon', reinado: 1, semilla: 'R6' });
+    const p6 = juego.nuevaPartida({ mazo: 'chinchon', reinado: 6, semilla: 'R6' });
+    expect(p6.vidaMax).toBe(Math.round(p1.vidaMax * (1 - B.reinados.vidaMaxPct)));
+    const a1 = { ...perfilNuevo().altar, descuento: 1 };
+    const pDesc = juego.nuevaPartida({ mazo: 'escoba', altar: a1, semilla: 'DESC' });
+    expect(juego.precioAmuleto(pDesc, 'cuchillo')).toBeLessThan(B.pulperia.precio.comun);
   });
 });
