@@ -1875,8 +1875,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     const dy = Math.round(a.y - de.y);
     // (la foto de la QA lo deja quieto a mitad de camino, en lo alto de su arco)
     if (enFoto()) {
-      // (0.22: casi llegando, sobre lo suyo: a mitad de camino caía sobre la cuenta)
-      v.style.transform = `translate(calc(-50% + ${Math.round(dx * 0.92)}px), calc(-50% + ${Math.round(dy * 0.92) - 20}px)) scale(1.4)`;
+      v.style.transform = `translate(calc(-50% + ${Math.round(dx * 0.68)}px), calc(-50% + ${Math.round(dy * 0.68) - 28}px)) scale(1.3)`;
       return Promise.resolve();
     }
     const anim = v.animate(
@@ -2057,24 +2056,20 @@ export function pantallaMesa(p: Partida): Pantalla {
     rotulo.style.left = `${Math.round(de.x)}px`;
     rotulo.style.top = `${Math.round(de.y)}px`;
     $('#capa')?.append(rotulo);
-    // (0.29) si ahí vuela el número del golpe, el sello se corre: arriba, bien abajo o al costado del naipe
+    // (0.29) si ahí vuela el número del golpe, el sello se corre sobre el pecho del enemigo o arriba/abajo
+    const pechoY = innerWidth > 700 ? Math.round(de.y + 28) : Math.round(de.y);
     ubicar(rotulo, 'rotulo', 900, [
       () => {
-        rotulo.style.top = `${Math.round(de.y - 40)}px`;
+        rotulo.style.left = `${Math.round(de.x)}px`;
+        rotulo.style.top = `${pechoY}px`;
       },
       () => {
+        rotulo.style.left = `${Math.round(de.x)}px`;
+        rotulo.style.top = `${Math.round(de.y - 36)}px`;
+      },
+      () => {
+        rotulo.style.left = `${Math.round(de.x)}px`;
         rotulo.style.top = `${Math.round(de.y + 96)}px`;
-      },
-      () => {
-        rotulo.style.top = `${Math.round(de.y + 140)}px`;
-      },
-      () => {
-        rotulo.style.top = `${Math.round(de.y - 96)}px`;
-      },
-      () => {
-        if (innerWidth <= 700) return;
-        rotulo.style.top = `${Math.round(de.y)}px`;
-        rotulo.style.left = `${Math.round(de.x + 190)}px`;
       },
     ]);
     window.setTimeout(() => rotulo.remove(), quieto() ? 1400 : 900);

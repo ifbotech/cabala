@@ -21,7 +21,7 @@ import { ESTADOS } from '../src/client/qa';
 guardian('qa:visual', 360);
 
 const args = process.argv.slice(2);
-const lang = args.find((a) => a.startsWith('--lang='))?.split('=')[1] === 'en' ? 'en' : 'es';
+const lang = args.includes('--en') || args.find((a) => a.startsWith('--lang='))?.split('=')[1] === 'en' ? 'en' : 'es';
 const soloVentanas = args.filter((a) => a.startsWith('--ventana=')).map((a) => a.split('=')[1]);
 const pedidos = args.filter((a) => !a.startsWith('-'));
 const estados = ESTADOS.filter((e) => !pedidos.length || pedidos.includes(e));
@@ -58,7 +58,7 @@ function auditar(o: { esMovil: boolean; idioma: string; deck: boolean }): Fallo[
     return r.width > 0 && r.height > 0;
   };
   // (0.24: en el teléfono, el cuadro del final también se desliza entre el título y los botones)
-  const enRollo = (el: Element) => !!el.closest(`.mapa-rollo, .visor-cartas, .col-cuerpo, .hud-tiras, .pul-cuerpo, .velo, .rollo${esMovil ? ', .fin-cuadro' : ''}`);
+  const enRollo = (el: Element) => !!el.closest(`.mapa-rollo, .visor-cartas, .col-cuerpo, .cr-lista, .hud-tiras, .pul-cuerpo, .velo, .rollo${esMovil ? ', .fin-cuadro' : ''}`);
   const nombre = (el: Element) => `${el.tagName.toLowerCase()}${el.className && typeof el.className === 'string' ? `.${el.className.trim().split(/\s+/).slice(0, 3).join('.')}` : ''}`;
   const todos = [...document.querySelectorAll('#app *, #capa *')].filter(visible);
   for (const el of todos) {

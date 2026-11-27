@@ -74,6 +74,7 @@ let pulsoMusica = 0;
 let calentando = false;
 
 function rehacerFondo(): void {
+  if (escena3dActiva()) return;
   const palo = escena === 'mesa' ? clima : null;
   const clave = `${escena}|${palo ?? '-'}`;
   let e = armadas.get(clave);

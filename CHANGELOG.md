@@ -3,6 +3,13 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 1.4.0 · Pulido Píxel a Píxel: Crónica, Prenda y QA Visual EN (2026-11-27)
+
+- **Crónica móvil y escritorio (`pantallas.css`):** Grilla de dos filas en `.cr-fila` móvil para leer mazo, Reinado, tramo, mejor golpe y semilla sin truncamiento ni `...`; aire vertical sobre el Bufón debajo de la placa de trofeo en escritorio.
+- **Prenda y Chiche en vuelo (`mesa.ts`):** El sello `¡PRENDA!` / `SPOILS!` prioriza posicionarse centrado debajo de la barra de Vida sin pisar `TE PEGA`, y el Chiche en vuelo (`enFoto`) se ubica en el tramo medio sobre la madera sin tapar `CHICHES` ni el HUD.
+- **QA visual EN (`scripts/visual-qa.ts`):** Acepta el alias `--en` además de `--lang=en` para generar y auditar `artifacts/visual-qa-en/`.
+- **Rendimiento 1080p (`cartas3d.ts`, `motor.ts`):** Precalentamiento de astillas y `depthWrite: false` en `partirEnemigo()` para evitar compilación de shaders en el primer golpe, y omisión de fondos 2D ocultos cuando WebGL 3D está activo.
+
 ## 1.3.0 · Pulido Píxel a Píxel: Resumen Móvil, Regla 1080p, La Corte y Mapa (2026-11-27)
 
 - **Resumen de derrota móvil (`bufon3d.ts`, `pantallas.css`):** Oculta el Bufón 3D cuando `.fin-escena.corrida` se desplaza en móvil para no quedar detrás del título.

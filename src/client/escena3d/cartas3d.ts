@@ -97,7 +97,10 @@ export class SincroCartas3D {
     const warmupMoneda = new THREE.Mesh(this.geoMoneda, this.matOro);
     warmupMoneda.scale.setScalar(0.001);
     warmupMoneda.position.set(0, -10, 0);
-    this.raiz.add(warmupSprite, warmupMoneda);
+    const warmupAstilla = new THREE.Mesh(this.geoAstilla, this.matAstilla.S);
+    warmupAstilla.scale.setScalar(0.001);
+    warmupAstilla.position.set(0, -10, 0);
+    this.raiz.add(warmupSprite, warmupMoneda, warmupAstilla);
     escena.add(this.raiz);
   }
 
@@ -187,6 +190,7 @@ export class SincroCartas3D {
           transparent: true,
           opacity: 1,
           side: THREE.DoubleSide,
+          depthWrite: false,
         });
         const m = new THREE.Mesh(this.geoSombra, mat);
         m.scale.set(tam.worldW, tam.worldH, 1);
