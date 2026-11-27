@@ -193,6 +193,7 @@ export function pantallaIntroMazo(mazo: MazoId, alTerminar: () => void): Pantall
       if (onKey) window.removeEventListener('keydown', onKey);
       onKey = (ev: KeyboardEvent) => {
         if (pantallaActual()?.nombre !== 'intro-mazo') return;
+        if ((ev.key === 'Enter' || ev.key === ' ') && document.activeElement?.closest('[data-accion]')) return;
         if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'ArrowRight') {
           ev.preventDefault();
           avanzar();

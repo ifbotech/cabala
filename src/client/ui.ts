@@ -99,9 +99,15 @@ export function repintar(): void {
 }
 export const pantallaActual = (): Pantalla | null => actual;
 
+let focoAntesModal: HTMLElement | null = null;
+
 /** Abre un modal sobre la pantalla. */
 export function abrirModal(html: string, acciones: Record<string, Accion> = {}, atras?: () => void): HTMLElement {
+  const estabaAbierto = modal !== null;
   cerrarModal();
+  if (!estabaAbierto) focoAntesModal = document.activeElement as HTMLElement | null;
+  const app = $('#app');
+  if (app) app.inert = true;
   const capa = $('#capa')!;
   capa.insertAdjacentHTML('beforeend', `<div class="velo" role="dialog" aria-modal="true">${html}</div>`);
   modal = { acciones, atras };
@@ -116,6 +122,12 @@ export function abrirModal(html: string, acciones: Record<string, Accion> = {}, 
 export function cerrarModal(): void {
   $('#capa .velo')?.remove();
   modal = null;
+  const app = $('#app');
+  if (app) app.inert = false;
+  if (focoAntesModal?.isConnected) {
+    focoAntesModal.focus();
+    focoAntesModal = null;
+  }
 }
 export const hayModal = (): boolean => modal !== null;
 

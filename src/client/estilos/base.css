@@ -1771,6 +1771,10 @@ html[data-entrada='teclado'] .glifo.g-tecla {
   -webkit-mask-image: linear-gradient(#000 calc(100% - 68px), transparent calc(100% - 14px));
   mask-image: linear-gradient(#000 calc(100% - 68px), transparent calc(100% - 14px));
 }
+.negra-bandeja.hay-mas[data-hay-mas]::after {
+  bottom: calc(62px * var(--k));
+  pointer-events: none;
+}
 .pieza-fila:focus-visible {
   position: relative;
   outline: calc(2px * var(--k)) solid var(--foco, #7df3ff);

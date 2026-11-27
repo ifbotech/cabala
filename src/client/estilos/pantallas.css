@@ -5375,7 +5375,11 @@ main.fogon.forjando [data-accion='seguir'] {
     text-shadow: 2px 2px 0 #09070f;
   }
   .mapa .mapa-espera {
-    display: none;
+    display: inline-block;
+    font-size: max(14px, var(--fs-s));
+    color: var(--oro);
+    background: rgba(16, 10, 26, 0.85);
+    padding: 2px 8px;
   }
 }
 /* 0.31.0: el Rey del Mapa permanece siempre a plena vista mientras la ayuda se ubica por encima o por debajo */
@@ -6228,20 +6232,20 @@ main.fogon.forjando [data-accion='seguir'] {
   line-height: 1.2;
 }
 .op-chips > .oc-dano {
+  color: #ff6e8e;
+  box-shadow: inset 0 0 0 1px #9e2249;
+}
+.op-chips > .oc-multi {
   color: #7ee3ff;
   box-shadow: inset 0 0 0 1px #1e6fa8;
 }
-.op-chips > .oc-multi {
-  color: #ff94b2;
-  box-shadow: inset 0 0 0 1px #9e2249;
-}
 .op-chips > .oc-escudo {
-  color: #6df09a;
-  box-shadow: inset 0 0 0 1px #247842;
+  color: #66c8ff;
+  box-shadow: inset 0 0 0 1px #1b5e94;
 }
 .op-chips > .oc-vida {
-  color: #ff6e8e;
-  box-shadow: inset 0 0 0 1px #8c1f3c;
+  color: #6df09a;
+  box-shadow: inset 0 0 0 1px #247842;
 }
 .op-chips > .oc-oro {
   color: var(--oro);

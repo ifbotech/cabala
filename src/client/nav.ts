@@ -77,9 +77,9 @@ export const glifo = (mando: GlifoMando, tecla: string): string =>
   `<kbd class="glifo g-mando g-${mando.toLowerCase()}" aria-hidden="true">${mando === 'START' ? '≡' : mando}</kbd><kbd class="glifo g-tecla" aria-hidden="true">${tecla}</kbd>`;
 
 /** Los botones de salida: B (o Escape) los pulsa. CERRAR, SALTAR, SALIR, VOLVER, NO y el SEGUIR que deja una pantalla. */
-export const SALIDAS: readonly string[] = ['cerrar', 'saltar', 'salir', 'volver', 'no', 'seguir', 'portada'];
+export const SALIDAS: readonly string[] = ['cerrar', 'saltar', 'salir', 'volver', 'no', 'seguir', 'portada', 'pasar-rey'];
 /** Los botones de elegir: A (o Enter) los pulsa. ELEGIR, COMPRAR y lo que se toma o se confirma. */
-const ELIGEN: readonly string[] = ['elegir', 'comprar', 'llevar', 'abrir', 'si', 'jugar', 'nueva', 'mejorar', 'soltar', 'mazo', 'purgar', 'curar', 'templar', 'arrimar', 'descansar', 'opcion', 'otra', 'altar', 'carta'];
+const ELIGEN: readonly string[] = ['elegir', 'comprar', 'llevar', 'abrir', 'si', 'jugar', 'nueva', 'mejorar', 'soltar', 'mazo', 'purgar', 'curar', 'templar', 'arrimar', 'descansar', 'opcion', 'otra', 'altar', 'carta', 'bendicion', 'jug-envido', 'jug-truco', 'jug-escoba', 'jug-cortar', 'jug-mentira', 'jug-creer', 'jug-chancho'];
 /**
  * Pone el glifo del mando (y de la tecla) en todo botón de la pantalla y de su modal que todavía no lo tenga: A en los
  * de elegir, B en los de salida (que además quedan marcados con `data-salida`: B y Escape los buscan) y Start en MENÚ.

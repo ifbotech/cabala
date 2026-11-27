@@ -9,7 +9,7 @@ import { fogonazo3d, sacudirCamara3d } from '../escena3d';
 import { avivarRetrato, hudHtml } from '../hud';
 import { guardar, irCaminoSol, pintarFase } from '../juego';
 import { pxDorso, pxNaipe } from '../sprites';
-import { anfitrion, esc, repintar, type Pantalla } from '../ui';
+import { anfitrion, esc, irASalida, repintar, $, type Pantalla } from '../ui';
 
 interface NaipeDuelo {
   palo: Palo;
@@ -177,7 +177,7 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
       manoBufon = robar(2).map((c, idx) => (c.n === 7 ? { palo: c.palo, n: idx === 0 ? 3 : 5 } : c));
     }
     manoJugador = robar(4);
-    mentiraDice = '«Dos 7 clavados, compadre.»';
+    mentiraDice = t('dueloMentiraDice');
   } else {
     manoJugador = robar(4);
     manoBufon = robar(4);
@@ -185,7 +185,7 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
 
   let estado: 'jugando' | 'gano' | 'perdio' = 'jugando';
   let revelado = false;
-  let vozBufon = p.mazoId === 'mentiroso' ? mentiraDice : 'Una mano rápida antes del Rey. ¿Te animás?';
+  let vozBufon = p.mazoId === 'mentiroso' ? mentiraDice : t('dueloIntro');
   let exprBufon: 'reposo' | 'brillo' | 'risa' | 'burla' | 'sombria' = 'brillo';
   let saliendo = false;
 
@@ -218,7 +218,7 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
 
   return {
     nombre: 'duelo-bufon',
-    atras: salirAlRey,
+    atras: () => void irASalida($('#app')),
     html: () => {
       const cartasHtml = (lista: readonly NaipeDuelo[], grupo: 'j' | 'm' | 'b', ocultas = false): string =>
         lista
@@ -226,10 +226,10 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
             const sel = (grupo === 'j' && selJugador.has(i)) || (grupo === 'm' && selMesa.has(i));
             const mostrar = !ocultas || (grupo === 'b' && p.mazoId === 'truco' && i === 0);
             const img = mostrar ? pxNaipe(c) : pxDorso(p.mazoId);
-            if (grupo === 'b' || estado !== 'jugando') {
+            if (grupo === 'b' || estado !== 'jugando' || (grupo === 'j' && p.mazoId === 'mentiroso')) {
               return `<span class="duelo-naipe ${sel ? 'elegida' : ''}">${img}</span>`;
             }
-            return `<button class="duelo-naipe ${sel ? 'elegida' : ''}" data-accion="sel-${grupo}" data-i="${i}">${img}</button>`;
+            return `<button class="duelo-naipe ${sel ? 'elegida' : ''}" data-accion="sel-${grupo}" data-i="${i}" data-foco="duelo-${grupo}-${i}" ${grupo === 'j' && i === 0 ? 'data-inicio' : ''}>${img}</button>`;
           })
           .join('');
 
@@ -238,27 +238,29 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
         let accionesJuego = '';
         if (p.mazoId === 'truco') {
           const env = envidoDe(manoJugador);
-          accionesJuego = `<button class="btn marco oro" data-accion="jug-envido">${t('dueloEnvido', { n: env })}</button>
-            <button class="btn marco" data-accion="jug-truco">${t('dueloTruco')}</button>`;
+          accionesJuego = `<p class="duelo-tip">${t('dueloTrucoTip')}</p>
+            <button class="btn marco oro" data-accion="jug-envido" data-foco="jug-envido" data-inicio>${t('dueloEnvido', { n: env })}</button>
+            <button class="btn marco" data-accion="jug-truco" data-foco="jug-truco">${t('dueloTruco')}</button>`;
         } else if (p.mazoId === 'escoba') {
           const jSum = Array.from(selJugador).reduce((s, i) => s + (manoJugador[i]?.n ?? 0), 0);
           const mSum = Array.from(selMesa).reduce((s, i) => s + (mesaCartas[i]?.n ?? 0), 0);
           const total15 = jSum + mSum;
           const listo = selJugador.size === 1 && selMesa.size >= 1 && total15 === 15;
           accionesJuego = `<p class="duelo-tip">${t('dueloEscobaSuma', { s: total15 })}</p>
-            <button class="btn marco oro" data-accion="jug-escoba" ${listo ? '' : 'disabled'}>${t('dueloEscoba')}</button>`;
+            <button class="btn marco oro" data-accion="jug-escoba" data-foco="jug-escoba" ${listo ? '' : 'disabled'}>${t('dueloEscoba')}</button>`;
         } else if (p.mazoId === 'chinchon') {
           const descIdx = selJugador.size ? Array.from(selJugador)[0] : 0;
           const restantes = manoJugador.filter((_, i) => i !== descIdx);
           const pts = puntosChinchon(restantes);
           accionesJuego = `<p class="duelo-tip">${t('dueloChinchonTip')}</p>
-            <button class="btn marco oro" data-accion="jug-cortar">${t('dueloCortar', { n: pts })}</button>`;
+            <button class="btn marco oro" data-accion="jug-cortar" data-foco="jug-cortar">${t('dueloCortar', { n: pts })}</button>`;
         } else if (p.mazoId === 'mentiroso') {
-          accionesJuego = `<button class="btn marco oro" data-accion="jug-mentira">${t('dueloMentira')}</button>
-            <button class="btn marco" data-accion="jug-creer">${t('dueloCreer')}</button>`;
+          accionesJuego = `<p class="duelo-tip">${t('dueloMentirosoTip')}</p>
+            <button class="btn marco oro" data-accion="jug-mentira" data-foco="jug-mentira" data-inicio>${t('dueloMentira')}</button>
+            <button class="btn marco" data-accion="jug-creer" data-foco="jug-creer">${t('dueloCreer')}</button>`;
         } else {
           accionesJuego = `<p class="duelo-tip">${t('dueloChanchoTip', { n: cambiosChancho })}</p>
-            <button class="btn marco oro" data-accion="jug-chancho">${t('dueloChancho')}</button>`;
+            <button class="btn marco oro" data-accion="jug-chancho" data-foco="jug-chancho">${t('dueloChancho')}</button>`;
         }
 
         cuerpoHtml = `
@@ -273,27 +275,28 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
               <div class="duelo-cartas">${cartasHtml(manoJugador, 'j')}</div>
             </div>
           </div>
-          <div class="duelo-acciones">${accionesJuego}<button class="btn marco chico" data-accion="pasar-rey">${t('dueloRendirse')}</button></div>`;
+          <div class="duelo-acciones">${accionesJuego}<button class="btn marco chico" data-accion="pasar-rey" data-foco="pasar-rey">${t('dueloRendirse')}</button></div>`;
       } else if (estado === 'gano') {
+        const chipsHtml = (s: string) => s.split('|').map((x) => `<span>${esc(x)}</span>`).join('');
         cuerpoHtml = `
           <div class="duelo-bendicion">
             <h2 class="titulo dorado">${t('dueloBendicionTitulo')}</h2>
             <p class="sub">${t('dueloBendicionSub')}</p>
             <div class="opciones">
-              <button class="opcion marco dorado bendicion-bufon-op" data-accion="bendicion" data-id="mano">
-                <b class="op-nombre">MANO BENDITA</b>
-                <span class="op-desc">Oro fresco, curación y filo templado.</span>
+              <button class="opcion marco dorado bendicion-bufon-op" data-accion="bendicion" data-id="mano" data-foco="bend-mano" data-inicio>
+                <b class="op-nombre">${t('dueloBendManoNom')}</b>
+                <span class="op-desc">${t('dueloBendManoDesc')}</span>
                 <span class="op-chips"><span>● +10</span><span>♥ +10</span><span>⚔ +4</span></span>
               </button>
-              <button class="opcion marco prisma bendicion-bufon-op" data-accion="bendicion" data-id="bolso">
-                <b class="op-nombre">BOLSO DEL CHANTA</b>
-                <span class="op-desc">Más aguante y un chiche de pulpería.</span>
-                <span class="op-chips"><span>♥ +4 MÁX</span><span>♥ +4</span><span>★ +1 CHICHE</span></span>
+              <button class="opcion marco prisma bendicion-bufon-op" data-accion="bendicion" data-id="bolso" data-foco="bend-bolso">
+                <b class="op-nombre">${t('dueloBendBolsoNom')}</b>
+                <span class="op-desc">${t('dueloBendBolsoDesc')}</span>
+                <span class="op-chips">${chipsHtml(t('dueloBendBolsoChips'))}</span>
               </button>
-              <button class="opcion marco paloD bendicion-bufon-op" data-accion="bendicion" data-id="cabala">
-                <b class="op-nombre">CÁBALA MAYOR</b>
-                <span class="op-desc">Fortuna y cargas reales potenciadas.</span>
-                <span class="op-chips"><span>● +8</span><span>★ +1 CARGA</span></span>
+              <button class="opcion marco paloD bendicion-bufon-op" data-accion="bendicion" data-id="cabala" data-foco="bend-cabala">
+                <b class="op-nombre">${t('dueloBendCabalaNom')}</b>
+                <span class="op-desc">${t('dueloBendCabalaDesc')}</span>
+                <span class="op-chips">${chipsHtml(t('dueloBendCabalaChips'))}</span>
               </button>
             </div>
           </div>`;
@@ -301,7 +304,7 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
         cuerpoHtml = `
           <div class="duelo-bendicion">
             <h2 class="titulo">${esc(t('dueloPerdio'))}</h2>
-            <button class="btn marco oro grande" data-accion="pasar-rey">${t('dueloAlRey')}</button>
+            <button class="btn marco oro grande" data-accion="pasar-rey" data-foco="pasar-rey" data-inicio>${t('dueloAlRey')}</button>
           </div>`;
       }
 
@@ -350,13 +353,13 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
         const jEnv = envidoDe(manoJugador);
         const bEnv = envidoDe(manoBufon);
         const gano = jEnv >= bEnv;
-        resolverResultado(gano, gano ? `¡Me ganaste con ${jEnv} a ${bEnv}! Tomá tu Bendición.` : `¡${bEnv} es mejor que ${jEnv}! Te dormiste.`);
+        resolverResultado(gano, t(gano ? 'dueloEnvidoGano' : 'dueloEnvidoPerdio', { j: jEnv, b: bEnv }));
       },
       'jug-truco': () => {
         const jMax = Math.max(...manoJugador.map(valorTruco));
         const bMax = Math.max(...manoBufon.map(valorTruco));
         const gano = jMax >= bMax;
-        resolverResultado(gano, gano ? '¡Bien jugado, bravo! Elegí tu Bendición.' : '¡Tenía mejor brava! Suerte con el Rey.');
+        resolverResultado(gano, t(gano ? 'dueloTrucoGano' : 'dueloTrucoPerdio'));
       },
       'jug-escoba': () => {
         const jCartas = [...Array.from(selJugador).map((i) => manoJugador[i]), ...Array.from(selMesa).map((i) => mesaCartas[i])].filter(Boolean);
@@ -364,28 +367,28 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
         const jPts = puntosEscoba(jCartas);
         const bPts = mejorEscobaDe(manoBufon, restoMesa);
         const gano = jPts >= bPts;
-        resolverResultado(gano, gano ? `¡Escoba de ${jPts} tantos contra ${bPts}! Tomá tu Bendición.` : `¡Mi Escoba sumó ${bPts} tantos contra ${jPts}!`);
+        resolverResultado(gano, t(gano ? 'dueloEscobaGano' : 'dueloEscobaPerdio', { j: jPts, b: bPts }));
       },
       'jug-cortar': () => {
         const descIdx = selJugador.size ? Array.from(selJugador)[0] : 0;
         const pts = puntosChinchon(manoJugador.filter((_, i) => i !== descIdx));
         const bPts = puntosChinchon(manoBufon);
         const gano = pts <= bPts;
-        resolverResultado(gano, gano ? `Cortaste con ${pts} contra ${bPts}. ¡Merecida Bendición!` : `Cortaste con ${pts} y yo tenía ${bPts}. ¡Casi!`);
+        resolverResultado(gano, t(gano ? 'dueloChinchonGano' : 'dueloChinchonPerdio', { j: pts, b: bPts }));
       },
       'jug-mentira': () => {
         const gano = !mentiraReal;
-        resolverResultado(gano, gano ? '¡Me agarraste en el chamuyo! Elegí tu premio.' : '¡Eran de verdad, desconfiado!');
+        resolverResultado(gano, t(gano ? 'dueloMentiraGano' : 'dueloMentiraPerdio'));
       },
       'jug-creer': () => {
         const gano = mentiraReal;
-        resolverResultado(gano, gano ? '¡Confiaste bien! Acá tenés tu Bendición.' : '¡Te comiste el verso entero!');
+        resolverResultado(gano, t(gano ? 'dueloCreerGano' : 'dueloCreerPerdio'));
       },
       'jug-chancho': () => {
         const jF = fuerzaChancho(manoJugador);
         const bF = fuerzaChancho(manoBufon);
         const gano = jF.rango > bF.rango || (jF.rango === bF.rango && jF.par >= bF.par);
-        resolverResultado(gano, gano ? '¡Mano veloz! Elegí tu Bendición.' : '¡Llegué antes al centro!');
+        resolverResultado(gano, t(gano ? 'dueloChanchoGano' : 'dueloChanchoPerdio'));
       },
       bendicion: (el) => {
         const id = el.dataset.id;

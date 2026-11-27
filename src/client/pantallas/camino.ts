@@ -17,8 +17,9 @@ import { BENDICION, BENDICIONES, REY_DEF } from '../../rules/reyes';
 import type { BendicionId } from '../../rules/reyes';
 import { clavePieza } from '../../rules/notas';
 import { EVOLUCION, esEvolucionable, evoluciono } from '../../rules/evoluciones';
-import { alAzar, elegirCartaGloria, idioma, perfil, t, tx } from '../almacen';
-import { sonar } from '../audio';
+import { ajustes, alAzar, elegirCartaGloria, fijarIdioma, guardarAjustes, idioma, perfil, t, tx } from '../almacen';
+import { refrescarSonido, sonar } from '../audio';
+import { refrescarMusica } from '../musica';
 import { chispas, destello, haloRey, humo, lluviaDeMonedas, monedas, numero, partirNaipe } from '../fx/efectos';
 import { teclear } from '../habla';
 import { RAPIDO, pausa, quieto } from '../ritmo';
@@ -176,9 +177,6 @@ const GLOSARIO: readonly { e: EntradaGlosario; nombre: () => string }[] = [
   { e: 'chiches', nombre: () => t('chiches') },
   { e: 'mano', nombre: () => tx(PASO_NOMBRE.mano) },
   { e: 'cantos', nombre: () => tx(PASO_NOMBRE.cantos) },
-  { e: 'paloypalo', nombre: () => fichaDe('bendicion', 'paloypalo').nombre },
-  { e: 'filodorado', nombre: () => fichaDe('bendicion', 'filodorado').nombre },
-  { e: 'taba', nombre: () => fichaDe('amuleto', 'taba').nombre },
 ];
 
 /**
@@ -228,7 +226,7 @@ export function modalJugadas(p: Partida, actual?: Jugada | null): void {
           </div>
           <table class="jugadas-tabla">
           <thead><tr><th scope="col">${t('jugada')}</th><th scope="col">${t('cartas')}</th><th scope="col" class="n">${t('dano')}</th><th scope="col" class="n">${t('multi')}</th></tr></thead>
-          <caption class="jugadas-canto"><span class="rotulo">${t('tuCanto')}</span><b class="chip canto">${esc(tx(mz.canto))}</b><span>${esc(tx(mz.regla))}</span></caption>
+          <caption class="jugadas-canto"><span class="rotulo">${t('tuCanto')}</span><b class="chip canto">${esc(tx(mz.canto))}</b></caption>
           <tbody>${filas}</tbody>
           ${hayLejos ? `<tbody class="lejos" data-lejos hidden>${lejos.map(fila).join('')}</tbody>` : ''}
         </table>
@@ -258,39 +256,86 @@ export function modalJugadas(p: Partida, actual?: Jugada | null): void {
   avisarRollo(velo);
 }
 
-/** El menú de la partida: guardar y salir, o rendirse. */
+/** El menú de la partida: ajustes rápidos, reiniciar, guardar y salir, o rendirse. */
 export function modalMenu(p: Partida): void {
-  abrirModal(
-    `<div class="panel menu-partida">
-      <h2 class="titulo">${t('menu')}</h2>
-      <p class="sub">${esc(tx(MAZO[p.mazoId].nombre))} · ${t('reinado', { n: p.reinado })} · ${t('semilla', { s: p.semilla })}</p>
-      <button class="btn marco oro" data-accion="cerrar" data-inicio>${t('seguir')}</button>
-      <button class="btn marco" data-accion="salir">${t('salirPortada')}</button>
-      <button class="btn marco" data-accion="rendirse">${t('rendirse')}</button>
-    </div>`,
-    {
-      cerrar: () => cerrarModal(),
-      salir: () => {
-        guardar();
-        cerrarModal();
-        sesion.partida = null;
-        irPortada();
-      },
-      rendirse: () => {
-        abrirModal(
-          `<div class="panel"><p>${t('rendirseSeguro')}</p><div class="fila"><button class="btn marco" data-accion="no" data-inicio>${t('no')}</button><button class="btn marco oro" data-accion="si">${t('si')}</button></div></div>`,
-          {
-            no: () => cerrarModal(),
-            si: () => {
-              juego.rendirse(p);
-              cerrarModal();
-              avanzar();
+  const abrir = (): void => {
+    const tog = (ac: string, lbl: string, on: boolean) =>
+      `<button class="btn marco chico ${on ? 'oro' : ''}" data-accion="${ac}" aria-pressed="${on}">${esc(lbl)}: ${on ? t('activado') : t('desactivado')}</button>`;
+    abrirModal(
+      `<div class="panel menu-partida">
+        <h2 class="titulo">${t('menu')}</h2>
+        <p class="sub">${esc(tx(MAZO[p.mazoId].nombre))} · ${t('reinado', { n: p.reinado })} · ${t('semilla', { s: p.semilla })}</p>
+        <div class="fila" style="flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:10px">
+          ${tog('m-sonido', t('sonido'), ajustes.sonido)}
+          ${tog('m-musica', t('musica'), ajustes.musica)}
+          ${tog('m-calma', t('calma'), ajustes.calma)}
+          <button class="btn marco chico" data-accion="m-idioma">${t('idioma')}: ${idioma().toUpperCase()}</button>
+        </div>
+        <button class="btn marco oro" data-accion="cerrar" data-inicio>${t('seguir')}</button>
+        <button class="btn marco" data-accion="reiniciar">${t('reiniciarPartida')}</button>
+        <button class="btn marco" data-accion="salir">${t('salirPortada')}</button>
+        <button class="btn marco" data-accion="rendirse">${t('rendirse')}</button>
+      </div>`,
+      {
+        cerrar: () => cerrarModal(),
+        'm-sonido': () => {
+          ajustes.sonido = !ajustes.sonido;
+          guardarAjustes();
+          refrescarSonido();
+          abrir();
+        },
+        'm-musica': () => {
+          ajustes.musica = !ajustes.musica;
+          guardarAjustes();
+          refrescarMusica();
+          abrir();
+        },
+        'm-calma': () => {
+          ajustes.calma = !ajustes.calma;
+          guardarAjustes();
+          repintar();
+          abrir();
+        },
+        'm-idioma': () => {
+          fijarIdioma(idioma() === 'es' ? 'en' : 'es');
+          repintar();
+          abrir();
+        },
+        reiniciar: () => {
+          abrirModal(
+            `<div class="panel"><p>${t('reiniciarSeguro')}</p><div class="fila"><button class="btn marco" data-accion="no" data-inicio>${t('no')}</button><button class="btn marco oro" data-accion="si">${t('si')}</button></div></div>`,
+            {
+              no: () => abrir(),
+              si: () => {
+                cerrarModal();
+                empezar(p.mazoId, p.reinado);
+              },
             },
-          },
-        );
+          );
+        },
+        salir: () => {
+          guardar();
+          cerrarModal();
+          sesion.partida = null;
+          irPortada();
+        },
+        rendirse: () => {
+          abrirModal(
+            `<div class="panel"><p>${t('rendirseSeguro')}</p><div class="fila"><button class="btn marco" data-accion="no" data-inicio>${t('no')}</button><button class="btn marco oro" data-accion="si">${t('si')}</button></div></div>`,
+            {
+              no: () => abrir(),
+              si: () => {
+                juego.rendirse(p);
+                cerrarModal();
+                avanzar();
+              },
+            },
+          );
+        },
       },
-    },
-  );
+    );
+  };
+  abrir();
 }
 
 /** Las acciones del HUD y del menú, comunes a todas las pantallas de la partida. */

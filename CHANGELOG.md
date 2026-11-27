@@ -3,6 +3,14 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.70.0 · UX, Simpleza Radical, Claridad 0,2 s e i18n Completa (2026-11-26)
+
+Segunda gran iteración del plan hacia **`v1.0.0`**. *(Reglas, balance certificado, `musica.ts` y `voces.ts` intactos.)*
+
+- **Lectura en 0,2 s sin truncamiento (`chips.ts`, `pantallas.css`):** Eliminado `RECORTAR(44)` y el uso de códigos internos (`/S`, `/C`, `/D`, `/H`); cada Amuleto, Cábala y Bendición muestra su regla completa legible también en pantalla táctil, con etiquetas ES/EN unificadas y paleta semántica corregida (`Daño` rojo, `Multi`/`Escudo` azul, `Vida` verde).
+- **Traducción y ergonomía de `La Mano contra el Bufón` (`dueloBufon.ts`, `textos.ts`, `nav.ts`):** Localizados al 100 % los 25+ textos y recompensas en ES/EN, cartas de referencia sin falsos botones en El Mentiroso, pistas de Truco, foco completo (`data-foco`/`data-inicio`), salida segura en dos toques y `aria-label` localizados en `explorar`.
+- **Menú en partida y limpieza visual (`camino.ts`, `base.css`, `mesa.css`, `pantallas.css`, `ui.ts`, `introMazo.ts`, `mesa.ts`):** Ajustes rápidos en vivo (Sonido, Música, Idioma, Calma) y **Reiniciar partida** dentro de `modalMenu`; `HAY MÁS ↓` despejado sobre los botones en Cábala Negra; eliminada la regla duplicada en `? JUGADAS`; trampa de foco `inert` en modales; limpieza de listeners en `mesa.ts`, `explorar` y `sol-de-mayo`; nombre del Rey visible en Mapa móvil; rótulo `COMODÍN` y `.pano-regla` sin solapes.
+
 ## 0.60.0 · Cirugía de Reglas, Balance Certificado y Duelo con Agencia (2026-11-26)
 
 Primera gran iteración del plan hacia **`v1.0.0`** tras la auditoría del Panel de 5 Directores. *(Música adaptativa `musica.ts` y voces `voces.ts` intactas.)*

@@ -6265,17 +6265,17 @@ html[data-entrada='teclado'] .c-dial .dial-toca {
 .mano .carta.elegida:has(.c-espectro) .c-rotulo {
   left: auto;
   right: calc(2px * var(--k-pano, 1));
-  top: calc(3px * var(--k-pano, 1));
+  top: calc(2px * var(--k-pano, 1));
+  bottom: auto;
   transform: none;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
+  writing-mode: horizontal-tb;
   font-family: var(--cuerpo);
   font-size: 14px;
   line-height: 1;
   letter-spacing: 0;
   text-transform: uppercase;
-  padding: 3px 1px;
-  max-height: calc(100% - 8px);
+  padding: 2px 4px;
+  max-width: 68%;
   overflow: hidden;
 }
 .mano.pano-chico .carta.elegida:has(.c-espectro) .c-rotulo {
@@ -6859,8 +6859,9 @@ button.hud-tiras:focus-visible .ficha {
     font-size: 16px;
     line-height: 20px;
   }
-  /* (en el teléfono la regla va en un renglón: con el Comodín, cede el del Escalón) */
+  /* (en el teléfono la regla va en un renglón: con el Comodín, cede el del Escalón y su separador) */
   .pano-regla.con-comodin .p-esc,
+  .pano-regla.con-comodin .p-sep,
   .pano-regla.con-comodin .p-sep-com {
     display: none;
   }

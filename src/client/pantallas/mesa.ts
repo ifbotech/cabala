@@ -692,7 +692,9 @@ export function pantallaMesa(p: Partida): Pantalla {
           ? `<b class="c-veredicto v-planta mirable" ${tip(t('sePlanta'), t('sePlantaTip'))}>${t('sePlanta')}</b>`
           : ''; // si no lo abate, ya lo dicen «LE QUEDAN n» y TE PEGA: el veredicto no ocupa otro lugar
     // (el Rey en primera cara que se planta en la mitad: el veredicto dice eso, y «LE QUEDAN» sobra —es la mitad—)
-    const destino = (q.abate || q.ejecuta ? '' : q.contra && q.contra > 0 ? pega : sinContra()) + (planta ? '' : queda);
+    const contraEnPlaca = enemigo ? contraataque(p, enemigo).n : -1;
+    const contraCambia = tajo || (q.contra ?? 0) !== Math.max(0, contraEnPlaca - c().escudo);
+    const destino = (q.abate || q.ejecuta ? '' : q.contra && q.contra > 0 ? (contraCambia ? pega : '') : sinContra()) + (planta ? '' : queda);
     // lo que dan los palos, cada cosa con su nombre: «CURA ♥ +15», «ESCUDO +4», «ORO +2»
     const efecto = (rotulo: string, icono: Parameters<typeof pxHud>[0], n: number, tono: 'azul' | 'verde' | 'oro'): string =>
       `<span class="chip c-efecto ef-${icono}"><b class="c-ef-rot">${rotulo}</b>${pxHud(icono)}${cifra(`+${n}`, tono)}</span>`;
@@ -1925,7 +1927,11 @@ export function pantallaMesa(p: Partida): Pantalla {
     }
   }
   /** Arrastrar un Chiche al enemigo también lo usa (como soltar naipes sobre él). */
+  let acChiches: AbortController | null = null;
   function arrastreChiches(raiz: HTMLElement): void {
+    acChiches?.abort();
+    acChiches = new AbortController();
+    const sig = acChiches.signal;
     let toma: { i: number; id: ChicheId; x: number; y: number; fantasma: HTMLElement | null; pid: number } | null = null;
     let tragar = false;
     raiz.addEventListener('pointerdown', (ev) => {
@@ -1938,7 +1944,7 @@ export function pantallaMesa(p: Partida): Pantalla {
       }
       if (!b || ocupado) return;
       toma = { i: Number(b.dataset.i), id: b.dataset.chiche as ChicheId, x: ev.clientX, y: ev.clientY, fantasma: null, pid: ev.pointerId };
-    });
+    }, { signal: sig });
     addEventListener('pointermove', (ev) => {
       if (!toma || ev.pointerId !== toma.pid) return;
       if (!toma.fantasma && Math.hypot(ev.clientX - toma.x, ev.clientY - toma.y) < 10) return;
@@ -1954,7 +1960,7 @@ export function pantallaMesa(p: Partida): Pantalla {
       toma.fantasma.style.top = `${ev.clientY - 24}px`;
       const r = $('[data-escena]')?.getBoundingClientRect();
       $('[data-soltar="enemigo"]')?.classList.toggle('apunta', !!r && ev.clientY >= r.top && ev.clientY <= r.bottom && ev.clientX >= r.left && ev.clientX <= r.right);
-    });
+    }, { signal: sig });
     const fin = (ev: PointerEvent): void => {
       if (!toma || ev.pointerId !== toma.pid) return;
       const t0 = toma;
@@ -1967,8 +1973,8 @@ export function pantallaMesa(p: Partida): Pantalla {
       const r = $('[data-escena]')?.getBoundingClientRect();
       if (ev.type === 'pointerup' && r && ev.clientY >= r.top && ev.clientY <= r.bottom && ev.clientX >= r.left && ev.clientX <= r.right) void usarChiche(t0.i);
     };
-    addEventListener('pointerup', fin);
-    addEventListener('pointercancel', fin);
+    addEventListener('pointerup', fin, { signal: sig });
+    addEventListener('pointercancel', fin, { signal: sig });
     // (el clic que sigue a un arrastre no vuelve a usarlo)
     raiz.addEventListener(
       'click',
@@ -2887,6 +2893,8 @@ export function pantallaMesa(p: Partida): Pantalla {
       };
     },
     alSalir: () => {
+      acChiches?.abort();
+      acChiches = null;
       document.querySelector('.mesa .cuenta-hoja')?.remove();
       document.removeEventListener('pointermove', seguir);
       observaMano?.disconnect();

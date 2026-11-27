@@ -27,7 +27,7 @@ export const CHICHE: Record<ChicheId, ChicheDef> = {
   },
   fosforo: {
     id: 'fosforo',
-    nombre: L('Fósforo de Fogón', 'Campfire Match'),
+    nombre: L('Fósforo de Fogón', 'Bonfire Match'),
     desc: L('Quema el Inmune en este golpe.', 'Burns away Immune for this hit.'),
   },
   tiza: {

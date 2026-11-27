@@ -271,14 +271,15 @@ export function pantallaExplorar(vistaInicial: VistaCuartoId = 'mesa'): Pantalla
     alSalir: () => {
       window.clearTimeout(timerSusurro);
       if (onKeyDown) {
-        window.removeEventListener('keydown', onKeyDown);
+        document.removeEventListener('keydown', onKeyDown, true);
         onKeyDown = null;
       }
     },
     html: () => {
       const v = VISTAS_CUARTO[vista];
+      const lblDir = { adelante: t('dirAdelante'), atras: t('dirAtras'), izq: t('dirIzq'), der: t('dirDer') } as const;
       const flecha = (dir: 'adelante' | 'atras' | 'izq' | 'der', cls: string, sim: string): string =>
-        v[dir] ? `<button class="btn marco nav-dir ${cls}" data-accion="dir-${dir}" data-foco="dir-${dir}" aria-label="${dir}">${sim}</button>` : '';
+        v[dir] ? `<button class="btn marco nav-dir ${cls}" data-accion="dir-${dir}" data-foco="dir-${dir}" aria-label="${esc(lblDir[dir])}">${sim}</button>` : '';
       return `<main class="pantalla explorar">
         <header class="explorar-top">
           <div class="sol-titulo-caja">
@@ -299,30 +300,35 @@ export function pantallaExplorar(vistaInicial: VistaCuartoId = 'mesa'): Pantalla
     alMontar: () => {
       const v = VISTAS_CUARTO[vista];
       ponerPoseDiscreta3d(v.pos, v.mira, 50, enFoto());
-      if (onKeyDown) window.removeEventListener('keydown', onKeyDown);
+      if (onKeyDown) document.removeEventListener('keydown', onKeyDown, true);
       onKeyDown = (ev: KeyboardEvent): void => {
         if (pantallaActual()?.nombre !== 'explorar') return;
         const k = ev.key.toLowerCase();
         const cur = VISTAS_CUARTO[vista];
         if (k === 'w' || k === 'arrowup') {
           ev.preventDefault();
+          ev.stopPropagation();
           irVista(cur.adelante, 'paso');
         } else if (k === 's' || k === 'arrowdown') {
           ev.preventDefault();
+          ev.stopPropagation();
           irVista(cur.atras, 'paso');
         } else if (k === 'a' || k === 'arrowleft') {
           ev.preventDefault();
+          ev.stopPropagation();
           irVista(cur.izq, 'clic');
         } else if (k === 'd' || k === 'arrowright') {
           ev.preventDefault();
+          ev.stopPropagation();
           irVista(cur.der, 'clic');
         } else if (k === 'e' || k === 'enter') {
           if ((document.activeElement as HTMLElement)?.tagName === 'BUTTON') return;
           ev.preventDefault();
+          ev.stopPropagation();
           ejecutarAccion();
         }
       };
-      window.addEventListener('keydown', onKeyDown);
+      document.addEventListener('keydown', onKeyDown, true);
     },
     acciones: {
       sentarse: () => {
@@ -380,7 +386,7 @@ export function pantallaCaminoSol(enClimax = false): Pantalla {
     atras: salir,
     alSalir: () => {
       if (onKeyDown) {
-        window.removeEventListener('keydown', onKeyDown);
+        document.removeEventListener('keydown', onKeyDown, true);
         onKeyDown = null;
       }
     },
@@ -399,22 +405,25 @@ export function pantallaCaminoSol(enClimax = false): Pantalla {
     alMontar: () => {
       const p = PASOS_SOL[paso];
       ponerPoseDiscreta3d(p.pos, p.mira, 50, enFoto());
-      if (onKeyDown) window.removeEventListener('keydown', onKeyDown);
+      if (onKeyDown) document.removeEventListener('keydown', onKeyDown, true);
       onKeyDown = (ev: KeyboardEvent): void => {
         if (pantallaActual()?.nombre !== 'sol-de-mayo') return;
         const k = ev.key.toLowerCase();
         if (k === 'w' || k === 'arrowup') {
           ev.preventDefault();
+          ev.stopPropagation();
           moverPaso(1);
         } else if (k === 's' || k === 'arrowdown') {
           ev.preventDefault();
+          ev.stopPropagation();
           moverPaso(-1);
         } else if (k === 'e') {
           ev.preventDefault();
+          ev.stopPropagation();
           salir();
         }
       };
-      window.addEventListener('keydown', onKeyDown);
+      document.addEventListener('keydown', onKeyDown, true);
     },
     acciones: {
       'sol-adelante': () => moverPaso(1),
