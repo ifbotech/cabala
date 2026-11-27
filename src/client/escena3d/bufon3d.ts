@@ -250,6 +250,7 @@ export class Bufon3D {
       ...Array.from(document.querySelectorAll<HTMLElement>('#app .bufon')),
     ];
     for (const el of candidatos) {
+      if (el.closest('.fin-escena.corrida')) continue;
       const st = getComputedStyle(el);
       if (st.display === 'none' || st.visibility === 'hidden' || Number(st.opacity) < 0.05) continue;
       const r = el.getBoundingClientRect();

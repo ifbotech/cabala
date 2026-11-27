@@ -5270,7 +5270,8 @@ main.fogon.forjando [data-accion='seguir'] {
     height: 66px;
     overflow: hidden;
   }
-  .fin-escena.corrida .fin-corte {
+  .fin-escena.corrida .fin-corte,
+  .fin-escena.corrida .fin-bufon {
     visibility: hidden;
   }
 }
@@ -6496,5 +6497,8 @@ html[data-entrada='mando'] .forja-mut {
   }
   .panel.jugadas.hay-mas .rollo {
     padding-bottom: 56px;
+  }
+  .mapa-lienzo {
+    height: calc(var(--pisos) * var(--n) * 1.38);
   }
 }

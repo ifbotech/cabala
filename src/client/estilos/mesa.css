@@ -6872,7 +6872,7 @@ button.hud-tiras:focus-visible .ficha {
   /* (en el teléfono la regla va en un renglón: con el Comodín, cede el del Escalón y su separador) */
   .pano-regla.con-comodin .p-esc,
   .pano-regla.con-comodin .p-sep,
-  .pano-regla.con-comodin .p-sep-com {
+  .pano-regla.con-comodin:not(.costado) .p-sep-com {
     display: none;
   }
 }
@@ -7956,5 +7956,30 @@ html.modo-3d .pulperia .pul-bufon::after {
   .mesa .mesa-top .t-racha {
     padding: 1px 6px;
     line-height: 1.15;
+  }
+}
+
+/* ───────────── 1.3.0 · pulido píxel a píxel ───────────── */
+.pano-regla.costado .p-linea:not(.p-mando) {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+.pano-regla.costado .p-linea:not(.p-mando) > .p-icono {
+  margin-top: 2px;
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  html[data-entrada='mando'] .mesa .mesa-top .btn {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  html[data-entrada='mando'] .mesa .mesa-top .lado:last-child {
+    gap: 10px;
+  }
+}
+@media (max-width: 700px) {
+  .mano .carta.rotulo-canto:not(.elegida) .c-rotulo {
+    top: calc(14px * var(--k-naipe, 1));
+    padding: calc(2px * var(--k-naipe, 1)) 1px;
+    line-height: 1;
   }
 }

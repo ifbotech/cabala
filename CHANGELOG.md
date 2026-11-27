@@ -3,6 +3,13 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 1.3.0 · Pulido Píxel a Píxel: Resumen Móvil, Regla 1080p, La Corte y Mapa (2026-11-27)
+
+- **Resumen de derrota móvil (`bufon3d.ts`, `pantallas.css`):** Oculta el Bufón 3D cuando `.fin-escena.corrida` se desplaza en móvil para no quedar detrás del título.
+- **Mesa 1080p y mando (`mesa.css`):** `.pano-regla.costado` mantiene el ícono junto al texto sin salto huérfano; en `1920×1080` con mando, `SEL JUGADAS` deja aire limpio a la derecha de `LA CORTE`.
+- **Comodín y regla en móvil (`mesa.css`):** Oculta el punto separador sobrante en `.pano-regla.con-comodin` y ajusta el rótulo vertical `COMODÍN` en `390×664`.
+- **Mapa móvil (`pantallas.css`):** Compacta `.mapa-lienzo` (`1.38`) para que el Rey Jefe superior no quede recortado al borde en `390×844`.
+
 ## 1.2.0 · Precisión Móvil y Pulido Píxel a Píxel (2026-11-27)
 
 - **Colección y Mapa móvil (`pantallas.css`):** `.col-pared` arranca desde arriba (`flex-start`) en móvil para no recortar retratos ni títulos; escudo de inmunidad del Rey Jefe despejando su corona en `390×844`.
