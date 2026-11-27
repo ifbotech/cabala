@@ -3,6 +3,11 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 1.15.0 · Combate Horizontal 3D estilo *Slay the Spire* (2026-11-27)
+
+- **Duelo horizontal en escritorio y Steam Deck (`mesa.ts`, `mesa.css`, `heroes3d.ts`, `reyes3d.ts`, `cartas3d.ts`, `index.ts`):** Tu Héroe 3D entra vivo al paño izquierdo mirando cara a cara al Enemigo / Rey Jefe 3D y La Corte a la derecha (con el Bufón 3D como maestro de ceremonias entre ambos), con embestidas horizontales de ataque, bloqueo con Escudo y retroceso al recibir daño, manteniendo el layout vertical optimizado en móvil (`<= 700px`).
+- **60 FPS certificados con Héroe 3D en combate (`heroes3d.ts`, `cartas3d.ts`, `pulperia.ts`, `bufon3d.ts`, `reyes3d.ts`, `index.ts`):** Iluminación emisiva reactiva sin luces dinámicas extra en `Heroes3D`, sombras bajo demanda (`shadowMap.autoUpdate = false`), `castShadow`/`receiveShadow` desactivados en modelos flotantes proyectados a cámara, `frustumCulled = false` en las 6 mallas de pre-calentamiento y cero `tex.needsUpdate` en combate (`159.7–164.8 fps`, peor cuadro `24–43 ms`, `312/312` capturas ES y `312/312` EN con `0` fallos).
+
 ## 1.14.0 · Corona de Reyes Despejada, 15/15 Amuletos Icónicos, Jugadas y Botín 1080p (2026-11-27)
 
 - **Encuadre de Reyes Jefe en escritorio (`reyes3d.ts`):** Despeja la corona alta de *El Caudillo* (y los 4 Reyes) del borde superior en `1920×1080` y `1280×800` conservando su escala en móvil.

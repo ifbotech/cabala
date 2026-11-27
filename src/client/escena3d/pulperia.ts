@@ -248,7 +248,7 @@ export class MundoPulperia {
     this.luzVela = new THREE.PointLight(0xffa447, 26, 26, 1.35);
     this.luzVela.position.set(0, 1.25, 0);
     this.luzVela.castShadow = true;
-    this.luzVela.shadow.mapSize.set(esMovil ? 512 : 1024, esMovil ? 512 : 1024);
+    this.luzVela.shadow.mapSize.set(512, 512);
     this.luzVela.shadow.bias = -0.0005;
     this.luzVela.shadow.radius = 2;
     this.grupoVela.add(platillo, cera, collarin, mecha, this.llamaExt, llamaMed, this.llamaInt, haloVela, this.luzVela);
@@ -395,11 +395,11 @@ export class MundoPulperia {
     this.impulsoFarol = Math.min(1.6, this.impulsoFarol + fuerza * 0.55);
   }
 
-  sincronizarPartida(mazoId?: MazoId, mazoRestante?: number, oro?: number): void {
+  sincronizarPartida(mazoId?: MazoId, mazoRestante?: number, oro?: number): boolean {
+    let cambio = false;
     if (mazoId && mazoId !== this.mazoActual) {
       this.mazoActual = mazoId;
       this.matTapaMazo.map = texturaDorso(mazoId);
-      this.matTapaMazo.needsUpdate = true;
     }
     if (typeof mazoRestante === 'number' && mazoRestante !== this.ultimoMazoN) {
       this.ultimoMazoN = mazoRestante;
@@ -407,6 +407,7 @@ export class MundoPulperia {
       this.pilaMazo.scale.y = h;
       this.pilaMazo.position.y = h * 0.5;
       this.pilaMazo.visible = mazoRestante > 0;
+      cambio = true;
     }
     if (typeof oro === 'number' && oro !== this.ultimoOro) {
       this.ultimoOro = oro;
@@ -419,7 +420,9 @@ export class MundoPulperia {
           m.position.y = h * 0.5;
         }
       });
+      cambio = true;
     }
+    return cambio;
   }
 
   actualizar(dt: number, quieto: boolean): void {

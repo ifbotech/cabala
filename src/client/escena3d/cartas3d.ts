@@ -115,21 +115,27 @@ export class SincroCartas3D {
     const warmupSprite = new THREE.Mesh(this.geoEstallido, this.matPalo.S);
     warmupSprite.scale.setScalar(0.001);
     warmupSprite.position.set(0, -10, 0);
+    warmupSprite.frustumCulled = false;
     const warmupMitad0 = new THREE.Mesh(this.geoSombra, this.matMitad[0]);
     warmupMitad0.scale.setScalar(0.001);
     warmupMitad0.position.set(0, -10, 0);
+    warmupMitad0.frustumCulled = false;
     const warmupMitad1 = new THREE.Mesh(this.geoSombra, this.matMitad[1]);
     warmupMitad1.scale.setScalar(0.001);
     warmupMitad1.position.set(0, -10, 0);
+    warmupMitad1.frustumCulled = false;
     const warmupMoneda = new THREE.Mesh(this.geoMoneda, this.matOro);
     warmupMoneda.scale.setScalar(0.001);
     warmupMoneda.position.set(0, -10, 0);
+    warmupMoneda.frustumCulled = false;
     const warmupAstilla = new THREE.Mesh(this.geoAstilla, this.matAstilla.S);
     warmupAstilla.scale.setScalar(0.001);
     warmupAstilla.position.set(0, -10, 0);
+    warmupAstilla.frustumCulled = false;
     this.ondaMesh = new THREE.Mesh(this.geoOnda, this.matOnda);
     this.ondaMesh.scale.setScalar(0.001);
     this.ondaMesh.position.set(0, -10, 0);
+    this.ondaMesh.frustumCulled = false;
     this.raiz.add(warmupSprite, warmupMitad0, warmupMitad1, warmupMoneda, warmupAstilla, this.ondaMesh);
     for (let i = 0; i < 8; i++) this.libres.push(this.crearSlot());
     escena.add(this.raiz);
@@ -339,7 +345,6 @@ export class SincroCartas3D {
           if (fracH < 0.98) {
             tex.repeat.set(1, fracH);
             tex.offset.set(0, 1 - fracH);
-            tex.needsUpdate = true;
           }
           entry.mats[4].map = tex;
           entry.mats[4].emissiveMap = tex;
@@ -442,19 +447,20 @@ export class SincroCartas3D {
           const rango = Number(eEl.dataset.rango || 10);
           const segunda = eEl.dataset.segunda === '1';
           const visFrac = Math.max(0.15, Math.min(1, hVis / r.height));
-          const nuevaClave = `${palo}:${rango}:${segunda ? 1 : 0}:${visFrac.toFixed(2)}`;
-          if (nuevaClave !== this.claveEnemigo || Math.abs(visFrac - this.fracVisEnemigo) > 0.02) {
-            this.claveEnemigo = nuevaClave;
+          const claveBase = `${palo}:${rango}:${segunda ? 1 : 0}`;
+          const offsetY = Math.max(0, 1 - (top - r.top + hVis) / r.height);
+          if (claveBase !== this.claveEnemigo) {
+            this.claveEnemigo = claveBase;
             this.fracVisEnemigo = visFrac;
-            const base = texturaNaipe(palo, rango, segunda);
-            const tex = visFrac < 0.98 ? base.clone() : base;
-            if (visFrac < 0.98) {
-              tex.repeat.set(1, visFrac);
-              tex.offset.set(0, Math.max(0, 1 - (top - r.top + hVis) / r.height));
-              tex.needsUpdate = true;
-            }
+            const tex = texturaNaipe(palo, rango, segunda).clone();
+            tex.repeat.set(1, visFrac);
+            tex.offset.set(0, offsetY);
             this.enemigoMats[4].map = tex;
             this.enemigoMats[4].emissiveMap = tex;
+          } else if (Math.abs(visFrac - this.fracVisEnemigo) > 0.01 && this.enemigoMats[4].map) {
+            this.fracVisEnemigo = visFrac;
+            this.enemigoMats[4].map.repeat.set(1, visFrac);
+            this.enemigoMats[4].map.offset.set(0, offsetY);
           }
 
           const herido = eEl.classList.contains('herido');
@@ -475,7 +481,14 @@ export class SincroCartas3D {
           this.enemigoTotem.scale.set(tam.worldW, tam.worldH, 1.4);
           this.enemigoTotem.quaternion.copy(cam.quaternion);
           if (!quieto && aturdido) this.enemigoTotem.rotateZ(Math.sin(reloj * 6.5) * 0.06);
-          else if (!quieto && embiste) this.enemigoTotem.rotateX(0.14);
+          else if (!quieto && embiste) {
+            if (window.innerWidth > 700) {
+              this.enemigoTotem.position.x -= 0.24;
+              this.enemigoTotem.rotateY(-0.18);
+            } else {
+              this.enemigoTotem.rotateX(0.14);
+            }
+          }
           if (!quieto && this.retrocesoEnemigo > 0.01) this.enemigoTotem.rotateX(-this.retrocesoEnemigo * 0.28);
           this.enemigoTotem.visible = true;
         } else this.enemigoTotem.visible = false;

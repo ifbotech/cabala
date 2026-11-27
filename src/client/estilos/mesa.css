@@ -8039,3 +8039,152 @@ html.modo-3d .pulperia .pul-bufon::after {
     gap: 6px;
   }
 }
+
+/* ───────────── 1.15.0 · Combate horizontal estilo Slay the Spire (escritorio) ───────────── */
+.mesa .esc-heroe {
+  display: none;
+}
+@media (min-width: 701px) {
+  .mesa .escena,
+  .mesa .escena:has(.corte:empty) {
+    grid-template-columns: 10% 17% auto 1fr;
+    gap: 6px;
+  }
+  .mesa .esc-heroe {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    align-self: stretch;
+    min-height: 0;
+    padding-top: 46px;
+    pointer-events: none;
+  }
+  .mesa .esc-heroe .heroe-palco {
+    width: clamp(104px, 10vw, 210px);
+    height: 100%;
+    display: block;
+  }
+  .mesa .esc-bufon {
+    justify-self: start;
+    align-self: end;
+    margin-right: 0;
+  }
+  .mesa .esc-bufon .bocadillo {
+    left: calc(100% - 4px);
+    right: auto;
+    top: auto;
+    bottom: 0;
+    max-width: 158px;
+    font-size: 14px;
+    line-height: 1.15;
+    padding: 4px 6px;
+  }
+  .mesa .esc-bufon .bocadillo::after {
+    display: none;
+  }
+  .mesa .enemigo {
+    column-gap: 8px;
+    align-content: end;
+    padding-bottom: 2px;
+  }
+  .mesa .e-sellos {
+    min-width: 68px;
+  }
+  .mesa .e-ataque {
+    min-width: 88px;
+    align-self: end;
+    margin-bottom: 2px;
+  }
+  .mesa .enemigo:has(.e-barras > .e-rasgo) .e-ataque {
+    align-self: end;
+    margin-bottom: 0;
+    gap: 0;
+  }
+  .mesa .enemigo:has(.e-barras > .e-rasgo) .e-ataque .e-neto,
+  .mesa .enemigo:has(.e-barras > .e-rasgo) .e-ataque .e-neto[hidden],
+  .mesa .enemigo:has(.e-barras > .e-rasgo) .e-ataque .e-furia {
+    position: static;
+    left: auto;
+    right: auto;
+    top: auto;
+  }
+  .mesa .e-furia-nota {
+    position: static;
+    translate: none;
+    max-width: 195px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.05;
+  }
+  .mesa .e-barras {
+    justify-self: stretch;
+    width: 100%;
+    min-width: 400px;
+  }
+  .mesa .e-barras > .e-rasgo {
+    position: absolute;
+    left: calc(100% + 8px);
+    right: auto;
+    bottom: 0;
+    width: max-content;
+    max-width: min(23em, 25vw);
+    padding: 3px 8px;
+    gap: 2px;
+    line-height: 1.15;
+    white-space: normal;
+  }
+  .mesa .e-barras > .e-rasgo .e-seg-nombre,
+  .mesa .e-barras > .e-rasgo .e-regla {
+    white-space: normal;
+  }
+  .mesa .corte {
+    justify-self: end;
+    align-self: end;
+    margin-left: 0;
+    margin-bottom: 4px;
+  }
+  @keyframes e-embiste {
+    0% {
+      transform: translateX(0) scale(1);
+    }
+    30% {
+      transform: translateX(10px) scale(0.96);
+    }
+    53% {
+      transform: translateX(-28px) scale(1.08);
+    }
+    100% {
+      transform: translateX(0) scale(1);
+    }
+  }
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  .mesa .escena,
+  .mesa .escena:has(.corte:empty) {
+    grid-template-columns: 13% 20% auto 1fr;
+    gap: 10px;
+  }
+  .mesa .esc-heroe {
+    padding-top: 60px;
+  }
+  .mesa .esc-bufon .bocadillo {
+    left: calc(100% + 6px);
+    bottom: 6px;
+    max-width: 230px;
+  }
+  .mesa .e-barras {
+    min-width: 624px;
+  }
+  .mesa .e-barras > .e-rasgo {
+    left: calc(100% + 14px);
+    max-width: min(21em, 24vw);
+  }
+  .mesa .e-furia-nota {
+    position: static;
+    translate: none;
+    max-width: 240px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.05;
+  }
+}

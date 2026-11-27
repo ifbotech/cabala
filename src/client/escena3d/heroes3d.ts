@@ -24,9 +24,23 @@ interface HeroeArticulado {
 export class Heroes3D {
   readonly raiz = new THREE.Group();
   private readonly heroes: Record<MazoId, HeroeArticulado>;
-  private readonly luzFrente: THREE.PointLight;
-  private readonly luzRim: THREE.PointLight;
+  private readonly matHeroe = new THREE.MeshStandardMaterial({
+    vertexColors: true,
+    roughness: 0.72,
+    metalness: 0.08,
+    emissive: new THREE.Color(0x3a2618),
+    emissiveIntensity: 0.55,
+  });
   private pulsoSuave = 0;
+  private ataqueTimer = 0;
+  private ataqueFuerza = 1;
+  private danoTimer = 0;
+  private bloqueado = false;
+  private ultimoEl: HTMLElement | null = null;
+  private ultimoRect: DOMRect | null = null;
+  private ultimoW = 0;
+  private ultimoH = 0;
+  private proxMedida = 0;
 
   private readonly vFwd = new THREE.Vector3();
   private readonly vCentroPlano = new THREE.Vector3();
@@ -45,6 +59,15 @@ export class Heroes3D {
     };
     for (const m of ['escoba', 'truco', 'chinchon', 'mentiroso', 'chancho'] as const) {
       this.heroes[m].grupo.visible = false;
+      this.heroes[m].grupo.traverse((obj) => {
+        if (obj instanceof THREE.Mesh) {
+          obj.castShadow = false;
+          obj.receiveShadow = false;
+          if (obj.material instanceof THREE.MeshStandardMaterial && obj.material.roughness > 0.5) {
+            obj.material = this.matHeroe;
+          }
+        }
+      });
       this.raiz.add(this.heroes[m].grupo);
     }
 
@@ -56,11 +79,6 @@ export class Heroes3D {
     sombra.position.set(0, -0.34, 0);
     this.raiz.add(sombra);
 
-    this.luzFrente = new THREE.PointLight(0xffcf94, 2.65, 4.6, 1.35);
-    this.luzFrente.position.set(-0.3, 0.5, 1.35);
-    this.luzRim = new THREE.PointLight(0xe59c45, 2.0, 4.2, 1.35);
-    this.luzRim.position.set(0.55, 0.45, -0.35);
-    this.raiz.add(this.luzFrente, this.luzRim);
     this.raiz.visible = false;
     escena.add(this.raiz);
   }
@@ -317,20 +335,50 @@ export class Heroes3D {
     return Math.max(0.05, (h / H) * visH);
   }
 
-  sincronizar(cam: THREE.PerspectiveCamera, dt: number, quieto: boolean, reloj: number): void {
-    const el = document.querySelector<HTMLElement>('.intro-mazo .intro-retrato');
+  atacar(fuerza = 1): void {
+    this.ataqueTimer = 0.44;
+    this.ataqueFuerza = Math.max(0.8, Math.min(2, fuerza));
+  }
+
+  recibir(bloqueado: boolean): void {
+    this.danoTimer = 0.42;
+    this.bloqueado = bloqueado;
+  }
+
+  sincronizar(cam: THREE.PerspectiveCamera, dt: number, quieto: boolean, reloj: number, tension = false): void {
+    const elIntro = document.querySelector<HTMLElement>('.intro-mazo .intro-retrato');
+    const elMesa = !elIntro && window.innerWidth > 700 ? document.querySelector<HTMLElement>('.mesa .esc-heroe .heroe-palco') : null;
+    const el = elIntro ?? elMesa;
+    const enMesa = !elIntro && !!elMesa;
     if (!el) {
       this.raiz.visible = false;
+      this.ultimoEl = null;
       return;
     }
-    const r = el.getBoundingClientRect();
+    this.proxMedida -= dt;
+    if (quieto || el !== this.ultimoEl || window.innerWidth !== this.ultimoW || window.innerHeight !== this.ultimoH || this.proxMedida <= 0 || !this.ultimoRect) {
+      this.ultimoEl = el;
+      this.ultimoW = window.innerWidth;
+      this.ultimoH = window.innerHeight;
+      this.ultimoRect = el.getBoundingClientRect();
+      this.proxMedida = 0.25;
+    }
+    const r = this.ultimoRect;
     if (r.width < 12 || r.height < 12) {
       this.raiz.visible = false;
       return;
     }
+    if (!quieto) {
+      if (this.ataqueTimer > 0) this.ataqueTimer = Math.max(0, this.ataqueTimer - dt);
+      if (this.danoTimer > 0) this.danoTimer = Math.max(0, this.danoTimer - dt);
+    } else {
+      this.ataqueTimer = 0;
+      this.danoTimer = 0;
+    }
+
     const mazo = (el.dataset.mazo || 'escoba') as MazoId;
-    const worldH = this.proyectar(cam, r.left + r.width / 2, r.top + r.height * 0.52, r.height, 5.4, this.raiz.position);
-    const factorEscala = window.innerWidth > 700 ? 1.15 : 1.02;
+    const worldH = this.proyectar(cam, r.left + r.width / 2, r.top + r.height * (enMesa ? 0.56 : 0.52), r.height, enMesa ? 5.5 : 5.4, this.raiz.position);
+    const factorEscala = enMesa ? 1.02 : window.innerWidth > 700 ? 1.15 : 1.02;
     this.raiz.scale.setScalar(worldH * factorEscala);
     this.raiz.quaternion.copy(cam.quaternion);
     this.raiz.visible = true;
@@ -338,17 +386,44 @@ export class Heroes3D {
     const arm = armoniaActual();
     const pulsoMeta = !quieto && arm && (arm.paso === 0 || arm.paso === 6 || arm.paso === 12) ? 1 : 0;
     this.pulsoSuave += (pulsoMeta - this.pulsoSuave) * (1 - Math.exp(-10 * Math.max(0.001, dt)));
-    this.luzFrente.intensity = 2.65 + this.pulsoSuave * 0.45;
+
+    const listo = enMesa && !quieto && tension;
+    const atk = enMesa && this.ataqueTimer > 0 ? Math.sin((this.ataqueTimer / 0.44) * Math.PI) : 0;
+    const hit = enMesa && this.danoTimer > 0 ? Math.sin((this.danoTimer / 0.42) * Math.PI) : 0;
+    if (enMesa && hit > 0) {
+      this.matHeroe.emissive.setHex(this.bloqueado ? 0x00e5ff : 0xff1e5c);
+      this.matHeroe.emissiveIntensity = 0.55 + hit * 0.9;
+    } else if (enMesa && atk > 0) {
+      this.matHeroe.emissive.setHex(0xffc436);
+      this.matHeroe.emissiveIntensity = 0.55 + atk * 0.65;
+    } else {
+      this.matHeroe.emissive.setHex(enMesa && tension ? 0x52341c : 0x3a2618);
+      this.matHeroe.emissiveIntensity = (enMesa && tension ? 0.62 : 0.52) + this.pulsoSuave * 0.18;
+    }
 
     for (const m of ['escoba', 'truco', 'chinchon', 'mentiroso', 'chancho'] as const) {
       const h = this.heroes[m];
       h.grupo.visible = m === mazo;
       if (!h.grupo.visible) continue;
-      h.cuerpo.position.y = (quieto ? 0 : Math.sin(reloj * 2.4) * 0.025) + this.pulsoSuave * 0.018;
-      h.cuerpo.rotation.y = quieto ? -0.18 : Math.sin(reloj * 1.2) * 0.22 - 0.1;
-      h.cabeza.rotation.y = quieto ? 0.12 : Math.sin(reloj * 1.6) * 0.14;
-      h.brazoDer.rotation.x = -0.25 + (quieto ? 0 : Math.sin(reloj * 2.1) * 0.12);
-      h.brazoIzq.rotation.x = -0.15 + (quieto ? 0 : Math.cos(reloj * 1.9) * 0.1);
+      if (enMesa) {
+        const xOff = atk * (0.42 * this.ataqueFuerza) - (hit > 0 ? (this.bloqueado ? 0.08 : 0.28) * hit : 0);
+        const yOff = (quieto ? 0 : Math.sin(reloj * 2.5) * 0.022) + this.pulsoSuave * 0.018 + atk * 0.06;
+        h.cuerpo.position.set(xOff, yOff, atk * 0.12);
+        h.cuerpo.rotation.set(
+          (listo ? 0.08 : 0) + atk * 0.16 - (hit > 0 && !this.bloqueado ? 0.22 * hit : 0),
+          0.42 + (quieto ? 0 : Math.sin(reloj * 1.3) * 0.08),
+          -atk * 0.12 + (hit > 0 && !this.bloqueado ? 0.16 * hit : 0),
+        );
+        h.cabeza.rotation.set(0, quieto ? 0.05 : Math.sin(reloj * 1.6) * 0.08, 0);
+        h.brazoDer.rotation.x = -0.35 - atk * 1.15 + (quieto ? 0 : Math.sin(reloj * 2.1) * 0.1);
+        h.brazoIzq.rotation.x = -0.25 - atk * 0.85 - (hit > 0 && this.bloqueado ? 0.55 * hit : 0) + (quieto ? 0 : Math.cos(reloj * 1.9) * 0.09);
+      } else {
+        h.cuerpo.position.set(0, (quieto ? 0 : Math.sin(reloj * 2.4) * 0.025) + this.pulsoSuave * 0.018, 0);
+        h.cuerpo.rotation.set(0, quieto ? -0.18 : Math.sin(reloj * 1.2) * 0.22 - 0.1, 0);
+        h.cabeza.rotation.set(0, quieto ? 0.12 : Math.sin(reloj * 1.6) * 0.14, 0);
+        h.brazoDer.rotation.x = -0.25 + (quieto ? 0 : Math.sin(reloj * 2.1) * 0.12);
+        h.brazoIzq.rotation.x = -0.15 + (quieto ? 0 : Math.cos(reloj * 1.9) * 0.1);
+      }
     }
   }
 }

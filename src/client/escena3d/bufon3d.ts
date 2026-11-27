@@ -245,6 +245,12 @@ export class Bufon3D {
     this.luzMascara = new THREE.PointLight(0x9e58ff, 1.25, 3.1, 1.7);
     this.luzMascara.position.set(0.45, 0.15, 0.85);
     this.raiz.add(this.cuerpo, this.luzFrente, this.luzMascara);
+    this.raiz.traverse((obj) => {
+      if (obj instanceof THREE.Mesh) {
+        obj.castShadow = false;
+        obj.receiveShadow = false;
+      }
+    });
     this.raiz.visible = false;
     escena.add(this.raiz);
   }

@@ -21,7 +21,7 @@ import { ajustes, alAzar, guardarPerfil, idioma, perfil, t, tx } from '../almace
 import { agacharMusica, nota, sonar } from '../audio';
 import { cantar, estadoCombate, ponerFuego, remateMusica, stinger } from '../musica';
 import { teclear } from '../habla';
-import { escena3dActiva, estallidoPalo3d, fogonazo3d, marcarSucio3d, partirEnemigo3d, poderRey3d, sacudirCamara3d, transformarSegunda3d } from '../escena3d';
+import { escena3dActiva, estallidoPalo3d, fogonazo3d, heroeAtaca3d, heroeRecibe3d, marcarSucio3d, partirEnemigo3d, poderRey3d, sacudirCamara3d, transformarSegunda3d } from '../escena3d';
 import { RAMPA_CURA, RAMPA_ESCUDO, RAMPA_GOLPE, RAMPA_PALO, chispas, destello, haloRey, limpiarNumeros, lluviaDeMonedas, monedas, motas, numero, partirNaipe, quiebre, tajo, tajoDeReves, type Carril } from '../fx/efectos';
 import { alCeder, cajaDe, pisan, reservar, soltar as soltarTurno, tomadas, ubicar } from '../fx/director';
 import { S, congelar, descongelar, enFoto, fogonazoCandil, ponerClima, sacudir } from '../fx/motor';
@@ -1139,6 +1139,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           const fuerte = !!enemigo && ev.total >= enemigo.vidaMax * 0.5;
           // tres escalones de peso: golpe, golpazo (media Vida o más) y remate (el que lo tumba)
           const peso = q?.abate || q?.ejecuta ? 2 : fuerte ? 1 : 0;
+          if (!quieto()) heroeAtaca3d(peso === 2 ? 1.5 : peso === 1 ? 1.2 : 0.95);
           sonar(fuerte || peso === 2 ? 'fuerte' : 'golpe');
           // y encima, el timbre de su palo: el acero canta, la madera suena hueca, el oro tintinea, la copa salpica
           if (!ev.engano && palo !== 'X') sonar(`palo${palo}` as 'paloS', { retraso: 0.025 });
@@ -1479,6 +1480,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           await pausa(quieto() ? 110 : 180);
           const en = centro($('[data-hud-vida]'));
           const pierde = ev.n - ev.frenado;
+          if (!quieto()) heroeRecibe3d(pierde === 0);
           const vidaMax = hud.vidaMax;
           if (ev.frenado > 0) deltaHud('escudo', -ev.frenado, { ms: PLACA_CONTRA });
           if (ev.frenado > 0 && pierde > 0 && hud.escudo <= ev.frenado && !quieto()) {
@@ -2853,6 +2855,7 @@ export function pantallaMesa(p: Partida): Pantalla {
         <div class="lado"><button class="btn marco chico b-jugadas" data-accion="jugadas" data-foco="jugadas" data-tecla="j" aria-label="${t('jugadas')}">${glifo('SEL', 'J')}<span class="b-signo">?</span> <span class="solo-ancho">${t('jugadas')}</span></button><button class="btn marco chico" data-accion="menu" data-foco="menu" aria-label="${t('menu')}"><span class="b-menu-signo" aria-hidden="true">≡</span> <span class="solo-ancho">${t('menu')}</span></button></div>
       </header>
       <section class="escena" data-escena>
+        <div class="esc-heroe" data-heroe aria-hidden="true"><span class="heroe-palco" data-mazo="${p.mazoId}"></span></div>
         <div class="esc-bufon">${bufonHtml(p.afinidad <= -2 ? 'sombria' : 'reposo')}<p class="bocadillo" data-voz hidden></p></div>
         <div class="enemigo" data-enemigo>${enemigoHtml()}</div>
         <div class="corte" data-corte>${corteHtml()}</div>

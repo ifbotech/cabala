@@ -55,6 +55,8 @@ class Motor3D {
     this.renderer.setSize(window.innerWidth, window.innerHeight, false);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    this.renderer.shadowMap.autoUpdate = false;
+    this.renderer.shadowMap.needsUpdate = true;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.15;
 
@@ -104,6 +106,7 @@ class Motor3D {
           this.escena.background = new THREE.Color(0x09070f);
           this.escena.fog = this.mundo.niebla;
         }
+        this.renderer.shadowMap.needsUpdate = true;
         this.forzarCuadro();
       }
     });
@@ -212,7 +215,9 @@ class Motor3D {
     const infoCartaF = cartaF && cartaF.palo !== 'X' ? { palo: cartaF.palo, rango: cartaF.n } : undefined;
     const hayTension = !quieto && this.ultimaPantalla === 'mesa' && !!document.querySelector('.mesa .cuenta.abate, .mesa .cuenta .c-exacto, .mesa .cuenta .c-canto');
     this.mundo.ponerTension(hayTension ? 1 : 0);
-    this.mundo.sincronizarPartida(p?.mazoId, p?.combate?.mazo.length, p?.oro);
+    if (this.mundo.sincronizarPartida(p?.mazoId, p?.combate?.mazo.length, p?.oro)) {
+      this.renderer.shadowMap.needsUpdate = true;
+    }
     this.mundo.actualizar(dtAnim, quieto);
     this.camara.actualizar(dtAnim, quieto);
     this.cartas.sincronizar(this.camara.cam, p?.mazoId ?? 'escoba', dtAnim, quieto, this.punteroX, this.punteroY, this.reloj);
@@ -222,7 +227,7 @@ class Motor3D {
     this.cuarto.actualizar(dtAnim, quieto, this.reloj, this.rinconResaltado, this.camara.cam.position);
     this.solDeMayo.actualizar(dtAnim, quieto, this.reloj);
     this.reyes.sincronizar(this.camara.cam, dtAnim, quieto, this.reloj);
-    this.heroes.sincronizar(this.camara.cam, dtAnim, quieto, this.reloj);
+    this.heroes.sincronizar(this.camara.cam, dtAnim, quieto, this.reloj, hayTension);
     this.renderer.render(this.escena, this.camara.cam);
   }
 
@@ -291,6 +296,8 @@ export const transformarSegunda3d = (palo: Palo): void => {
   motor.mundo.fogonazoCandil(1.4);
   motor.camara.sacudir(0.85);
 };
+export const heroeAtaca3d = (fuerza = 1): void => motor?.heroes.atacar(fuerza);
+export const heroeRecibe3d = (bloqueado: boolean): void => motor?.heroes.recibir(bloqueado);
 export const congelar3d = (ms: number): void => {
   if (motor && !ajustes.calma) motor.congeladoMs = Math.max(motor.congeladoMs, ms);
 };

@@ -34,6 +34,7 @@ Registro vivo del Estudio Autónomo. Cada versión se audita con lupa adversaria
 | **X. Duelo Deductivo, Bendición Icónica y Pulido Móvil/Portátil (`v1.12.0`)** | *El Mentiroso* deductivo desde baraja única con pistas de `7`, deselección y suma viva en *Escoba*, estallido 3D + íconos en *La Bendición del Bufón*, tooltip `DEVOLVER` despejado en `390×844`, aire en `AL DESCARTE` portátil y cero recompilación de shaders 3D en combate | **Completado (`v1.12.0`)** |
 | **Y. Reyes Monumentales, Héroes Protagonistas y Bufón Refinado (`v1.13.0`)** | Reyes Jefe más altos/iluminados con halo trasero sin oclusión facial y poderes esculpidos, 5 Héroes 3D más grandes/iluminados con ojos expresivos y sombra en mesa, y Bufón 3D con solapas arlequín y cetro torneado | **Completado (`v1.13.0`)** |
 | **Z. Corona Despejada, 15/15 Amuletos Icónicos, Jugadas y Botín (`v1.14.0`)** | Encuadre de Reyes Jefe sin roce en `1920×1080`/`1280×800`, 15/15 Amuletos tipados en `chips.ts`, degradado limpio antes de `HAY MÁS ↓` en Jugadas y Bufón despejado en Botín `1080p` | **Completado (`v1.14.0`)** |
+| **AA. Combate Horizontal 3D estilo *Slay the Spire* (`v1.15.0`)** | Arena horizontal de 4 carriles en escritorio/Deck (`Héroe 3D` a la izquierda vs. `Enemigo / Rey Jefe 3D + La Corte` a la derecha, `Bufón 3D` al centro) con embestidas horizontales, bloqueo/daño reactivo y móvil vertical intacto | **Completado (`v1.15.0`)** |
 
 ---
 

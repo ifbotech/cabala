@@ -143,6 +143,12 @@ export class Reyes3D {
     this.luzRey = new THREE.PointLight(0x00e5ff, 1.35, 3.8, 1.5);
     this.luzRey.position.set(0.55, 0.45, 0.9);
     this.raiz.add(this.luzFrente, this.luzRey);
+    this.raiz.traverse((obj) => {
+      if (obj instanceof THREE.Mesh) {
+        obj.castShadow = false;
+        obj.receiveShadow = false;
+      }
+    });
     this.raiz.visible = false;
 
     escena.add(this.raiz, this.vfxGrupo);
@@ -615,10 +621,12 @@ export class Reyes3D {
       const zSale = (quieto ? 0.15 : 0.15 * this.entrada) + emb - hitPhase * 0.25;
       const temblor = grieta && !quieto ? Math.sin(reloj * 38) * 0.04 : 0;
 
-      fig.cuerpo.position.set(temblor, bob - (escritorio ? 0.08 : 0.02) + this.pulsoSuave * 0.018, zSale);
+      fig.cuerpo.position.set(temblor - (escritorio ? emb * 0.42 : 0), bob - (escritorio ? 0.08 : 0.02) + this.pulsoSuave * 0.018, zSale);
       fig.cuerpo.rotation.set(
         emb * 0.35 - hitPhase * 0.32 + (segunda ? 0.08 : 0),
-        quieto ? -0.08 : Math.sin(reloj * 1.15) * 0.15 - 0.06,
+        escritorio
+          ? (quieto ? -0.34 : Math.sin(reloj * 1.15) * 0.12 - 0.34)
+          : (quieto ? -0.08 : Math.sin(reloj * 1.15) * 0.15 - 0.06),
         aturdido && !quieto ? Math.sin(reloj * 7.5) * 0.1 : hitPhase * 0.14,
       );
 
