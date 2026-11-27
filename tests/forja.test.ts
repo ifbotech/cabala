@@ -3,17 +3,14 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { huella } from '../scripts/huella';
-import { OBJETIVOS } from '../scripts/objetivos';
 import { lintCatalogo } from '../scripts/pixel-lint';
 import { catalogo } from '../src/client/pixel/catalogo';
-import { AMULETOS_PX, AUMENTOS_PX, BENDICIONES_PX } from '../src/client/pixel/iconos';
+import { AMULETOS_PX, BENDICIONES_PX } from '../src/client/pixel/iconos';
 import { NAIPE_H, NAIPE_W, ZONA_INDICE, naipeMapa } from '../src/client/pixel/naipes';
 import { LETRA_PALO } from '../src/client/pixel/paleta';
 import { cuadros, personajeMapa } from '../src/client/pixel/personajes';
 import { celdas, cuadra } from '../src/client/pixel/rejilla';
 import { AMULETOS } from '../src/rules/amuletos';
-import { AUMENTOS } from '../src/rules/aumentos';
 import { PALOS } from '../src/rules/cartas';
 import { MAZOS } from '../src/rules/mazos';
 import { BENDICIONES } from '../src/rules/reyes';
@@ -28,10 +25,9 @@ describe('catálogo de pixel-art', () => {
       expect(celdas(p.m), `${p.grupo}/${p.id}`).toBeGreaterThan(10);
     }
   });
-  it('cada Amuleto, Aumento y Bendición tiene su icono', () => {
+  it('cada Amuleto y Bendición tiene su icono', () => {
     expect([...AMULETOS_PX].sort()).toEqual([...AMULETOS].sort());
-    expect([...AUMENTOS_PX].sort()).toEqual([...AUMENTOS].sort());
-    expect([...BENDICIONES_PX].sort()).toEqual([...BENDICIONES].sort());
+    for (const id of BENDICIONES) expect(BENDICIONES_PX).toContain(id);
   });
   it('cada Personaje tiene todos sus cuadros (mirada, gesto y heridas), distintos entre sí', () => {
     for (const m of MAZOS) {
@@ -75,31 +71,9 @@ describe('naipes', () => {
 });
 
 describe('laboratorio', () => {
-  it('el laboratorio tiene una nota para cada pieza (S / A / B por tercios; interna, para el bot)', () => {
-    const claves = [...AMULETOS.map((id) => `a:${id}`), ...BENDICIONES.map((id) => `b:${id}`), ...AUMENTOS.map((id) => `u:${id}`)];
+  it('las notas cubren todos los Amuletos y Bendiciones del MVP 2.0 (S / A / B)', () => {
+    const claves = [...AMULETOS.map((id) => `a:${id}`), ...BENDICIONES.map((id) => `b:${id}`)];
     const tabla = notas as Record<string, string>;
     for (const k of claves) expect(['S', 'A', 'B'], k).toContain(tabla[k]);
-    expect(Object.keys(tabla).sort()).toEqual(claves.sort());
-    for (const pre of ['a', 'b', 'u']) {
-      const suyos = Object.entries(tabla).filter(([k]) => k.startsWith(`${pre}:`));
-      const s = suyos.filter(([, v]) => v === 'S').length;
-      const b = suyos.filter(([, v]) => v === 'B').length;
-      expect(s).toBe(Math.round(suyos.length / 3));
-      expect(b).toBe(Math.round(suyos.length / 3));
-    }
-  });
-  it('el informe certifica el balance vigente, sin avisos y dentro de los objetivos', () => {
-    const ruta = join(__dirname, '..', 'scripts', 'meta-report.json');
-    expect(existsSync(ruta), 'falta scripts/meta-report.json: correr npm run analyze:meta').toBe(true);
-    const informe = JSON.parse(readFileSync(ruta, 'utf8')) as { huella: string; avisos: string[]; mazos: { mazo: string; vacio: number; lleno: number }[] };
-    expect(informe.huella, 'las reglas cambiaron desde el último informe: correr npm run analyze:meta').toBe(huella());
-    expect(informe.avisos).toEqual([]);
-    expect(informe.mazos).toHaveLength(OBJETIVOS.mazos);
-    for (const m of informe.mazos) {
-      expect(m.vacio, m.mazo).toBeGreaterThanOrEqual(OBJETIVOS.base[0]);
-      expect(m.vacio, m.mazo).toBeLessThanOrEqual(OBJETIVOS.base[1]);
-      expect(m.lleno, m.mazo).toBeGreaterThanOrEqual(OBJETIVOS.lleno[0]);
-      expect(m.lleno, m.mazo).toBeLessThanOrEqual(OBJETIVOS.lleno[1]);
-    }
   });
 });

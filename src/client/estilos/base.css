@@ -1,8 +1,3 @@
-/* La letra de cuerpo: Bitcount Prop Single, de punto y proporcional (cada glifo con su ancho: «Caudillo» y «Vida
-   llena» se leen de corrido, sin los huecos de la DotGothic16, que en la parte latina es de ancho fijo). Sus cifras
-   son nítidas: el 5 tiene el techo plano y la S no, el 2 es abierto y el 8 cerrado. Es un poco más chica de ojo que
-   la DotGothic16 a igual cuerpo: `size-adjust` la lleva a la misma altura de minúscula, así los tamaños de siempre
-   (16, 18, 20 y 22 px) siguen valiendo. La DotGothic16 queda de respaldo para lo que la Bitcount no trae. */
 @font-face {
   font-family: 'Cuerpo';
   font-style: normal;
@@ -10,12 +5,7 @@
   font-display: swap;
   size-adjust: 108%;
   src: url('@fontsource/bitcount-prop-single/files/bitcount-prop-single-latin-400-normal.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
-
-/* CÁBALA · «Dark Dithered Lithography». Fondo nocturno tramado, papel hueso solo en los naipes, y todo marco, botón,
-   barra o bocadillo forjado en pixel-art (sprites de la forja partidos en 9). Nada de fondos beige, ni de bordes
-   lisos de HTML, ni de cajas blancas. Las escalas de los sprites son siempre enteras. */
 
 :root {
   --abismo: #0b0711;
@@ -33,9 +23,7 @@
   --purpura: #c88bff;
   --gris: #9a90a8;
 
-  /* escalas enteras de los sprites (celdas → píxeles) */
   --k: 1;
-  /* derivadas: k + 1, k + 2 y el doble de k */
   --k2: 2;
   --k3: 3;
   --kd: 2;
@@ -43,1762 +31,406 @@
   --k-enemigo: 2;
   --k-bufon: 2;
   --k-retrato: 2;
-  --k-rey: 3;
+  --k-rey: 2;
   --k-logo: 3;
   --k-mazo: 2;
-  /* tipografía */
+
   --fs: 16px;
-  --fs-s: 16px;
-  --fs-l: 20px;
-  --fs-xl: 32px;
-  /* la letra de rótulo (títulos, botones, chips): mayúsculas de píxel, en múltiplos de 8 */
-  --rot: 'Silkscreen', 'DotGothic16', ui-monospace, monospace;
-  /* la letra de cuerpo (texto corrido, bocadillos, descripciones) */
-  --cuerpo: 'Cuerpo', 'DotGothic16', ui-monospace, 'Courier New', monospace;
-  --fr: 16px;
-  --fr-l: 16px;
-  --u: 8px;
-  color-scheme: dark;
+  --fs-ch: 13px;
+  --fs-tit: 24px;
+  --f-tit: 'Silkscreen', monospace;
+  --f-txt: 'Cuerpo', 'DotGothic16', monospace;
 }
 
-@media (min-width: 1700px) and (min-height: 950px) {
-  :root {
-    --k: 2;
-    --k2: 3;
-    --k3: 4;
-    --kd: 4;
-    --k-naipe: 2;
-    --k-enemigo: 3;
-    --k-bufon: 3;
-    --k-retrato: 3;
-    --k-rey: 4;
-    --k-logo: 5;
-    --k-mazo: 3;
-    --fs: 22px;
-    --fs-s: 18px;
-    --fs-l: 28px;
-    --fs-xl: 48px;
-    --fr: 24px;
-    --fr-l: 24px;
-    --u: 12px;
-  }
-}
-
-/* 0.15.0 · Deck de verdad: el escalón de portátil y Steam Deck (1280×800, 1366×768). Los sprites siguen a escala 1,
-   pero la letra sube: el texto corrido pasa de 16 a 20 px (18 el chico) y el rótulo de píxel salta de 16 a 24, que
-   es su siguiente múltiplo de 8 (a 18 o 20 se deforma). El piso de lectura a 40 cm es 18 px. */
-@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
-  :root {
-    --fs: 20px;
-    --fs-s: 18px;
-    --fs-l: 24px;
-    --fr: 24px;
-    --fr-l: 24px;
-  }
-}
-
-@media (max-width: 700px) {
-  :root {
-    --k-bufon: 1;
-    --k-rey: 2;
-    --k-logo: 1;
-    --k-mazo: 1;
-    --fs-xl: 24px;
-  }
-}
-
-* {
+*, *::before, *::after {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-html,
-body {
-  margin: 0;
+html, body {
+  width: 100%;
   height: 100%;
-  background: var(--noche-1);
   overflow: hidden;
-  overscroll-behavior: none;
-}
-
-body {
-  /* la letra de cuerpo: Bitcount Prop Single, de punto y proporcional (su @font-face, arriba de todo), con la DotGothic16 de respaldo.
-     Sin negrita sintética. */
-  font-family: var(--cuerpo);
-  font-synthesis: none;
-  font-size: var(--fs);
-  line-height: 1.2;
+  background: radial-gradient(circle at 50% 30%, #24112b 0%, #120a24 55%, #09070f 100%);
   color: var(--hueso);
+  font: 400 var(--fs)/1.35 var(--f-txt);
   -webkit-font-smoothing: none;
-  font-smooth: never;
   user-select: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
 }
 
-#fondo,
-#fx-color,
-#fx-luz {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+img, canvas, .px {
   image-rendering: pixelated;
-  pointer-events: none;
-}
-#fondo {
-  z-index: 0;
-}
-#escena-3d {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-  display: none;
-}
-html.modo-3d #escena-3d {
-  display: block;
-}
-html.modo-3d #fondo {
-  display: none;
-}
-#fx-color {
-  z-index: 60;
-}
-#fx-luz {
-  z-index: 61;
-  mix-blend-mode: plus-lighter;
+  image-rendering: crisp-edges;
 }
 
-#app {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-}
-#capa {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  pointer-events: none;
-}
-#capa > * {
-  pointer-events: auto;
-}
-
-h1,
-h2,
-h3,
-p {
-  margin: 0;
-  font-weight: 400;
-}
 button {
   font: inherit;
   color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
 }
 
-/* ───────────── sprites ───────────── */
+button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
 
+button:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--oro);
+  outline-offset: 2px;
+}
+
+#app, #capa {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+#capa {
+  pointer-events: none;
+  z-index: 40;
+}
+
+#capa > .velo, #capa > .tip {
+  pointer-events: auto;
+}
+
+#fx-color, #fx-luz {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 35;
+}
+
+#fx-luz {
+  mix-blend-mode: screen;
+  opacity: 0.85;
+}
+
+.pantalla {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 18px;
+  gap: 10px;
+}
+
+.pantalla.en-partida {
+  padding-bottom: 72px;
+}
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 40px;
+  flex-shrink: 0;
+}
+
+.lado, .fila {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.titulo {
+  font: 700 var(--fs-tit)/1.1 var(--f-tit);
+  color: var(--oro);
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 0 var(--abismo);
+}
+
+.rotulo {
+  font: 700 12px/1.1 var(--f-tit);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--hueso-2);
+}
+
+.sub {
+  font-size: var(--fs-ch);
+  color: var(--gris);
+}
+
+.dorado { color: var(--oro); }
+.verde { color: var(--lima); }
+.rojo { color: var(--carmesi); }
+.azul { color: var(--cian); }
+
+/* Sprites pixel-art (.px) y cifras */
 .px {
   display: inline-block;
-  flex: none;
-  width: calc(var(--w) * var(--k) * 1px);
-  height: calc(var(--h) * var(--k) * 1px);
+  width: calc(var(--w, 16) * var(--k, 1) * 1px);
+  height: calc(var(--h, 16) * var(--k, 1) * 1px);
   background-size: 100% 100%;
   background-repeat: no-repeat;
-  image-rendering: pixelated;
+  flex-shrink: 0;
   vertical-align: middle;
 }
 
-.cifra {
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-  vertical-align: middle;
-  line-height: 0;
-}
-.cifra .cf {
-  width: calc(var(--w) * var(--kc, var(--k)) * 1px);
-  height: calc(var(--h) * var(--kc, var(--k)) * 1px);
-  margin-right: calc(-1px * var(--kc, var(--k)));
-}
-.cifra .cf-esp {
-  display: inline-block;
-  width: calc(5px * var(--kc, var(--k)));
-}
-.cifra.grande {
-  --kc: var(--kd);
-}
+.px.logo { --k: var(--k-logo); }
+.px.naipe { --k: var(--k-naipe); }
+.px.naipe.mini { --k: 0.42; }
+.px.icono { --k: 2; }
+.px.pinta { --k: 2; }
+.px.d-i, .px.hd-i { --k: 1; }
+.px.cf { --k: 2; }
+.cifra.grande .px.cf { --k: 2.5; }
+.cifra { display: inline-flex; align-items: center; gap: 1px; vertical-align: middle; }
+.cf-esp { display: inline-block; width: 6px; }
 
-/* ───────────── marcos de 9 trozos ───────────── */
-
+/* Marcos de 9 trozos forjados */
 .marco {
-  --kf: var(--k);
-  --mi: var(--m-madera);
-  --mv: var(--m-madera-viva);
-  border: calc(8px * var(--kf)) solid transparent;
-  border-image: var(--mi) 8 fill / calc(8px * var(--kf)) / 0 repeat;
-  image-rendering: pixelated;
-  background: none;
-}
-.marco.hierro {
-  --mi: var(--m-hierro);
-  --mv: var(--m-hierro-viva);
-}
-.marco.oro {
-  --mi: var(--m-oro);
-  --mv: var(--m-oro-viva);
-  color: #1c1024;
-}
-.marco.dorado {
-  --mi: var(--m-dorado);
-  --mv: var(--m-dorado-viva);
-}
-.marco.hueso {
-  --mi: var(--m-hueso);
-  --mv: var(--m-hueso);
-  color: #1c1024;
-}
-.marco.hundido {
-  --mi: var(--m-hundido);
-  --mv: var(--m-hundido);
-}
-.marco.tinta {
-  --mi: var(--m-tinta);
-  --mv: var(--m-tinta);
-}
-.marco.plata {
-  --mi: var(--m-plata);
-  --mv: var(--m-plata-viva);
-}
-.marco.prisma {
-  --mi: var(--m-prisma);
-  --mv: var(--m-prisma-viva);
-}
-.marco.paloS {
-  --mi: var(--m-paloS);
-  --mv: var(--m-paloS-viva);
-}
-.marco.paloC {
-  --mi: var(--m-paloC);
-  --mv: var(--m-paloC-viva);
-}
-.marco.paloD {
-  --mi: var(--m-paloD);
-  --mv: var(--m-paloD-viva);
-}
-.marco.paloH {
-  --mi: var(--m-paloH);
-  --mv: var(--m-paloH-viva);
+  border-style: solid;
+  border-width: 8px;
+  border-image-source: var(--m-madera);
+  border-image-slice: 8 fill;
+  border-image-repeat: stretch;
+  background: var(--noche-2);
+  padding: 6px 12px;
 }
 
-/* ───────────── botones ───────────── */
+.marco.hierro { border-image-source: var(--m-hierro); }
+.marco.oro { border-image-source: var(--m-oro); }
+.marco.dorado { border-image-source: var(--m-dorado); }
+.marco.plata { border-image-source: var(--m-plata); }
+.marco.prisma { border-image-source: var(--m-prisma); }
+.marco.hundido { border-image-source: var(--m-hundido); }
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: calc(var(--u) * 0.75);
-  min-height: calc(48px * var(--k) * 0.5 + 24px);
-  min-width: 48px;
-  padding: 0 calc(var(--u) * 1.25);
-  font-family: var(--rot);
-  font-weight: 400;
-  font-size: var(--fr);
+  gap: 8px;
+  font: 700 14px/1.1 var(--f-tit);
   text-transform: uppercase;
-  white-space: nowrap;
   color: var(--hueso);
-  cursor: pointer;
-  position: relative;
-}
-.btn.oro {
-  color: #1c1024;
-}
-.btn:hover:not(:disabled),
-.btn:focus-visible,
-.btn.foco {
-  border-image-source: var(--mv);
-}
-.btn:active:not(:disabled) {
-  transform: translateY(calc(2px * var(--k)));
-  filter: brightness(0.92);
-}
-.btn.oro::after,
-.btn.monumental::after {
-  content: '';
-  position: absolute;
-  inset: 2px;
-  pointer-events: none;
-  background: linear-gradient(112deg, transparent 36%, rgba(255, 248, 214, 0.3) 50%, transparent 64%);
-  background-size: 260% 100%;
-  background-position: 150% 0;
-  animation: oro-brillo 4.6s steps(10) infinite;
-}
-.btn.oro:disabled::after,
-.btn.monumental:disabled::after {
-  animation: none;
-  opacity: 0;
-}
-@keyframes oro-brillo {
-  0%,
-  74% {
-    background-position: 150% 0;
-  }
-  100% {
-    background-position: -60% 0;
-  }
-}
-.btn:disabled,
-.btn[aria-disabled='true'] {
-  opacity: 0.45;
-  cursor: default;
-}
-.btn.grande {
-  font-size: var(--fr-l);
-  font-weight: 700;
-  min-height: calc(56px * var(--k) * 0.5 + 28px);
-  padding: 0 calc(var(--u) * 3);
-}
-.btn.monumental {
-  font-size: var(--fs-xl);
-  font-weight: 700;
-  min-height: calc(72px * var(--k) * 0.5 + 36px);
-  padding: 0 calc(var(--u) * 5);
-}
-.btn.chico {
-  font-size: var(--fr);
-  min-height: 48px;
-  padding: 0 var(--u);
-}
-.btn .precio {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+  transition: transform 80ms steps(2), filter 80ms steps(2);
 }
 
-:focus {
-  outline: none;
-}
-/* el foco del teclado y del mando: marco macizo, halo dorado y, en las piezas que se eligen, un punto más de tamaño */
-:focus-visible,
-.foco {
-  outline: calc(3px * var(--k)) solid var(--hueso);
-  outline-offset: calc(2px * var(--k));
-  box-shadow: 0 0 0 calc(8px * var(--k)) rgba(255, 213, 0, 0.45);
-}
+.btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.12); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn.chico { font-size: 12px; padding: 4px 9px; border-width: 6px; border-image-slice: 8 fill; }
+.btn.grande { font-size: 16px; padding: 10px 18px; }
+.btn.monumental { font-size: 18px; padding: 12px 26px; min-width: 210px; }
+.btn.peligro { color: var(--carmesi); }
 
-/* ───────────── textos ───────────── */
-
-.titulo {
-  font-family: var(--rot);
-  font-size: var(--fs-xl);
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--oro);
-  text-shadow:
-    calc(1px * var(--k)) calc(1px * var(--k)) 0 #7a0026,
-    calc(2px * var(--k)) calc(2px * var(--k)) 0 var(--abismo);
+.panel {
+  border-style: solid;
+  border-width: 10px;
+  border-image-source: var(--m-madera);
+  border-image-slice: 8 fill;
+  background: var(--noche-2);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 100%;
 }
-.sub {
-  font-size: var(--fs-s);
-  color: var(--hueso-2);
-  letter-spacing: 0.04em;
-}
-.rotulo {
-  font-family: var(--rot);
-  font-size: var(--fr);
-  font-weight: 400;
-  text-transform: uppercase;
-  color: var(--hueso-2);
-}
-.dorado {
-  color: var(--oro);
-}
-.rojo {
-  color: #ff6e8e;
-}
-.verde {
-  color: var(--lima);
-}
-.azul {
-  color: var(--cian);
-}
-.apagado {
-  color: var(--gris);
-}
-
-/* ───────────── chips ───────────── */
 
 .chip {
-  --kf: var(--k);
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 0 calc(var(--u) * 0.5);
-  min-height: calc(var(--fr) + 8px);
-  font-family: var(--rot);
-  font-size: var(--fr);
-  font-weight: 400;
-  text-transform: uppercase;
-  white-space: nowrap;
-  border: calc(3px * var(--k)) solid transparent;
-  border-image: var(--m-tinta) 3 fill / calc(3px * var(--k)) / 0 repeat;
-  image-rendering: pixelated;
+  padding: 2px 8px;
+  font: 700 11px/1.2 var(--f-tit);
+  background: var(--noche-3);
+  border: 2px solid #4a2a68;
+  color: var(--hueso);
 }
-.chip.canto {
-  color: var(--oro);
-}
-.chip.sinergia {
-  color: var(--oro);
-}
-.chip.maldicion {
-  color: #ff6e8e;
-}
-.sinergia-caja {
+
+.chip.canto { border-color: var(--oro); color: var(--oro); }
+.chip.sinergia { border-color: var(--lima); color: var(--lima); }
+.chip.rojo { border-color: var(--carmesi); color: var(--carmesi); }
+.chip.azul { border-color: var(--cian); color: var(--cian); }
+.chip.maldicion { border-color: var(--sangre); color: #ff6e8e; }
+
+.glifo {
   display: inline-flex;
-  flex-direction: column;
   align-items: center;
-  gap: 2px;
-}
-.sinergia-caja .micro {
-  font-size: var(--fs-s);
+  justify-content: center;
+  padding: 1px 5px;
+  font: 700 11px/1 var(--f-tit);
+  background: var(--abismo);
+  border: 1px solid var(--hueso-2);
   color: var(--oro);
 }
-.chip .estrella {
-  --k: 1;
-}
 
-/* ───────────── bocadillo ───────────── */
+html[data-entrada='raton'] .glifo { display: none; }
 
-.bocadillo {
-  --kf: var(--k);
-  position: relative;
-  max-width: min(23em, 78vw);
-  padding: calc(var(--u) * 0.25) calc(var(--u) * 0.75);
-  font-size: var(--fs);
-  line-height: 1.4;
-  color: #1c1024;
-  border: calc(8px * var(--kf)) solid transparent;
-  border-image: var(--m-hueso) 8 fill / calc(8px * var(--kf)) / 0 repeat;
-  image-rendering: pixelated;
-}
-.bocadillo::after {
-  /* la cola del bocadillo, en escalera de píxeles */
-  content: '';
-  position: absolute;
-  left: calc(14px * var(--k));
-  bottom: calc(-12px * var(--k));
-  width: calc(4px * var(--k));
-  height: calc(4px * var(--k));
-  background: var(--hueso);
-  box-shadow:
-    calc(4px * var(--k)) 0 0 var(--hueso),
-    calc(8px * var(--k)) 0 0 var(--hueso-2),
-    0 calc(4px * var(--k)) 0 var(--hueso),
-    calc(4px * var(--k)) calc(4px * var(--k)) 0 var(--hueso-2),
-    0 calc(8px * var(--k)) 0 var(--hueso-2);
-}
-.bocadillo.sin-cola::after {
-  display: none;
-}
-
-/* ───────────── pantalla genérica ───────────── */
-
-.pantalla {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: var(--u) calc(var(--u) * 2);
-  gap: var(--u);
-}
-.cabecera {
-  width: 100%;
+/* Anfitrión Bufón y bocadillo */
+.anfitrion {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--u);
-  min-height: 44px;
+  gap: 12px;
 }
-.cabecera .lado {
-  display: flex;
-  align-items: center;
-  gap: var(--u);
-}
-.cuerpo {
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: calc(var(--u) * 1.5);
-}
-.fila {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--u);
-  flex-wrap: wrap;
-}
-.crece {
-  flex: 1;
-}
-
-/* ───────────── el anfitrión ───────────── */
 
 .bufon {
   position: relative;
-  --k: var(--k-bufon);
-  width: calc(80px * var(--k));
-  height: calc(100px * var(--k));
-  flex: none;
-}
-.bufon .px {
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-.bufon .bf-palo {
-  transform-origin: 15% 97%;
-  animation: bf-mece 3.6s steps(6) infinite alternate;
-}
-.bufon .bf-cuerpo {
-  animation: bf-respira 2.8s steps(2) infinite;
-}
-@keyframes bf-mece {
-  from {
-    transform: rotate(-3deg);
-  }
-  to {
-    transform: rotate(3deg);
-  }
-}
-@keyframes bf-respira {
-  50% {
-    transform: translateY(calc(-1px * var(--k)));
-  }
-}
-.anfitrion {
+  width: 96px;
+  height: 112px;
   display: flex;
-  align-items: flex-end;
-  gap: var(--u);
-}
-.anfitrion .bocadillo {
-  margin-bottom: calc(40px * var(--k-bufon));
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-/* ───────────── retratos de los Reyes ───────────── */
-
-.rey {
-  position: relative;
-  --k: var(--k-rey);
-  width: calc(64px * var(--k));
-  height: calc(64px * var(--k));
-  flex: none;
-}
-.rey .px {
+.bufon .bf-capa {
   position: absolute;
   inset: 0;
-}
-.rey .r-busto {
-  animation: rey-respira 3.2s steps(2) infinite;
-}
-.rey .r-aura {
-  position: absolute;
-  inset: calc(-6px * var(--k));
-  background: radial-gradient(closest-side, var(--aura, #ffd500) 0%, transparent 70%);
-  opacity: 0.28;
-  animation: rey-aura 2.4s steps(4) infinite alternate;
-  mix-blend-mode: plus-lighter;
-}
-@keyframes rey-respira {
-  50% {
-    transform: translateY(calc(1px * var(--k)));
-  }
-}
-@keyframes rey-aura {
-  from {
-    opacity: 0.16;
-    transform: scale(0.96);
-  }
-  to {
-    opacity: 0.36;
-    transform: scale(1.04);
-  }
-}
-
-/* ───────────── HUD: la barra del jugador ───────────── */
-
-.hud {
-  --kf: var(--k);
-  width: min(100%, calc(1180px * var(--k) * 0.62 + 448px));
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: stretch;
-  gap: var(--u);
-  padding: calc(var(--u) * 0.25) var(--u);
-  flex: none;
-}
-.hud-lado {
-  display: flex;
-  align-items: center;
-  gap: var(--u);
-  min-width: 0;
-}
-.hud-lado.izq {
-  justify-content: flex-end;
-}
-.hud-pozo {
-  --kf: var(--k);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  padding: 0 calc(var(--u) * 0.75);
-  min-width: calc(64px * var(--k) * 0.5 + 40px);
-  align-self: stretch;
-  border: calc(8px * var(--kf)) solid transparent;
-  border-image: var(--m-hundido) 8 fill / calc(8px * var(--kf)) / 0 repeat;
-  image-rendering: pixelated;
-  cursor: default;
-}
-button.hud-pozo {
-  cursor: pointer;
-}
-button.hud-pozo:hover,
-button.hud-pozo:focus-visible {
-  border-image-source: var(--m-tinta);
-}
-.hud-pozo .valor {
-  display: flex;
-  align-items: center;
-  gap: calc(4px * var(--k));
-}
-.hud-vida {
-  min-width: calc(150px * var(--k) * 0.5 + 75px);
-}
-.hud-barra {
   width: 100%;
-  height: calc(8px * var(--k));
-  background: var(--abismo);
-  position: relative;
-  overflow: hidden;
-}
-.hud-barra > i {
-  position: absolute;
-  inset: 0 auto 0 0;
-  background: var(--b-vida) 0 0 / calc(8px * var(--k)) calc(8px * var(--k));
-  image-rendering: pixelated;
-  transition: width 0.25s steps(6);
-}
-.hud-retrato {
-  --kf: var(--k);
-  position: relative;
-  width: calc(48px * var(--k-retrato) + 16px * var(--kf));
-  height: calc(48px * var(--k-retrato) + 16px * var(--kf));
-  border: calc(8px * var(--kf)) solid transparent;
-  border-image: var(--m-oro) 8 / calc(8px * var(--kf)) / 0 repeat;
-  image-rendering: pixelated;
-  overflow: hidden;
-  background: var(--abismo);
-}
-.hud-cara {
-  /* el retrato de 64 celdas, recortado a las 48 del centro: la cara, bien grande */
-  position: absolute;
-  left: calc(-8px * var(--k-retrato));
-  top: calc(-6px * var(--k-retrato));
-  width: calc(64px * var(--k-retrato));
-  height: calc(64px * var(--k-retrato));
-  background-size: 100% 100%;
-  image-rendering: pixelated;
-}
-.hud-cara.golpe {
-  animation: cara-golpe 0.3s steps(3);
-}
-@keyframes cara-golpe {
-  33% {
-    transform: translate(calc(3px * var(--k)), calc(-2px * var(--k)));
-  }
-  66% {
-    transform: translate(calc(-2px * var(--k)), calc(1px * var(--k)));
-  }
-}
-.hud-tiras {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: calc(2px * var(--k));
-  min-width: 0;
-  flex: 1;
-}
-.hud-tira {
-  display: flex;
-  align-items: center;
-  gap: calc(3px * var(--k));
-  min-height: calc(30px * var(--k));
-  flex-wrap: nowrap;
-  overflow: hidden;
-}
-.ficha {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: calc(32px * var(--k));
-  height: calc(32px * var(--k));
-  flex: none;
-  background: var(--abismo);
-  box-shadow:
-    inset calc(1px * var(--k)) calc(1px * var(--k)) 0 #3a1426,
-    inset calc(-1px * var(--k)) calc(-1px * var(--k)) 0 #6b2e1a;
-  cursor: help;
-  padding: 0;
-  border: 0;
-}
-.ficha.vacia {
-  opacity: 0.5;
-}
-.ficha .cuenta {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  background: var(--abismo);
-  padding: 0 1px;
-  line-height: 0;
-}
-.ficha.carga {
-  width: auto;
-  padding: 0 calc(4px * var(--k));
-  gap: calc(2px * var(--k));
-}
-.ficha.carga .pinta {
-  transform: scale(0.75);
-}
-.ficha.sube {
-  animation: ficha-sube 0.4s steps(4);
-}
-@keyframes ficha-sube {
-  50% {
-    transform: translateY(calc(-4px * var(--k)));
-    box-shadow: inset 0 0 0 calc(2px * var(--k)) var(--oro);
-  }
+  height: 100%;
+  object-fit: contain;
 }
 
-/* ───────────── inspección (tooltip) ───────────── */
-
-.tip {
-  --kf: var(--k);
-  position: fixed;
-  z-index: 70;
-  max-width: min(17em, 86vw);
-  padding: calc(var(--u) * 0.25) calc(var(--u) * 0.75);
-  border: calc(8px * var(--kf)) solid transparent;
-  border-image: var(--m-madera) 8 fill / calc(8px * var(--kf)) / 0 repeat;
-  image-rendering: pixelated;
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.tip b {
-  font-family: var(--rot);
-  color: var(--oro);
-  font-weight: 400;
-  text-transform: uppercase;
-}
-.tip span {
-  font-size: var(--fs-s);
+.bocadillo {
+  position: relative;
+  background: var(--noche-3);
+  border: 2px solid var(--purpura);
+  padding: 8px 12px;
+  font-size: 14px;
   color: var(--hueso);
-}
-.tip .apagado {
-  color: var(--hueso-2);
+  max-width: 340px;
 }
 
-/* ───────────── modal ───────────── */
-
+/* Modales */
 .velo {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  background: rgba(9, 7, 15, 0.82);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: calc(var(--u) * 1.5);
-  padding: var(--u);
-  background:
-    repeating-conic-gradient(var(--abismo) 0% 25%, transparent 0% 50%) 0 0 / calc(2px * var(--k)) calc(2px * var(--k)),
-    rgba(9, 7, 15, 0.82);
-}
-.panel {
-  --kf: var(--k);
-  max-width: min(960px * var(--k) * 0.5 + 480px, 96vw);
-  max-height: 92dvh;
-  display: flex;
-  flex-direction: column;
-  gap: var(--u);
-  padding: var(--u) calc(var(--u) * 1.5);
-  border: calc(8px * var(--kf)) solid transparent;
-  border-image: var(--m-madera) 8 fill / calc(8px * var(--kf)) / 0 repeat;
-  image-rendering: pixelated;
+  padding: 16px;
+  z-index: 60;
 }
 
-/* ───────────── con «Reducir movimiento» nada se mueve solo ───────────── */
-
-.calma *,
-.calma *::before,
-.calma *::after {
-  animation: none !important;
-  transition: none !important;
-}
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.001s !important;
-    transition-duration: 0.001s !important;
-  }
+.velo .panel {
+  max-width: 920px;
+  width: min(92vw, 880px);
+  max-height: 86vh;
 }
 
-/* ───────────── 0.2.0: la tira del HUD es un solo botón (abre «LO QUE LLEVÁS») ───────────── */
-
-button.hud-tiras {
-  background: none;
-  border: 0;
-  padding: 0 calc(var(--u) * 0.5);
-  min-height: 44px;
-  align-self: stretch;
-  text-align: left;
-  cursor: pointer;
-  font: inherit;
-  color: inherit;
-}
-button.hud-tiras:hover .ficha,
-button.hud-tiras:focus-visible .ficha {
-  box-shadow: inset 0 0 0 calc(1px * var(--k)) var(--oro);
-}
-button.hud-tiras .ficha {
-  cursor: inherit;
-}
-
-/* zonas que se desplazan dentro de un panel */
 .rollo {
   overflow-y: auto;
-  min-height: 0;
-  scrollbar-width: thin;
-  scrollbar-color: #6b2e1a var(--abismo);
-}
-@media (max-width: 700px) {
-  .solo-ancho {
-    display: none;
-  }
+  max-height: 64vh;
+  padding-right: 4px;
 }
 
-/* ───────────── 0.6.0: el Bufón vivo ───────────── */
-
-:root {
-  /* el Bufón grande de la Pulpería: un punto más que en el resto */
-  --kb1: 3;
-}
-@media (min-width: 1700px) and (min-height: 950px) {
-  :root {
-    --kb1: 4;
-  }
-}
-/* flota todo el tiempo; cuando llega, crece de golpe; cuando habla, cabecea */
-.bufon {
-  animation: bf-flota 3.4s steps(8) infinite alternate;
-}
-@keyframes bf-flota {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(calc(-4px * var(--k)));
-  }
-}
-.bufon .bf-parpado {
-  opacity: 0;
-}
-.bufon.parpadea .bf-parpado {
-  opacity: 1;
-}
-.bufon.ausente {
-  visibility: hidden;
-}
-.bufon.llega {
-  animation: bf-llega 0.34s steps(5);
-}
-@keyframes bf-llega {
-  0% {
-    transform: scale(0.55) translateY(12%);
-  }
-  60% {
-    transform: scale(1.12);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-.bufon.habla .bf-cuerpo {
-  animation: bf-habla 0.22s steps(2) infinite;
-}
-@keyframes bf-habla {
-  50% {
-    transform: translateY(calc(-2px * var(--k)));
-  }
-}
-/* lo que falta decir ocupa su lugar sin verse; el bocadillo se va en tres tiempos */
-.bocadillo .por-decir {
-  visibility: hidden;
-}
-.bocadillo.se-va {
-  animation: boc-se-va 0.26s steps(3) forwards;
-}
-@keyframes boc-se-va {
-  to {
-    opacity: 0;
-    transform: translateY(calc(-4px * var(--k)));
-  }
-}
-/* el bocadillo que se fue deja su lugar: nada salta alrededor */
-.anfitrion .bocadillo[hidden] {
-  display: block;
-  visibility: hidden;
-}
-
-/* el Bufón chico de las cabeceras: asoma la cabeza; su bocadillo flota debajo y no empuja nada */
-.mini-anfitrion {
-  position: relative;
-  justify-content: flex-end;
-  min-width: calc(110px * var(--k) * 0.5 + 55px);
-  --k-bufon: 1;
-}
-.mini-anfitrion .bufon {
-  width: 64px;
-  height: 60px;
-  overflow: hidden;
-}
-.mini-anfitrion .bocadillo {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 12px);
-  width: max-content;
-  max-width: min(18em, 74vw);
-  z-index: 6;
-  pointer-events: none;
-}
-.mini-anfitrion .bocadillo::after {
-  left: auto;
-  right: 24px;
-  bottom: auto;
-  top: calc(-12px * var(--k));
-  transform: scaleY(-1);
-}
-@media (max-width: 700px) {
-  .mini-anfitrion {
-    min-width: 0;
-  }
-  .mini-anfitrion .bufon {
-    width: 52px;
-    height: 56px;
-  }
-  .altar .cabecera .titulo {
-    font-size: var(--fr);
-    white-space: nowrap;
-  }
-}
-
-/* ───────────── 0.6.0: pulido guiado por la auditoría visual ───────────── */
-
-@media (min-width: 1700px) and (min-height: 950px) {
-  :root {
-    --fs-s: 20px;
-  }
-}
-.bocadillo {
-  line-height: 1.5;
-}
-/* el texto corrido de las tarjetas y la micro-línea de sinergia van sobre una placa lisa, no sobre la trama */
-.op-desc,
-.sinergia-caja .micro {
-  background: rgba(11, 7, 17, 0.8);
-  padding: 2px 6px;
-}
-.sinergia-caja .micro {
-  font-size: var(--fs);
-  color: var(--hueso);
-}
-.sub {
-  color: var(--hueso);
-}
-/* la tira del HUD respira: más aire entre fichas y un canto que se ve */
-.hud-tira {
-  gap: calc(6px * var(--k));
-}
-.ficha {
-  box-shadow:
-    inset calc(1px * var(--k)) calc(1px * var(--k)) 0 #5c5470,
-    inset calc(-1px * var(--k)) calc(-1px * var(--k)) 0 #8a7fa6;
-}
-
-/* ───────────── 0.10.0: la pantalla entra, sus opciones brotan una tras otra, los números laten ───────────── */
-
-#app.recien > main {
-  animation: pantalla-entra 0.24s steps(6) both;
-}
-@keyframes pantalla-entra {
-  from {
-    opacity: 0;
-    filter: brightness(0.68);
-  }
-}
-.transicion-velo {
+/* HUD fijo inferior */
+.hud {
   position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 95;
-  background: radial-gradient(circle at 50% 42%, rgba(28, 16, 36, 0.22), rgba(9, 7, 15, 0.68));
-  animation: velo-pasa 0.24s steps(6) forwards;
-}
-@keyframes velo-pasa {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .transicion-velo,
-  .btn.oro::after,
-  .btn.monumental::after {
-    animation: none;
-    display: none;
-  }
-}
-#app.recien :is(.opciones > .opcion, .botin-lista > *, .ventas > *, .portada-menu > .btn, .portada-menu > .fila > .btn, .mazos > .mazo-op, .altar-lista > *, .cr-lista > *),
-.velo.recien .opciones > .opcion {
-  animation: brota 0.3s cubic-bezier(0.2, 1.5, 0.4, 1) both;
-  animation-delay: calc(var(--orden, 0) * 55ms + 60ms);
-}
-:is(.opciones, .botin-lista, .ventas, .portada-menu, .fila, .mazos, .altar-lista, .cr-lista) > :nth-child(2) {
-  --orden: 1;
-}
-:is(.opciones, .botin-lista, .ventas, .portada-menu, .fila, .mazos, .altar-lista, .cr-lista) > :nth-child(3) {
-  --orden: 2;
-}
-:is(.opciones, .botin-lista, .ventas, .portada-menu, .fila, .mazos, .altar-lista, .cr-lista) > :nth-child(4) {
-  --orden: 3;
-}
-:is(.opciones, .botin-lista, .ventas, .portada-menu, .fila, .mazos, .altar-lista, .cr-lista) > :nth-child(5) {
-  --orden: 4;
-}
-:is(.opciones, .botin-lista, .ventas, .portada-menu, .fila, .mazos, .altar-lista, .cr-lista) > :nth-child(n + 6) {
-  --orden: 5;
-}
-@keyframes brota {
-  from {
-    opacity: 0;
-    scale: 0.7;
-    translate: 0 calc(6px * var(--k));
-  }
-}
-/* el logotipo cae y rebota al llegar a la portada */
-#app.recien .logo-caja {
-  animation: logo-cae 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
-}
-@keyframes logo-cae {
-  from {
-    opacity: 0;
-    translate: 0 calc(-28px * var(--k));
-    scale: 1.15;
-  }
-}
-/* un número del HUD que cambia da un latido */
-[data-hud] [data-n].late {
-  animation: n-late 0.28s steps(4);
-}
-@keyframes n-late {
-  from {
-    scale: 1.35;
-  }
-}
-/* el grito del Personaje: un bocadillo corto al costado de su retrato (lo ubica hud.ts: nunca sobre la mano, los
-   botones ni la cuenta, y por debajo del velo de los modales) */
-.hud-grito {
-  position: fixed;
-  z-index: 45;
-  margin: 0;
-  width: max-content;
-  white-space: normal;
-  line-height: 1.15;
-  text-align: center;
-  pointer-events: none !important;
-  font-family: var(--rot);
-  text-transform: uppercase;
-  animation: grito 1.2s steps(10) both;
-}
-.hud-grito.quieto {
-  animation: none;
-}
-@keyframes grito {
-  0% {
-    opacity: 0;
-    scale: 0.5;
-  }
-  8% {
-    opacity: 1;
-    scale: 1.2;
-  }
-  14% {
-    scale: 1;
-  }
-  85% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    translate: 0 calc(-8px * var(--k));
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hud-grito {
-    animation: none;
-  }
-}
-
-.hud-retrato.grita {
-  animation: retrato-grita 0.3s steps(4);
-}
-@keyframes retrato-grita {
-  40% {
-    translate: 0 calc(-5px * var(--k));
-    scale: 1.08;
-  }
-}
-
-/* ───────────── 0.11.0: el HUD en tres zonas (50 · retrato · 50) y la bandeja de una fila ───────────── */
-
-/* la bandeja de lo que llevás: una sola fila; lo que no entra se cuenta en «+N» (hud.ts) */
-.hud-tiras {
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-  align-content: center;
-  gap: calc(6px * var(--k));
-  overflow: hidden;
-}
-.hud-tiras .hud-tira {
-  display: contents;
-}
-.hud-tiras .hud-tira + .hud-tira > :first-child {
-  margin-left: calc(6px * var(--k));
-}
-.hud-tiras .ficha[hidden],
-.hud-mas[hidden] {
-  display: none;
-}
-.hud-mas {
-  flex: none;
-  padding: 0 calc(4px * var(--k));
-  font-family: var(--rot);
-  font-size: var(--fr);
-  /* (hueso apagado y con su palabra, «4 MÁS»: es un contador de la bandeja, no un valor que suma) */
-  color: var(--hueso-2);
-  white-space: nowrap;
-  background: var(--abismo);
-  box-shadow: inset 0 0 0 calc(1px * var(--k)) #6a6078;
-  line-height: 1.6;
-}
-@media (min-width: 701px) {
-  /* izquierda: Vida, Escudo y oro llenan su mitad; derecha: el Mazo y la bandeja llenan la suya */
-  .hud-lado.izq {
-    justify-content: stretch;
-  }
-  .hud-lado.izq > .hud-pozo {
-    flex: 1 1 0;
-  }
-  .hud-lado.izq > .hud-vida {
-    flex: 1.5 1 0;
-  }
-  .hud-lado.der > .hud-pozo {
-    flex: 0 0 auto;
-  }
-  button.hud-tiras {
-    flex: 1 1 0;
-    align-self: stretch;
-    padding: 0 calc(var(--u) * 0.75);
-    border: calc(8px * var(--kf, var(--k))) solid transparent;
-    border-image: var(--m-hundido) 8 fill / calc(8px * var(--kf, var(--k))) / 0 repeat;
-    image-rendering: pixelated;
-  }
-  button.hud-tiras:hover,
-  button.hud-tiras:focus-visible {
-    border-image-source: var(--m-tinta);
-  }
-  .hud-nada {
-    margin: 0 auto;
-  }
-
-  /* el Bufón chico de Mazos, Altar, Colección, Crónica y Ajustes va en la escena: bajo la cabecera, con lo que dice al lado */
-  .cabecera:has(.mini-anfitrion) {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    row-gap: calc(var(--u) * 0.5);
-  }
-  .cabecera:has(.mini-anfitrion) > :first-child {
-    grid-column: 1;
-    grid-row: 1;
-    justify-self: start;
-  }
-  .cabecera:has(.mini-anfitrion) > :is(.titulo, .solapas) {
-    grid-column: 2;
-    grid-row: 1;
-  }
-  .cabecera > .porotos {
-    grid-column: 3;
-    grid-row: 1;
-    justify-self: end;
-  }
-  .cabecera > .mini-anfitrion {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    justify-self: center;
-    justify-content: center;
-    min-width: 0;
-    gap: var(--u);
-  }
-  .cabecera > .mini-anfitrion .bocadillo {
-    position: static;
-    width: auto;
-    margin: 0;
-  }
-  .cabecera > .mini-anfitrion .bocadillo::after {
-    display: none;
-  }
-}
-@media (max-width: 700px) {
-  .cabecera:has(.solapas) {
-    flex-wrap: wrap;
-    flex: none;
-  }
-  .solapas {
-    order: 9;
-    flex-basis: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--u);
-  }
-}
-/* la cola del bocadillo, con su filete de oro */
-.bocadillo::after {
-  box-shadow:
-    calc(4px * var(--k)) 0 0 var(--hueso),
-    calc(8px * var(--k)) 0 0 var(--oro),
-    calc(-4px * var(--k)) 0 0 var(--oro),
-    0 calc(4px * var(--k)) 0 var(--hueso),
-    calc(4px * var(--k)) calc(4px * var(--k)) 0 var(--oro),
-    calc(-4px * var(--k)) calc(4px * var(--k)) 0 var(--oro),
-    0 calc(8px * var(--k)) 0 var(--oro);
-}
-html.modo-3d .bocadillo::after {
-  display: none;
-}
-
-/* ───────────── 0.15.0 · Deck de verdad ───────────── */
-
-/* Los glifos de botón: una chapa de píxeles con la letra del botón del mando (A, B, X, Y redondos y de su color;
-   gatillos y Select, en pastilla) o de la tecla. Van dentro de cada botón, escondidos; se enseña el juego que toca
-   según con qué se viene jugando (`html[data-entrada]`, lo pone nav.ts). Con ratón o dedo no se ve ninguno. */
-.glifo {
-  --gp: 3px;
-  display: none;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  min-width: calc(var(--gp) * 7);
-  height: calc(var(--gp) * 7);
-  padding: 0 calc(var(--gp) * 1.5) 0 calc(var(--gp) * 1.5 + 1px);
-  font-family: var(--rot);
-  font-size: var(--fr);
-  font-style: normal;
-  font-weight: 400;
-  line-height: 1;
-  letter-spacing: 0;
-  text-transform: uppercase;
-  white-space: nowrap;
-  vertical-align: middle;
-  color: #14101e;
-  background: #d9ceb4;
-  box-shadow:
-    inset 0 calc(-1 * var(--gp)) 0 rgba(11, 7, 17, 0.32),
-    inset 0 var(--gp) 0 rgba(255, 255, 255, 0.3);
-  /* las esquinas, comidas un píxel */
-  clip-path: polygon(
-    var(--gp) 0,
-    calc(100% - var(--gp)) 0,
-    calc(100% - var(--gp)) var(--gp),
-    100% var(--gp),
-    100% calc(100% - var(--gp)),
-    calc(100% - var(--gp)) calc(100% - var(--gp)),
-    calc(100% - var(--gp)) 100%,
-    var(--gp) 100%,
-    var(--gp) calc(100% - var(--gp)),
-    0 calc(100% - var(--gp)),
-    0 var(--gp),
-    var(--gp) var(--gp)
-  );
-}
-@media (min-width: 1100px) {
-  .glifo {
-    --gp: 4px;
-  }
-}
-/* los cuatro botones de la cara del mando: redondos (un círculo de píxeles de 7 × 7) y cada uno de su color */
-.glifo:is(.g-a, .g-b, .g-x, .g-y) {
-  width: calc(var(--gp) * 7);
-  padding: 0 0 0 1px;
-  color: #fff;
-  clip-path: polygon(
-    calc(var(--gp) * 2) 0,
-    calc(var(--gp) * 5) 0,
-    calc(var(--gp) * 5) var(--gp),
-    calc(var(--gp) * 6) var(--gp),
-    calc(var(--gp) * 6) calc(var(--gp) * 2),
-    100% calc(var(--gp) * 2),
-    100% calc(var(--gp) * 5),
-    calc(var(--gp) * 6) calc(var(--gp) * 5),
-    calc(var(--gp) * 6) calc(var(--gp) * 6),
-    calc(var(--gp) * 5) calc(var(--gp) * 6),
-    calc(var(--gp) * 5) 100%,
-    calc(var(--gp) * 2) 100%,
-    calc(var(--gp) * 2) calc(var(--gp) * 6),
-    var(--gp) calc(var(--gp) * 6),
-    var(--gp) calc(var(--gp) * 5),
-    0 calc(var(--gp) * 5),
-    0 calc(var(--gp) * 2),
-    var(--gp) calc(var(--gp) * 2),
-    var(--gp) var(--gp),
-    calc(var(--gp) * 2) var(--gp)
-  );
-}
-.glifo.g-a {
-  background: #128a3a;
-}
-.glifo.g-b {
-  background: #c40d3f;
-}
-.glifo.g-x {
-  background: #1f5fd0;
-}
-.glifo.g-y {
-  background: #ffd500;
-  color: #14101e;
-}
-.glifo:is(.g-lb, .g-rb, .g-lt, .g-rt, .g-l3, .g-r3, .g-sel) {
-  background: #9a90a8;
-}
-html[data-entrada='mando'] .glifo.g-mando,
-html[data-entrada='teclado'] .glifo.g-tecla {
-  display: inline-flex;
-}
-/* en el teléfono no hay mando ni teclado que enseñar: los botones de la barra del pulgar no ceden ancho a un glifo */
-@media (max-width: 700px) {
-  html[data-entrada] .glifo:is(.g-mando, .g-tecla, .glifo) {
-    display: none;
-  }
-}
-/* dentro de un botón apagado, el glifo se apaga con él */
-.btn:disabled .glifo {
-  opacity: 0.55;
-}
-/* el «?» de JUGADAS le deja el sitio al glifo (0.25: salvo en el teléfono, donde el glifo no se enseña: el botón no
-   puede quedar como una caja vacía) */
-@media (min-width: 701px) {
-  html:is([data-entrada='mando'], [data-entrada='teclado']) .b-signo {
-    display: none;
-  }
-}
-
-/* lo que se inspecciona con la cruceta sin pulsarse (el enemigo, La Corte, cada pieza de «Lo que llevás») */
-.mirable,
-.pieza-fila {
-  cursor: help;
-}
-
-/* la lista que no entra entera avisa que sigue: el último renglón se esfuma y una flecha late al pie del panel */
-.velo > .panel {
-  position: relative;
-}
-.panel.hay-mas .rollo {
-  -webkit-mask-image: linear-gradient(#000 calc(100% - 56px), transparent);
-  mask-image: linear-gradient(#000 calc(100% - 56px), transparent);
-}
-.panel.hay-mas::after {
-  /* una flecha hacia abajo, en escalera de píxeles */
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: calc(6px * var(--k));
-  width: calc(4px * var(--k));
-  height: calc(4px * var(--k));
-  margin-left: calc(-2px * var(--k));
-  background: var(--oro);
-  box-shadow:
-    calc(-4px * var(--k)) calc(-4px * var(--k)) 0 var(--oro),
-    0 calc(-4px * var(--k)) 0 var(--oro),
-    calc(4px * var(--k)) calc(-4px * var(--k)) 0 var(--oro),
-    calc(-8px * var(--k)) calc(-8px * var(--k)) 0 var(--oro),
-    calc(-4px * var(--k)) calc(-8px * var(--k)) 0 var(--oro),
-    0 calc(-8px * var(--k)) 0 var(--oro),
-    calc(4px * var(--k)) calc(-8px * var(--k)) 0 var(--oro),
-    calc(8px * var(--k)) calc(-8px * var(--k)) 0 var(--oro);
-  pointer-events: none;
-  animation: hay-mas 0.7s steps(2) infinite alternate;
-}
-@keyframes hay-mas {
-  to {
-    translate: 0 calc(3px * var(--k));
-  }
-}
-
-@media (min-width: 1100px) and (max-width: 1699px), (min-width: 1700px) and (max-height: 949px) {
-  /* el «+N» de la bandeja va con la letra del cuerpo: a 24 px de rótulo se comía el sitio de una ficha */
-  .hud-mas {
-    font-family: inherit;
-    font-size: var(--fs);
-    line-height: 1.5;
-    padding: 0 5px;
-  }
-  /* el tooltip, con el título a 24 px, pide un renglón más ancho */
-  .tip {
-    max-width: min(19em, 86vw);
-  }
-  .tip b {
-    line-height: 1.1;
-  }
-  /* la letra de rótulo, siempre en su múltiplo de 8 (donde heredaba el tamaño del cuerpo quedaba a 20 px, deformada) */
-  .tip b,
-  .hud-grito {
-    font-size: var(--fr);
-  }
-}
-
-/* 0.17.0 · el pie de una ayuda puede venir en renglones (las cargas de los Reyes, una por renglón, en «LO QUE LLEVÁS») */
-.tip .apagado {
-  white-space: pre-line;
-}
-
-/* ───────────── 0.18.0 · la bandeja se lee sin pasar el cursor ───────────── */
-/* el nivel de una Bendición: un numerito en la esquina de su ficha (antes heredaba la caja de la cuenta de la mesa y
-   tapaba el icono: el «∠» suelto) */
-.ficha .f-nivel {
-  position: absolute;
+  left: 0;
   right: 0;
   bottom: 0;
-  padding: 0 3px;
-  font-family: var(--cuerpo);
-  font-size: var(--fs-s);
-  font-weight: 400;
-  line-height: 1;
-  color: var(--oro);
-  background: var(--abismo);
-}
-/* las cargas llevan su nombre a la vista: «⚔ FILO 4» */
-.ficha.carga .f-rot {
-  font-family: var(--cuerpo);
-  font-size: var(--fs-s);
-  font-weight: 400;
-  line-height: 1;
-  color: var(--hueso);
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-/* los Amuletos y las Cábalas del Bufón, separados por una raya */
-.hud-sep {
-  flex: none;
-  align-self: stretch;
-  width: 2px;
-  margin: 6px 2px;
-  background: #8a7fa6;
-  opacity: 0.7;
-}
-@media (max-width: 700px) {
-  /* (en el teléfono la bandeja es de una fila: el nombre de la carga, en su ayuda) */
-  .ficha.carga .f-rot {
-    display: none;
-  }
+  height: 60px;
+  background: linear-gradient(180deg, rgba(22, 12, 28, 0.96), #0b0711);
+  border-top: 2px solid #3c2254;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 14px;
+  gap: 10px;
+  z-index: 30;
 }
 
-/* ───────────── 0.19.0 · el grito del Personaje, pegado a su retrato y con la cola hacia él ───────────── */
-.hud-grito::after {
-  left: var(--cola-x, calc(14px * var(--k)));
-}
-.hud-grito[data-cola='arriba']::after {
-  bottom: auto;
-  top: calc(-12px * var(--k));
-  transform: scaleY(-1);
-}
-/* 0.21: la A (y su ENTER) va solo en el botón con el foco y sigue al foco: dos «A» a la vista no dicen cuál dispara.
-   El hueco queda (el rótulo no se corre al mover el foco) */
-.btn:not(:focus) > .glifo.g-a,
-.btn:not(:focus) > .glifo.g-a + .glifo.g-tecla {
-  visibility: hidden;
+.hud-lado {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-/* 0.21: la carga dice qué da, en criollo, bajo su nombre («FILO» / «+3 daño»); en el teléfono, en su ayuda */
-.ficha.carga .f-txt {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1px;
-}
-.ficha.carga .f-ayuda {
-  font-family: var(--cuerpo);
-  font-size: 14px;
-  line-height: 1;
-  color: var(--hueso-2);
-  text-transform: none;
-  white-space: nowrap;
-}
-@media (max-width: 700px) {
-  .ficha.carga .f-txt {
-    display: none;
-  }
-}
-
-/* ───────────── 0.25 · la maldición de una Evolución se lee como costo ───────────── */
-/* lo que sigue a «MALDICIÓN:» va en su propio bloque carmesí, con su rótulo: no se pierde en el texto de la regla */
-.maldicion-txt {
-  display: block;
-  margin-top: 4px;
-  padding: 2px 6px;
-  color: #ffc2cf;
-  background: rgba(122, 0, 38, 0.42);
-  box-shadow: inset 0 0 0 1px #b3123f;
-  text-align: left;
-}
-.maldicion-rot {
-  margin-right: 4px;
-  font-family: var(--rot);
-  font-weight: 400;
-  letter-spacing: 0.06em;
-  color: #ff4d79;
-}
-/* (en una ayuda, el bloque de la maldición no deja un renglón vacío detrás: va como caja de renglón entero) */
-.tip .maldicion-txt {
-  display: inline-block;
-  width: 100%;
-  box-sizing: border-box;
-}
-/* ───────────── 0.27 · lo que le pasa a una cifra tuya se dice adentro de su caja ───────────── */
-/* «−18» sobre tu VIDA, «−5 ESCUDO» sobre tu ESCUDO, «−3 ORO» sobre tu oro: montado en el canto de arriba de su caja
-   (sobre el rótulo, nunca sobre la cifra, la mano ni los botones), nace antes de que la cifra cambie y se va solo */
-.hud-pozo {
+.hud-retrato {
+  width: 46px;
+  height: 46px;
+  border: 2px solid var(--oro-2);
+  background-size: cover;
+  background-color: var(--noche-3);
   position: relative;
+  flex-shrink: 0;
 }
-.hud-delta {
+
+.hud-grito {
   position: absolute;
-  left: 50%;
-  top: calc(-9px * var(--kf, 1));
-  z-index: 6;
+  bottom: 54px;
+  left: 0;
+  background: var(--hueso);
+  color: var(--abismo);
+  font: 700 11px/1.15 var(--f-tit);
+  padding: 4px 7px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.hud-dato {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 1px 6px;
-  white-space: nowrap;
-  pointer-events: none;
-  background: #09070f;
-  box-shadow:
-    0 0 0 2px var(--hd, #ff1453),
-    0 0 0 4px #09070f;
-  transform: translateX(-50%);
-  animation: hud-delta 1.05s steps(12) forwards;
-}
-.hud-delta.hd-vida {
-  --hd: #ff1453;
-}
-.hud-delta.hd-escudo {
-  --hd: #00c8ff;
-}
-.hud-delta.hd-oro {
-  --hd: #ffd500;
-}
-.hud-delta .hd-que {
-  font-family: var(--rot);
-  font-size: var(--fs-s);
-  font-weight: 400;
-  line-height: 1;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--hd);
-}
-.hud-delta .hd-i {
-  --k: 1;
-  flex: none;
-}
-@keyframes hud-delta {
-  0% {
-    transform: translateX(-50%) scale(1.7);
-  }
-  12% {
-    transform: translateX(-50%) scale(1);
-  }
-  80% {
-    transform: translateX(-50%) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(-50%) translateY(-6px) scale(1);
-    opacity: 0;
-  }
-}
-@media (max-width: 700px) {
-  .hud-delta {
-    top: -12px;
-    padding: 0 4px;
-    gap: 3px;
-  }
-  .hud-delta {
-    animation-name: hud-delta-tel;
-  }
-  @keyframes hud-delta-tel {
-    0% {
-      transform: translateX(-50%) scale(1.3);
-    }
-    12% {
-      transform: translateX(-50%) scale(1);
-    }
-    80% {
-      opacity: 1;
-    }
-    100% {
-      opacity: 0;
-    }
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hud-delta {
-    animation: none;
-  }
+  padding: 4px 8px;
+  background: var(--noche-3);
+  border: 1px solid #3f2459;
+  font: 700 13px/1 var(--f-tit);
 }
 
-/* ───────────── 0.28 · las placas «−N» del HUD no pisan ninguna cifra ─────────────
-   escritorio: adentro de su caja, sobre el rótulo (ni a caballo del marco ni sobre la cifra). Teléfono: sobre el
-   retrato, cada una en su renglón (las ubica `deltaHud`, que mide a la vecina) */
-.hud-delta {
-  top: 3px;
+.hud-tira {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 44vw;
+  overflow-x: auto;
 }
-.hud-delta.hd-tel {
+
+.ficha {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: var(--noche-3);
+  border: 2px solid #4a2a68;
+  flex-shrink: 0;
+}
+
+.ficha.oro { border-color: var(--oro); }
+.ficha.prisma { border-color: var(--cian); }
+.ficha.brinca { transform: translateY(-4px); border-color: var(--oro); }
+
+/* Tooltips */
+.tip {
   position: fixed;
-  z-index: 80;
-  padding: 0 4px;
-  gap: 2px;
-}
-.hud-delta.hd-tel .hd-i {
-  margin: -2px 0;
-}
-/* (nace con un estirón corto que crece hacia arriba, desde su pie: ni en su primer cuadro llega a la cifra de la caja vecina) */
-.hud-delta:not(.hd-tel) {
-  transform-origin: 50% 100%;
-  animation-name: hud-delta-28;
-}
-@keyframes hud-delta-28 {
-  0% {
-    transform: translateX(-50%) scale(1.3);
-    filter: brightness(2);
-  }
-  12% {
-    transform: translateX(-50%) scale(1);
-    filter: none;
-  }
-  80% {
-    transform: translateX(-50%) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(-50%) translateY(-4px) scale(1);
-    opacity: 0;
-  }
-}
-
-/* (0.29) la placa de Vida del teléfono, al doble: es el número que más importa leer cuando te pegan */
-.hud-delta.hd-tel {
-  padding: 2px 6px;
-  gap: 3px;
-}
-.hud-delta.hd-tel.hd-grande .cifra {
-  --kc: 2;
-}
-
-/* (0.29) «HAY MÁS ↓» con letras al pie de las hojas que no entran enteras (JUGADAS, LO QUE LLEVÁS), como en el
-   teléfono: sobre el pie esfumado, en su placa (la flechita suelta no decía nada) */
-.panel.hay-mas[data-hay-mas]::after {
-  content: attr(data-hay-mas);
-  left: 50%;
-  bottom: calc(5px * var(--k));
-  width: auto;
-  height: auto;
-  margin-left: 0;
-  translate: -50% 0;
-  padding: 2px 12px;
-  font-family: var(--rot);
-  font-size: max(16px, var(--fr));
-  line-height: 1.25;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  color: var(--oro);
+  z-index: 90;
+  max-width: 280px;
   background: var(--abismo);
-  box-shadow: inset 0 0 0 2px var(--oro-2, #c99a00);
-  animation: none;
-}
-/* (0.29) a 1080p la placa «−N» es más alta que el rótulo de su caja: sube al canto de arriba (medía 18 px sobre la cifra) */
-@media (min-width: 1700px) {
-  .hud-delta:not(.hd-tel) {
-    top: -20px;
-  }
+  border: 2px solid var(--oro);
+  padding: 8px 10px;
+  font-size: 13px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
 }
 
-/* ───────────── 0.31.0 · Paneles y foco limpios ───────────── */
-.panel.hay-mas .rollo {
-  padding-bottom: 44px;
-  -webkit-mask-image: linear-gradient(#000 calc(100% - 68px), transparent calc(100% - 14px));
-  mask-image: linear-gradient(#000 calc(100% - 68px), transparent calc(100% - 14px));
-}
-.negra-bandeja.hay-mas[data-hay-mas]::after {
-  left: 50%;
-  right: auto;
-  width: max-content;
-  bottom: calc(62px * var(--k));
-  pointer-events: none;
-}
-.pieza-fila:focus-visible {
-  position: relative;
-  outline: calc(2px * var(--k)) solid var(--foco, #7df3ff);
-  outline-offset: calc(2px * var(--k));
-  box-shadow:
-    0 0 0 calc(2px * var(--k)) #09070f,
-    0 0 0 calc(5px * var(--k)) #09070f;
-}
-.pieza-fila:focus-visible::before {
-  content: '';
-  position: absolute;
-  z-index: 5;
-  left: 50%;
-  top: calc(-4px * var(--k));
-  width: calc(11px * var(--k) * 2);
-  height: calc(7px * var(--k) * 2);
-  translate: -50% 0;
-  background: var(--flecha-foco) 0 0 / 100% 100%;
-  image-rendering: pixelated;
-  pointer-events: none;
+.tip-t { font: 700 12px/1.2 var(--f-tit); color: var(--oro); margin-bottom: 4px; }
+
+.solo-movil { display: none; }
+
+@media (max-width: 760px) {
+  .solo-ancho { display: none; }
+  .solo-movil { display: inline; }
+  .pantalla { padding: 8px 10px; gap: 6px; }
+  .pantalla.en-partida { padding-bottom: 58px; }
+  .hud { height: 52px; padding: 4px 8px; gap: 6px; }
+  .hud .px.cf { --k: 1.25; }
+  .hud .px.icono { --k: 1.35; }
+  .hud-dato { padding: 3px 5px; font-size: 11px; gap: 3px; }
+  .hud-retrato { width: 34px; height: 34px; }
+  .hud-tira { max-width: 28vw; }
+  .ficha { width: 26px; height: 26px; }
+  .btn.monumental { min-width: 160px; font-size: 15px; padding: 10px 16px; }
 }

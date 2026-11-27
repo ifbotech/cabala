@@ -54,5 +54,6 @@ const lista: AmuletoDef[] = [
 ];
 
 export const AMULETOS: readonly AmuletoId[] = lista.map((x) => x.id);
+export type CabalaId = AmuletoId;
 export const AMULETO = Object.fromEntries(lista.map((x) => [x.id, x])) as Record<AmuletoId, AmuletoDef>;
 export const precioBase = (id: AmuletoId): number => B.pulperia.precio[AMULETO[id].rareza];

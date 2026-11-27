@@ -1,10 +1,9 @@
-// Fichas icónicas de lectura en 0,2 s para Amuletos, Cábalas y Bendiciones (código de color + cifra pura).
+// Fichas icónicas de lectura en 0,2 s para Cábalas (Amuletos) y Bendiciones.
 import type { Partida, TipoOferta } from '../rules/estado';
 import { B } from '../rules/balance';
-import { AMULETO, type AmuletoId } from '../rules/amuletos';
-import { AUMENTO, type AumentoId } from '../rules/aumentos';
+import type { AmuletoId } from '../rules/amuletos';
 import { BENDICION, type BendicionId } from '../rules/reyes';
-import { idioma, tx } from './almacen';
+import { idioma } from './almacen';
 import { fichaDe } from './ui';
 
 export type TonoChip = 'dano' | 'multi' | 'escudo' | 'vida' | 'oro' | 'util' | 'mal';
@@ -58,13 +57,6 @@ const AMULETO_CHIPS = (en: boolean): Record<AmuletoId, ChipDato[]> => ({
   ],
 });
 
-const AUMENTO_CHIPS = (en: boolean): Partial<Record<AumentoId, ChipDato[]>> => ({
-  sermano: [{ texto: `+${B.aumentos.sermano} ${en ? 'MULT' : 'MULTI'}`, tono: 'multi' }],
-  retruco: [{ texto: `+${B.aumentos.retruco} ${en ? 'MULT' : 'MULTI'}`, tono: 'multi' }],
-  manocaliente: [{ texto: `+${B.aumentos.manocaliente.multi} ${en ? 'MULT/HIT' : 'MULTI/GOLPE'}`, tono: 'multi' }],
-  caradepoker: [{ texto: `🛡 ${en ? '1ST NO HIT' : '1° SIN CONTRA'}`, tono: 'escudo' }],
-});
-
 export function fichaIc(tipo: TipoOferta, id: string, p?: Partida): FichaIconica {
   const f = fichaDe(tipo, id, p);
   const en = idioma() === 'en';
@@ -73,39 +65,19 @@ export function fichaIc(tipo: TipoOferta, id: string, p?: Partida): FichaIconica
     const chips = AMULETO_CHIPS(en)[id as AmuletoId] ?? [];
     return { sabor: f.desc, chips };
   }
-  if (tipo === 'aumento') {
-    const pre = AUMENTO_CHIPS(en)[id as AumentoId];
-    if (pre) return { sabor: f.desc, chips: pre };
-    const d = AUMENTO[id as AumentoId];
-    const chips: ChipDato[] = [];
-    const txt = tx(d.desc);
-    const mMulti = txt.match(/\+(\d+)\s*(?:de\s*)?(?:Multi|Mult)/i);
-    const mDano = txt.match(/\+(\d+)\s*(?:de\s*)?(?:Da[ñn]o|Damage)/i);
-    const mOro = txt.match(/\+(\d+)\s*(?:de\s*)?(?:[Oo]ro|Gold)/i);
-    const mVida = txt.match(/\+(\d+)\s*(?:de\s*)?(?:Vida|Health)/i);
-    if (mMulti) chips.push({ texto: `+${mMulti[1]} ${multLbl}`, tono: 'multi' });
-    if (mDano) chips.push({ texto: `⚔ +${mDano[1]}`, tono: 'dano' });
-    if (mOro) chips.push({ texto: `● +${mOro[1]}`, tono: 'oro' });
-    if (mVida) chips.push({ texto: `♥ +${mVida[1]}`, tono: 'vida' });
-    if (d.maldicion) chips.push({ texto: `⚠ ${en ? 'CURSE' : 'MALDICIÓN'}`, tono: 'mal' });
-    if (!chips.length) chips.push({ texto: `★ ${en ? 'OMEN' : 'CÁBALA'}`, tono: 'util' });
-    return { sabor: f.desc, chips };
-  }
   const d = BENDICION[id as BendicionId];
-  const tiene = p?.bendiciones[d.id] ?? 0;
-  const nivel = Math.min(d.niveles, tiene + 1);
   const txt = f.desc;
   const chips: ChipDato[] = [];
   const mMulti = txt.match(/([+×]\d+)\s*(?:de\s*)?(?:Multi|Mult)/i);
   const mDano = txt.match(/\+(\d+)\s*(?:de\s*)?(?:Da[ñn]o|Damage)/i);
   const mEsc = txt.match(/\+(\d+)\s*(?:de\s*)?(?:Escudo|Shield)/i);
-  const mVida = txt.match(/\+(\d+)\s*(?:de\s*)?(?:Vida|Health)/i);
-  const mOro = txt.match(/\+(\d+)\s*(?:de\s*)?(?:[Oo]ro|[Gg]old)/i);
-  if (mDano) chips.push({ texto: `⚔ +${mDano[1]}`, tono: 'dano' });
+  const mOro = txt.match(/\+(\d+)\s*(?:de\s*)?(?:[Oo]ro|Gold)/i);
+  const mVida = txt.match(/(?:cura|heals?)\s*(\d+)/i);
   if (mMulti) chips.push({ texto: `${mMulti[1]} ${multLbl}`, tono: 'multi' });
+  if (mDano) chips.push({ texto: `⚔ +${mDano[1]}`, tono: 'dano' });
   if (mEsc) chips.push({ texto: `🛡 +${mEsc[1]}`, tono: 'escudo' });
-  if (mVida) chips.push({ texto: `♥ +${mVida[1]}`, tono: 'vida' });
   if (mOro) chips.push({ texto: `● +${mOro[1]}`, tono: 'oro' });
-  if (!chips.length) chips.push({ texto: `★ ${en ? 'LV' : 'NV'} ${nivel}`, tono: 'util' });
+  if (mVida) chips.push({ texto: `♥ +${mVida[1]}`, tono: 'vida' });
+  if (!chips.length) chips.push({ texto: `★ ${d ? (en ? 'BLESSING' : 'BENDICIÓN') : 'CÁBALA'}`, tono: 'util' });
   return { sabor: f.desc, chips };
 }

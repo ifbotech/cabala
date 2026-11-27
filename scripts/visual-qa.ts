@@ -714,11 +714,9 @@ await conServidor(5191, async (url) => {
         await pagina.waitForSelector('html[data-qa="listo"]', { timeout: 15000 });
         await pagina.evaluate(() => document.fonts.ready);
         const flechas: string[] = [];
-        if (estado.endsWith('-mando')) {
-          // el foco del mando: se mueve con las flechas, como con la cruceta (en la mesa, además, se elige una carta)
-          if (estado === 'mesa-escudo-mando') {
-            // la mano de 8 montada (el Mentiroso): con el foco en la 2.ª, la 5.ª y la 8.ª carta, bajo la punta de la ▼
-            // tiene que estar la carta enfocada («flecha-foco»), no su vecina
+        const estadoStr = estado as string;
+        if (estadoStr.endsWith('-mando')) {
+          if (estadoStr === 'mesa-escudo-mando') {
             for (const i of [1, 4, 7]) {
               await pagina.locator('.mano .carta').nth(i).focus();
               await pagina.evaluate(() => (document.documentElement.dataset.entrada = 'mando'));
@@ -734,23 +732,18 @@ await conServidor(5191, async (url) => {
               });
               if (mal) flechas.push(mal);
             }
-          } else if (estado === 'mesa-mando') {
-            // se llega a la mano, se elige una carta y el foco pasa a la siguiente
+          } else if (estadoStr === 'mesa-mando') {
             await pagina.locator('.mano .carta').first().focus();
             await pagina.keyboard.press('ArrowRight');
             await pagina.keyboard.press('Enter');
             await pagina.keyboard.press('ArrowRight');
           } else await pagina.keyboard.press('ArrowRight');
-        } else if (v.nombre === '1280x800' && estado !== 'mesa-arrastrando' && estado !== 'cuarto' && estado !== 'sol-de-mayo') {
-          // en Steam Deck se juega solo con mando: el foco siempre está a la vista (se pone como lo pondría la cruceta)
+        } else if (v.nombre === '1280x800' && estadoStr !== 'mesa-arrastrando' && estadoStr !== 'cuarto' && estadoStr !== 'sol-de-mayo') {
           await pagina.keyboard.press('ArrowDown');
         }
-        // las flechas de la QA hacen de cruceta: en Steam Deck y en los estados «-mando» los glifos son los del mando
-        // (X, Y, LT…), no los del teclado (G, D, E…), como los vería quien juega con el mando de verdad
-        if (estado.endsWith('-mando') || (v.nombre === '1280x800' && estado !== 'mesa-arrastrando')) await pagina.evaluate(() => (document.documentElement.dataset.entrada = 'mando'));
-        // (al pasar a mando la mano cambia de ancho y la cuenta se vuelve a pintar: se mide con sus entradas ya posadas)
-        await pagina.waitForTimeout(estado.endsWith('-mando') || v.nombre === '1280x800' ? 320 : 120);
-        const fallos = await pagina.evaluate(auditar, { esMovil: v.w < 700, idioma: lang, deck: v.nombre === '1280x800' && estado !== 'mesa-arrastrando' });
+        if (estadoStr.endsWith('-mando') || (v.nombre === '1280x800' && estadoStr !== 'mesa-arrastrando')) await pagina.evaluate(() => (document.documentElement.dataset.entrada = 'mando'));
+        await pagina.waitForTimeout(estadoStr.endsWith('-mando') || v.nombre === '1280x800' ? 320 : 120);
+        const fallos = await pagina.evaluate(auditar, { esMovil: v.w < 700, idioma: lang, deck: v.nombre === '1280x800' && estadoStr !== 'mesa-arrastrando' });
         // (0.28) nada vivo se monta, nada tapa la cuenta, la mano se ve entera (también fuera del teléfono)
         fallos.push(...(await pagina.evaluate(manoViva, {})));
         // (0.29) la letra mínima medida de verdad: el cuerpo por su escala y el alto dibujado de las cifras de sprites
@@ -776,7 +769,7 @@ await conServidor(5191, async (url) => {
         // se mide en reposo y con la jugada elegida, en la misma página)
         const tope = v.w < 700 ? 8 : 4;
         const quietaTel = v.w < 700;
-        if (estado === 'mesa-escudo' && (v.w > 700 || quietaTel)) {
+        if (estadoStr === 'mesa-escudo' && (v.w > 700 || quietaTel)) {
           type M = { __mesa: { mano: { elegir(ids: string[]): void } }; __qaSel: string[] };
           await pagina.evaluate(() => (window as unknown as M).__mesa.mano.elegir([]));
           await pagina.waitForTimeout(150);

@@ -7,20 +7,14 @@
 // Con el dedo, el grupo va levantado por encima de la yema (no la tapa ni tapa al enemigo), cada zona avisa con una
 // vibración corta y un gesto que el sistema cancela devuelve las cartas a su lugar sin jugar nada.
 import type { Carta } from '../rules/cartas';
-import { medioDe, postasPorDefecto } from '../rules/combate';
 import { t, tx } from './almacen';
 import { quieto as todoQuieto } from './ritmo';
 import { cifra, pxHud, pxNaipe } from './sprites';
-import { MUTACION_DESC, MUTACION_NOMBRE, PASO_NOMBRE } from './textos';
+import { PASO_NOMBRE } from './textos';
 import { esc, tip } from './ui';
 import { chispas as chispasFx, RAMPA_PALO } from './fx/efectos';
 import { fogonazoCandil } from './fx/motor';
-import { marcarSucio3d } from './escena3d';
 import { B } from '../rules/balance';
-import type { HudPx } from './pixel/iconos';
-
-/** El sello de cada mutación de la Forja Brava en el canto del naipe. */
-export const MUTACION_PX: Record<'doblefilo' | 'roba' | 'oro', HudPx> = { doblefilo: 'doblefilo', roba: 'roba', oro: 'chispaOro' };
 
 export type Zona = 'enemigo' | 'descarte';
 
@@ -152,9 +146,8 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
   let viva = true;
   /** Qué carta está en cada Posta del paño (null: vacía). */
   const enPosta: (string | null)[] = new Array(nPostas).fill(null);
-  const medio = medioDe(nPostas);
-  /** El orden en que se llenan las Postas si no se elige dónde: el Medio y después a los costados. */
-  const ordenLlenado = postasPorDefecto(nPostas, nPostas);
+  const medio = Math.floor(nPostas / 2);
+  const ordenLlenado = Array.from({ length: nPostas }, (_, i) => i);
   let marcas: MarcasPano = { chispas: [], escalon: 0 };
   /** `alza`: lo que el centro del grupo va por encima del dedo (0 con ratón o lápiz); crece al alejarse de donde se tomó. */
   /** `previa`: lo elegido antes de empezar (un arrastre que no llega a ninguna zona lo deja como estaba); `lejos`: lo más que se alejó de donde empezó. */
@@ -504,7 +497,6 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
     c.el.classList.toggle('achicada', c.esc < 0.95);
     // (el recorte deja aire arriba y a los costados: la flecha del foco y el canto dorado no se cortan)
     c.el.style.clipPath = corte > 0 ? `inset(-64px -64px ${corte}px -64px)` : '';
-    marcarSucio3d();
   }
   const ponerEn = (el: HTMLElement, x: number, y: number, z: number, extra = ''): void => {
     const clave = `${Math.round(x)}|${Math.round(y)}|${z}|${extra}`;
@@ -1102,20 +1094,7 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
         el.dataset.n = String(carta.n);
         el.setAttribute('aria-pressed', 'false');
         el.setAttribute('aria-label', carta.palo === 'X' ? '★' : `${carta.n} ${carta.palo}`);
-        // el sello del temple («+8★») dice qué es al enfocar la carta o pasarle el cursor
-        if (carta.temple || carta.mutacion) {
-          const cuerpo = carta.brava ? t('forjada') : carta.templada ? t('templadaMulti', { n: carta.temple ?? 0, m: B.fogon.multiTemplada }) : t('templada', { n: carta.temple ?? 0 });
-          el.dataset.tipT = carta.mutacion ? tx(MUTACION_NOMBRE[carta.mutacion]) : t('templeTip');
-          // (la mutación de la Forja Brava, con lo que hace, en la ayuda del naipe)
-          el.dataset.tip = carta.mutacion ? `${tx(MUTACION_DESC[carta.mutacion])}\n${cuerpo}` : cuerpo;
-        }
-        // el Comodín lleva su nombre: sin número ni palo propios, es lo que lo distingue de una carta que no se lee
-        // (0.22: el índice es el del dibujo, sin placas de texto encima; la mutación, un sello en el canto de abajo)
-        el.innerHTML =
-          pxNaipe(carta) +
-          (carta.palo === 'X' ? `<span class="c-rotulo">${t('comodin')}</span>` : '') +
-          (carta.temple ? `<span class="c-temple">+${carta.temple}${carta.templada ? '★' : ''}${carta.brava ? ' ×2' : ''}</span>` : '') +
-          (carta.mutacion ? `<span class="c-mutacion" data-mut="${carta.mutacion}" aria-hidden="true">${pxHud(MUTACION_PX[carta.mutacion])}</span>` : '');
+        el.innerHTML = pxNaipe(carta) + (carta.palo === 'X' ? `<span class="c-rotulo">${t('comodin')}</span>` : '');
         raiz.append(el);
         const { h } = medidas();
         const x0 = desde ? desde.x - caja.left : raiz.clientWidth / 2;

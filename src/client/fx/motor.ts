@@ -9,7 +9,6 @@ import { ajustes } from '../almacen';
 import { armoniaActual } from '../musica';
 import type { Palo } from '../../rules/cartas';
 import { BAYER4 } from '../pixel/dither';
-import { avivarFuego3d, congelar3d, descongelar3d, escena3dActiva, fogonazo3d, modoFoto3d, ponerClima3d, ponerEscena3d, sacudirCamara3d } from '../escena3d';
 import { armarEscenario, avivarFogon, dondeFuego, type Escena, type Escenario } from './escenas';
 
 export type Ctx = CanvasRenderingContext2D;
@@ -74,7 +73,6 @@ let pulsoMusica = 0;
 let calentando = false;
 
 function rehacerFondo(): void {
-  if (escena3dActiva()) return;
   const palo = escena === 'mesa' ? clima : null;
   const clave = `${escena}|${palo ?? '-'}`;
   let e = armadas.get(clave);
@@ -89,7 +87,6 @@ function rehacerFondo(): void {
 
 /** Cambia la escena del fondo (y despeja el clima: cada duelo de Rey pone el suyo al montarse). */
 export function ponerEscena(e: Escena): void {
-  ponerEscena3d(e);
   if (e === escena && clima === null && escenario) return;
   escena = e;
   clima = null;
@@ -100,7 +97,6 @@ export function ponerEscena(e: Escena): void {
 
 /** El clima del duelo de Rey: relámpagos (Espadas), hojas y esporas (Bastos), lluvia de monedas (Oros) o bruma carmesí (Copas). `null` lo despeja. */
 export function ponerClima(palo: Palo | null): void {
-  ponerClima3d(palo);
   if (palo === clima) return;
   clima = palo;
   if (W && escena === 'mesa') rehacerFondo();
@@ -109,12 +105,10 @@ export function ponerClima(palo: Palo | null): void {
 /** El candil salta con el golpe: la luz de la mesa se abre un instante y decae en un cuarto de segundo. `fuerza` va de 0 a 1. */
 export function fogonazoCandil(fuerza = 1): void {
   if (foto || ajustes.calma) return;
-  fogonazo3d(fuerza);
   golpe = Math.max(golpe, Math.max(0, Math.min(1, fuerza)));
 }
 
 function pasoFondo(dt: number): void {
-  if (escena3dActiva()) return;
   const e = escenario;
   if (!e) return;
   const quieta = foto || ajustes.calma;
@@ -219,18 +213,15 @@ export function efecto(e: Efecto): void {
 export function congelar(ms: number): void {
   if (!ajustes.calma) {
     congelado = Math.max(congelado, ms);
-    congelar3d(ms);
   }
 }
 export function descongelar(): void {
   congelado = 0;
-  descongelar3d();
 }
 /** (0.25) La Forja Brava aviva la fogata del fondo (0 a 1; nada en modo foto ni con «Reducir movimiento»). */
 export function avivarFuego(f: number): void {
   const nivel = foto || ajustes.calma ? 0 : f;
   avivarFogon(nivel);
-  avivarFuego3d(nivel);
 }
 /** (0.25) Dónde arde la fogata del Fogón, en píxeles de la pantalla (o nada si la escena no la tiene armada). */
 export function fuegoEnPantalla(): { x: number; y: number } | null {
@@ -240,7 +231,6 @@ export function fuegoEnPantalla(): { x: number; y: number } | null {
 /** Modo foto: la escena queda quieta y determinista (QA visual). */
 export function modoFoto(si: boolean): void {
   foto = si;
-  modoFoto3d(si);
   if (si) efectos.length = 0;
 }
 export const enFoto = (): boolean => foto;
@@ -254,7 +244,6 @@ export const aCelda = (v: number): number => v / S;
 /** Sacude un elemento de la página con pasos enteros de píxel (el golpe medido). */
 export function sacudir(el: HTMLElement | null, fuerza = 1): void {
   if (!el || ajustes.calma || foto) return;
-  sacudirCamara3d(fuerza * 0.45);
   const k = Number(getComputedStyle(document.documentElement).getPropertyValue('--k')) || 1;
   const a = Math.max(1, Math.round(fuerza * 2 * k));
   el.animate(

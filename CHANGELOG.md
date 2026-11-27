@@ -1,7 +1,16 @@
 # Registro de cambios
 
-Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
-las del panel de jugadores son **simuladas** y se dicen con su ruido.
+Todas las versiones publicadas de CÁBALA.
+
+## 2.0.0 · CÁBALA 2.0 — MVP 100 % 2D Pixel Art Diegético (2026-11-27)
+
+- **Eliminación total del 3D (`escena3d/`, `three`, `@types/three`):** Reescritura limpia sobre Canvas 2D + DOM diegético sin dependencias de WebGL/Three.js.
+- **Mega-simplificación del flujo y reglas (`src/rules/`, `src/client/`):**
+  - Menú principal reducido a `JUGAR`, `COLECCIÓN` y `AJUSTES`, con los **5 Mazos abiertos desde el minuto 0**.
+  - Loop lineal estilo *Balatro* en 3 Tramos: `Sota (10)` → `Pulpería rápida` → `Caballo (11)` → `Duelo del Bufón` → `Rey Jefe (12)`.
+  - Eliminados Chiches, Postas del paño, Evoluciones, Mutaciones/Temple, Aumentos, Mapa ramificado, Fogón, Altar/Porotos, Crónica y Reinados 2–8; conservados 15 Cábalas, 12 Bendiciones directas de 1 nivel y 4 Reyes.
+- **Combate horizontal 2D estilo *Slay the Spire* (`combatientes.ts`, `mesa.ts`, `efectos.ts`):** Sprites 2D de cuerpo entero animados (`idle`, `ataca`, `escudo`, `herido` × 2 cuadros) para los 5 Héroes y los 12 Enemigos (cero cartas-enemigo) + efectos `impactoPalo`, `ondaEscudo` y `ondaCura` en doble buffer.
+- **CSS reescrito desde cero (`base.css`, `mesa.css`, `pantallas.css`):** Reducido de 16.695 líneas a **1.123 líneas** (`39,30 kB` en bundle), responsive PC + Móvil y verificado a 161–164 FPS en 4 resoluciones.
 
 ## 1.15.0 · Combate Horizontal 3D estilo *Slay the Spire* (2026-11-27)
 

@@ -1,7 +1,7 @@
 // Los textos de la interfaz, en español rioplatense y en inglés. Los nombres y efectos de las piezas viven con sus
 // datos en src/rules (cada uno en los dos idiomas); aquí solo va lo que dice la pantalla. Mínimo texto.
 import type { Jugada, Palo, Rango } from '../rules/cartas';
-import type { TipoNodo } from '../rules/estado';
+type TipoNodo = 'guardia' | 'elite' | 'pulperia' | 'cabala' | 'fogon' | 'rey';
 import { B } from '../rules/balance';
 
 export const ES = {

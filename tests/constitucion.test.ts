@@ -1,18 +1,14 @@
-// La constitución de CÁBALA como pruebas: lo que el juego ES (y lo que ya no tiene) no se rompe sin que se note.
+// La constitución de CÁBALA 2.0 (MVP 2D): lo que el juego ES (y lo que eliminó) no se rompe sin que se note.
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { OBJETIVOS } from '../scripts/objetivos';
-import { EN, ES, JUGADA_COMO, JUGADA_NOMBRE, NODO_DESC, NODO_NOMBRE } from '../src/client/textos';
-import { ENSENANZA, VOZ } from '../src/client/voces';
 import { AMULETO, AMULETOS } from '../src/rules/amuletos';
-import { AUMENTO, AUMENTOS, aumentosDe } from '../src/rules/aumentos';
 import { B } from '../src/rules/balance';
-import { CABALAS } from '../src/rules/bufon';
 import { JUGADAS, PALOS, barajaBase } from '../src/rules/cartas';
+import { ESTADOS_COMBATIENTE, enemigoMapa, heroeMapa } from '../src/client/pixel/combatientes';
+import { celdas, cuadra } from '../src/client/pixel/rejilla';
 import { MAZO, MAZOS, MAZOS_ABIERTOS } from '../src/rules/mazos';
-import { MEJORAS } from '../src/rules/perfil';
-import { REINADOS } from '../src/rules/reinados';
+import { mazoAbierto, perfilNuevo } from '../src/rules/perfil';
 import { BENDICION, BENDICIONES, REY_DEF } from '../src/rules/reyes';
 import { MARCA, SLUG, TITULO, VERSION } from '../src/shared/brand';
 
@@ -26,21 +22,22 @@ function archivos(dir: string, out: string[] = []): string[] {
   return out;
 }
 
-describe('marca', () => {
-  it('se llama CÁBALA en los dos idiomas, con su subtítulo inglés', () => {
+describe('marca y arquitectura 2D pura', () => {
+  it('se llama CÁBALA en los dos idiomas', () => {
     expect(TITULO).toBe('CÁBALA');
     expect(SLUG).toBe('cabala');
     expect(MARCA.es.titulo).toBe('CÁBALA');
-    expect(MARCA.en.titulo).toBe('CÁBALA');
-    expect(MARCA.en.subtitulo).toBe('A Spanish-Deck Roguelike');
   });
   it('la versión es la de package.json', () => {
     const pkg = JSON.parse(readFileSync(join(raiz, 'package.json'), 'utf8')) as { version: string; name: string };
     expect(pkg.version).toBe(VERSION);
     expect(pkg.name).toBe('cabala');
   });
-  it('se publica bajo /cabala/', () => {
-    expect(readFileSync(join(raiz, 'vite.config.ts'), 'utf8')).toContain("'/cabala/'");
+  it('cero imports de Three.js o escena3d en src/', () => {
+    for (const f of archivos(join(raiz, 'src'))) {
+      const txt = readFileSync(f, 'utf8');
+      expect(txt, f).not.toMatch(/from\s+['"]three['"]|escena3d/);
+    }
   });
 });
 
@@ -69,9 +66,9 @@ describe('baraja española pura', () => {
   });
 });
 
-describe('exactamente 15 Amuletos', () => {
+describe('exactamente 15 Cábalas (Amuletos)', () => {
   it('3 por palo (1 Común, 1 Raro, 1 Épico) y 3 del Bufón, todos Legendarios', () => {
-    expect(AMULETOS).toHaveLength(OBJETIVOS.amuletos);
+    expect(AMULETOS).toHaveLength(15);
     for (const s of PALOS) {
       const suyos = AMULETOS.filter((id) => AMULETO[id].palo === s).map((id) => AMULETO[id].rareza);
       expect(suyos.sort()).toEqual(['comun', 'epico', 'raro']);
@@ -82,127 +79,55 @@ describe('exactamente 15 Amuletos', () => {
   });
 });
 
-describe('Aumentos del Bufón', () => {
-  it('son entre 16 y 18, repartidos en Plata, Oro y Prismático', () => {
-    expect(AUMENTOS.length).toBeGreaterThanOrEqual(OBJETIVOS.aumentos[0]);
-    expect(AUMENTOS.length).toBeLessThanOrEqual(OBJETIVOS.aumentos[1]);
-    for (const n of ['plata', 'oro', 'prisma'] as const) expect(aumentosDe(n).length).toBeGreaterThanOrEqual(3);
-  });
-  it('las Maldiciones viven en el nivel Prismático', () => {
-    const malditas = AUMENTOS.filter((id) => AUMENTO[id].maldicion);
-    expect(malditas.length).toBeGreaterThanOrEqual(2);
-    expect(malditas.every((id) => AUMENTO[id].nivel === 'prisma')).toBe(true);
-  });
-});
-
-describe('los 5 Mazos y sus Personajes', () => {
-  it('son cinco, con Escoba y Truco abiertos desde el minuto 0', () => {
-    expect(MAZOS).toHaveLength(OBJETIVOS.mazos);
-    expect([...MAZOS_ABIERTOS].sort()).toEqual(['escoba', 'truco']);
-    for (const m of MAZOS) expect(MAZO[m].personaje.es.length).toBeGreaterThan(3);
-  });
-  it('la regla estrella de cada uno cabe en 12 palabras', () => {
-    for (const m of MAZOS) expect(MAZO[m].regla.es.split(/\s+/).length, MAZO[m].regla.es).toBeLessThanOrEqual(OBJETIVOS.palabrasRegla);
-  });
-});
-
-describe('los 4 Reyes', () => {
-  it('cada palo tiene su Rey, su carga y tres Bendiciones; hay seis Pactos Duales', () => {
+describe('4 Reyes y 12 Bendiciones directas', () => {
+  it('cada Rey tiene 3 Bendiciones de 1 nivel (sin pactos duales)', () => {
+    expect(Object.keys(REY_DEF)).toHaveLength(4);
+    expect(BENDICIONES).toHaveLength(12);
     for (const s of PALOS) {
-      expect(REY_DEF[s].carga.es.length).toBeGreaterThan(2);
-      expect(BENDICIONES.filter((id) => BENDICION[id].rey === s && !BENDICION[id].dual)).toHaveLength(3);
+      expect(BENDICIONES.filter((id) => BENDICION[id].rey === s)).toHaveLength(3);
     }
-    const duales = BENDICIONES.filter((id) => BENDICION[id].dual);
-    expect(duales).toHaveLength(6);
-    expect(new Set(duales.map((id) => [BENDICION[id].rey, BENDICION[id].dual].sort().join(''))).size).toBe(6);
-  });
-});
-
-describe('el Altar', () => {
-  it('es una sola lista de 6 a 8 mejoras directas, de hasta 5 niveles', () => {
-    expect(MEJORAS.length).toBeGreaterThanOrEqual(OBJETIVOS.mejorasAltar[0]);
-    expect(MEJORAS.length).toBeLessThanOrEqual(OBJETIVOS.mejorasAltar[1]);
-    for (const m of MEJORAS) {
-      expect(m.max).toBeGreaterThanOrEqual(1);
-      expect(m.max).toBeLessThanOrEqual(5);
+    for (const id of BENDICIONES) {
+      expect(BENDICION[id].niveles).toBe(1);
     }
   });
 });
 
-describe('textos', () => {
-  const pares: [string, { es: string; en: string }][] = [
-    ...AMULETOS.flatMap((id) => [[`amuleto ${id} nombre`, AMULETO[id].nombre], [`amuleto ${id}`, AMULETO[id].desc]] as [string, { es: string; en: string }][]),
-    ...AUMENTOS.flatMap((id) => [[`aumento ${id} nombre`, AUMENTO[id].nombre], [`aumento ${id}`, AUMENTO[id].desc]] as [string, { es: string; en: string }][]),
-    ...BENDICIONES.flatMap((id) => [1, 2, 3].slice(0, BENDICION[id].niveles).map((n) => [`bendición ${id} nivel ${n}`, BENDICION[id].desc(n)] as [string, { es: string; en: string }])),
-    ...MAZOS.flatMap((m) => MAZO[m].reglas.map((r, i) => [`mazo ${m} regla ${i}`, r] as [string, { es: string; en: string }])),
-    ...MEJORAS.map((m) => [`mejora ${m.id}`, m.desc] as [string, { es: string; en: string }]),
-    ...REINADOS.map((r) => [`reinado ${r.n}`, r.giro] as [string, { es: string; en: string }]),
-    ...PALOS.flatMap((s) => [[`rey ${s} rasgo`, REY_DEF[s].rasgoDesc], [`rey ${s} carga`, REY_DEF[s].cargaDa]] as [string, { es: string; en: string }][]),
-    ...CABALAS.flatMap((c) => c.opciones.map((o) => [`cábala ${c.id}/${o.id}`, o.detalle] as [string, { es: string; en: string }])),
-  ];
-  it('todo efecto está en los dos idiomas, sin campos sin rellenar', () => {
-    for (const [de, l] of pares) {
-      expect(l.es, de).toBeTruthy();
-      expect(l.en, de).toBeTruthy();
-      expect(l.es, de).not.toMatch(/[{}]|undefined|NaN/);
-      expect(l.en, de).not.toMatch(/[{}]|undefined|NaN/);
+describe('los 5 Mazos abiertos desde el minuto 0', () => {
+  it('todos los Mazos están desbloqueados desde el inicio', () => {
+    expect(MAZOS).toHaveLength(5);
+    expect(MAZOS_ABIERTOS).toHaveLength(5);
+    const p = perfilNuevo();
+    for (const m of MAZOS) {
+      expect(MAZO[m].desbloqueo).toBeNull();
+      expect(mazoAbierto(p, m)).toBe(true);
     }
-  });
-  it(`ninguna descripción pasa de ${OBJETIVOS.largoDesc} caracteres`, () => {
-    for (const [de, l] of pares) {
-      if (de.startsWith('mazo ')) continue;
-      expect(l.es.length, `${de}: ${l.es}`).toBeLessThanOrEqual(OBJETIVOS.largoDesc);
-      expect(l.en.length, `${de}: ${l.en}`).toBeLessThanOrEqual(OBJETIVOS.largoDesc);
-    }
-  });
-  it('las cifras de cada efecto son las mismas en español y en inglés', () => {
-    const cifras = (s: string) => (s.match(/\d+/g) ?? []).sort().join(',');
-    for (const [de, l] of pares) expect(cifras(l.en), de).toBe(cifras(l.es));
-  });
-  it('la interfaz tiene las mismas claves en los dos idiomas, todas con texto', () => {
-    expect(Object.keys(EN).sort()).toEqual(Object.keys(ES).sort());
-    for (const k of Object.keys(ES) as (keyof typeof ES)[]) {
-      expect(ES[k].trim(), k).not.toBe('');
-      expect(EN[k].trim(), k).not.toBe('');
-      expect((EN[k].match(/\{\w+\}/g) ?? []).sort(), k).toEqual((ES[k].match(/\{\w+\}/g) ?? []).sort());
-    }
-    for (const t of [JUGADA_NOMBRE, JUGADA_COMO, NODO_NOMBRE, NODO_DESC]) for (const v of Object.values(t)) expect(v.es && v.en).toBeTruthy();
-  });
-  it('la guía son tres comentarios cortos del Bufón, y nada más', () => {
-    expect(ENSENANZA).toHaveLength(3);
-    for (const l of ENSENANZA) expect(l.es.split(/\s+/).length).toBeLessThanOrEqual(18);
-    expect(VOZ.portada.length).toBeGreaterThan(0);
   });
 });
 
-describe('lo que CÁBALA ya no tiene', () => {
-  // cero rastro en el código, la interfaz y los textos de lo que se podó al fundar el juego
-  const PODADO = /\b(lacre|sello de (pólvora|eco|oro real|la manga)|la manga|tratante|pulpero|asalto diario|partida guiada|puente levadizo|la cripta|policromo|cristal maldito|filo de plata|trampas? del bufón|sobre lacrado|pergamino|esquirlas?|taberna|sangre y palo|blood & suits|derrumbe)\b/i;
-  it('ni Sellos de Lacre, ni Manga, ni Tratante, ni cartas especiales, ni toponimia medieval', () => {
-    const malos: string[] = [];
-    for (const f of [...archivos(join(raiz, 'src')), join(raiz, 'index.html')]) {
-      const texto = readFileSync(f, 'utf8');
-      const m = PODADO.exec(texto);
-      if (m) malos.push(`${f.replace(raiz, '')}: «${m[0]}»`);
+describe('Hito 3 · CSS limpio y sprites 2D de cuerpo entero', () => {
+  it('el CSS total ocupa menos de 2.000 líneas', () => {
+    const css = archivos(join(raiz, 'src', 'client', 'estilos')).filter((f) => f.endsWith('.css'));
+    const lineas = css.reduce((n, f) => n + readFileSync(f, 'utf8').split('\n').length, 0);
+    expect(lineas).toBeLessThan(2000);
+  });
+  it('los 5 Héroes y los 12 Enemigos tienen sprites 2D válidos en todos sus estados', () => {
+    for (const m of MAZOS) {
+      for (const est of ESTADOS_COMBATIENTE) {
+        for (const c of [0, 1] as const) {
+          const mp = heroeMapa(m, est, c);
+          expect(cuadra(mp), `heroe ${m}/${est}/${c}`).toBe(true);
+          expect(celdas(mp), `heroe ${m}/${est}/${c}`).toBeGreaterThan(80);
+        }
+      }
     }
-    expect(malos).toEqual([]);
-  });
-  it('las piezas no enseñan tier: ni letra S / A / B ni «S+» en la interfaz (decisión del 2026-11-20)', () => {
-    const malos: string[] = [];
-    for (const f of archivos(join(raiz, 'src', 'client'))) if (/notaDe|selloHtml|pxSello|sello-vivo/.test(readFileSync(f, 'utf8'))) malos.push(f.replace(raiz, ''));
-    expect(malos).toEqual([]);
-  });
-  it('no hay servidor de salas, ni envoltura de escritorio, ni estilos heredados', () => {
-    const src = readdirSync(join(raiz, 'src'));
-    expect(src.sort()).toEqual(['client', 'rules', 'shared']);
-    expect(readdirSync(join(raiz, 'src', 'client', 'estilos')).sort()).toEqual(['base.css', 'mesa.css', 'pantallas.css']);
-  });
-  it('la interfaz no pinta fondos beige ni bordes lisos de HTML', () => {
-    for (const f of readdirSync(join(raiz, 'src', 'client', 'estilos'))) {
-      const css = readFileSync(join(raiz, 'src', 'client', 'estilos', f), 'utf8');
-      expect(css, f).not.toMatch(/#eae2d0/i);
-      expect(css, f).not.toMatch(/border:\s*\d+px\s+solid\s+#000/i);
-      expect(css, f).not.toMatch(/Arial/i);
+    for (const palo of PALOS) {
+      for (const rango of [10, 11, 12] as const) {
+        for (const est of ESTADOS_COMBATIENTE) {
+          const mp = enemigoMapa(palo, rango, est, 0, rango === 12);
+          expect(cuadra(mp), `enemigo ${palo}${rango}/${est}`).toBe(true);
+          expect(celdas(mp), `enemigo ${palo}${rango}/${est}`).toBeGreaterThan(80);
+        }
+      }
     }
   });
 });

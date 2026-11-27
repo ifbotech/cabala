@@ -259,8 +259,6 @@ export function monedas(x0: number, y0: number, x1: number, y1: number, n = 8, a
     },
   });
 }
-
-/** Un número que salta del golpe, sube, cae con gravedad y se apaga parpadeando. */
 const enVuelo = new Set<{ apagar: (forzar?: boolean) => void }>();
 /** Apaga los números que están en el aire (entra un cartel o un rótulo en su lugar: un texto grande por vez); con
  * orzar, también el grande que todavía no cumplió su vida garantizada. */
@@ -498,8 +496,6 @@ export function haloRey(x: number, y: number, color: string, radio = 120): void 
     },
   });
 }
-
-/** Lluvia de monedas sobre un tramo de la pantalla (el botín). */
 export function lluviaDeMonedas(x0: number, x1: number, y0: number, n = 26): void {
   const ps: Particula[] = [];
   for (let i = 0; i < n; i++) ps.push({ x: aCelda(entre(x0, x1)), y: aCelda(y0) - entre(0, 40), vx: entre(-8, 8), vy: entre(20, 70), g: 260, vida: -i * 0.02, max: entre(0.7, 1.2), tam: 2, rampa: ['#fff799', '#ffd500', '#ffd500', '#ff7b00', '#d86000'], luz: '#ff7b00' });
@@ -602,6 +598,112 @@ export function quiebre(x: number, y: number, r: number, color: string, rampa: s
           }
         }
       }
+    },
+  });
+}
+
+/** Impacto 2D estilo pixelfx: flash de 1 cuadro, arco de corte direccional, anillo tramado, chispas y luz aditiva. */
+export function impactoPalo(palo: Palo | 'X', x: number, y: number, fuerte = false): void {
+  const cx = aCelda(x);
+  const cy = aCelda(y);
+  const rampa = RAMPA_PALO[palo];
+  const rMax = fuerte ? 36 : 24;
+  let t = 0;
+  const T = fuerte ? 0.42 : 0.3;
+  efecto({
+    paso(dt) {
+      t += dt;
+      return t < T;
+    },
+    pinta(c, l) {
+      const f = t / T;
+      const r = Math.round(6 + f * rMax);
+      const col = rampa[Math.min(rampa.length - 1, Math.floor(f * rampa.length))];
+      if (f < 0.25) {
+        c.fillStyle = '#ffffff';
+        c.fillRect(cx - 5, cy - 5, 10, 10);
+      }
+      c.fillStyle = col;
+      for (let a = 0; a < 24; a++) {
+        if (f > 0.5 && a % 2 === 0) continue;
+        const ang = (a / 24) * Math.PI * 2;
+        c.fillRect(Math.round(cx + Math.cos(ang) * r), Math.round(cy + Math.sin(ang) * r * 0.72), 2, 2);
+      }
+      // arco de tajo
+      const arc = 14 + f * 18;
+      for (let i = -8; i <= 8; i++) {
+        const px = Math.round(cx + i * 2.2);
+        const py = Math.round(cy - i * 1.6 + Math.sin((i / 8) * Math.PI) * (fuerte ? 8 : 5));
+        c.fillStyle = i % 2 === 0 ? '#ffffff' : col;
+        c.fillRect(px, py, 2, 2);
+      }
+      void arc;
+      if (f < 0.65) {
+        const d = disco(rampa[2], rMax * (1.2 - f * 0.6));
+        l.globalAlpha = Math.max(0, 1 - f * 1.4);
+        l.drawImage(d, Math.round(cx - d.width / 2), Math.round(cy - d.height / 2));
+        l.globalAlpha = 1;
+      }
+    },
+  });
+  chispas(x, y, rampa, fuerte ? 22 : 12, fuerte ? 110 : 75, 130);
+}
+
+/** Onda azul-cian de Escudo sobre el combatiente. */
+export function ondaEscudo(x: number, y: number): void {
+  const cx = aCelda(x);
+  const cy = aCelda(y);
+  const rampa = RAMPA_PALO.S;
+  let t = 0;
+  const T = 0.36;
+  efecto({
+    paso(dt) {
+      t += dt;
+      return t < T;
+    },
+    pinta(c, l) {
+      const f = t / T;
+      const r = Math.round(10 + f * 20);
+      c.fillStyle = rampa[Math.min(rampa.length - 1, Math.floor(f * rampa.length))];
+      for (let a = -10; a <= 10; a++) {
+        const ang = (a / 10) * (Math.PI * 0.48);
+        c.fillRect(Math.round(cx + Math.cos(ang) * r), Math.round(cy + Math.sin(ang) * r), 2, 2);
+      }
+      const d = disco('#00c8ff', 28);
+      l.globalAlpha = Math.max(0, 0.85 - f);
+      l.drawImage(d, Math.round(cx - d.width / 2), Math.round(cy - d.height / 2));
+      l.globalAlpha = 1;
+    },
+  });
+}
+
+/** Espiral verde-esmeralda de curación sobre el Héroe. */
+export function ondaCura(x: number, y: number): void {
+  const cx = aCelda(x);
+  const cy = aCelda(y);
+  const rampa = RAMPA_PALO.C;
+  let t = 0;
+  const T = 0.45;
+  efecto({
+    paso(dt) {
+      t += dt;
+      return t < T;
+    },
+    pinta(c, l) {
+      const f = t / T;
+      for (let i = 0; i < 6; i++) {
+        const ang = f * 4.5 + (i / 6) * Math.PI * 2;
+        const rad = 14 * (1 - f * 0.45);
+        const px = Math.round(cx + Math.cos(ang) * rad);
+        const py = Math.round(cy - f * 18 + Math.sin(ang) * 5);
+        c.fillStyle = rampa[i % 3];
+        c.fillRect(px - 1, py, 3, 1);
+        c.fillRect(px, py - 1, 1, 3);
+      }
+      const d = disco('#22d95b', 26);
+      l.globalAlpha = Math.max(0, 0.7 - f);
+      l.drawImage(d, Math.round(cx - d.width / 2), Math.round(cy - d.height / 2));
+      l.globalAlpha = 1;
     },
   });
 }

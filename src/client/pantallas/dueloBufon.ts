@@ -1,16 +1,16 @@
 // La Mano contra el Bufón (0.51.0): duelo 3D de mesa jugando 1 mano auténtica del Mazo actual antes de cada Rey Jefe.
 import type { Palo } from '../../rules/cartas';
-import { huecosChiche, type ChicheId } from '../../rules/chiches';
 import type { Partida } from '../../rules/estado';
 import { MAZO } from '../../rules/mazos';
+import { resolverDueloBufon } from '../../rules/partida';
 import { t, tx } from '../almacen';
 import { sonar } from '../audio';
-import { estallidoPalo3d, fogonazo3d, sacudirCamara3d } from '../escena3d';
 import { avivarRetrato, hudHtml } from '../hud';
-import { guardar, irCaminoSol, pintarFase } from '../juego';
+import { avanzar } from '../juego';
+import { fogonazoCandil, sacudir } from '../fx/motor';
 import { stinger } from '../musica';
 import { pausa, quieto } from '../ritmo';
-import { pxDorso, pxHud, pxNaipe, pxNodo } from '../sprites';
+import { pxDorso, pxNaipe } from '../sprites';
 import { anfitrion, esc, irASalida, repintar, $, type Pantalla } from '../ui';
 
 interface NaipeDuelo {
@@ -202,13 +202,12 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
   let exprBufon: 'reposo' | 'brillo' | 'risa' | 'burla' | 'sombria' = 'brillo';
   let saliendo = false;
 
-  const salirAlRey = (): void => {
+  const salirAlRey = (gano: boolean): void => {
     if (saliendo) return;
     saliendo = true;
     sonar('clic');
-    guardar();
-    if (p.acto >= 2) irCaminoSol(true);
-    else pintarFase();
+    resolverDueloBufon(p, gano);
+    avanzar();
   };
 
   const resolverResultado = async (gano: boolean, msg: string): Promise<void> => {
@@ -224,9 +223,8 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
     estado = gano ? 'gano' : 'perdio';
     if (gano) {
       stinger(p.mazoId);
-      estallidoPalo3d('D', 1.3);
-      fogonazo3d(1.6);
-      sacudirCamara3d(0.7);
+      fogonazoCandil(1.0);
+      sacudir($('.duelo-escena'), 2);
     } else {
       sonar('contra');
     }
@@ -299,31 +297,11 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
           </div>
           <div class="duelo-acciones">${accionesJuego}<button class="btn marco chico" data-accion="pasar-rey" data-foco="pasar-rey">${t('dueloRendirse')}</button></div>`;
       } else if (estado === 'gano') {
-        const chipsHtml = (s: string, cls: string) => s.split('|').map((x) => `<span class="${cls}">${esc(x)}</span>`).join('');
         cuerpoHtml = `
           <div class="duelo-bendicion">
             <h2 class="titulo dorado">${t('dueloBendicionTitulo')}</h2>
             <p class="sub">${t('dueloBendicionSub')}</p>
-            <div class="opciones">
-              <button class="opcion marco dorado bendicion-bufon-op" data-accion="bendicion" data-id="mano" data-foco="bend-mano" data-inicio>
-                <span class="bend-icono">${pxHud('oro')}</span>
-                <b class="op-nombre">${t('dueloBendManoNom')}</b>
-                <span class="op-desc">${t('dueloBendManoDesc')}</span>
-                <span class="op-chips"><span class="oc-oro">● +10</span><span class="oc-vida">♥ +10</span><span class="oc-dano">⚔ +4</span></span>
-              </button>
-              <button class="opcion marco prisma bendicion-bufon-op" data-accion="bendicion" data-id="bolso" data-foco="bend-bolso">
-                <span class="bend-icono">${pxHud('vida')}</span>
-                <b class="op-nombre">${t('dueloBendBolsoNom')}</b>
-                <span class="op-desc">${t('dueloBendBolsoDesc')}</span>
-                <span class="op-chips">${chipsHtml(t('dueloBendBolsoChips'), 'oc-vida')}</span>
-              </button>
-              <button class="opcion marco paloD bendicion-bufon-op" data-accion="bendicion" data-id="cabala" data-foco="bend-cabala">
-                <span class="bend-icono">${pxNodo('cabala')}</span>
-                <b class="op-nombre">${t('dueloBendCabalaNom')}</b>
-                <span class="op-desc">${t('dueloBendCabalaDesc')}</span>
-                <span class="op-chips">${chipsHtml(t('dueloBendCabalaChips'), 'oc-util')}</span>
-              </button>
-            </div>
+            <button class="btn marco oro grande" data-accion="cobrar-bendicion" data-foco="cobrar-bendicion" data-inicio>${t('seguir')} ›</button>
           </div>`;
       } else {
         cuerpoHtml = `
@@ -423,39 +401,12 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
         const gano = jF.rango > bF.rango || (jF.rango === bF.rango && jF.par >= bF.par);
         resolverResultado(gano, t(gano ? 'dueloChanchoGano' : 'dueloChanchoPerdio'));
       },
-      bendicion: (el) => {
-        const id = el.dataset.id;
-        if (id === 'mano') {
-          p.oro += 10;
-          p.vida = Math.min(p.vidaMax, p.vida + 10);
-          const carta = p.mazo.filter((k) => k.palo !== 'X').sort((a, b) => b.n - a.n)[0];
-          if (carta) {
-            if ((carta.temple ?? 0) > 0) carta.templada = true;
-            carta.temple = (carta.temple ?? 0) + 4;
-          }
-        } else if (id === 'bolso') {
-          p.vidaMax += 4;
-          p.vida = Math.min(p.vidaMax, p.vida + 4);
-          p.chiches = huecosChiche(p.chiches);
-          for (const ch of ['dado', 'fosforo', 'tiza', 'ginebra', 'poroto'] as ChicheId[]) {
-            const idx = p.chiches.indexOf(null);
-            if (idx === -1) break;
-            if (!p.chiches.includes(ch)) {
-              p.chiches[idx] = ch;
-              break;
-            }
-          }
-        } else if (id === 'cabala') {
-          p.oro += 8;
-          const activas = (['S', 'C', 'D', 'H'] as const).filter((k) => (p.cargas[k] ?? 0) > 0);
-          const destino = activas.length ? activas : (['S', 'C', 'D', 'H'] as const);
-          for (const k of destino) p.cargas[k] = (p.cargas[k] ?? 0) + 1;
-        }
+      'cobrar-bendicion': () => {
         sonar('evolucion');
-        fogonazo3d(1.0);
-        salirAlRey();
+        fogonazoCandil(0.9);
+        salirAlRey(true);
       },
-      'pasar-rey': salirAlRey,
+      'pasar-rey': () => salirAlRey(false),
     },
   };
 }

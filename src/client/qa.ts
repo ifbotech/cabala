@@ -1,41 +1,22 @@
-// Estados fijos para la QA visual: `?qa=<estado>` monta una pantalla concreta de una partida determinista (semilla
-// fija, perfil de muestra que no se guarda) y deja la escena en modo foto. `&lang=en` la pone en inglés, `&vivo`
-// deja correr las animaciones y `&perfil=nuevo` usa un perfil recién estrenado.
-import { acomodoExacto, mejorAcomodo, mejorGolpe, paso } from '../rules/bot';
-import { cuenta, postasDe, postasPorDefecto } from '../rules/combate';
-import type { Carta } from '../rules/cartas';
-import type { Partida, TipoNodo } from '../rules/estado';
+// Estados fijos para la QA visual de CÁBALA 2.0 (MVP 2D): `?qa=<estado>` monta una pantalla determinista.
+import { mejorGolpe, paso } from '../rules/bot';
+import { cuenta } from '../rules/combate';
+import type { Partida } from '../rules/estado';
 import type { MazoId } from '../rules/mazos';
 import * as juego from '../rules/partida';
-import { altarLleno, perfilNuevo, type Perfil } from '../rules/perfil';
-import { ajustes, perfil, tx, usarGlorias, usarPerfil } from './almacen';
-import { gritar } from './hud';
-import { GRITO } from './voces';
+import { perfilNuevo, type Perfil } from '../rules/perfil';
+import { ajustes, usarPerfil } from './almacen';
 import { modoFoto } from './fx/motor';
-import { enfocarRincon3d, forzarCuadro3d, type RinconId } from './escena3d';
-import { irAjustes, irAltar, irCaminoSol, irColeccion, irCronica, irDueloBufon, irExplorar, irIntroMazo, irMazo, irPortada, pintarFase, sesion } from './juego';
-import { $, enfocarJugador } from './ui';
-import { mascaraHtml } from './pantallas/mesa';
-import { vistaCuartoInicial } from './pantallas/menu';
+import { irAjustes, irColeccion, irDueloBufon, irMazo, irPortada, pintarFase, sesion } from './juego';
+import { $ } from './ui';
 import { BENDICION, BENDICIONES, type BendicionId } from '../rules/reyes';
 import type { Palo } from '../rules/cartas';
-import { jackpotEvolucion } from './evolucion';
-import { t } from './almacen';
 
-/** (0.22) Un don del Rey de ese palo, para despertar su Evolución en las fotos. */
 function darDon(p: Partida, palo: Palo): void {
-  // (0.29) cuatro niveles de dones de ese Rey, repartidos entre sus dones sin pasar del tope de ninguno: despierta la
-  // Evolución con las reglas de la 0.28 (un don) y con las de la 0.29 (cuatro niveles)
-  let faltan = 4;
-  for (const b of BENDICIONES as readonly BendicionId[]) {
-    const d = BENDICION[b];
-    if (d.rey !== palo || d.dual || faltan <= 0) continue;
-    const n = Math.min(d.niveles, faltan);
-    p.bendiciones[b] = Math.max(p.bendiciones[b] ?? 0, n);
-    faltan -= n;
-  }
+  const b = (BENDICIONES as readonly BendicionId[]).find((id) => BENDICION[id].rey === palo);
+  if (b) p.bendiciones[b] = 1;
 }
-/** Y el Amuleto Épico (dejando lugar si hace falta). */
+
 function darAmuleto(p: Partida, id: Partida['amuletos'][number]): void {
   if (p.amuletos.includes(id)) return;
   if (p.amuletos.length >= p.huecos) p.amuletos.pop();
@@ -43,56 +24,38 @@ function darAmuleto(p: Partida, id: Partida['amuletos'][number]): void {
 }
 
 export const ESTADOS = [
-  'portada', 'elegir-mazo', 'elegi-una', 'mapa', 'mesa', 'mesa-seleccion', 'mesa-arrastrando', 'mesa-rey', 'mesa-segunda', 'mesa-mentiroso', 'botin', 'elegi-bendicion', 'elegi-amuleto',
-  'pulperia', 'fogon', 'cabala', 'mazo', 'jugadas', 'piezas', 'mesa-mando', 'mapa-mando', 'altar', 'coleccion', 'coleccion-reyes', 'coleccion-amuletos', 'cronica', 'ajustes', 'fin-victoria', 'fin-derrota',
-  'mesa-grito', 'botin-grito', 'mesa-segunda-cambia', 'botin-rey', 'mesa-conteo', 'mesa-escudo',
-  'mesa-chispa', 'mesa-escalon', 'mesa-postas-arrastre', 'mesa-chiches', 'mesa-chiche-usa', 'mesa-prenda', 'pulperia-chiches', 'rey-mascara', 'mesa-escudo-mando',
-  'evolucion-jackpot', 'hud-evolucion', 'oferta-evoluciona', 'forja-brava', 'cabala-negra', 'mapa-tesoro', 'botin-tesoro',
-  'altar-devolver', 'resumen-victoria', 'resumen-derrota', 'mesa-exacto', 'fogon-mutaciones', 'hud-evolucion-foco',
-  'mesa-dejalo-justo', 'resumen-derrota-movil', 'forja-brava-eleccion',
-  'mesa-pega-todo', 'mesa-maldicion', 'mesa-garrote', 'mesa-limpia',
-  'mesa-sol', 'mesa-chinchon', 'mesa-chancho',
-  'pulperia-evoluciona',
-  'cuarto', 'sol-de-mayo', 'duelo-bufon', 'intro-mazo',
+  'portada', 'elegir-mazo', 'coleccion', 'coleccion-reyes', 'coleccion-amuletos', 'ajustes',
+  'mesa', 'mesa-seleccion', 'mesa-rey', 'mesa-segunda', 'mesa-mentiroso',
+  'pulperia', 'duelo-bufon', 'botin', 'elegi-bendicion', 'elegi-amuleto',
+  'mazo', 'jugadas', 'piezas', 'fin-victoria', 'fin-derrota',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
-/** Estados que solo tienen sentido en vivo (`&vivo`, para las secuencias del Jurado): no entran en la QA visual. */
 export const ESTADOS_VIVOS = ['rey-abre'] as const;
 
-/** Un perfil de muestra con algo de camino andado. */
 function perfilMuestra(): Perfil {
   const p = perfilNuevo();
-  p.porotos = 245;
-  p.altar = { vida: 3, oro: 2, descuento: 1, suerte: 2, reyes: 1, hueco: 1, purga: 0 };
   p.stats = { partidas: 14, victorias: 3, reyes: 17, pokers: 2, exactos: 31, cantos: 120, abatidos: 233, mejorGolpe: 1284 };
   p.ganado = { escoba: 2, truco: 1, chinchon: 0, mentiroso: 0, chancho: 0 };
   p.aprendido = true;
-  p.vistos = ['a:cuchillo', 'a:facon', 'a:rebenque', 'a:poncho', 'a:moneda', 'a:taba', 'a:mate', 'a:bota', 'a:caliz', 'a:cascabel', 'u:senafalsa', 'u:dardeabajo', 'u:vueltodemas', 'u:sermano', 'u:cartamarcada', 'u:manocaliente', 'u:retruco', 'u:faltaenvido', 'u:pactogarca', 'b:deguello', 'b:primerasangre', 'b:empalizada', 'b:contragolpe', 'b:interes', 'b:tabacargada', 'b:coparebosante', 'b:otraronda', 'b:hojabroquel', 'r:S', 'r:C', 'r:D'];
-  p.cronica = [
-    { fecha: 1, semilla: 'K7M2QX', mazo: 'escoba', reinado: 2, victoria: true, acto: 2, reyes: 3, abatidos: 27, mejorGolpe: 1284, turnos: 61, porotos: 156 },
-    { fecha: 2, semilla: 'B4T9LD', mazo: 'truco', reinado: 1, victoria: false, acto: 1, reyes: 1, abatidos: 13, mejorGolpe: 402, turnos: 33, porotos: 47 },
-    { fecha: 3, semilla: 'ZP3H8W', mazo: 'chinchon', reinado: 1, victoria: false, acto: 2, reyes: 2, abatidos: 22, mejorGolpe: 760, turnos: 52, porotos: 88 },
-  ];
+  p.vistos = ['a:cuchillo', 'a:facon', 'a:rebenque', 'a:poncho', 'a:moneda', 'a:taba', 'a:mate', 'a:bota', 'a:caliz', 'a:cascabel', 'b:deguello', 'b:primerasangre', 'b:empalizada', 'b:contragolpe', 'b:interes', 'b:tabacargada', 'r:S', 'r:C', 'r:D'];
   return p;
 }
 
 const BOT = () => ({ rng: { rng: 12345 } });
 
-/** Una partida determinista llevada por el bot hasta que se cumpla `cuando`. */
-function partida(mazo: MazoId, cuando: (p: Partida) => boolean, semilla = 'QA', altar = perfilMuestra().altar as Record<string, number>, busca?: TipoNodo): Partida {
-  let p = intento(mazo, cuando, semilla, altar, busca);
-  for (let i = 1; i < 40 && !cuando(p); i++) p = intento(mazo, cuando, `${semilla}-${i}`, altar, busca);
-  return p;
-}
-
-function intento(mazo: MazoId, cuando: (p: Partida) => boolean, semilla: string, altar: Record<string, number>, busca?: TipoNodo): Partida {
-  const p = juego.nuevaPartida({ mazo, semilla, altar });
+function partida(mazo: MazoId, cuando: (p: Partida) => boolean, semilla = 'QA'): Partida {
+  let p = juego.nuevaPartida({ mazo, semilla });
   const bot = BOT();
-  for (let i = 0; i < 4000 && !cuando(p); i++) {
-    // si se busca un tipo de nodo, se entra en cuanto queda a mano
-    const nodo = busca && p.fase === 'mapa' ? juego.nodosAlcanzables(p).find((n) => n.tipo === busca) : undefined;
-    if (nodo) juego.elegirNodo(p, nodo.id);
-    else if (!paso(p, bot)) break;
+  for (let i = 0; i < 800 && !cuando(p); i++) {
+    if (!paso(p, bot)) break;
+  }
+  if (!cuando(p)) {
+    for (let s = 1; s < 30 && !cuando(p); s++) {
+      p = juego.nuevaPartida({ mazo, semilla: `${semilla}-${s}` });
+      for (let i = 0; i < 800 && !cuando(p); i++) {
+        if (!paso(p, bot)) break;
+      }
+    }
   }
   return p;
 }
@@ -110,33 +73,14 @@ export function montarQa(estado: string): void {
   document.documentElement.lang = ajustes.idioma;
   usarPerfil(q.get('perfil') === 'nuevo' ? perfilNuevo() : perfilMuestra());
   const mazo = (q.get('mazo') as MazoId) || 'escoba';
-  // la mesa se fotografía con la mano de su Mazo (sin el Aumento que reparte cartas de más el primer turno)
-  const enCombate = (p: Partida, acto = 1) => p.fase === 'combate' && p.acto >= acto && p.combate!.turno === 1 && p.combate!.golpes === 0 && p.combate!.mano.length === p.manoMax;
+  const enCombate = (p: Partida, acto = 0) => p.fase === 'combate' && p.acto >= acto && p.combate!.turno === 1 && p.combate!.golpes === 0;
+
   switch (estado as EstadoQa | (typeof ESTADOS_VIVOS)[number]) {
     case 'portada':
       irPortada();
       break;
-    case 'cuarto' as EstadoQa: {
-      usarGlorias([
-        { palo: 'D', n: 1, mazo: 'escoba', reinado: 1, fecha: 1 },
-        { palo: 'S', n: 1, mazo: 'truco', reinado: 2, fecha: 2 },
-        { palo: 'H', n: 7, mazo: 'chinchon', reinado: 1, fecha: 3 },
-      ]);
-      if (q.get('abierta') === '1') perfil.stats.victorias = Math.max(1, perfil.stats.victorias);
-      irExplorar(vistaCuartoInicial(q.get('rincon')));
-      break;
-    }
     case 'elegir-mazo':
       irMazo();
-      break;
-    case 'altar':
-      irAltar();
-      break;
-    case 'altar-devolver':
-      // (0.23) el Altar con una mejora comprada elegida: MEJORAR y DEVOLVER, con lo que vuelve
-      irAltar();
-      $<HTMLElement>('[data-accion="ofrenda"][data-id="vida"]')?.click();
-      requestAnimationFrame(() => enfocarJugador($<HTMLElement>('[data-accion="devolver"]')));
       break;
     case 'coleccion':
       irColeccion();
@@ -149,584 +93,96 @@ export function montarQa(estado: string): void {
       irColeccion();
       $<HTMLElement>('[data-id="amuletos"]')?.click();
       break;
-    case 'cronica':
-      irCronica();
-      break;
     case 'ajustes':
       irAjustes();
       break;
-    case 'elegi-una':
-      montar(juego.nuevaPartida({ mazo, semilla: 'QA', altar: perfilMuestra().altar }));
-      break;
-    case 'mapa':
-      montar(partida(mazo, (p) => p.fase === 'mapa' && p.camino.length >= 2));
-      break;
     case 'mesa':
-    case 'mesa-mando': // el foco lo pone la QA visual con el teclado, como lo pondría el mando
-      montar(partida(mazo, (p) => enCombate(p)));
+      montar(partida(mazo, (p) => enCombate(p, 0)));
       break;
-    case 'mapa-mando': // en el segundo tramo, donde el Jurado vio el «ESTÁS ACÁ» bajo los sellos de arriba
-      montar(partida(mazo, (p) => p.fase === 'mapa' && p.acto >= 1 && p.camino.length >= 2));
-      break;
-    case 'mesa-seleccion':
-    case 'mesa-arrastrando': {
-      const p = partida(mazo, (x) => enCombate(x));
+    case 'mesa-seleccion': {
+      const p = partida(mazo, (x) => enCombate(x, 0));
       montar(p);
       const m = mejorGolpe(p);
-      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void; posar(ids: string[], x: number, y: number): void } } }).__mesa;
-      if (m && mesa) {
-        if (estado === 'mesa-seleccion') mesa.mano.elegir(m.ids, m.postas);
-        else {
-          const r = $('[data-carta]')!.getBoundingClientRect();
-          mesa.mano.posar(m.ids, r.left + r.width / 2, r.top + r.height * 0.62);
-        }
-      }
+      if (m) (window as unknown as { __mesa?: { mano?: { elegir: (ids: string[]) => void } } }).__mesa?.mano?.elegir(m.ids);
       break;
     }
     case 'mesa-rey':
-      montar(partida(mazo, (p) => p.fase === 'combate' && !!p.combate!.fila[0]?.jefe));
+      montar(partida(mazo, (p) => p.fase === 'combate' && !!p.combate?.fila[0]?.jefe));
       break;
-    case 'rey-mascara': {
-      // la micro-escena de entrada del Rey, quieta: el Bufón todavía con la máscara puesta
-      const p = partida(mazo, (x) => x.fase === 'combate' && !!x.combate!.fila[0]?.jefe);
-      montar(p);
-      const el = document.createElement('div');
-      el.className = 'cortina irrupcion quieta';
-      el.innerHTML = mascaraHtml(p.combate!.fila[p.combate!.fila.length - 1].palo);
-      $('#capa')?.append(el);
-      break;
-    }
-    case 'rey-abre':
-      // el duelo del Rey recién abierto (turno 1, sin golpes): en vivo, la irrupción entera
-      montar(partida(mazo, (p) => p.fase === 'combate' && p.combate!.tipo === 'rey' && enCombate(p, 0)));
-      break;
-    case 'mesa-segunda':
-    case 'mesa-segunda-cambia': {
-      // el Rey ya en su segunda cara (bajo media Vida) y, si es el Caudillo, una selección que repite la jugada
-      // anterior: la cuenta y el TE PEGA avisan el Tajo de revés antes de soltar
-      const p = partida(mazo, (x) => x.fase === 'combate' && !!x.combate!.fila[0]?.jefe);
-      const e = p.combate!.fila[0];
-      e.segunda = true;
-      e.vida = Math.floor(e.vidaMax * 0.5);
-      const mano = p.combate!.mano;
-      const posibles = () => [...mano.map((k) => [k]), ...mano.flatMap((k, i) => mano.slice(i + 1).map((j) => [k, j]))];
-      // (la Carta sola no arma el Tajo: se busca otra jugada que no lo abata; si la mano no la tiene, sus dos cartas
-      // más bajas que le hacen Daño se vuelven un par bajo: es una foto de QA, no una partida)
-      const vivas = () =>
-        posibles().filter((x) => {
-          const q = cuenta(p, x);
-          return q.ok && !q.abate && !q.ejecuta && !!q.contra && q.contra > 0;
-        });
-      if (e.jefe && e.palo === 'S' && !vivas().some((x) => cuenta(p, x).jugada !== 'sola')) {
-        const bajas = mano.filter((k) => k.palo !== e.palo && k.palo !== 'X').sort((u, v) => u.n - v.n);
-        for (const n of [bajas[0]?.n, 2, 1]) {
-          if (bajas.length < 2 || n === undefined || vivas().some((x) => cuenta(p, x).jugada !== 'sola')) break;
-          bajas[0].n = n;
-          bajas[1].n = n;
-        }
+    case 'mesa-segunda': {
+      const p = partida(mazo, (x) => x.fase === 'combate' && !!x.combate?.fila[0]?.jefe);
+      if (p.combate?.fila[0]) {
+        p.combate.fila[0].segunda = true;
+        p.combate.fila[0].vida = Math.max(1, Math.floor(p.combate.fila[0].vidaMax * 0.4));
       }
       montar(p);
-      const sel = vivas().find((x) => cuenta(p, x).jugada !== 'sola') ?? vivas()[0];
-      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void }; sincronizar(): void } }).__mesa;
-      if (sel && mesa) {
-        // (`-cambia`: la jugada de antes fue otra, el caso común de la segunda cara: no arma el Tajo y la placa del
-        // TE PEGA queda con su Furia)
-        const jugada = cuenta(p, sel).jugada;
-        p.combate!.ultimaJugada = estado === 'mesa-segunda-cambia' ? (jugada === 'par' ? 'pierna' : 'par') : jugada;
-        mesa.mano.elegir(sel.map((k) => k.id));
-      }
       break;
     }
-    case 'jugadas': {
-      const p = partida(mazo, (x) => enCombate(x));
-      montar(p);
-      const m = mejorGolpe(p);
-      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
-      if (m && mesa) mesa.mano.elegir(m.ids, m.postas);
-      $<HTMLElement>('[data-accion="jugadas"]')?.click();
-      break;
-    }
-    case 'piezas':
-      montar(partida(mazo, (p) => p.fase === 'combate' && !!p.combate!.fila[0]?.jefe && p.acto >= 1));
-      $<HTMLElement>('[data-accion="ver-piezas"]')?.click();
-      break;
     case 'mesa-mentiroso':
-    case 'mesa-escudo-mando': // la mano de 8 montada: la QA le pone el foco a la 2.ª, la 5.ª y la 8.ª carta
-      montar(partida('mentiroso', (p) => enCombate(p)));
+      montar(partida('mentiroso', (p) => enCombate(p, 0)));
       break;
-    case 'mesa-escudo': {
-      // la misma mesa del Mentiroso con tu Escudo frenando casi todo el golpe que viene y una jugada elegida que no lo
-      // abate: el chip dice «TE PEGA 3 (23 − 20 ESCUDO)». La QA compara la escena con la de `mesa-mentiroso` (la mesa
-      // no se corre al elegir, regla «mesa-quieta»)
-      const p = partida('mentiroso', (x) => enCombate(x));
-      const c = p.combate!;
-      const e = c.fila[0];
-      const mano = c.mano;
-      const posibles = [...mano.map((k) => [k]), ...mano.flatMap((k, i) => mano.slice(i + 1).map((j) => [k, j]))];
-      const vivas = posibles.filter((x) => {
-        const q = cuenta(p, x);
-        return q.ok && !q.abate && !q.ejecuta;
-      });
-      // el Escudo propio frena todo menos 3 (si el enemigo pega poco, lo que haya)
-      c.escudo = Math.max(1, e.ataque + c.furia - 3);
-      montar(p);
-      const sel = vivas.find((x) => (cuenta(p, x).contra ?? 0) > 0) ?? vivas[0];
-      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
-      // (la QA vuelve a elegir esta jugada después de medir la mesa en reposo, en la misma página)
-      (window as unknown as { __qaSel?: string[] }).__qaSel = sel?.map((k) => k.id) ?? [];
-      if (sel && mesa) mesa.mano.elegir(sel.map((k) => k.id));
+    case 'pulperia':
+      montar(partida(mazo, (p) => p.fase === 'pulperia'));
       break;
-    }
-    case 'mesa-chispa': {
-      // el paño del Mentiroso (5 Postas) con el Comodín en una Posta y un naipe a su derecha: la Chispa dorada en la
-      // costura y el naipe del Medio con su «x2 PEGA DOBLE»
-      const p = partida('mentiroso', (x) => enCombate(x));
-      const c = p.combate!;
-      // (si la mano no trae el Comodín, la foto lo pone en lugar de su primer naipe)
-      if (!c.mano.some((k) => k.palo === 'X')) c.mano[0] = { id: 'qa-comodin', palo: 'X', n: 0 };
-      const x = c.mano.find((k) => k.palo === 'X');
-      const otra = c.mano.find((k) => k.palo !== 'X' && k.palo !== c.fila[0].palo);
-      montar(p);
-      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
-      const medio = Math.floor(postasDe(p) / 2);
-      if (x && otra && mesa) mesa.mano.elegir([x.id, otra.id], [medio - 1, medio]);
-      break;
-    }
-    case 'mesa-escalon': {
-      // tres o más naipes que suben de izquierda a derecha en el paño: cada uno un poco más alto y el rótulo ESCALÓN
-      const p = partida('mentiroso', (x) => enCombate(x));
-      const c = p.combate!;
-      const n = postasDe(p);
-      const enOrden = (sel: Carta[]): { ids: string[]; postas: number[] } => {
-        const orden = [...sel].sort((a, b) => a.n - b.n);
-        return { ids: orden.map((k) => k.id), postas: [...postasPorDefecto(n, sel.length)].sort((a, b) => a - b) };
-      };
-      const sirve = (sel: Carta[]): boolean => {
-        const o = enOrden(sel);
-        const q = cuenta(p, o.ids.map((id) => sel.find((k) => k.id === id)!), o.postas);
-        return q.ok && !!q.escalon;
-      };
-      const lisas = c.mano.filter((k) => k.palo !== 'X' && k.palo !== c.fila[0].palo);
-      let elegidas: Carta[] | undefined;
-      for (let i = 0; i < lisas.length && !elegidas; i++)
-        for (let j = i + 1; j < lisas.length && !elegidas; j++)
-          for (let k = j + 1; k < lisas.length && !elegidas; k++) if (sirve([lisas[i], lisas[j], lisas[k]])) elegidas = [lisas[i], lisas[j], lisas[k]];
-      if (!elegidas && lisas.length >= 3) {
-        // (es una foto de QA: tres naipes se vuelven una escalera 4-5-6)
-        lisas.slice(0, 3).forEach((k, i) => (k.n = 4 + i));
-        elegidas = lisas.slice(0, 3);
-      }
-      montar(p);
-      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
-      if (elegidas && mesa) {
-        const o = enOrden(elegidas);
-        mesa.mano.elegir(o.ids, o.postas);
-      }
-      break;
-    }
-    case 'mesa-postas-arrastre': {
-      // una carta del paño a medio camino de su Posta a otra libre: la de destino se marca en oro
-      const p = partida(mazo, (x) => enCombate(x));
-      montar(p);
-      const m = mejorGolpe(p);
-      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void; arrastrarA(id: string, posta: number): void } } }).__mesa;
-      if (m && mesa) {
-        mesa.mano.elegir(m.ids, m.postas);
-        const usadas = new Set(m.postas ?? postasPorDefecto(postasDe(p), m.ids.length));
-        const libre = [...Array(postasDe(p)).keys()].find((i) => !usadas.has(i));
-        if (libre !== undefined) mesa.mano.arrastrarA(m.ids[0], libre);
-      }
+    case 'duelo-bufon': {
+      const p = partida(mazo, (x) => x.fase === 'duelo');
+      irDueloBufon(p);
       break;
     }
     case 'botin':
-      montar(partida(mazo, (p) => p.fase === 'botin' && p.botin!.de === 'guardia' && p.acto >= 1));
+      montar(partida(mazo, (p) => p.fase === 'botin' && p.botin?.de !== 'duelo'));
       break;
     case 'elegi-bendicion': {
-      montar(partida(mazo, (p) => p.fase === 'botin' && p.botin!.de === 'guardia' && p.acto >= 1));
+      const p = partida(mazo, (x) => x.fase === 'botin' && !!x.botin?.items.some((it) => it.t === 'oferta' && it.oferta.tipo === 'bendicion'));
+      montar(p);
       $<HTMLElement>('[data-accion="abrir"]')?.click();
       break;
     }
     case 'elegi-amuleto': {
-      montar(partida(mazo, (p) => p.fase === 'botin' && p.botin!.de === 'elite', 'QA', undefined, 'elite'));
+      const p = partida(mazo, (x) => x.fase === 'botin' && !!x.botin?.items.some((it) => it.t === 'oferta' && it.oferta.tipo === 'amuleto'));
+      montar(p);
       $<HTMLElement>('[data-accion="abrir"]')?.click();
       break;
     }
-    case 'pulperia':
-      montar(partida(mazo, (p) => p.fase === 'pulperia', 'QA', undefined, 'pulperia'));
+    case 'mazo':
+      montar(partida(mazo, (p) => enCombate(p, 0)));
+      $<HTMLElement>('[data-accion="mazo"]')?.click();
       break;
-    case 'pulperia-evoluciona': {
-      // (0.28) el mostrador con la tarjeta más alta que puede traer: un Amuleto que EVOLUCIONA (el Cofre con tu don de
-      // Oros: «★ EVOLUCIONA · SOL DE LA TIMBA…» y su maldición) al lado de otro con ★ SINERGIA
-      const p = partida(mazo, (x) => x.fase === 'pulperia', 'QA', undefined, 'pulperia');
-      darDon(p, 'D');
-      p.amuletos = p.amuletos.filter((a) => a !== 'cofre');
-      const venta = p.tienda?.amuletos;
-      if (venta?.length) venta[Math.min(1, venta.length - 1)].id = 'cofre';
+    case 'jugadas':
+      montar(partida(mazo, (p) => enCombate(p, 0)));
+      $<HTMLElement>('[data-accion="jugadas"]')?.click();
+      break;
+    case 'piezas': {
+      const p = partida(mazo, (x) => enCombate(x, 0));
+      darDon(p, 'S');
+      darAmuleto(p, 'cuchillo');
       montar(p);
+      $<HTMLElement>('[data-accion="piezas"]')?.click();
       break;
     }
-    case 'pulperia-chiches': {
-      // el mostrador con un Chiche ya vendido y la bandeja con dos de tres: el que queda se puede llevar
-      const p = partida(mazo, (x) => x.fase === 'pulperia', 'QA', undefined, 'pulperia');
-      p.chiches = ['ginebra', 'dado', null];
-      const venta = p.tienda?.chiches;
-      if (venta?.length) venta[0].vendido = true;
-      montar(p);
-      break;
-    }
-    case 'mesa-chiches':
-    case 'mesa-chiche-usa':
-    case 'mesa-prenda': {
-      // la bandeja de Chiches llena sobre la madera; usando el Fósforo (vuela al enemigo y le quema el Inmune) con la
-      // mejor jugada elegida; y la Prenda: un Dado Cargado que vuela del caído a su hueco
-      const p = partida(mazo, (x) => enCombate(x));
-      p.chiches = estado === 'mesa-prenda' ? ['ginebra', 'dado', null] : ['ginebra', 'dado', 'fosforo'];
-      // (0.23) el Fósforo sin naipes del palo Inmune se niega: la foto le da uno (en lugar del último de la mano)
-      if (estado === 'mesa-chiche-usa') {
-        const c = p.combate!;
-        const palo = c.fila[0].palo;
-        if (!c.mano.some((k) => k.palo === palo)) c.mano[c.mano.length - 1] = { id: 'qa-inmune', palo, n: 5 };
-      }
-      montar(p);
-      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void }; usarChiche(i: number): Promise<void>; prenda(id: string): Promise<void> } }).__mesa;
-      if (!mesa) break;
-      if (estado === 'mesa-chiche-usa')
-        void mesa.usarChiche(2).then(() => {
-          const m = mejorGolpe(p);
-          if (m) mesa.mano.elegir(m.ids, m.postas);
-        });
-      if (estado === 'mesa-prenda') void mesa.prenda('dado');
-      break;
-    }
-    case 'mesa-exacto': {
-      // (0.26) sin Perfora la mesa apoya sola el exacto: la Vida del enemigo es justo lo que pega lo elegido (¡EXACTO!,
-      // NO TE PEGA · LO ABATÍS, sin dial). Antes la búsqueda no encontraba nada y la foto era igual a la de la mesa
-      const p = partida(mazo, (x) => enCombate(x) && x.combate!.fila.length > 1);
-      const c = p.combate!;
-      const e = c.fila[0];
-      const m = c.mano.filter((k) => k.palo !== 'X' && k.palo !== e.palo);
-      const subs: Carta[][] = m.map((k) => [k]);
-      for (let a = 0; a < m.length; a++) for (let b = a + 1; b < m.length; b++) subs.push([m[a], m[b]]);
-      const mejor = subs
-        .map((sel) => ({ sel, q: cuenta(p, sel, mejorAcomodo(p, sel)) }))
-        .filter((x) => x.q.ok && x.q.aVida > 0)
-        .sort((x, y) => y.q.total - x.q.total)[0];
-      if (mejor) {
-        e.vida = mejor.q.aVida;
-        e.vidaMax = Math.max(e.vidaMax, e.vida);
-      }
-      montar(p);
-      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
-      if (mesa && mejor) mesa.mano.elegir(mejor.sel.map((k) => k.id));
-      break;
-    }
-    case 'mesa-dejalo-justo':
-    case 'mesa-pega-todo': {
-      // (0.23) el dial del paño: lo elegido, acomodado al máximo, sobra; otra manera de apoyarlo abate justo.
-      // (0.25) Sin Perfora la mesa ya lo apoya justo sola (`mesa-exacto`: ¡EXACTO!, sin dial); con Perfora (la Lanza) y
-      // alguien detrás, la mesa pega con todo y el dial ofrece DEJALO JUSTO con lo que pierde (`mesa-dejalo-justo`);
-      // aplicado, ofrece PEGÁ CON TODO con lo que pasa al siguiente (`mesa-pega-todo`)
-      const p = partida(mazo, (x) => enCombate(x) && x.combate!.fila.length > 1);
-      darAmuleto(p, 'lanza');
-      const m = p.combate!.mano;
-      const subs: Carta[][] = [];
-      for (let a = 0; a < m.length; a++)
-        for (let b = a + 1; b < m.length; b++) {
-          subs.push([m[a], m[b]]);
-          for (let d = b + 1; d < m.length; d++) subs.push([m[a], m[b], m[d]]);
-        }
-      for (let a = 0; a < m.length; a++) subs.push([m[a]]);
-      let elegidas: Carta[] = [];
-      for (const sel of subs) {
-        const max = cuenta(p, sel, mejorAcomodo(p, sel));
-        // (la de por defecto suele ser la máxima: se busca entre todas las maneras de apoyarlas una que pegue menos)
-        const maneras: number[][] = [];
-        const n = postasDe(p);
-        const armar = (hecho: number[]): void => {
-          if (hecho.length === sel.length) return void maneras.push(hecho);
-          for (let x = 0; x < n; x++) if (!hecho.includes(x)) armar([...hecho, x]);
-        };
-        armar([]);
-        const def = maneras.map((pos) => cuenta(p, sel, pos)).find((q) => q.ok && q.aVida > 0 && q.aVida < max.aVida);
-        if (!def || !max.ok) continue;
-        const e = p.combate!.fila[0];
-        const vida = e.vida;
-        e.vida = def.aVida;
-        if (acomodoExacto(p, sel)) {
-          elegidas = sel;
-          break;
-        }
-        e.vida = vida;
-      }
-      montar(p);
-      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
-      if (mesa && elegidas.length) mesa.mano.elegir(elegidas.map((k) => k.id));
-      // (0.25) con el mando: el dial lleva R3 (la Y sigue siendo DESCARTAR); el Bufón lo presenta
-      // (0.27: en el teléfono no hay mando: el dial lleva su «TOCÁ»)
-      if (innerWidth > 700) document.documentElement.dataset.entrada = 'mando';
-      if (estado === 'mesa-pega-todo') $<HTMLElement>('[data-accion="dial"]')?.click();
-      break;
-    }
-    case 'mesa-maldicion':
-    case 'mesa-garrote':
-    case 'mesa-sol': {
-      // (0.25) la maldición a la vista antes de golpear: con el Facón Maldito, un golpe que no abate avisa «−3 de Vida»;
-      // (0.26) con el Garrote del Cacique, el Escudo pega ×2 y el golpe que no abate avisa «−N de Escudo»; con el Sol de
-      // la Timba, sin descartes y con oro, DESCARTAR dice su costo y que no se acaban
-      const p = partida(mazo, (x) => enCombate(x));
-      const de = estado === 'mesa-maldicion' ? 'lanza' : estado === 'mesa-garrote' ? 'poncho' : 'cofre';
-      darAmuleto(p, de);
-      darDon(p, de === 'lanza' ? 'S' : de === 'poncho' ? 'C' : 'D');
-      const c = p.combate!;
-      if (de === 'poncho') c.escudo = 10;
-      if (de === 'cofre') {
-        c.descartes = 0;
-        p.oro = Math.max(p.oro, 20);
-      }
-      const sola = c.mano
-        .filter((k) => k.palo !== 'X')
-        .map((k) => [k])
-        .find((sel) => {
-          const q = cuenta(p, sel);
-          return q.ok && !q.abate && !q.ejecuta;
-        });
-      montar(p);
-      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
-      if (sola && mesa) mesa.mano.elegir(sola.map((k) => k.id));
-      break;
-    }
-    case 'mesa-chinchon': {
-      // (0.27) ¡CHINCHÓN! corta la mano: una Pierna elegida que no lo abate dice en su renglón «CORTÁS · 4 cartas × 3 =
-      // +12 ESCUDO», las cuatro cartas que quedan en la mano llevan su sello de Escudo y la placa TE PEGA lo descuenta
-      // (es una foto de QA: las tres primeras cartas se vuelven un 4 de tres palos y el enemigo pega fuerte)
-      const p = partida('chinchon', (x) => enCombate(x));
-      const c = p.combate!;
-      const e = c.fila[0];
-      e.aturdido = 0;
-      e.vida = e.vidaMax = Math.max(e.vidaMax, 300);
-      e.ataque = 31;
-      c.escudo = 0;
-      const palos = (['S', 'C', 'D', 'H'] as const).filter((x) => x !== e.palo);
-      for (let i = 0; i < 3; i++) c.mano[i] = { ...c.mano[i], n: 4, palo: palos[i] };
-      montar(p);
-      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void } } }).__mesa;
-      mesa?.mano.elegir(c.mano.slice(0, 3).map((k) => k.id));
-      break;
-    }
-    case 'mesa-chancho':
-      // (0.27) la mano de 4 de Chancho Va en reposo: la QA la toca naipe por naipe («elige-cinco») en las tres ventanas
-      // del teléfono y mide que ninguno de los que no elegiste se mueva
-      montar(partida('chancho', (p) => enCombate(p)));
-      break;
-    case 'mesa-limpia':
-      // (0.25) la Escoba en el primer tramo arranca con Escudo: el rótulo MESA LIMPIA sobre su caja y el Bufón que lo dice
-      montar(partida('escoba', (p) => p.acto === 0 && enCombate(p, 0)));
-      break;
-    case 'fogon':
-      montar(partida(mazo, (p) => p.fase === 'fogon', 'QA', undefined, 'fogon'));
-      break;
-    case 'evolucion-jackpot': {
-      // (0.22) el jackpot de la Evolución, quieto en el medio de su 1,2 s, sobre el Botín donde se tomó la pieza: el Poncho
-      // que despierta Garrote del Cacique
-      const p = partida(mazo, (x) => x.fase === 'botin' && x.botin!.de === 'guardia' && x.acto >= 1);
-      darAmuleto(p, 'poncho');
-      darDon(p, 'C');
-      montar(p);
-      void jackpotEvolucion('poncho');
-      break;
-    }
-    case 'hud-evolucion-foco':
-    case 'hud-evolucion': {
-      // la mesa con el Poncho ya despierto: su ficha prismática en el HUD
-      const p = partida(mazo, (x) => enCombate(x));
-      darAmuleto(p, 'poncho');
-      darDon(p, 'C');
-      montar(p);
-      // (0.23) con el foco en la bandeja (adonde llegan el mando y el teclado), su ayuda dice en qué se volvió
-      // (cuando la mesa ya se acomodó: la ayuda esquiva la mano y los botones donde quedan)
-      if (estado === 'hud-evolucion-foco') requestAnimationFrame(() => enfocarJugador($<HTMLElement>('[data-tiras]')));
-      break;
-    }
-    case 'oferta-evoluciona': {
-      // «ELEGÍ UNA» tras la Élite con el Cáliz en la oferta y un don de Copas en el bolsillo: «★ EVOLUCIONA»
-      const p = partida(mazo, (x) => x.fase === 'botin' && x.botin!.de === 'elite', 'QA', undefined, 'elite');
-      darDon(p, 'H');
-      p.amuletos = p.amuletos.filter((a) => a !== 'caliz');
-      const it = p.botin!.items.find((i) => i.t === 'oferta' && i.oferta.tipo === 'amuleto');
-      if (it && it.t === 'oferta' && !it.oferta.opciones.includes('caliz')) it.oferta.opciones[0] = 'caliz';
-      montar(p);
-      $<HTMLElement>(`[data-accion="abrir"][data-i="${p.botin!.items.indexOf(it!)}"]`)?.click();
-      break;
-    }
-    case 'forja-brava-eleccion':
-    case 'fogon-mutaciones': {
-      // (0.23) el naipe Templado (dos pasadas) y la tercera a elegir: las dos mutaciones a la vista, con efecto y costo
-      const p = partida(mazo, (x) => x.fase === 'fogon', 'QA', undefined, 'fogon');
-      const c = p.mazo.find((k) => k.palo !== 'X')!;
-      c.temple = 8;
-      c.templada = true;
-      p.fogonCarta = c.id;
-      p.fogonPasadas = 2;
-      p.fogonHecho = true;
-      p.fogonMutaciones = ['doblefilo', 'oro'];
-      montar(p);
-      // (0.24) las dos cartas de elección, como las ve el mando (glifos y SEGUIR secundario)
-      if (estado === 'forja-brava-eleccion') document.documentElement.dataset.entrada = 'mando';
-      break;
-    }
-    case 'forja-brava': {
-      // la tercera pasada recién salida del fuego: «¡FORJA BRAVA!» sobre el naipe y su mutación (Doble Filo)
-      const p = partida(mazo, (x) => x.fase === 'fogon', 'QA', undefined, 'fogon');
-      const c = p.mazo.find((k) => k.palo !== 'X')!;
-      c.temple = 12;
-      c.templada = true;
-      c.brava = true;
-      c.mutacion = 'doblefilo';
-      p.fogonCarta = c.id;
-      p.fogonPasadas = 3;
-      p.fogonHecho = true;
-      montar(p);
-      $('.opcion.fuego')?.insertAdjacentHTML('afterbegin', `<b class="forja-grito rotulo" role="status" style="animation: none">${t('forjaBrava')}</b>`);
-      break;
-    }
-    case 'cabala-negra': {
-      // la Cábala Negra con «Coser dos iguales» abierta: un naipe ya elegido y los de otro número apagados
-      const p = partida(mazo, (x) => x.fase === 'cabala', 'QA', undefined, 'cabala');
-      p.cabala = { id: 'negra' };
-      montar(p);
-      $<HTMLElement>('[data-accion="opcion"][data-id="coser"]')?.click();
-      $<HTMLElement>('.negra-naipe:not(:disabled)')?.click();
-      break;
-    }
-    case 'mapa-tesoro': {
-      // el Mapa con el cofre de un Tesoro a la vista (con su candado de oro)
-      const p = partida(mazo, (x) => x.fase === 'mapa' && x.camino.length >= 1);
-      const tramo = p.tramos[p.acto];
-      if (!tramo.nodos.some((n) => n.tesoro)) {
-        const libre = tramo.nodos.find((n) => n.tipo === 'guardia' && !p.camino.includes(n.id) && n.piso > 1);
-        if (libre) libre.tesoro = 'oro';
-      }
-      montar(p);
-      break;
-    }
-    case 'botin-tesoro': {
-      // el Botín de una Guardia con el cofre del Tesoro: candado de oro que no alcanza (las dos opciones apagadas)
-      const p = partida(mazo, (x) => x.fase === 'botin' && x.botin!.de === 'guardia' && x.acto >= 1);
-      p.oro = 7;
-      p.botin!.items.push({ t: 'oferta', oferta: { tipo: 'amuleto', opciones: ['caliz', 'mate'], tesoro: true, precio: 27 } });
-      montar(p);
-      $<HTMLElement>(`[data-accion="abrir"][data-i="${p.botin!.items.length - 1}"]`)?.click();
-      break;
-    }
-    case 'cabala':
-      montar(partida(mazo, (p) => p.fase === 'cabala', 'QA', undefined, 'cabala'));
-      break;
-    case 'mazo': {
-      montar(partida(mazo, (p) => p.fase === 'mapa' && p.camino.length >= 2));
-      $<HTMLElement>('[data-accion="ver-mazo"]')?.click();
-      break;
-    }
-    case 'resumen-victoria':
     case 'fin-victoria': {
-      let p: Partida | null = null;
-      for (let i = 0; i < 40 && !p?.fin?.victoria; i++) p = partida(mazo, (x) => x.fase === 'fin', `QA${i}`, altarLleno());
-      montar(p!);
+      const p = partida(mazo, (x) => x.fase === 'fin' && !!x.fin?.victoria);
+      if (p.fase !== 'fin') {
+        p.fase = 'fin';
+        p.stats.reyes = 3;
+        p.fin = { victoria: true };
+      }
+      montar(p);
       break;
     }
-    case 'resumen-derrota':
-    case 'resumen-derrota-movil':
     case 'fin-derrota': {
-      let p: Partida | null = null;
-      for (let i = 0; i < 40 && (!p || p.fin?.victoria); i++) p = partida('truco', (x) => x.fase === 'fin', `QA${i}`, {});
-      montar(p!);
-      // (0.24) en el teléfono, la segunda capa: el cuadro deslizado hasta el fondo (QUÉ TE FRENÓ, el récord y los Porotos
-      // quedan sobre la fila de botones, no debajo)
-      if (estado === 'resumen-derrota-movil') {
-        const cuadro = $<HTMLElement>('.fin-cuadro');
-        if (cuadro) cuadro.scrollTop = cuadro.scrollHeight;
-        // (0.25: y otra vez cuando terminan de pintarse las cifras, que lo alargan)
-        if (cuadro) new ResizeObserver(() => (cuadro.scrollTop = cuadro.scrollHeight)).observe(cuadro.querySelector('.fin-panel') ?? cuadro);
+      const p = partida(mazo, (x) => x.fase === 'fin' && !x.fin?.victoria);
+      if (p.fase !== 'fin') {
+        p.fase = 'fin';
+        p.fin = { victoria: false };
       }
-      break;
-    }
-    case 'mesa-grito': {
-      // el grito del Personaje a la vista (quieto), en plena mesa: no tapa la mano, los botones ni la cuenta
-      montar(partida(mazo, (p) => p.fase === 'combate' && !!p.combate!.fila[0]?.jefe));
-      gritar(mazo, tx(GRITO[mazo].dolor[0]), { foto: true });
-      break;
-    }
-    case 'botin-grito': {
-      // y en el botín, recién ganado: no tapa SEGUIR
-      montar(partida(mazo, (p) => p.fase === 'botin' && p.botin!.de === 'guardia' && p.acto >= 1));
-      gritar(mazo, tx(GRITO[mazo].gana), { foto: true });
-      break;
-    }
-    case 'botin-rey': {
-      // el botín de un Rey vencido con sus cinco piezas (oro, Vida máxima, Vida, Amuleto, Cábala): no tapa al Bufón ni
-      // a su bocadillo, cada rótulo entra en dos renglones como mucho, y el grito del Personaje cae junto a su retrato
-      const p = partida(mazo, (x) => x.fase === 'botin' && x.botin!.de === 'rey');
-      const b = p.botin!;
-      // (si la Vida ya estaba llena, la pieza de Vida no salió: se pone a mano, es una foto de QA)
-      if (!b.items.some((i) => i.t === 'cura')) b.items.splice(Math.max(1, b.items.findIndex((i) => i.t === 'oferta')), 0, { t: 'cura', n: 12, hecho: true });
-      if (!b.items.some((i) => i.t === 'vidamax')) b.items.splice(1, 0, { t: 'vidamax', n: 12, hecho: true });
       montar(p);
-      gritar(mazo, tx(GRITO[mazo].gana), { foto: true });
-      break;
-    }
-    case 'mesa-conteo': {
-      // el conteo del golpe congelado a mitad, con el Tajo de revés armado y un Crítico de Punta y hacha: la cuenta
-      // no cambia de alto ni de renglones al contar, y lo del Rey (TE PEGA) no se monta sobre la cabecera
-      const p = partida(mazo, (x) => x.fase === 'combate' && !!x.combate!.fila[0]?.jefe);
-      const e = p.combate!.fila[0];
-      e.palo = 'S';
-      e.segunda = true;
-      e.vida = Math.floor(e.vidaMax / 2);
-      e.escudo = 0;
-      p.bendiciones.puntahacha = 3;
-      const c = p.combate!;
-      const mano = c.mano;
-      // un Par que no lo abate (dos cartas fuera de Espadas con el mismo número)
-      const fuera = mano.filter((k) => k.palo !== 'S' && k.palo !== 'X');
-      if (fuera.length >= 2) fuera[1].n = fuera[0].n;
-      const ids = fuera.slice(0, 2).map((k) => k.id);
-      // el Crítico cae en este golpe (uno de cada 2 con Punta y hacha al nivel 3)
-      for (let g = 0; g < 4 && !cuenta(p, mano.filter((k) => ids.includes(k.id))).critico; g++) c.golpes = g;
-      const q = cuenta(p, mano.filter((k) => ids.includes(k.id)));
-      c.ultimaJugada = q.jugada;
-      // el Rey aguanta el golpe (le queda Vida para pegarte con el Tajo) y ya está bajo media Vida
-      e.vida = Math.max(e.vida, q.total + 60);
-      e.vidaMax = Math.max(e.vidaMax, e.vida * 2);
-      montar(p);
-      const mesa = (window as unknown as { __mesa?: { mano: { elegir(ids: string[], postas?: number[]): void }; conteoQa(f: number): void } }).__mesa;
-      if (mesa && ids.length === 2) {
-        mesa.mano.elegir(ids);
-        mesa.conteoQa(0.75);
-      }
-      break;
-    }
-    case 'sol-de-mayo' as EstadoQa: {
-      irCaminoSol(false);
-      break;
-    }
-    case 'duelo-bufon' as EstadoQa: {
-      const p = partida(mazo, (x) => x.fase === 'mapa');
-      sesion.partida = p;
-      irDueloBufon(p);
-      break;
-    }
-    case 'intro-mazo' as EstadoQa: {
-      irIntroMazo(mazo, () => irPortada());
       break;
     }
     default:
       irPortada();
+      break;
   }
-  // la QA espera esta marca: la pantalla ya está montada y quieta
-  requestAnimationFrame(() => {
-    forzarCuadro3d();
-    requestAnimationFrame(() => {
-      forzarCuadro3d();
-      document.documentElement.dataset.qa = 'listo';
-    });
-  });
+  void cuenta;
+  document.documentElement.dataset.qa = 'listo';
 }

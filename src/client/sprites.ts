@@ -2,19 +2,19 @@
 // (data URL). De ahí salen los elementos `.px` (un sprite a escala entera, sin suavizado), las cifras dibujadas y
 // las variables CSS de los marcos de 9 trozos.
 import type { AmuletoId } from '../rules/amuletos';
-import type { AumentoId } from '../rules/aumentos';
-import type { Carta, Palo } from '../rules/cartas';
+import type { Carta, Palo, Rango } from '../rules/cartas';
 import type { TipoOferta } from '../rules/estado';
 import type { MazoId } from '../rules/mazos';
 import type { BendicionId } from '../rules/reyes';
 import { cifraMapa, type TonoCifra } from './pixel/cifras';
-import { amuletoMapa, aumentoMapa, bendicionMapa, chicheMapa, evolucionMapa, hudMapa, inmuneMapa, nodoMapa, paloMapa, estrellaMapa, type HudPx, type NodoPx } from './pixel/iconos';
+import { amuletoMapa, bendicionMapa, hudMapa, inmuneMapa, nodoMapa, paloMapa, estrellaMapa, type HudPx, type NodoPx } from './pixel/iconos';
 import { logoMapa } from './pixel/logo';
 import { BARRAS, barraMapa, brasaMapa, marcoMapa, panoMapa, type Estilo } from './pixel/marcos';
 import { comodinMapa, dorsoNaipe, naipeMapa, naipeSegundaMapa } from './pixel/naipes';
 import { tintas } from './pixel/paleta';
 import { mitad } from './pixel/partido';
 import { personajeMapa, type Cuadro } from './pixel/personajes';
+import { ENEMIGO_H, ENEMIGO_W, HEROE_H, HEROE_W, REY_CUERPO_H, REY_CUERPO_W, enemigoMapa, heroeMapa, type EstadoCombatiente } from './pixel/combatientes';
 import { pixeles } from './pixel/raster';
 import { REY_PX, mascaraMapa } from './pixel/reyes';
 import { medida, type Mapa } from './pixel/rejilla';
@@ -65,13 +65,9 @@ export const pxNaipeSegunda = (palo: Palo, cls = '') => px(`naipe:${palo}seg`, (
 export const lienzoNaipeSegunda = (palo: Palo) => lienzo(`naipe:${palo}seg`, () => naipeSegundaMapa(palo));
 export const pxDorso = (mazo: MazoId, cls = '') => px(`dorso:${mazo}`, () => dorsoNaipe(mazo), `naipe ${cls}`);
 export const pxAmuleto = (id: AmuletoId, cls = '') => px(`a:${id}`, () => amuletoMapa(id)!, `icono ${cls}`);
-/** (0.23) La forma despierta de un Amuleto Épico (su Evolución): otro dibujo, el mismo Amuleto. */
-export const pxEvolucion = (id: string, cls = '') => px(`ev:${id}`, () => evolucionMapa(id)!, `icono ${cls}`);
-export const pxAumento = (id: AumentoId, cls = '') => px(`u:${id}`, () => aumentoMapa(id)!, `icono ${cls}`);
 export const pxBendicion = (id: BendicionId, cls = '') => px(`b:${id}`, () => bendicionMapa(id)!, `icono ${cls}`);
-export const pxPieza = (tipo: TipoOferta, id: string, cls = '') => (tipo === 'amuleto' ? pxAmuleto(id as AmuletoId, cls) : tipo === 'aumento' ? pxAumento(id as AumentoId, cls) : pxBendicion(id as BendicionId, cls));
+export const pxPieza = (tipo: TipoOferta, id: string, cls = '') => (tipo === 'amuleto' ? pxAmuleto(id as AmuletoId, cls) : pxBendicion(id as BendicionId, cls));
 export const pxNodo = (id: NodoPx, cls = '') => px(`n:${id}`, () => nodoMapa(id), `icono ${cls}`);
-export const pxChiche = (id: string, cls = '') => px(`ch:${id}`, () => chicheMapa(id)!, `icono ${cls}`);
 export const pxHud = (id: HudPx, cls = '') => px(`h:${id}`, () => hudMapa(id), `icono ${cls}`);
 export const pxPalo = (s: Palo, cls = '') => px(`palo:${s}`, () => paloMapa(s), `pinta ${cls}`);
 export const pxInmune = (s: Palo, cls = '') => px(`inmune:${s}`, () => inmuneMapa(s), `inmune ${cls}`);
@@ -88,6 +84,25 @@ export const pxMitades = (clave: string, hacer: () => Mapa, semilla: number, cls
   px(`${clave}|izq`, () => mitad(hacer(), 'izq', semilla), `mitad m-izq ${cls}`) + px(`${clave}|der`, () => mitad(hacer(), 'der', semilla), `mitad m-der ${cls}`);
 export const claveRetrato = (mazo: MazoId, c: Cuadro) => `pj:${mazo}|${c.mirada}|${c.gesto}|${c.herida}`;
 export const urlRetrato = (mazo: MazoId, c: Cuadro) => url(claveRetrato(mazo, c), () => personajeMapa(mazo, c));
+
+export const urlHeroe = (mazo: MazoId, estado: EstadoCombatiente = 'idle', cuadro: 0 | 1 = 0): string =>
+  url(`heroe:${mazo}:${estado}:${cuadro}`, () => heroeMapa(mazo, estado, cuadro));
+
+export const urlEnemigo = (palo: Palo, rango: Rango, estado: EstadoCombatiente = 'idle', cuadro: 0 | 1 = 0, segunda = false): string =>
+  url(`enem:${palo}:${rango}:${estado}:${cuadro}:${segunda ? 1 : 0}`, () => enemigoMapa(palo, rango, estado, cuadro, segunda));
+
+export function heroeSpriteHtml(mazo: MazoId, estado: EstadoCombatiente = 'idle', cuadro: 0 | 1 = 0, cls = ''): string {
+  const u = urlHeroe(mazo, estado, cuadro);
+  return `<img class="sprite sprite-heroe ${cls}" src="${u}" width="${HEROE_W}" height="${HEROE_H}" alt="" draggable="false">`;
+}
+
+export function enemigoSpriteHtml(palo: Palo, rango: Rango, estado: EstadoCombatiente = 'idle', cuadro: 0 | 1 = 0, segunda = false, cls = ''): string {
+  const esRey = rango === 12;
+  const w = esRey ? REY_CUERPO_W : ENEMIGO_W;
+  const h = esRey ? REY_CUERPO_H : ENEMIGO_H;
+  const u = urlEnemigo(palo, rango, estado, cuadro, segunda);
+  return `<img class="sprite sprite-enemigo ${esRey ? 'sprite-rey' : ''} ${cls}" src="${u}" width="${w}" height="${h}" alt="" draggable="false">`;
+}
 
 /**
  * Un número (o una cuenta corta: «52», «×6», «=312», «−8») dibujado con las cifras de la forja. Lleva `aria-label`

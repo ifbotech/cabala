@@ -73,7 +73,7 @@ export const MAZO: Record<MazoId, MazoDef> = {
       fillL(L('Cada Pierna o Escalera de palo: ¡CHINCHÓN!, +{d} de Daño para siempre en esas jugadas.', 'Each Set or suited Run: CHINCHÓN! +{d} permanent Damage on those plays.'), { d: m.chinchon.cargaDano }),
       fillL(L('Cortás la mano: +{e} de Escudo por cada carta que te queda sin jugar (×2 y ×3 en los tramos 2 y 3).', 'You cut the hand: +{e} Shield for each card left unplayed (×2 and ×3 in stretches 2 and 3).'), { e: m.chinchon.corta }),
     ],
-    desbloqueo: { stat: 'reyes', n: 1, texto: L('Vencé a un Rey.', 'Defeat a King.') },
+    desbloqueo: null,
   },
   mentiroso: {
     id: 'mentiroso',
@@ -89,7 +89,7 @@ export const MAZO: Record<MazoId, MazoDef> = {
       L('Engaño, una vez por combate: todas las cartas del golpe fingen ser tu carta más alta y nada les es Inmune.', 'Bluff, once per fight: every card in the hit poses as your highest card and nothing is Immune to them.'),
       fillL(L('Si el Engaño no abate al enemigo, su Furia sube {f}.', "If the Bluff doesn't take the enemy down, its Fury rises {f}."), { f: m.mentiroso.furiaFallo }),
     ],
-    desbloqueo: { stat: 'reyes', n: 3, texto: L('Vencé a 3 Reyes.', 'Defeat 3 Kings.') },
+    desbloqueo: null,
   },
   chancho: {
     id: 'chancho',
@@ -105,7 +105,7 @@ export const MAZO: Record<MazoId, MazoDef> = {
       fillL(L('Póker (4 iguales): ¡CHANCHO!, ×{x} de Multi y Aturdido {t} turnos.', '4 of a kind: CHANCHO! ×{x} Mult and Stunned for {t} turns.'), { x: m.chancho.multi, t: m.chancho.aturde }),
       L('De un saque: si abatís a un enemigo de un solo golpe, el siguiente entra Aturdido.', 'In one swipe: take an enemy down in a single hit and the next one enters Stunned.'),
     ],
-    desbloqueo: { stat: 'pokers', n: 1, texto: L('Hacé un Póker (4 iguales).', 'Play 4 of a kind.') },
+    desbloqueo: null,
   },
 };
 

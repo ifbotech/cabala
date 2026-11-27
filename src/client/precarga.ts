@@ -2,7 +2,6 @@
 // Para que ninguno frene un cuadro en mitad de un golpe, al arrancar se dejan pedidos todos y se van pintando de a
 // uno en los ratos libres del navegador. Al entrar a una partida se piden primero los de su Mazo.
 import { AMULETOS } from '../rules/amuletos';
-import { AUMENTOS } from '../rules/aumentos';
 import { PALOS } from '../rules/cartas';
 import type { MazoId } from '../rules/mazos';
 import { MAZOS } from '../rules/mazos';
@@ -12,7 +11,7 @@ import { cifraMapa, GLIFOS, type TonoCifra } from './pixel/cifras';
 import { HUD_PX, NODOS_PX, hudMapa, inmuneMapa, nodoMapa, estrellaMapa } from './pixel/iconos';
 import { cuadros, personajeMapa } from './pixel/personajes';
 import { REY_PX, reyFondo, reyMapa } from './pixel/reyes';
-import { claveRetrato, forjarLuego, lienzoNaipe, lienzoNaipeSegunda, pxAmuleto, pxAumento, pxBendicion, pxDorso, pxNaipe, pxNaipeSegunda, url } from './sprites';
+import { claveRetrato, forjarLuego, lienzoNaipe, lienzoNaipeSegunda, pxAmuleto, pxBendicion, pxDorso, pxNaipe, pxNaipeSegunda, url } from './sprites';
 
 /** Los cuadros del retrato de un Personaje (lo primero que hace falta al entrar a una partida). */
 export function precargarPersonaje(mazo: MazoId): void {
@@ -35,7 +34,6 @@ export function precargarTodo(): void {
     tareas.push(() => url(`inmune:${s}`, () => inmuneMapa(s)));
   }
   for (const id of AMULETOS) tareas.push(() => pxAmuleto(id));
-  for (const id of AUMENTOS) tareas.push(() => pxAumento(id));
   for (const id of BENDICIONES) tareas.push(() => pxBendicion(id));
   for (const id of HUD_PX) tareas.push(() => url(`h:${id}`, () => hudMapa(id)));
   for (const id of NODOS_PX) tareas.push(() => url(`n:${id}`, () => nodoMapa(id)));

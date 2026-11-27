@@ -5,7 +5,6 @@
 import { vocear } from './habla';
 import type { MazoId } from '../rules/mazos';
 import { AMULETO, RAREZA_NOMBRE } from '../rules/amuletos';
-import { AUMENTO } from '../rules/aumentos';
 import { PALOS } from '../rules/cartas';
 import type { Palo } from '../rules/cartas';
 import { carga, sirveA } from '../rules/estado';
@@ -15,11 +14,10 @@ import { B } from '../rules/balance';
 import { BENDICION, REY_DEF } from '../rules/reyes';
 import type { BendicionId } from '../rules/reyes';
 import { ajustes, t, tx } from './almacen';
-import { EVOLUCION, esEvolucionable, evoluciones, evoluciono } from '../rules/evoluciones';
 import { enFoto } from './fx/motor';
 import { cajaDe, reservar, soltar, tomadas } from './fx/director';
 import type { Cuadro, Gesto, Herida, Mirada } from './pixel/personajes';
-import { cifra, pxAmuleto, pxAumento, pxBendicion, pxEvolucion, pxHud, pxPalo, urlRetrato } from './sprites';
+import { cifra, pxAmuleto, pxBendicion, pxHud, pxPalo, urlRetrato } from './sprites';
 import { PALO_NOMBRE } from './textos';
 import { $, esc, hayModal, tip } from './ui';
 
@@ -53,28 +51,16 @@ export function cargaQue(p: Partida, s: Palo): string {
 const AYUDA_CARGA = { S: 'filoAyuda', C: 'coraAyuda', D: 'fortunaAyuda', H: 'brindisAyuda' } as const;
 
 function tiras(p: Partida): string {
-  // solo lo que llevás (los huecos libres se cuentan en «LO QUE LLEVÁS»: un cuadro vacío parecía un error de carga)
-  const amuletos = p.amuletos.map((id) => {
-    const d = AMULETO[id];
-    // (0.22) el Amuleto que evolucionó va en su forma despierta, con marco prismático, y su ayuda dice en qué se volvió
-    if (esEvolucionable(id) && evoluciono(p, id)) {
-      const ev = EVOLUCION[id];
-      return `<span class="ficha evolucion" data-pieza="a:${id}" ${tip(tx(ev.nombre), tx(ev.desc), `${t('evolucionTitulo')} · ${tx(d.nombre)}`)}>${pxEvolucion(id)}</span>`;
-    }
-    return `<span class="ficha" data-pieza="a:${id}" ${tip(tx(d.nombre), tx(d.desc), tx(RAREZA_NOMBRE[d.rareza]))}>${pxAmuleto(id)}</span>`;
-  }).join('');
-  const aumentos = p.aumentos
+  const amuletos = p.amuletos
     .map((id) => {
-      const d = AUMENTO[id];
-      return `<span class="ficha" data-pieza="u:${id}" ${tip(tx(d.nombre), tx(d.desc), d.maldicion ? t('maldicion') : t('unaCabala'))}>${pxAumento(id)}</span>`;
+      const d = AMULETO[id];
+      return `<span class="ficha" data-pieza="a:${id}" ${tip(tx(d.nombre), tx(d.desc), tx(RAREZA_NOMBRE[d.rareza]))}>${pxAmuleto(id)}</span>`;
     })
     .join('');
-  // las cargas, con su nombre a la vista («FILO 4» con su palo): las que están en 0 no ocupan lugar
   const cargas = PALOS.filter((s) => sirveA(p, s) && carga(p, s) > 0)
     .map((s) => {
       const r = REY_DEF[s];
-      const regla = ajustes.idioma === 'en' ? `+1 for each enemy you take down with ${PALO_NOMBRE[s].en} in the hit.` : `+1 por cada enemigo que abatís con ${PALO_NOMBRE[s].es} en el golpe.`;
-      // (debajo del nombre, lo que da en criollo: «FILO · +3 daño»; la regla entera, en la ayuda)
+      const regla = `+1 por cada enemigo que abatís con ${PALO_NOMBRE[s].es} en el golpe.`;
       const ayuda = t(AYUDA_CARGA[s], { n: s === 'S' ? carga(p, s) * B.cargas.filoDano : carga(p, s) });
       return `<span class="ficha carga" data-carga="${s}" ${tip(cargaQue(p, s), tx(r.cargaDa), regla)}>${pxPalo(s)}<span class="f-txt"><b class="f-rot">${esc(nombreCarga(s))}</b><small class="f-ayuda">${esc(ayuda)}</small></span>${cifra(carga(p, s), 'oro')}</span>`;
     })
@@ -83,12 +69,11 @@ function tiras(p: Partida): string {
     .map((id) => {
       const d = BENDICION[id];
       const n = p.bendiciones[id] ?? 1;
-      return `<span class="ficha" data-pieza="b:${id}" ${tip(tx(d.nombre), tx(d.desc(n)), `${tx(REY_DEF[d.rey].apodo)}${d.niveles > 1 ? ` · ${t('nivel', { n })}` : ''}`)}>${pxBendicion(id)}${d.niveles > 1 && n > 1 ? `<b class="f-nivel" aria-hidden="true">${'I'.repeat(Math.min(3, n))}</b>` : ''}</span>`;
+      return `<span class="ficha" data-pieza="b:${id}" ${tip(tx(d.nombre), tx(d.desc(n)), tx(REY_DEF[d.rey].apodo))}>${pxBendicion(id)}</span>`;
     })
     .join('');
-  if (!amuletos && !aumentos && !cargas && !bendiciones) return `<span class="sub hud-nada">${t('llevas')}: ${t('nada')}</span>`;
-  // (los Amuletos y las Cábalas del Bufón, separados por una raya: «AMULETOS 0/5» no cuenta las Cábalas)
-  return `<div class="hud-tira" data-tira="amuletos">${amuletos}${amuletos && aumentos ? '<i class="hud-sep" aria-hidden="true"></i>' : ''}${aumentos}</div><div class="hud-tira" data-tira="reyes">${cargas}${bendiciones}</div><span class="hud-mas" data-mas hidden data-tip-t="" data-tip="${t('masPiezasTip')}"></span>`;
+  if (!amuletos && !cargas && !bendiciones) return `<span class="sub hud-nada">${t('llevas')}: ${t('nada')}</span>`;
+  return `<div class="hud-tira" data-tira="amuletos">${amuletos}</div><div class="hud-tira" data-tira="reyes">${cargas}${bendiciones}</div><span class="hud-mas" data-mas hidden data-tip-t="" data-tip="${t('masPiezasTip')}"></span>`;
 }
 
 /** El HTML del HUD. */
@@ -128,22 +113,9 @@ export function hudHtml(p: Partida, v: VistaHud = vistaDe(p)): string {
  * su nombre y su regla van primero: el mando y el teclado llegan a la bandeja y leen en qué se volvió el Amuleto.
  */
 function tirasTip(p: Partida): string {
-  const evos = evoluciones(p).map((de) => `★ ${tx(EVOLUCION[de].nombre)}: ${tx(EVOLUCION[de].desc)}`);
-  // (0.25) corta: las cargas en 0 no ocupan renglón y, con una Evolución, el glosario de la bandeja se va (lo dice «LO
-  // QUE LLEVÁS» al abrirla)
-  // (con una Evolución, las cargas ya se leen en la bandeja misma, «FILO 4»: la ayuda no las repite)
-  const cargas = evos.length ? [] : PALOS.filter((s) => sirveA(p, s) && carga(p, s) > 0).map((s) => cargaQue(p, s));
-  // (cada Evolución en su renglón, arriba de las cargas: el cuerpo de la ayuda corre de corrido)
-  // (0.24: con el mando dice «A para leerlas», no «Tocá»)
-  // (0.26) con las reglas enteras la ayuda no tenía dónde ir sin tapar al enemigo, el título, el Bufón o la mano: solo
-  // los nombres de las Evoluciones (sus reglas, al abrir la bandeja, que lo dice el pie)
-  if (evos.length) {
-    const nombres = evoluciones(p).map((de) => `★ ${tx(EVOLUCION[de].nombre)}`);
-    const pieN = (toca: string): string => [...nombres.slice(1), toca].join('\n');
-    return `${tip(`★ ${t('evolucionTitulo')}`, nombres[0], pieN(t('llevasToca')))} data-tip-pie-mando="${esc(pieN(t('llevasTocaMando')))}"`;
-  }
-  const pie = (toca: string): string => [...evos.slice(1), ...cargas, toca].join('\n');
-  return `${tip(evos.length ? `★ ${t('evolucionTitulo')}` : t('llevas'), evos.length ? evos[0] : t('llevasTip'), pie(t('llevasToca')))} data-tip-pie-mando="${esc(pie(t('llevasTocaMando')))}"`;
+  const cargas = PALOS.filter((s) => sirveA(p, s) && carga(p, s) > 0).map((s) => cargaQue(p, s));
+  const pie = (toca: string): string => [...cargas, toca].join('\n');
+  return `${tip(t('llevas'), t('llevasTip'), pie(t('llevasToca')))} data-tip-pie-mando="${esc(pie(t('llevasTocaMando')))}"`;
 }
 
 /** Repinta las tiras (Amuletos, Cábalas, cargas y Bendiciones) y marca la carga que acaba de subir. */

@@ -1,30 +1,26 @@
-# CÁBALA
+# CÁBALA 2.0
 
-**Roguelike de baraja española en pixel-art oscuro.** · *A Spanish-Deck Roguelike.*
+**Roguelike de baraja española en pixel-art 2D diegético.**
 
 Jugalo gratis en el navegador: **https://ifbotech.github.io/cabala/**
 
-Elegís un Mazo, el Bufón —un chanta de ley— te lleva por tres tramos de caminos y al fondo de cada uno te espera un Rey.
-Tu mano contra la Corte: cada golpe es `DAÑO × MULTI = TOTAL`.
+Elegís uno de los **5 Mazos** (todos abiertos desde el minuto 0) y enfrentás una corrida lineal de **3 Tramos** contra la Corte de la baraja española en combate horizontal 2D estilo *Slay the Spire*. Cada golpe se calcula como `DAÑO × MULTI = TOTAL`.
 
-- **Baraja española pura**: tu Mazo va del 1 al 9 con Comodines; la Corte (Sota, Caballo y Rey) son los enemigos.
-- **5 Mazos con su Personaje**: Escoba, Truco, Chinchón, El Mentiroso y Chancho Va.
-- **4 Reyes vivos** que te cortejan con Bendiciones que se acumulan y después te enfrentan.
-- **El Bufón**, único anfitrión: te ofrece Cábalas (Aumentos pasivos) y su humor cambia cómo te trata.
-- **15 Amuletos**, ni uno más. Sin tiers a la vista: cada pieza se elige por lo que hace, con la etiqueta ★ SINERGIA cuando potencia lo que llevás.
-- **Arrastrá las cartas sobre el enemigo** para golpear. También con clic, teclado o mando.
-- **Con música y con voz**: ocho pistas sintetizadas, una por lugar; el Bufón, los Reyes y los Personajes hablan cada uno con su timbre.
-- **El Fogón es una apuesta**: templá un naipe y, si te animás, arrimalo otra vez: mejora o se quema.
-- Español e inglés. Se guarda solo en tu navegador.
+## Qué incluye CÁBALA 2.0 (MVP)
+
+- **Baraja española pura**: tu Mazo va del `1` al `9` con Comodines; la Corte (`10` Sota, `11` Caballo y `12` Rey) son tus rivales.
+- **5 Mazos con Héroe propio (abiertos desde el inicio)**: *Escoba* (*La Barrendera*), *Truco* (*El Paisano Bravo*), *Chinchón* (*La Timbera del Club*), *El Mentiroso* (*El Chamuyero*) y *Chancho Va* (*El Manotazo*).
+- **Combate horizontal 2D con sprites animados**: cero 3D y cero cartas-enemigo; Héroes, Sotas, Caballos, Reyes y el Bufón tienen sprites de cuerpo entero en `src/client/pixel/combatientes.ts` y efectos 2D en doble buffer (`#fx-color` + `#fx-luz`).
+- **Loop lineal de 3 Tramos**: `Sota (10)` → `Pulpería rápida` → `Caballo (11)` → `Duelo del Bufón` (mano rápida del juego argentino del Mazo) → `Rey Jefe (12)`.
+- **15 Cábalas y 12 Bendiciones directas**: 6 huecos de Cábalas con etiqueta `★ SINERGIA` y 12 Bendiciones de 1 nivel otorgadas por los **4 Reyes** (*El Caudillo*, *El Cacique*, *El Caudal* y *El Bacanal*).
+- **Menú directo**: `JUGAR`, `COLECCIÓN` y `AJUSTES`.
+- **Audio procedural**: música y voces sintetizadas en tiempo real desde WebAudio.
 
 ## Cómo se juega (30 segundos)
 
-1. Elegí cartas que formen una jugada (par, escalera, flor…) y arrastralas al enemigo.
-2. Cada palo hace lo suyo: **Bastos** cubren, **Copas** curan, **Oros** pagan, **Espadas** atraviesan.
-3. Cada enemigo es **Inmune a su propio palo**.
-
-El reglamento completo, con todas las cifras, está en [REGLAS.md](REGLAS.md) (se genera desde el motor). Lo que el juego
-es y cómo se trabaja en el repo, en [CONSTITUCION.md](CONSTITUCION.md).
+1. Elegí cartas que formen una jugada (*Par*, *Pierna*, *Escalera*, *Flor*, o el canto de tu Mazo como *Escoba del 15* / *Envido*) y arrastralas sobre el enemigo o pulsá **GOLPEAR**.
+2. Cada palo tiene un poder natural: **Bastos** dan Escudo, **Copas** curan Vida, **Oros** pagan oro y **Espadas** perforan Escudo.
+3. Cada enemigo es **Inmune a su propio palo** (esas cartas no hacen Daño directo, pero igual activan su poder).
 
 ## Desarrollo
 
@@ -35,28 +31,23 @@ npm run dev          # http://localhost:5183
 
 | Orden | Qué hace |
 |---|---|
-| `npm run typecheck` | Tipos |
-| `npm test` | Pruebas (la constitución incluida) |
-| `npm run forja` | Láminas PNG de todo el pixel-art en `artifacts/forja/` |
+| `npm run typecheck` | Verificación estricta de TypeScript |
+| `npm test` | Suite de pruebas (`constitucion`, `reglas`, `musica`, `forja`) |
+| `npm run build:web` | Compila el sitio estático en `dist/web` (base `/cabala/`) |
+| `npm run qa:smoke` | Corrida end-to-end en PC (`1366×768`) y Móvil (`390×844`) |
+| `npm run qa:fps` | Benchmark de FPS en 4 resoluciones (`1366×768`, `1280×800`, `1920×1080`, `390×844`) |
+| `npm run forja` | Exporta láminas PNG de pixel-art en `artifacts/forja/` |
 | `npm run pixel-lint` | Linter de pixel-art sobre el catálogo |
-| `npm run analyze:meta` | Laboratorio de balance: nota interna de cada pieza (para el bot) y victorias por Mazo (`-- --fast` para iterar) |
-| `npm run docs` | Regenera `REGLAS.md` |
-| `npm run qa:visual` | Capturas y auditoría del DOM en 4 ventanas (`-- --lang=en` para el inglés) |
-| `npm run qa:smoke` | Una partida entera por la interfaz, con arrastrar y soltar |
-| `npm run qa:fps` | 60 FPS en la mesa viva |
-| `npm run build:web` | Sitio estático en `dist/web` (base `/cabala/`) |
-| `npm run puertas` | Todas las puertas, una tras otra |
-
-Todo el arte es original y se forja por código (`src/client/pixel/`): no hay ni una imagen en el repo. Los efectos son
-Canvas procedural (`src/client/fx/`). Cada push a `main` pasa por CI y se publica en GitHub Pages.
+| `npm run puertas` | Ejecuta todas las compuertas de calidad en secuencia |
 
 ## Estructura
 
-```
-src/rules/     el motor puro y determinista: cartas, combate, Mazos, Reyes, Amuletos, Aumentos, Mapa, partida, bot
-src/client/    la interfaz: pantallas, HUD, mano con arrastre, efectos, forja de pixel-art
-scripts/       laboratorio, forja, QA visual, de humo y de FPS, reglamento
-tests/         la constitución y las reglas como pruebas
+```text
+src/rules/     motor puro y determinista (cartas, combate, mazos, amuletos, reyes, partida, bot)
+src/client/    interfaz 2D, pantallas, mano con arrastre, audio, FX en canvas y pixel-art procedural
+docs/          especificación del MVP (MVP_2D.md) y arquitectura (ARQUITECTURA.md)
+tests/         pruebas constitucionales, reglas de juego, música y forja
+scripts/       QA automatizada (smoke, fps, visual-qa, pixel-lint, puertas)
 ```
 
-Licencia MIT. Referencias de terceros en [TERCEROS.md](TERCEROS.md).
+Documentación técnica en [CONSTITUCION.md](CONSTITUCION.md), [docs/MVP_2D.md](docs/MVP_2D.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md). Licencia MIT ([TERCEROS.md](TERCEROS.md)).

@@ -17,21 +17,7 @@ export interface Carta {
   palo: PaloCarta;
   /** 0 = Comodín · 1 a 9 = numeradas. */
   n: number;
-  /** Carta Marcada: vuelve a la mano al jugarla. */
-  marcada?: true;
-  /** Templada en el Fogón: Daño de más, para siempre, cada vez que se juega. */
-  temple?: number;
-  /** Templada en la segunda pasada por el Fogón: +1 de Multi al jugarla. */
-  templada?: boolean;
-  /** Forja Brava (tercera pasada): su número vale doble en el Daño. */
-  brava?: boolean;
-  /** La mutación que le dejó la Forja Brava (0.22.0): Doble Filo, Roba Carta o Chispa de Oro. */
-  mutacion?: Mutacion;
 }
-
-/** Lo que la Forja Brava le deja a un naipe, además de duplicar su número (0.22.0). */
-export type Mutacion = 'doblefilo' | 'roba' | 'oro';
-export const MUTACIONES: readonly Mutacion[] = ['doblefilo', 'roba', 'oro'];
 
 export const MAX_NUM = 9;
 export const SOTA = 10;

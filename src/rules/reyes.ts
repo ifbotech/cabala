@@ -109,18 +109,13 @@ export type BendicionId =
   | 'deguello' | 'puntahacha' | 'primerasangre'
   | 'empalizada' | 'contragolpe' | 'paloypalo'
   | 'interes' | 'pesofuerte' | 'tabacargada'
-  | 'coparebosante' | 'sangreporsangre' | 'otraronda'
-  | 'hojabroquel' | 'filodorado' | 'sangria' | 'peaje' | 'rescoldo' | 'convite';
+  | 'coparebosante' | 'sangreporsangre' | 'otraronda';
 
 export interface BendicionDef {
   id: BendicionId;
   rey: Palo;
-  /** Pacto Dual: el segundo Rey. Solo se ofrece si ya llevás un don de cada uno. */
-  dual?: Palo;
   nombre: L;
-  /** Niveles (los Pactos Duales tienen uno solo). */
   niveles: number;
-  /** El texto del efecto en un nivel (1…niveles). */
   desc: (nivel: number) => L;
 }
 
@@ -129,34 +124,27 @@ const lv = (a: readonly number[], n: number) => a[Math.min(a.length, Math.max(1,
 
 const lista: BendicionDef[] = [
   // Espadas · El Caudillo: filo, ejecuciones, críticos
-  { id: 'deguello', rey: 'S', nombre: L('Degüello', 'Throat-Cut'), niveles: 3, desc: (n) => fillL(L('El enemigo que queda con {p} % de Vida o menos, cae.', 'An enemy left at {p}% Health or less goes down.'), { p: pct(lv(b.deguello, n)) }) },
-  { id: 'puntahacha', rey: 'S', nombre: L('Punta y hacha', 'Point and Axe'), niveles: 3, desc: (n) => fillL(L('Uno de cada {k} golpes es Crítico: ×2 de Multi.', 'One in every {k} hits is a Critical: ×2 Mult.'), { k: lv(b.puntahacha, n) }) },
-  { id: 'primerasangre', rey: 'S', nombre: L('Primera sangre', 'First Blood'), niveles: 3, desc: (n) => fillL(L('+{d} de Daño en tu primer golpe contra cada enemigo.', '+{d} Damage on your first hit against each enemy.'), { d: lv(b.primerasangre, n) }) },
+  { id: 'deguello', rey: 'S', nombre: L('Degüello', 'Throat-Cut'), niveles: 1, desc: (n) => fillL(L('El enemigo que queda con {p} % de Vida o menos, cae.', 'An enemy left at {p}% Health or less goes down.'), { p: pct(lv(b.deguello, n)) }) },
+  { id: 'puntahacha', rey: 'S', nombre: L('Punta y hacha', 'Point and Axe'), niveles: 1, desc: (n) => fillL(L('Uno de cada {k} golpes es Crítico: ×2 de Multi.', 'One in every {k} hits is a Critical: ×2 Mult.'), { k: lv(b.puntahacha, n) }) },
+  { id: 'primerasangre', rey: 'S', nombre: L('Primera sangre', 'First Blood'), niveles: 1, desc: (n) => fillL(L('+{d} de Daño en tu primer golpe contra cada enemigo.', '+{d} Damage on your first hit against each enemy.'), { d: lv(b.primerasangre, n) }) },
   // Bastos · El Cacique: escudo persistente, contragolpes
-  { id: 'empalizada', rey: 'C', nombre: L('Empalizada', 'Palisade'), niveles: 3, desc: (n) => fillL(L('Cada carta de Bastos da +{e} de Escudo más.', 'Each Clubs card gives +{e} more Shield.'), { e: lv(b.empalizada, n) }) },
-  { id: 'contragolpe', rey: 'C', nombre: L('Contragolpe', 'Riposte'), niveles: 3, desc: (n) => fillL(L('Si tu Escudo frena la mitad o más de lo que TE PEGA, devuelve lo frenado ×{d}, más tu Coraza.', 'If your Shield blocks half or more of a hit on you, it returns what it blocked ×{d}, plus your Armor.'), { d: lv(b.contragolpe, n) }) },
-  { id: 'paloypalo', rey: 'C', nombre: L('Palo y palo', 'Blow for Blow'), niveles: 3, desc: (n) => fillL(L('+{d} de Daño por cada 2 de Escudo que tengas.', '+{d} Damage for every 2 Shield you hold.'), { d: lv(b.paloypalo, n) }) },
+  { id: 'empalizada', rey: 'C', nombre: L('Empalizada', 'Palisade'), niveles: 1, desc: (n) => fillL(L('Cada carta de Bastos da +{e} de Escudo más.', 'Each Clubs card gives +{e} more Shield.'), { e: lv(b.empalizada, n) }) },
+  { id: 'contragolpe', rey: 'C', nombre: L('Contragolpe', 'Riposte'), niveles: 1, desc: (n) => fillL(L('Si tu Escudo frena la mitad o más de lo que TE PEGA, devuelve lo frenado ×{d}, más tu Coraza.', 'If your Shield blocks half or more of a hit on you, it returns what it blocked ×{d}, plus your Armor.'), { d: lv(b.contragolpe, n) }) },
+  { id: 'paloypalo', rey: 'C', nombre: L('Palo y palo', 'Blow for Blow'), niveles: 1, desc: (n) => fillL(L('+{d} de Daño por cada 2 de Escudo que tengas.', '+{d} Damage for every 2 Shield you hold.'), { d: lv(b.paloypalo, n) }) },
   // Oros · El Caudal: multiplicadores por oro, interés, dados
-  { id: 'interes', rey: 'D', nombre: L('Interés compuesto', 'Compound Interest'), niveles: 3, desc: (n) => fillL(L('Al ganar un combate: +1 de oro por cada {k} que tengas (tope {t}).', 'On winning a fight: +1 gold for every {k} you hold (max {t}).'), { k: lv(b.interes.cada, n), t: lv(b.interes.tope, n) }) },
-  { id: 'pesofuerte', rey: 'D', nombre: L('Peso fuerte', 'Hard Coin'), niveles: 3, desc: (n) => fillL(L('+1 de Multi por cada {k} de oro en tu bolsa (tope +{t}).', '+1 Mult for every {k} gold in your purse (max +{t}).'), { k: lv(b.pesofuerte.cada, n), t: b.pesofuerte.tope }) },
-  { id: 'tabacargada', rey: 'D', nombre: L('Taba cargada', 'Loaded Die'), niveles: 3, desc: (n) => fillL(L('Cada turno tirás un dado: tu golpe suma {k} × el dado de Daño.', 'Each turn you roll a die: your hit adds {k} × the die in Damage.'), { k: lv(b.tabacargada, n) }) },
+  { id: 'interes', rey: 'D', nombre: L('Interés compuesto', 'Compound Interest'), niveles: 1, desc: (n) => fillL(L('Al ganar un combate: +1 de oro por cada {k} que tengas (tope {t}).', 'On winning a fight: +1 gold for every {k} you hold (max {t}).'), { k: lv(b.interes.cada, n), t: lv(b.interes.tope, n) }) },
+  { id: 'pesofuerte', rey: 'D', nombre: L('Peso fuerte', 'Hard Coin'), niveles: 1, desc: (n) => fillL(L('+1 de Multi por cada {k} de oro en tu bolsa (tope +{t}).', '+1 Mult for every {k} gold in your purse (max +{t}).'), { k: lv(b.pesofuerte.cada, n), t: b.pesofuerte.tope }) },
+  { id: 'tabacargada', rey: 'D', nombre: L('Taba cargada', 'Loaded Die'), niveles: 1, desc: (n) => fillL(L('Cada turno tirás un dado: tu golpe suma {k} × el dado de Daño.', 'Each turn you roll a die: your hit adds {k} × the die in Damage.'), { k: lv(b.tabacargada, n) }) },
   // Copas · El Bacanal: sobrecuración vuelta Multi, pactos de sangre
-  { id: 'coparebosante', rey: 'H', nombre: L('Copa rebosante', 'Brimming Cup'), niveles: 3, desc: (n) => fillL(L('Cada {k} de curación que no te cabe en un golpe: +1 de Multi a ese golpe.', 'Every {k} healing that overflows in a hit: +1 Mult to that hit.'), { k: lv(b.coparebosante, n) }) },
-  { id: 'sangreporsangre', rey: 'H', nombre: L('Sangre por sangre', 'Blood for Blood'), niveles: 3, desc: (n) => fillL(L('Con tu Vida al 50 % o menos: +{m} de Multi.', 'With your Health at 50% or less: +{m} Mult.'), { m: lv(b.sangreporsangre, n) }) },
-  { id: 'otraronda', rey: 'H', nombre: L('Otra ronda', 'Another Round'), niveles: 3, desc: (n) => fillL(L('Cada carta de Copas cura +{c} más.', 'Each Cups card heals +{c} more.'), { c: lv(b.otraronda, n) }) },
-  // Pactos Duales
-  { id: 'hojabroquel', rey: 'S', dual: 'C', nombre: L('Hoja y broquel', 'Blade and Buckler'), niveles: 1, desc: () => fillL(L('Cada Golpe exacto o al pelo: +{e} de Escudo y +{f} de Filo.', 'Each Exact or Close Hit: +{e} Shield and +{f} Edge.'), { e: b.hojabroquel.escudo, f: b.hojabroquel.filo }) },
-  { id: 'filodorado', rey: 'S', dual: 'D', nombre: L('Filo dorado', 'Gilded Edge'), niveles: 1, desc: () => fillL(L('+1 de Daño por cada {k} de oro que tengas (tope +{t}).', '+1 Damage for every {k} gold you hold (max +{t}).'), { k: b.filodorado.cada, t: b.filodorado.tope }) },
-  { id: 'sangria', rey: 'S', dual: 'H', nombre: L('Sangría', 'Bloodletting'), niveles: 1, desc: () => fillL(L('Cada enemigo abatido te cura {c}.', 'Each enemy you take down heals you {c}.'), { c: b.sangria }) },
-  { id: 'peaje', rey: 'C', dual: 'D', nombre: L('Peaje', 'Toll'), niveles: 1, desc: () => fillL(L('Cada golpe que TE PEGAN y tu Escudo frena por la mitad o más: +{o} de oro.', 'Each hit on you that your Shield blocks by half or more: +{o} gold.'), { o: b.peaje }) },
-  { id: 'rescoldo', rey: 'C', dual: 'H', nombre: L('Rescoldo', 'Embers'), niveles: 1, desc: () => fillL(L('Al ganar un combate, cada {k} de Escudo que te queda te cura 1.', 'On winning a fight, every {k} Shield you have left heals you 1.'), { k: b.rescoldo }) },
-  { id: 'convite', rey: 'D', dual: 'H', nombre: L('Convite', 'Feast'), niveles: 1, desc: () => fillL(L('Al ganar un combate: +1 de Vida máxima por cada {k} de oro (tope +{t}).', 'On winning a fight: +1 max Health for every {k} gold (max +{t}).'), { k: b.convite.cada, t: b.convite.tope }) },
+  { id: 'coparebosante', rey: 'H', nombre: L('Copa rebosante', 'Brimming Cup'), niveles: 1, desc: (n) => fillL(L('Cada {k} de curación que no te cabe en un golpe: +1 de Multi a ese golpe.', 'Every {k} healing that overflows in a hit: +1 Mult to that hit.'), { k: lv(b.coparebosante, n) }) },
+  { id: 'sangreporsangre', rey: 'H', nombre: L('Sangre por sangre', 'Blood for Blood'), niveles: 1, desc: (n) => fillL(L('Con tu Vida al 50 % o menos: +{m} de Multi.', 'With your Health at 50% or less: +{m} Mult.'), { m: lv(b.sangreporsangre, n) }) },
+  { id: 'otraronda', rey: 'H', nombre: L('Otra ronda', 'Another Round'), niveles: 1, desc: (n) => fillL(L('Cada carta de Copas cura +{c} más.', 'Each Cups card heals +{c} more.'), { c: lv(b.otraronda, n) }) },
 ];
 
 export const BENDICIONES: readonly BendicionId[] = lista.map((x) => x.id);
 export const BENDICION = Object.fromEntries(lista.map((x) => [x.id, x])) as Record<BendicionId, BendicionDef>;
-/** El valor de una Bendición con niveles, según el nivel que se lleva. */
+/** El valor de una Bendición (nivel 1 directo). */
 export const nivelDe = lv;
 
-/** Los Reyes a los que cuenta una Bendición (las Duales, a los dos). */
-export const reyesDe = (id: BendicionId): Palo[] => (BENDICION[id].dual ? [BENDICION[id].rey, BENDICION[id].dual!] : [BENDICION[id].rey]);
+/** El Rey al que cuenta una Bendición. */
+export const reyesDe = (id: BendicionId): Palo[] => [BENDICION[id].rey];

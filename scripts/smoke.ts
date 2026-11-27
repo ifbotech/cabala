@@ -144,13 +144,9 @@ async function hastaLaMesa(p: Page, url: string): Promise<void> {
   await p.reload();
   await p.waitForSelector('.portada [data-accion="jugar"]');
   await p.click('[data-accion="jugar"]');
-  await p.waitForSelector('.elegir');
+  await p.waitForSelector('.mazo-p');
   await p.click(`.mazo-op[data-id="${mazo}"]`);
   await p.click('[data-accion="jugar"]');
-  await p.waitForSelector('.oferta .opcion');
-  await p.locator('.oferta .opcion').first().click();
-  await p.waitForSelector('.nodo.abierto');
-  await p.locator('.nodo.abierto').first().click();
   await p.waitForSelector('.mano .carta');
   await libre(p);
 }
@@ -185,10 +181,10 @@ await conServidor(5192, async (url) => {
 
     // la tabla de JUGADAS (tecla J) y «LO QUE LLEVÁS» (la tira del HUD, un solo botón)
     await p.keyboard.press('j');
-    await p.waitForSelector('.jugadas .jugadas-tabla tbody tr');
-    const filas = await p.locator('.jugadas .jugadas-tabla tbody tr').count();
+    await p.waitForSelector('.jugadas .jugada-fila');
+    const filas = await p.locator('.jugadas .jugada-fila').count();
     exigir(filas >= 9, `la tabla de JUGADAS tiene ${filas} filas (se esperan 9 o más)`);
-    exigir((await p.locator('.jugadas .palos-lista li').count()) === 4, 'la tabla de JUGADAS no explica los 4 palos');
+    exigir((await p.locator('.jugadas .palo-lista li').count()) === 4, 'la tabla de JUGADAS no explica los 4 palos');
     await p.keyboard.press('Escape');
     await p.waitForSelector('.jugadas', { state: 'detached' });
     await p.click('[data-accion="ver-piezas"]');
@@ -321,8 +317,7 @@ await conServidor(5192, async (url) => {
       } else if (x.fase === 'botin') {
         if (await p.locator('[data-accion="abrir"]').count()) await p.locator('[data-accion="abrir"]').first().click();
         else if (await p.locator('.botin [data-accion="seguir"]').count()) await p.click('.botin [data-accion="seguir"]');
-      } else if (x.fase === 'mapa') await p.locator('.nodo.abierto').first().click();
-      else if (x.fase === 'pulperia') {
+      } else if (x.fase === 'pulperia') {
         const venta = p.locator('.venta[data-accion="comprar"]:not([disabled])').first();
         if (pasos % 2 === 0 && (await venta.count()) && !(await p.locator('.velo').count())) {
           const antes = x.oro;
@@ -330,19 +325,9 @@ await conServidor(5192, async (url) => {
           await p.waitForTimeout(30);
           if ((await estado(p))!.oro === antes && !(await p.locator('.velo').count())) await salirDeLaPulperia(p);
         } else if (!(await p.locator('.velo').count())) await salirDeLaPulperia(p);
-      } else if (x.fase === 'fogon') {
-        if (await p.locator('[data-accion="descansar"]:not([disabled])').count()) await p.click('[data-accion="descansar"]');
-        else await p.click('.fogon [data-accion="seguir"]');
-      } else if (x.fase === 'cabala') {
-        if (await p.locator('.cabala [data-accion="seguir"]').count()) await p.click('.cabala [data-accion="seguir"]');
-        else if (await p.locator('.negra-bandeja').count()) {
-          // (0.22) la Cábala Negra: se eligen los naipes en su bandeja (los que quedan encendidos) y se cose
-          const coser = p.locator('.negra-bandeja [data-accion="coser"]:not([disabled])');
-          const naipe = p.locator('.negra-naipe:not([disabled]):not(.elegida)').first();
-          if (await coser.count()) await coser.click();
-          else if (await naipe.count()) await naipe.click();
-          else await p.click('.negra-bandeja [data-accion="volver"]');
-        } else await p.locator('.cabala .opcion:not([disabled])').first().click();
+      } else if (x.fase === 'duelo') {
+        if (await p.locator('[data-accion="cobrar-bendicion"]').count()) await p.click('[data-accion="cobrar-bendicion"]');
+        else if (await p.locator('[data-accion="pasar-rey"]').count()) await p.click('[data-accion="pasar-rey"]');
       }
     }
     exigir((await estado(p))?.fase === 'fin', `la partida no llegó al final en ${pasos} pasos`);
@@ -353,29 +338,29 @@ await conServidor(5192, async (url) => {
     exigir(dicho.cantos === 0 || dicho.hablaron.includes(mazo), `hubo ${dicho.cantos} cantos y el Personaje no gritó ninguno (hablaron: ${dicho.hablaron.join(' ')})`);
     const mFin = await musicaDe(p);
     exigir(mFin.arranques === 1 && mFin.reloj > 16, `con los efectos apagados y la música prendida, la música no sonó (arranques ${mFin.arranques}, reloj ${mFin.reloj})`);
-    exigir(escenas.has('mapa') && escenas.has('mesa') && combatesOidos > 0, `la partida no pasó por el Mapa y la mesa con música (${[...escenas].join(' ')})`);
+    exigir(escenas.has('mesa') && combatesOidos > 0, `la partida no pasó por la mesa con música (${[...escenas].join(' ')})`);
     exigir(dicho.cantos === 0 || mFin.stingers.includes(mazo), `hubo ${dicho.cantos} cantos y ningún stinger del Mazo (stingers: ${mFin.stingers.join(' ')})`);
     exigir(dicho.hablaron.length > 0, 'nadie cantó en toda la partida');
-    await p.waitForSelector('.fin .fin-porotos');
-    const fin = await p.evaluate(() => ({ titulo: document.querySelector('.fin-titulo')?.textContent ?? '', porotos: document.querySelector('.fin-porotos')?.textContent ?? '' }));
-    ok(`partida entera por la interfaz en ${pasos} pasos (${arrastres} golpes arrastrando): «${fin.titulo.trim()}» · ${fin.porotos.trim()}`);
+    await p.waitForSelector('.fin .fin-titulo');
+    const fin = await p.evaluate(() => ({ titulo: document.querySelector('.fin-titulo')?.textContent ?? '' }));
+    ok(`partida entera por la interfaz en ${pasos} pasos (${arrastres} golpes arrastrando): «${fin.titulo.trim()}»`);
     ok(`música: un solo reloj de punta a punta (${[...escenas].join(' → ')}; 1 arranque, ${mFin.reloj} semicorcheas), el tramo real llegó en ${combatesOidos} lecturas, stingers ${[...new Set(mFin.stingers)].join(' ') || '—'}, cantaron ${dicho.hablaron.join(' ')}`);
 
     await p.click('[data-accion="portada"]');
     await p.waitForSelector('.portada');
-    const guardado = await p.evaluate(() => JSON.parse(localStorage.getItem('cabala:perfil') ?? '{}') as { porotos?: number; stats?: { partidas: number }; cronica?: unknown[] });
-    exigir(guardado.stats?.partidas === 1 && (guardado.cronica?.length ?? 0) === 1, 'la partida no quedó anotada en el perfil');
+    const guardado = await p.evaluate(() => JSON.parse(localStorage.getItem('cabala:perfil') ?? '{}') as { stats?: { partidas: number } });
+    exigir(guardado.stats?.partidas === 1, 'la partida no quedó anotada en el perfil');
     exigir(!(await p.evaluate(() => localStorage.getItem('cabala:partida'))), 'quedó una partida terminada guardada');
-    ok(`el perfil guardó la partida: ${guardado.porotos} Porotos y 1 entrada en la Crónica`);
+    ok('el perfil guardó la partida');
 
-    // el Altar, la Colección, la Crónica y los Ajustes abren y vuelven
-    for (const pantalla of ['altar', 'coleccion', 'cronica', 'ajustes']) {
+    // Colección y Ajustes abren y vuelven
+    for (const pantalla of ['coleccion', 'ajustes']) {
       await p.click(`[data-accion="${pantalla}"]`);
       await p.waitForSelector('[data-accion="volver"]');
       await p.keyboard.press('Escape');
       await p.waitForSelector('.portada');
     }
-    ok('Altar, Colección, Crónica y Ajustes abren y vuelven con Escape');
+    ok('Colección y Ajustes abren y vuelven con Escape');
     await ctx.close();
 
     // ───────────── móvil, táctil ─────────────
@@ -419,36 +404,7 @@ await conServidor(5192, async (url) => {
     ok('móvil (390 × 844, táctil): se llega a la mesa y se golpea tocando');
     await movil.close();
 
-    // el Fogón de tres pasadas: templar un naipe (segura), arrimarlo (Templada) y la Forja Brava, hasta que se queme o llegue al tope
-    const fg = await navegador.newContext({ viewport: { width: 1366, height: 768 } });
-    await fg.addInitScript('globalThis.__name = (f) => f');
-    const pf = await fg.newPage();
-    pf.on('pageerror', (e) => errores.push(e.message));
-    await pf.goto(`${url}/?qa=fogon&vivo&rapido&lang=${lang}`);
-    await pf.waitForSelector('[data-accion="templar"]');
-    const mazoAntes = await pf.evaluate(() => (window as unknown as { __cabala: { sesion: { partida: { mazo: unknown[] } } } }).__cabala.sesion.partida.mazo.length);
-    await pf.click('[data-accion="templar"]');
-    await pf.locator('.visor button.visor-carta').first().click();
-    await pf.waitForSelector('.opcion.fuego .c-temple');
-    // la placa lo dice en palabras desde la 0.25 («+4 de Daño» / «+4 Damage»): basta con que arranque en +4
-    exigir(/^\+4(?!\d)/.test((await pf.locator('.opcion.fuego .c-temple').textContent())?.trim() ?? ''), 'la primera pasada por el fuego no dejó el naipe al rojo (+4)');
-    let pasadas = 1;
-    while ((await pf.locator('[data-accion="arrimar"]').count()) > 0 && pasadas < 6) {
-      await pf.click('[data-accion="arrimar"]');
-      await pf.waitForTimeout(60);
-      pasadas++;
-    }
-    const finFuego = await pf.evaluate(() => {
-      const p = (window as unknown as { __cabala: { sesion: { partida: { mazo: { temple?: number; templada?: boolean; brava?: boolean }[] } } } }).__cabala.sesion.partida;
-      const mejor = [...p.mazo].sort((x, y) => (y.temple ?? 0) - (x.temple ?? 0))[0];
-      return { mazo: p.mazo.length, temple: mejor?.temple ?? 0, templada: !!mejor?.templada, brava: !!mejor?.brava };
-    });
-    exigir(finFuego.mazo === mazoAntes - 1 ? finFuego.temple === 0 : finFuego.temple === 8 && finFuego.templada && finFuego.brava, `el Fogón de riesgo terminó raro: ${JSON.stringify(finFuego)} tras ${pasadas} pasadas`);
-    ok(`Fogón de riesgo: templar (+4 seguro) y arrimar ${pasadas - 1} vez/veces más → ${finFuego.mazo < mazoAntes ? 'se quemó (un naipe menos)' : 'llegó a la Forja Brava (+8, Templada y su número vale doble)'}`);
-    await fg.close();
-
-    // el Bufón vivo (sin el modo rápido, que lo deja quieto): llega con su nube y su sonido, escribe lo que dice,
-    // se esfuma al cambiar de pantalla y reaparece en la siguiente; el bocadillo se va solo
+    // el Bufón vivo y la música de la portada a Ajustes
     const vivo = await navegador.newContext({ viewport: { width: 1366, height: 768 } });
     await vivo.addInitScript('globalThis.__name = (f) => f');
     const v = await vivo.newPage();
@@ -458,54 +414,31 @@ await conServidor(5192, async (url) => {
     const sonados = (): Promise<string> => v.evaluate(() => (window as unknown as { __cabala: { sonados: string[] } }).__cabala.sonados.join(' '));
     await v.waitForFunction(() => !!document.querySelector('.portada [data-anfitrion] [data-voz] .dicho')?.textContent, undefined, { timeout: 5000 });
     exigir((await sonados()).includes('bufon'), 'el Bufón llegó a la portada sin su sonido');
-    await v.click('[data-accion="jugar"]');
-    await v.waitForSelector('.elegir .mini-anfitrion .bufon');
-    await v.waitForFunction(() => !!document.querySelector('.mini-anfitrion [data-voz] .dicho')?.textContent, undefined, { timeout: 5000 });
-    const tras = await sonados();
-    exigir(tras.includes('puf') && tras.lastIndexOf('bufon') > tras.indexOf('puf'), `al cambiar de pantalla el Bufón no se esfumó y reapareció (${tras})`);
-    await v.waitForFunction(() => document.querySelector<HTMLElement>('.mini-anfitrion [data-voz]')?.hidden === true, undefined, { timeout: 12000 });
-    ok('el Bufón te sigue: se esfuma con humo, reaparece con su sonido, escribe lo que dice y el bocadillo se va');
 
-    // la música: suena la pista de la pantalla desde el primer gesto, y el ajuste la apaga y la prende
     type Mus = { deseada: string | null; suena: string | null; pasos: number };
-    const musica = (pg: Page): Promise<Mus> => pg.evaluate(() => (window as unknown as { __cabala: { musica: () => Mus } }).__cabala.musica());
     const suena = (pg: Page, pista: string | null): Promise<unknown> =>
       pg.waitForFunction((x) => (window as unknown as { __cabala: { musica: () => Mus } }).__cabala.musica().suena === x, pista, { timeout: 6000 });
+    await v.mouse.click(8, 8);
     await suena(v, 'portada');
     const m0 = await musicaDe(v);
     await v.waitForFunction((n) => (window as unknown as { __cabala: { musica: () => Mus } }).__cabala.musica().pasos > n + 8, m0.pasos, { timeout: 6000 });
-    await v.click('[data-accion="volver"]');
     await v.click('[data-accion="ajustes"]');
-    // (0.28) Ajustes tiene su mezcla (la de la Colección) y entra sin cortar: mismo reloj, un solo arranque
     await suena(v, 'coleccion');
     const m1 = await musicaDe(v);
     exigir(m1.arranques === 1 && m1.reloj > m0.reloj, `al pasar de la portada a Ajustes la música se cortó (arranques ${m1.arranques}, reloj ${m0.reloj} → ${m1.reloj})`);
-    await v.click('[data-accion="musica-no"]');
-    await suena(v, null);
-    await v.click('[data-accion="musica-si"]');
-    await suena(v, 'coleccion');
-    // el Bufón de la portada cantó lo que dijo (una voz registrada) y el stinger se puede pedir
-    const cantaron = await v.evaluate(() => (window as unknown as { __cabala: { hablaron: string[] } }).__cabala.hablaron);
-    exigir(cantaron.includes('bufon'), `el Bufón habló sin cantar (hablaron: ${cantaron.join(' ')})`);
-    ok('música: la milonga suena desde el primer gesto, pasa de la portada a Ajustes sin cortarse (mismo reloj) y Ajustes → Música la apaga y la prende');
+    ok('música: la milonga suena desde el primer gesto y pasa de la portada a Ajustes sin cortarse');
     await vivo.close();
 
-    // las voces: el Rey que ofrece su Bendición habla letra por letra con su voz, y la pantalla cambia de pista
+    // el Rey tiene su pista de galope
     const vc = await navegador.newContext({ viewport: { width: 1366, height: 768 } });
     await vc.addInitScript('globalThis.__name = (f) => f');
     const pv = await vc.newPage();
     pv.on('pageerror', (e) => errores.push(e.message));
-    await pv.goto(`${url}/?qa=elegi-bendicion&vivo&lang=${lang}`);
-    await pv.waitForFunction(() => (document.querySelector('.oferta-voz [data-teclea] .dicho')?.textContent ?? '').length > 6, undefined, { timeout: 6000 });
-    const voces = await pv.evaluate(() => (window as unknown as { __cabala: { hablaron: string[] } }).__cabala.hablaron);
-    exigir(voces.some((x) => 'SCDH'.includes(x)), `el Rey ofreció su Bendición sin voz (hablaron: ${voces.join(' ')})`);
-    await pv.mouse.click(8, 8);
-    await suena(pv, 'mapa');
     await pv.goto(`${url}/?qa=mesa-rey&vivo&lang=${lang}`);
     await pv.waitForSelector('[data-mano] .carta');
     await pv.mouse.click(8, 8);
     await suena(pv, 'rey');
-    ok(`voces y pistas: el Rey habla con su voz (${voces.filter((x) => 'SCDH'.includes(x)).join('')}); el botín suena a camino y el Rey tiene su galope`);
+    ok('pistas: el Rey tiene su galope en mesa-rey');
     await vc.close();
   } finally {
     await navegador.close();

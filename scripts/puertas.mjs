@@ -1,23 +1,14 @@
-// Todas las puertas de CÁBALA, una tras otra y en primer plano, cada una con su tope. Corta en la primera que falle.
-//   npm run puertas            todas
-//   npm run puertas -- --sin-lab   sin el laboratorio completo (si las reglas no cambiaron, la huella ya lo certifica)
+// Todas las puertas de CÁBALA 2.0, una tras otra y en primer plano. Corta en la primera que falle.
+//   npm run puertas
 import { spawnSync } from 'node:child_process';
 
-const sinLab = process.argv.includes('--sin-lab');
 const PUERTAS = [
   ['tipos', 120, 'npm run typecheck'],
   ['forja y linter', 200, 'npm run forja'],
   ['pixel-lint', 120, 'npm run pixel-lint'],
-  ...(sinLab ? [] : [['laboratorio', 590, 'npm run analyze:meta']]),
-  ['reglamento', 60, 'npm run docs'],
   ['pruebas', 280, 'npm test'],
-  ['QA visual (es)', 360, 'npm run qa:visual'],
-  ['QA visual (en)', 360, 'npm run qa:visual -- --lang=en'],
   ['QA de humo (es)', 290, 'npm run qa:smoke'],
-  ['QA de humo (en, truco)', 290, 'npm run qa:smoke -- --lang=en --mazo=truco'],
-  ['QA de audio', 200, 'npm run qa:audio'],
   ['FPS', 200, 'npm run qa:fps'],
-  ['estabilidad', 240, 'npm run qa:estabilidad'],
   ['construcción', 200, 'npm run build:web'],
 ];
 

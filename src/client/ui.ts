@@ -1,25 +1,20 @@
 // Ayudas de la interfaz: montar una pantalla, repartir los clics por `data-accion`, la inspección al pasar el cursor
 // o el foco (`data-tip`), los modales, el Bufón, los Reyes y la etiqueta de sinergia.
 import { quieto } from './ritmo';
-import { marcarSucio3d } from './escena3d';
 import { AMULETO, RAREZA_NOMBRE } from '../rules/amuletos';
 import type { AmuletoId } from '../rules/amuletos';
-import { AUMENTO } from '../rules/aumentos';
-import type { AumentoId } from '../rules/aumentos';
 import type { Palo } from '../rules/cartas';
 import type { Partida, TipoOferta } from '../rules/estado';
 import { BENDICION, REY_DEF } from '../rules/reyes';
 import type { BendicionId } from '../rules/reyes';
 import { sinergia } from '../rules/notas';
-import { EVOLUCION, despierta } from '../rules/evoluciones';
 import { ajustes, guardarPerfil, perfil, t, tx } from './almacen';
 import { ver } from '../rules/perfil';
 import { enFoto } from './fx/motor';
 import { bufonCapas, type Expresion } from './pixel/bufon';
 import { REY_PX, reyFondo, reyMapa, type Animo } from './pixel/reyes';
 import { avivar, esfumar } from './bufon-vivo';
-import { px, pxEstrella, pxEvolucion, pxInmune } from './sprites';
-import { PALO_NOMBRE } from './textos';
+import { px, pxEstrella, pxInmune } from './sprites';
 
 export type Accion = (el: HTMLElement, ev: Event) => void;
 
@@ -464,7 +459,6 @@ export function gestoBufon(raiz: ParentNode, e: Expresion): void {
   const b = $('.bufon', raiz);
   if (!b || b.dataset.expresion === e) return;
   b.outerHTML = bufonHtml(e, b.className.replace('bufon', '').trim());
-  marcarSucio3d();
 }
 /** El Bufón con su bocadillo debajo: lo que dice se escribe, suena y al rato se va (ver bufon-vivo.ts). */
 export function anfitrion(texto: string, e: Expresion = 'reposo', cls = ''): string {
@@ -498,31 +492,17 @@ export function fichaDe(tipo: TipoOferta, id: string, p?: Partida): FichaPieza {
     const d = AMULETO[id as AmuletoId];
     return { nombre: tx(d.nombre), desc: tx(d.desc), clase: tx(RAREZA_NOMBRE[d.rareza]), marco: d.palo === 'X' ? 'prisma' : `palo${d.palo}` };
   }
-  if (tipo === 'aumento') {
-    const d = AUMENTO[id as AumentoId];
-    return { nombre: tx(d.nombre), desc: tx(d.desc), clase: d.maldicion ? t('maldicion') : t('unaCabala'), marco: d.nivel === 'plata' ? 'plata' : d.nivel === 'oro' ? 'dorado' : 'prisma' };
-  }
   const d = BENDICION[id as BendicionId];
   const tiene = p?.bendiciones[d.id] ?? 0;
   const nivel = Math.min(d.niveles, tiene + 1);
-  const rey = `${tx(REY_DEF[d.rey].apodo)}${d.dual ? ` + ${tx(REY_DEF[d.dual].apodo)}` : ''}`;
-  return { nombre: tx(d.nombre), desc: tx(d.desc(nivel)), clase: d.dual ? `${t('pactoDual')} · ${rey}` : `${rey} · ${t('nivel', { n: nivel })}`, marco: `palo${d.rey}` };
+  const rey = tx(REY_DEF[d.rey].apodo);
+  return { nombre: tx(d.nombre), desc: tx(d.desc(nivel)), clase: rey, marco: `palo${d.rey}` };
 }
 
-/** La etiqueta «★ SINERGIA» de una pieza, con su micro-línea, si potencia tu Mazo o lo que ya llevás (si no, nada). */
 export function sinergiaHtml(tipo: TipoOferta, id: string, p?: Partida): string {
-  // (0.22) lo que despierta una Evolución lleva el sello «★ EVOLUCIONA» (manda sobre la sinergia: es más que eso)
-  // (0.24) y dice por qué («con tu don de Copas» / «con tu Cáliz del Bacanal») y qué gana: su regla entera
-  const de = p ? despierta(p, tipo, id) : null;
-  if (de) {
-    const nombre = tx(EVOLUCION[de].nombre);
-    const por = tipo === 'amuleto' ? t('evolucionCon', { p: tx(PALO_NOMBRE[EVOLUCION[de].palo]) }) : t('evolucionConAmuleto', { a: tx(AMULETO[de].nombre) });
-    return `<span class="sinergia-caja evoluciona" ${tip(`${t('evolucionTitulo')}: ${nombre}`, tx(EVOLUCION[de].desc), t('evolucionaTip', { e: nombre }))}><span class="chip sello-evo">${pxEstrella()} ${t('evoluciona')}</span><span class="micro evo-quien">${pxEvolucion(de, 'evo-mini')}<span><b>${esc(nombre)}</b> <span class="evo-por">${esc(por)}</span></span></span><span class="micro evo-gana">${conMaldicion(tx(EVOLUCION[de].desc))}</span></span>`;
-  }
   const s = p ? sinergia(p, tipo, id) : null;
-  // (la carga de Copas se llama TRAGO en la interfaz: la nota del motor dice «Suma a Brindis»)
   const viejo = tx(REY_DEF.H.carga);
-  const nota = s ? (ajustes.idioma === 'en' ? tx(s).replace(viejo, t('cargaTrago')) : tx(s).replace(`a ${viejo}`, `al ${t('cargaTrago')}`)) : '';
+  const nota = s ? tx(s).replace(`a ${viejo}`, `al ${t('cargaTrago')}`) : '';
   return s ? `<span class="sinergia-caja"><span class="chip sinergia">${pxEstrella()} ${t('sinergia')}</span><span class="micro">${esc(nota)}</span></span>` : '';
 }
 

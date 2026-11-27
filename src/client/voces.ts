@@ -1,8 +1,8 @@
 // La voz del Bufón: el único anfitrión del juego, un chanta rioplatense que te chamuya en bocadillos cortos. Habla
 // distinto según su humor (garca, neutral, de tu lado). Los tres comentarios del primer combate son toda la guía:
 // el juego se aprende jugando.
-import type { Humor } from '../rules/bufon';
 import type { MazoId } from '../rules/mazos';
+export type Humor = 'garca' | 'torcido' | 'neutral' | 'compinche' | 'detulado';
 
 type Par = { es: string; en: string };
 const P = (es: string, en: string): Par => ({ es, en });
