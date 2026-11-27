@@ -6687,3 +6687,15 @@ html[data-entrada='mando'] .forja-mut {
   justify-content: center;
   line-height: 0;
 }
+
+/* ───────────── 1.14.0 · Jugadas degradado y Botín 1080p ───────────── */
+.panel.jugadas.hay-mas .rollo {
+  padding-bottom: 52px;
+  -webkit-mask-image: linear-gradient(#000 calc(100% - 46px), transparent 100%);
+  mask-image: linear-gradient(#000 calc(100% - 46px), transparent 100%);
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  .botin:not(.directo) > .cuerpo > .anfitrion {
+    --k-bufon: 3.3;
+  }
+}

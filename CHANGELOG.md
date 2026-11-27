@@ -3,6 +3,12 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 1.14.0 · Corona de Reyes Despejada, 15/15 Amuletos Icónicos, Jugadas y Botín 1080p (2026-11-27)
+
+- **Encuadre de Reyes Jefe en escritorio (`reyes3d.ts`):** Despeja la corona alta de *El Caudillo* (y los 4 Reyes) del borde superior en `1920×1080` y `1280×800` conservando su escala en móvil.
+- **15/15 Amuletos con chips (`chips.ts`):** Tipa `AMULETO_CHIPS` como `Record<AmuletoId, ChipDato[]>`, agrega chips para *Facón de plata* (`⚔ ABATIR → +1 MULTI`) y *Boleadoras* (`★ 2+ BASTOS → ATURDE`), y precisa *Lanza* y *Poncho*.
+- **Jugadas y Botín `1920×1080` (`pantallas.css`):** Aplica degradado inferior en `.panel.jugadas.hay-mas .rollo` antes de `HAY MÁS ↓` y ajusta `--k-bufon: 3.3` en Botín `1080p` para que el cuerno izquierdo del Bufón entre holgado.
+
 ## 1.13.0 · Reyes Jefe Monumentales, Halo sin Oclusión, Héroes Iluminados y Bufón Refinado (2026-11-27)
 
 - **Reyes Jefe 3D (`reyes3d.ts`):** Mayor escala y altura (`0.94` sobre `0.52`) para lucir imponentes sobre la barra de Vida, orbes de Segunda Cara reubicados en halo trasero sin tapar el rostro, iluminación dramática reforzada y geometrías esculpidas (`ConeGeometry`, `CylinderGeometry`, `OctahedronGeometry`) en los poderes especiales.

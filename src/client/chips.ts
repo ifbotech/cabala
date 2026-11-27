@@ -19,15 +19,17 @@ export interface FichaIconica {
   chips: ChipDato[];
 }
 
-const AMULETO_CHIPS = (en: boolean): Partial<Record<AmuletoId, ChipDato[]>> => ({
+const AMULETO_CHIPS = (en: boolean): Record<AmuletoId, ChipDato[]> => ({
   cuchillo: [
     { texto: `⚔ +${B.amuletos.danoPorCarta} ${en ? 'Swords' : 'Espadas'}`, tono: 'dano' },
     { texto: `×${B.amuletos.comunes.cuchilloRemata} ≤50%`, tono: 'multi' },
   ],
+  facon: [{ texto: en ? '⚔ KILL → +1 MULT' : '⚔ ABATIR → +1 MULTI', tono: 'multi' }],
   rebenque: [
     { texto: `⚔ +${B.amuletos.danoPorCarta} ${en ? 'Clubs' : 'Bastos'}`, tono: 'dano' },
     { texto: `🛡 +${B.amuletos.comunes.rebenqueEscudo} ${en ? 'Clubs' : 'Bastos'}`, tono: 'escudo' },
   ],
+  boleadoras: [{ texto: en ? '★ 2+ CLUBS → STUN' : '★ 2+ BASTOS → ATURDE', tono: 'escudo' }],
   moneda: [
     { texto: `⚔ +${B.amuletos.danoPorCarta} ${en ? 'Coins' : 'Oros'}`, tono: 'dano' },
     { texto: `+${B.amuletos.comunes.monedaMulti} ${en ? 'MULT' : 'MULTI'}`, tono: 'multi' },
@@ -38,8 +40,8 @@ const AMULETO_CHIPS = (en: boolean): Partial<Record<AmuletoId, ChipDato[]>> => (
   ],
   bota: [{ texto: `♥ +${B.amuletos.bota}`, tono: 'vida' }],
   taba: [{ texto: `🎲 +${en ? 'MULT' : 'MULTI'}`, tono: 'multi' }],
-  lanza: [{ texto: `⚔ ${en ? 'PIERCE' : 'PERFORA'}`, tono: 'dano' }],
-  poncho: [{ texto: '🛡 → ⚔', tono: 'escudo' }],
+  lanza: [{ texto: `⚔ ${en ? 'PIERCE' : 'PERFORA'} ×${B.amuletos.lanza}`, tono: 'dano' }],
+  poncho: [{ texto: `🛡 → +${B.amuletos.poncho.multi} ${en ? 'MULT' : 'MULTI'}`, tono: 'multi' }],
   cofre: [{ texto: `● → ${en ? 'MULT' : 'MULTI'}`, tono: 'oro' }],
   caliz: [{ texto: `♥ → ${en ? 'MULT' : 'MULTI'}`, tono: 'vida' }],
   doscaras: [

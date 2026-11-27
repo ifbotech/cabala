@@ -593,8 +593,9 @@ export class Reyes3D {
     const pulsoMeta = !quieto && arm && (arm.paso === 0 || arm.paso === 6 || arm.paso === 12) ? 1 : 0;
     this.pulsoSuave += (pulsoMeta - this.pulsoSuave) * (1 - Math.exp(-10 * dt));
 
-    const worldH = this.proyectar(cam, r.left + r.width / 2, r.top + r.height * 0.52, r.height, 5.55, this.raiz.position);
-    this.raiz.scale.setScalar(worldH * 0.94);
+    const escritorio = window.innerWidth > 700;
+    const worldH = this.proyectar(cam, r.left + r.width / 2, r.top + r.height * (escritorio ? 0.58 : 0.52), r.height, 5.55, this.raiz.position);
+    this.raiz.scale.setScalar(worldH * (escritorio ? 0.88 : 0.94));
     this.raiz.quaternion.copy(cam.quaternion);
     this.raiz.visible = true;
 
@@ -614,7 +615,7 @@ export class Reyes3D {
       const zSale = (quieto ? 0.15 : 0.15 * this.entrada) + emb - hitPhase * 0.25;
       const temblor = grieta && !quieto ? Math.sin(reloj * 38) * 0.04 : 0;
 
-      fig.cuerpo.position.set(temblor, bob - 0.02 + this.pulsoSuave * 0.018, zSale);
+      fig.cuerpo.position.set(temblor, bob - (escritorio ? 0.08 : 0.02) + this.pulsoSuave * 0.018, zSale);
       fig.cuerpo.rotation.set(
         emb * 0.35 - hitPhase * 0.32 + (segunda ? 0.08 : 0),
         quieto ? -0.08 : Math.sin(reloj * 1.15) * 0.15 - 0.06,
