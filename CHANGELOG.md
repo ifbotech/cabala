@@ -3,6 +3,11 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 1.2.0 · Precisión Móvil y Pulido Píxel a Píxel (2026-11-27)
+
+- **Colección y Mapa móvil (`pantallas.css`):** `.col-pared` arranca desde arriba (`flex-start`) en móvil para no recortar retratos ni títulos; escudo de inmunidad del Rey Jefe despejando su corona en `390×844`.
+- **Modales y Pulpería (`pantallas.css`):** Aire inferior en `JUGADAS` móvil sobre `HAY MÁS ↓`, margen inferior para el glifo `A` en mutaciones de `Forja Brava` y caja de Evolución compacta en `Pulpería` escritorio.
+
 ## 1.1.0 · Pulido Píxel a Píxel (2026-11-27)
 
 - **Visor de Mazo y Cábala Negra (`pantallas.css`, `base.css`):** Filas de 9 cartas por palo sin huérfanas en escritorio; cartel `HAY MÁS ↓` centrado sobre la bandeja en `Cábala Negra`.

@@ -5718,7 +5718,7 @@ main.fogon.forjando [data-accion='seguir'] {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: safe center;
   overflow-y: auto;
 }
 .col-reyes {
@@ -6466,5 +6466,35 @@ html.modo-3d .intro-mazo .intro-retrato {
   .intro-carta .px {
     width: 60px;
     height: 84px;
+  }
+}
+
+/* ───────────── 1.2.0 · precisión móvil y pulido píxel a píxel ───────────── */
+html[data-entrada='mando'] .forja-mut {
+  padding-bottom: 24px;
+}
+@media (min-width: 701px) {
+  .pulperia .venta:not(.hierro):has(.sinergia-caja.evoluciona) {
+    gap: 4px;
+    padding: 6px 8px;
+  }
+}
+@media (max-width: 700px) {
+  .coleccion .col-pared {
+    justify-content: flex-start;
+  }
+  .coleccion .pestanas {
+    gap: 8px;
+  }
+  .coleccion .pestanas .btn {
+    padding: 4px 8px;
+  }
+  .mapa .nodo.n-rey .nodo-palos {
+    bottom: -18px;
+    transform: translateX(-50%) scale(0.65);
+    transform-origin: 50% 0%;
+  }
+  .panel.jugadas.hay-mas .rollo {
+    padding-bottom: 56px;
   }
 }
