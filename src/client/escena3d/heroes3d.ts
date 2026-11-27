@@ -5,8 +5,8 @@ import { armoniaActual } from '../musica';
 import { VoxelGrid, construirMallaVoxel } from './voxel';
 
 const V = 0.018;
-const PIEL = 0xc78d6b;
-const PIEL_SOMBRA = 0x7a4458;
+const PIEL = 0xd99e78;
+const PIEL_SOMBRA = 0x8a5163;
 const BOTA = 0x241410;
 const ORO = 0xc98c1e;
 const CUERO = 0x422116;
@@ -48,9 +48,17 @@ export class Heroes3D {
       this.raiz.add(this.heroes[m].grupo);
     }
 
-    this.luzFrente = new THREE.PointLight(0xffcf94, 2.1, 4.4, 1.35);
+    const sombra = new THREE.Mesh(
+      new THREE.CircleGeometry(0.32, 16),
+      new THREE.MeshBasicMaterial({ color: 0x040208, transparent: true, opacity: 0.48, depthWrite: false }),
+    );
+    sombra.rotation.x = -Math.PI / 2;
+    sombra.position.set(0, -0.34, 0);
+    this.raiz.add(sombra);
+
+    this.luzFrente = new THREE.PointLight(0xffcf94, 2.65, 4.6, 1.35);
     this.luzFrente.position.set(-0.3, 0.5, 1.35);
-    this.luzRim = new THREE.PointLight(0xd9842b, 1.45, 3.6, 1.5);
+    this.luzRim = new THREE.PointLight(0xe59c45, 2.0, 4.2, 1.35);
     this.luzRim.position.set(0.55, 0.45, -0.35);
     this.raiz.add(this.luzFrente, this.luzRim);
     this.raiz.visible = false;
@@ -80,14 +88,15 @@ export class Heroes3D {
     g.sculptHead(0, 6, 0.2, 5.2, 6.4, 4.8, PIEL, PIEL_SOMBRA);
     g.paintFront(
       -3,
-      8,
+      9,
       5,
       [
-        'O.....O',
+        'CC...CC',
+        'WO...OW',
         '...N...',
         '..MMM..',
       ],
-      { O: ABISMO, N: PIEL_SOMBRA, M: 0x5c2424 },
+      { C: pelo, W: HUESO, O: ABISMO, N: PIEL_SOMBRA, M: 0x5c2424 },
       1,
     );
     return g;
@@ -320,15 +329,16 @@ export class Heroes3D {
       return;
     }
     const mazo = (el.dataset.mazo || 'escoba') as MazoId;
-    const worldH = this.proyectar(cam, r.left + r.width / 2, r.top + r.height * 0.56, r.height, 5.4, this.raiz.position);
-    this.raiz.scale.setScalar(worldH * 0.86);
+    const worldH = this.proyectar(cam, r.left + r.width / 2, r.top + r.height * 0.52, r.height, 5.4, this.raiz.position);
+    const factorEscala = window.innerWidth > 700 ? 1.15 : 1.02;
+    this.raiz.scale.setScalar(worldH * factorEscala);
     this.raiz.quaternion.copy(cam.quaternion);
     this.raiz.visible = true;
 
     const arm = armoniaActual();
     const pulsoMeta = !quieto && arm && (arm.paso === 0 || arm.paso === 6 || arm.paso === 12) ? 1 : 0;
     this.pulsoSuave += (pulsoMeta - this.pulsoSuave) * (1 - Math.exp(-10 * Math.max(0.001, dt)));
-    this.luzFrente.intensity = 1.65 + this.pulsoSuave * 0.35;
+    this.luzFrente.intensity = 2.65 + this.pulsoSuave * 0.45;
 
     for (const m of ['escoba', 'truco', 'chinchon', 'mentiroso', 'chancho'] as const) {
       const h = this.heroes[m];

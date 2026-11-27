@@ -107,6 +107,11 @@ export class Bufon3D {
       gTorso.ellipsoid(i, 8, 5, 0.9, 0.9, 0.9, ORO, 'metal');
       gTorso.ellipsoid(i, 8, -5, 0.9, 0.9, 0.9, ORO_OSC, 'metal');
     }
+    // Solapas arlequín curvas en la gola con cascabeles en las puntas
+    gTorso.curve3D([[-7, 10, 3], [-10, 7.5, 4.5]], 1.4, 0.8, PURPURA);
+    gTorso.curve3D([[7, 10, 3], [10, 7.5, 4.5]], 1.4, 0.8, CARMESI);
+    gTorso.ellipsoid(-10, 7, 4.5, 0.95, 0.95, 0.95, ORO, 'metal');
+    gTorso.ellipsoid(10, 7, 4.5, 0.95, 0.95, 0.95, ORO, 'metal');
 
     this.cuerpo.add(construirMallaVoxel(gTorso, V, [0, 6, 0]));
 
@@ -201,8 +206,8 @@ export class Bufon3D {
 
     const gCetro = new VoxelGrid();
     gCetro.cylinderY(0, -8, 15, 0, 0.9, 0.9, CARMESI_OSC);
-    gCetro.box(-1, -8, -1, 1, -7, 1, ORO, 'metal');
-    gCetro.box(-1, 14, -1, 1, 15, 1, ORO, 'metal');
+    gCetro.taperedCylinder(0, -8, -7, 0, 1.3, 1.3, 1.1, 1.1, ORO, 'metal');
+    gCetro.taperedCylinder(0, 14, 15, 0, 1.4, 1.4, 1.2, 1.2, ORO, 'metal');
     gCetro.sculptHead(0, 18, 0, 2.8, 3.2, 2.4, MARFIL, MARFIL_SOMBRA);
     gCetro.set(-1, 19, 3, ABISMO).set(1, 19, 3, ABISMO);
     gCetro.box(-1, 17, 3, 1, 17, 3, CARMESI);
@@ -326,7 +331,7 @@ export class Bufon3D {
     this.pulsoSuave += (pulsoMeta - this.pulsoSuave) * (1 - Math.exp(-10 * dt));
 
     const enModal = !!el.closest('#capa .velo');
-    this.luzFrente.intensity = enModal ? 2.65 : 1.75;
+    this.luzFrente.intensity = enModal ? 2.65 : 2.05;
     if (paloRey) {
       this.luzMascara.color.setHex(COLOR_REY[paloRey]);
       this.luzMascara.intensity = (segundaRey ? 1.6 : 1.25) + this.pulsoSuave * 0.35;

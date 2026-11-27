@@ -32,6 +32,7 @@ Registro vivo del Estudio Autónomo. Cada versión se audita con lupa adversaria
 | **V. Anatomía Orgánica sin Cajas + Botín y Resumen Móvil (`v1.10.0`)** | Primitivas `sculptTorso`, `sculptCape`, `sculptDome` y `ditherRecolor` + 3 ciclos Taubin (`±0.55`) en `voxel.ts`, brazos curvos y torsos en reloj de arena en los 10 personajes, `.oferta-bufon-lado` a tamaño real sin `despliega`, aire `×2` en Forja y degradado inferior en resumen móvil | **Completado (`v1.10.0`)** |
 | **W. Impacto 3D Visceral, Tensión de Mesa y Descarte 1080p (`v1.11.0`)** | Ondas expansivas 3D por palo, estallido octaédrico en Jefes, anticipación en vela/farol/partículas ante jugada letal/Exacto/Canto, realce de borde en cartas enfocadas, luz del Bufón en modales y `AL DESCARTE` despejado en `1920×1080` | **Completado (`v1.11.0`)** |
 | **X. Duelo Deductivo, Bendición Icónica y Pulido Móvil/Portátil (`v1.12.0`)** | *El Mentiroso* deductivo desde baraja única con pistas de `7`, deselección y suma viva en *Escoba*, estallido 3D + íconos en *La Bendición del Bufón*, tooltip `DEVOLVER` despejado en `390×844`, aire en `AL DESCARTE` portátil y cero recompilación de shaders 3D en combate | **Completado (`v1.12.0`)** |
+| **Y. Reyes Monumentales, Héroes Protagonistas y Bufón Refinado (`v1.13.0`)** | Reyes Jefe más altos/iluminados con halo trasero sin oclusión facial y poderes esculpidos, 5 Héroes 3D más grandes/iluminados con ojos expresivos y sombra en mesa, y Bufón 3D con solapas arlequín y cetro torneado | **Completado (`v1.13.0`)** |
 
 ---
 

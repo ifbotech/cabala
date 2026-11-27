@@ -1411,7 +1411,7 @@ export function pantallaMesa(p: Partida): Pantalla {
             sacudir($('[data-escena]'), 3);
           }
           if (r && enemigo) {
-            if (!(enemigo.jefe && escena3dActiva())) {
+            if (!escena3dActiva()) {
               partirNaipe(enemigo.jefe && enemigo.segunda ? lienzoNaipeSegunda(enemigo.palo) : lienzoNaipe(enemigo.palo, enemigo.rango), r, RAMPA_PALO[enemigo.palo]);
             }
             if (enemigo.jefe && !quieto()) {

@@ -37,6 +37,7 @@ const COLOR_ONDA: Record<Palo, number> = {
 export class SincroCartas3D {
   readonly raiz = new THREE.Group();
   private readonly cartas = new Map<string, Naipe3D>();
+  private readonly libres: Naipe3D[] = [];
   private readonly geoCarta = new THREE.BoxGeometry(1, 1, 0.045);
   private readonly geoSombra = new THREE.PlaneGeometry(1, 1);
   private readonly geoMoneda = new THREE.CylinderGeometry(0.16, 0.16, 0.05, 8);
@@ -107,16 +108,19 @@ export class SincroCartas3D {
       new THREE.MeshStandardMaterial({ color: 0x261830, roughness: 0.7 }),
     ];
     this.enemigoTotem = new THREE.Mesh(this.geoCarta, this.enemigoMats);
-    this.enemigoTotem.castShadow = true;
+    this.enemigoTotem.castShadow = false;
     this.enemigoTotem.visible = false;
     this.raiz.add(this.enemigoTotem);
-    // Pre-compila shader de sprites transparentes, moneda, astilla y onda reutilizable antes del primer golpe
-    const warmupSprite = new THREE.Mesh(
-      this.geoEstallido,
-      new THREE.MeshBasicMaterial({ map: texturaPalo('D'), transparent: true, opacity: 0.01, side: THREE.DoubleSide, depthWrite: false }),
-    );
+    // Pre-compila shader de sprites transparentes, mitades, moneda, astilla y onda reutilizable antes del primer golpe
+    const warmupSprite = new THREE.Mesh(this.geoEstallido, this.matPalo.S);
     warmupSprite.scale.setScalar(0.001);
     warmupSprite.position.set(0, -10, 0);
+    const warmupMitad0 = new THREE.Mesh(this.geoSombra, this.matMitad[0]);
+    warmupMitad0.scale.setScalar(0.001);
+    warmupMitad0.position.set(0, -10, 0);
+    const warmupMitad1 = new THREE.Mesh(this.geoSombra, this.matMitad[1]);
+    warmupMitad1.scale.setScalar(0.001);
+    warmupMitad1.position.set(0, -10, 0);
     const warmupMoneda = new THREE.Mesh(this.geoMoneda, this.matOro);
     warmupMoneda.scale.setScalar(0.001);
     warmupMoneda.position.set(0, -10, 0);
@@ -126,7 +130,8 @@ export class SincroCartas3D {
     this.ondaMesh = new THREE.Mesh(this.geoOnda, this.matOnda);
     this.ondaMesh.scale.setScalar(0.001);
     this.ondaMesh.position.set(0, -10, 0);
-    this.raiz.add(warmupSprite, warmupMoneda, warmupAstilla, this.ondaMesh);
+    this.raiz.add(warmupSprite, warmupMitad0, warmupMitad1, warmupMoneda, warmupAstilla, this.ondaMesh);
+    for (let i = 0; i < 8; i++) this.libres.push(this.crearSlot());
     escena.add(this.raiz);
   }
 
@@ -140,7 +145,7 @@ export class SincroCartas3D {
     this.ondaVida = duracion;
   }
 
-  private crearCarta(id: string): Naipe3D {
+  private crearSlot(): Naipe3D {
     const matBorde = new THREE.MeshStandardMaterial({ color: 0xe6d7bc, roughness: 0.68 });
     const texDorso = texturaDorso(this.mazoDorso);
     const matFrente = new THREE.MeshStandardMaterial({
@@ -155,12 +160,12 @@ export class SincroCartas3D {
     const matDorso = new THREE.MeshStandardMaterial({ map: texDorso, roughness: 0.64 });
     const mats = [matBorde, matBorde, matBorde, matBorde, matFrente, matDorso];
     const malla = new THREE.Mesh(this.geoCarta, mats);
-    malla.castShadow = true;
+    malla.castShadow = false;
+    malla.visible = false;
     const sombra = new THREE.Mesh(this.geoSombra, this.matSombra);
+    sombra.visible = false;
     this.raiz.add(sombra, malla);
-    const entry: Naipe3D = { malla, sombra, claveTex: '', claveDorso: this.mazoDorso, mats, visto: true, ultCx: 0, ultCy: 0, eraElegida: false, slam: 0 };
-    this.cartas.set(id, entry);
-    return entry;
+    return { malla, sombra, claveTex: '', claveDorso: this.mazoDorso, mats, visto: false, ultCx: 0, ultCy: 0, eraElegida: false, slam: 0 };
   }
 
   private proyectarRect(
@@ -275,6 +280,18 @@ export class SincroCartas3D {
     const esMesa = !!document.querySelector('.mesa');
     if (esMesa) {
       const nodos = document.querySelectorAll<HTMLButtonElement>('.mesa .mano .carta');
+      const idsVivos = new Set<string>();
+      nodos.forEach((el) => {
+        if (el.dataset.id) idsVivos.add(el.dataset.id);
+      });
+      for (const [oldId, c] of this.cartas.entries()) {
+        if (!idsVivos.has(oldId)) {
+          c.malla.visible = false;
+          c.sombra.visible = false;
+          this.cartas.delete(oldId);
+          this.libres.push(c);
+        }
+      }
       nodos.forEach((el) => {
         const id = el.dataset.id;
         if (!id) return;
@@ -290,7 +307,17 @@ export class SincroCartas3D {
         const hVis = Math.max(8, r.height - recorteB);
         const fracH = Math.max(0.08, Math.min(1, hVis / r.height));
 
-        const entry = this.cartas.get(id) ?? this.crearCarta(id);
+        let entry = this.cartas.get(id);
+        if (!entry) {
+          entry = this.libres.pop() ?? this.crearSlot();
+          entry.claveTex = '';
+          entry.ultCx = 0;
+          entry.ultCy = 0;
+          entry.eraElegida = false;
+          entry.ultPosta = undefined;
+          entry.slam = 0;
+          this.cartas.set(id, entry);
+        }
         entry.visto = true;
         activas++;
 
@@ -428,7 +455,6 @@ export class SincroCartas3D {
             }
             this.enemigoMats[4].map = tex;
             this.enemigoMats[4].emissiveMap = tex;
-            this.enemigoMats[4].needsUpdate = true;
           }
 
           const herido = eEl.classList.contains('herido');
@@ -463,8 +489,8 @@ export class SincroCartas3D {
         c.malla.visible = false;
         c.sombra.visible = false;
         if (!esMesa) {
-          this.raiz.remove(c.malla, c.sombra);
           this.cartas.delete(id);
+          this.libres.push(c);
         }
       }
     }

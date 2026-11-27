@@ -3,6 +3,13 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 1.13.0 · Reyes Jefe Monumentales, Halo sin Oclusión, Héroes Iluminados y Bufón Refinado (2026-11-27)
+
+- **Reyes Jefe 3D (`reyes3d.ts`):** Mayor escala y altura (`0.94` sobre `0.52`) para lucir imponentes sobre la barra de Vida, orbes de Segunda Cara reubicados en halo trasero sin tapar el rostro, iluminación dramática reforzada y geometrías esculpidas (`ConeGeometry`, `CylinderGeometry`, `OctahedronGeometry`) en los poderes especiales.
+- **Héroes 3D en Intro (`heroes3d.ts`):** Escala protagonista (`1.15` escritorio / `1.02` móvil), disco de sombra en mesa, piel más cálida, ojos expresivos con cejas y luz frontal/contraluz reforzada.
+- **Bufón 3D (`bufon3d.ts`):** Solapas arlequín curvas con cascabeles en la gola, anillos torneados en el cetro y luz frontal base más nítida (`2.05`).
+- **Pool de cartas 3D (`cartas3d.ts`):** Pre-compila y recicla 8 slots de naipes 3D entre manos y combates sin crear ni recompilar materiales PBR en caliente.
+
 ## 1.12.0 · Duelo con el Bufón Deductivo y Pulido Visual (2026-11-27)
 
 - **El Mentiroso deductivo y Escoba/Bendición en `dueloBufon.ts`:** Reparto desde una sola baraja sin duplicados con sesgo deductivo en *El Mentiroso*, destello dorado en los `7` en mano + chip `7 × N/4`, deselección limpia de carta en *Escoba*, color vivo en la suma `15` (verde al cerrar, rojo al pasarse), estallido 3D al ganar e íconos pixel-art en las tres tarjetas de *La Bendición del Bufón*.

@@ -109,6 +109,9 @@ export class Reyes3D {
   private readonly vfxGrupo = new THREE.Group();
   private readonly vfx: ParticulaVfx[] = [];
   private readonly geoOnda = new THREE.RingGeometry(0.16, 0.28, 24);
+  private readonly geoMoneda = new THREE.CylinderGeometry(0.1, 0.1, 0.035, 8);
+  private readonly geoGota = new THREE.OctahedronGeometry(0.085, 0);
+  private readonly geoEstaca = new THREE.ConeGeometry(0.08, 0.46, 6);
   private paloActivo: Palo | null = null;
   private entrada = 0;
   private castTimer = 0;
@@ -477,16 +480,15 @@ export class Reyes3D {
       for (let i = 0; i < 6; i++) {
         const a = (i / 6) * Math.PI * 2;
         const mat = new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 0.55, roughness: 0.4 });
-        const estaca = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.45, 0.11), mat);
+        const estaca = new THREE.Mesh(this.geoEstaca, mat);
         estaca.position.copy(origen).add(new THREE.Vector3(Math.cos(a) * 0.55, -0.35, Math.sin(a) * 0.35 + 0.3));
         this.vfxGrupo.add(estaca);
         this.vfx.push({ malla: estaca, vel: new THREE.Vector3(Math.cos(a) * 0.4, 1.8, Math.sin(a) * 0.4), rotVel: new THREE.Vector3(0, 3, 0), vida: 0.65, maxVida: 0.65 });
       }
     } else if (palo === 'D') {
-      const geo = new THREE.BoxGeometry(0.16, 0.16, 0.05);
       const matOro = new THREE.MeshStandardMaterial({ color: ORO, metalness: 0.72, roughness: 0.28, emissive: 0x3b2600 });
       for (let i = 0; i < 12; i++) {
-        const moneda = new THREE.Mesh(geo, matOro);
+        const moneda = new THREE.Mesh(this.geoMoneda, matOro);
         moneda.position.copy(origen).add(new THREE.Vector3((Math.random() - 0.5) * 1.1, 0.2, 0.3));
         this.vfxGrupo.add(moneda);
         this.vfx.push({
@@ -506,7 +508,7 @@ export class Reyes3D {
       this.vfx.push({ malla: anillo, vel: new THREE.Vector3(0, -0.4, 1.8), rotVel: new THREE.Vector3(0, 0, 2.5), vida: 0.65, maxVida: 0.65, esOnda: true });
       for (let i = 0; i < 8; i++) {
         const a = (i / 8) * Math.PI * 2;
-        const orbe = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.92 }));
+        const orbe = new THREE.Mesh(this.geoGota, new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.92 }));
         orbe.position.copy(origen).add(new THREE.Vector3(Math.cos(a) * 0.25, 0.05, 0.35));
         this.vfxGrupo.add(orbe);
         this.vfx.push({ malla: orbe, vel: new THREE.Vector3(Math.cos(a) * 1.8, -0.8 + Math.random(), 2.2), rotVel: new THREE.Vector3(4, 4, 4), vida: 0.7, maxVida: 0.7 });
@@ -591,14 +593,14 @@ export class Reyes3D {
     const pulsoMeta = !quieto && arm && (arm.paso === 0 || arm.paso === 6 || arm.paso === 12) ? 1 : 0;
     this.pulsoSuave += (pulsoMeta - this.pulsoSuave) * (1 - Math.exp(-10 * dt));
 
-    const worldH = this.proyectar(cam, r.left + r.width / 2, r.top + r.height * 0.64, r.height, 5.55, this.raiz.position);
-    this.raiz.scale.setScalar(worldH * 0.81);
+    const worldH = this.proyectar(cam, r.left + r.width / 2, r.top + r.height * 0.52, r.height, 5.55, this.raiz.position);
+    this.raiz.scale.setScalar(worldH * 0.94);
     this.raiz.quaternion.copy(cam.quaternion);
     this.raiz.visible = true;
 
     this.luzRey.color.setHex(COLOR_REY[palo]);
-    this.luzRey.intensity = (segunda ? 2.35 : 1.6) + (this.castTimer > 0 ? 1.15 : 0) + this.pulsoSuave * 0.4;
-    this.luzFrente.intensity = this.golpeTimer > 0 ? 3.0 : 1.85;
+    this.luzRey.intensity = (segunda ? 2.85 : 2.05) + (this.castTimer > 0 ? 1.25 : 0) + this.pulsoSuave * 0.45;
+    this.luzFrente.intensity = this.golpeTimer > 0 ? 3.25 : 2.35;
 
     for (const k of ['S', 'C', 'D', 'H'] as const) {
       const fig = this.figuras[k];
@@ -612,7 +614,7 @@ export class Reyes3D {
       const zSale = (quieto ? 0.15 : 0.15 * this.entrada) + emb - hitPhase * 0.25;
       const temblor = grieta && !quieto ? Math.sin(reloj * 38) * 0.04 : 0;
 
-      fig.cuerpo.position.set(temblor, bob - 0.15 + this.pulsoSuave * 0.018, zSale);
+      fig.cuerpo.position.set(temblor, bob - 0.02 + this.pulsoSuave * 0.018, zSale);
       fig.cuerpo.rotation.set(
         emb * 0.35 - hitPhase * 0.32 + (segunda ? 0.08 : 0),
         quieto ? -0.08 : Math.sin(reloj * 1.15) * 0.15 - 0.06,
@@ -633,9 +635,9 @@ export class Reyes3D {
       fig.orbesSegunda.forEach((orb, idx) => {
         orb.visible = segunda;
         if (segunda) {
-          const ang = (idx / 4) * Math.PI * 2 + (quieto ? 0 : reloj * 2.2);
-          orb.position.set(Math.cos(ang) * 0.54, 0.24 + Math.sin(ang * 2) * 0.12, Math.sin(ang) * 0.32);
-          orb.rotation.y = ang;
+          const ang = (idx / 4) * Math.PI * 2 + Math.PI * 0.25 + (quieto ? 0 : reloj * 1.9);
+          orb.position.set(Math.cos(ang) * 0.62, 0.22 + Math.sin(ang) * 0.28, -0.16 + Math.sin(ang * 2) * 0.06);
+          orb.rotation.set(ang * 0.7, ang, ang * 0.5);
         }
       });
     }
