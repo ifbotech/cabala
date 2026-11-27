@@ -202,10 +202,11 @@ export function texturaNaipeMitad(palo: Palo, n: number, lado: 'izq' | 'der', se
   const [c, ctx] = crearCanvas(src.width, src.height);
   ctx.drawImage(src, 0, 0);
   const mitadW = Math.floor(src.width / 2);
-  for (let y = 0; y < src.height; y++) {
+  for (let y = 0; y < src.height; y += 4) {
     const cx = mitadW + ((semilla + y * 5) % 5) - 2;
-    if (lado === 'izq') ctx.clearRect(cx, y, src.width - cx, 1);
-    else ctx.clearRect(0, y, cx, 1);
+    const h = Math.min(4, src.height - y);
+    if (lado === 'izq') ctx.clearRect(cx, y, src.width - cx, h);
+    else ctx.clearRect(0, y, cx, h);
   }
   const tex = aTexturaPixel(c);
   cache.set(k, tex);

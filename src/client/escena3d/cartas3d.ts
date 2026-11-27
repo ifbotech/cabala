@@ -52,6 +52,7 @@ export class SincroCartas3D {
   private readonly matOro = new THREE.MeshStandardMaterial({ map: texturaOroMoneda(), color: 0xffd23f, metalness: 0.65, roughness: 0.34 });
   private readonly matPalo: Record<Palo, THREE.MeshBasicMaterial>;
   private readonly matAstilla: Record<Palo, THREE.MeshBasicMaterial>;
+  private readonly matMitad: [THREE.MeshBasicMaterial, THREE.MeshBasicMaterial];
   private readonly matOnda = new THREE.MeshBasicMaterial({
     color: 0xffd500,
     transparent: true,
@@ -92,12 +93,17 @@ export class SincroCartas3D {
       D: new THREE.MeshBasicMaterial({ color: 0xffd500, transparent: true, opacity: 1 }),
       H: new THREE.MeshBasicMaterial({ color: 0xff1e5c, transparent: true, opacity: 1 }),
     };
+    this.matMitad = [
+      new THREE.MeshBasicMaterial({ map: texturaPalo('D'), transparent: true, opacity: 1, side: THREE.DoubleSide, depthWrite: false }),
+      new THREE.MeshBasicMaterial({ map: texturaPalo('D'), transparent: true, opacity: 1, side: THREE.DoubleSide, depthWrite: false }),
+    ];
+    const texInicial = texturaDorso(this.mazoDorso);
     this.enemigoMats = [
       new THREE.MeshStandardMaterial({ color: 0xe6d7bc, roughness: 0.65 }),
       new THREE.MeshStandardMaterial({ color: 0xe6d7bc, roughness: 0.65 }),
       new THREE.MeshStandardMaterial({ color: 0xe6d7bc, roughness: 0.65 }),
       new THREE.MeshStandardMaterial({ color: 0xe6d7bc, roughness: 0.65 }),
-      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.56, emissive: 0xffffff, emissiveIntensity: 0.34 }),
+      new THREE.MeshStandardMaterial({ map: texInicial, emissiveMap: texInicial, color: 0xffffff, roughness: 0.56, emissive: 0xffffff, emissiveIntensity: 0.34 }),
       new THREE.MeshStandardMaterial({ color: 0x261830, roughness: 0.7 }),
     ];
     this.enemigoTotem = new THREE.Mesh(this.geoCarta, this.enemigoMats);
@@ -136,14 +142,17 @@ export class SincroCartas3D {
 
   private crearCarta(id: string): Naipe3D {
     const matBorde = new THREE.MeshStandardMaterial({ color: 0xe6d7bc, roughness: 0.68 });
+    const texDorso = texturaDorso(this.mazoDorso);
     const matFrente = new THREE.MeshStandardMaterial({
+      map: texDorso,
+      emissiveMap: texDorso,
       color: 0xffffff,
       roughness: 0.54,
       metalness: 0.04,
       emissive: 0xffffff,
       emissiveIntensity: 0.36,
     });
-    const matDorso = new THREE.MeshStandardMaterial({ map: texturaDorso(this.mazoDorso), roughness: 0.64 });
+    const matDorso = new THREE.MeshStandardMaterial({ map: texDorso, roughness: 0.64 });
     const mats = [matBorde, matBorde, matBorde, matBorde, matFrente, matDorso];
     const malla = new THREE.Mesh(this.geoCarta, mats);
     malla.castShadow = true;
@@ -216,13 +225,9 @@ export class SincroCartas3D {
       for (const lado of ['izq', 'der'] as const) {
         const sign = lado === 'izq' ? -1 : 1;
         const tex = texturaNaipeMitad(palo, rango, lado, segunda);
-        const mat = new THREE.MeshBasicMaterial({
-          map: tex,
-          transparent: true,
-          opacity: 1,
-          side: THREE.DoubleSide,
-          depthWrite: false,
-        });
+        const mat = this.matMitad[lado === 'izq' ? 0 : 1];
+        mat.map = tex;
+        mat.opacity = 1;
         const m = new THREE.Mesh(this.geoSombra, mat);
         m.scale.set(tam.worldW, tam.worldH, 1);
         m.position.copy(this.vHit);
@@ -233,7 +238,7 @@ export class SincroCartas3D {
           vel: new THREE.Vector3(sign * (1.8 + Math.random() * 0.8), 1.6 + Math.random() * 0.8, 1.1),
           rotVel: new THREE.Vector3(0.4, sign * 1.4, -sign * 2.2),
           vida: 0.95,
-          disposeMat: true,
+          disposeMat: false,
         });
       }
     }
@@ -248,6 +253,8 @@ export class SincroCartas3D {
         vel: new THREE.Vector3((Math.random() - 0.5) * 3.4, 2.2 + Math.random() * 2.0, 2.4 + Math.random() * 1.6),
         rotVel: new THREE.Vector3(8 + Math.random() * 6, 4 + Math.random() * 5, 6),
         vida: 1.05,
+        escalaVida: true,
+        disposeMat: false,
       });
     }
   }
@@ -309,12 +316,10 @@ export class SincroCartas3D {
           }
           entry.mats[4].map = tex;
           entry.mats[4].emissiveMap = tex;
-          entry.mats[4].needsUpdate = true;
         }
         if (entry.claveDorso !== this.mazoDorso) {
           entry.claveDorso = this.mazoDorso;
           entry.mats[5].map = texturaDorso(this.mazoDorso);
-          entry.mats[5].needsUpdate = true;
         }
 
         // Tinte y brillo según estado de la carta

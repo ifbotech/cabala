@@ -3,6 +3,13 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 1.12.0 · Duelo con el Bufón Deductivo y Pulido Visual (2026-11-27)
+
+- **El Mentiroso deductivo y Escoba/Bendición en `dueloBufon.ts`:** Reparto desde una sola baraja sin duplicados con sesgo deductivo en *El Mentiroso*, destello dorado en los `7` en mano + chip `7 × N/4`, deselección limpia de carta en *Escoba*, color vivo en la suma `15` (verde al cerrar, rojo al pasarse), estallido 3D al ganar e íconos pixel-art en las tres tarjetas de *La Bendición del Bufón*.
+- **Tooltip `DEVOLVER` en Altar móvil (`ui.ts`):** Protege `.al-texto` en `TAPA_NUNCA` y habilita desplazamiento vertical de respaldo para no cubrir `VIDA INICIAL` / nivel en `390×844`.
+- **Zona de descarte portátil (`mesa.css`):** Agrega relleno interior en `701px–1699px` para que `AL DESCARTE` respire sobre el borde inferior punteado.
+- **Cuadros suaves en combate `1080p` (`cartas3d.ts`, `texturas.ts`):** Pre-asigna `map`/`emissiveMap` y reutiliza materiales pre-compilados al partir enemigos y repartir cartas, eliminando recompilaciones GLSL en caliente.
+
 ## 1.11.0 · Impacto 3D Visceral, Tensión en la Pulpería y Descarte 1080p (2026-11-27)
 
 - **Impacto y anticipación 3D (`cartas3d.ts`, `pulperia.ts`, `index.ts`):** Estallido octaédrico y onda expansiva de palo al golpear/abatir Reyes Jefe (20 cristales + 14 monedas 3D), pulso cálido de la vela y partículas al armar jugada letal/Exacto/Canto, retroceso físico del farol al impacto y borde dorado al enfocar cartas.

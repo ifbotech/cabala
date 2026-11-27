@@ -5,12 +5,12 @@ import type { Partida } from '../../rules/estado';
 import { MAZO } from '../../rules/mazos';
 import { t, tx } from '../almacen';
 import { sonar } from '../audio';
-import { fogonazo3d, sacudirCamara3d } from '../escena3d';
+import { estallidoPalo3d, fogonazo3d, sacudirCamara3d } from '../escena3d';
 import { avivarRetrato, hudHtml } from '../hud';
 import { guardar, irCaminoSol, pintarFase } from '../juego';
 import { stinger } from '../musica';
 import { pausa, quieto } from '../ritmo';
-import { pxDorso, pxNaipe } from '../sprites';
+import { pxDorso, pxHud, pxNaipe, pxNodo } from '../sprites';
 import { anfitrion, esc, irASalida, repintar, $, type Pantalla } from '../ui';
 
 interface NaipeDuelo {
@@ -169,16 +169,27 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
   } else if (p.mazoId === 'mentiroso') {
     mentiraReal = next() < 0.5;
     if (mentiraReal) {
-      const s7 = pila.findIndex((c) => c.palo === 'S' && c.n === 7);
-      const d7 = pila.findIndex((c) => c.palo === 'D' && c.n === 7);
-      const a = s7 >= 0 ? pila.splice(s7, 1)[0] : { palo: 'S' as Palo, n: 7 };
-      const idx2 = pila.findIndex((c) => c.palo === 'D' && c.n === 7);
-      const b = idx2 >= 0 ? pila.splice(idx2, 1)[0] : d7 >= 0 ? { palo: 'D' as Palo, n: 7 } : { palo: 'D' as Palo, n: 7 };
-      manoBufon = [a, b];
+      const sietes: NaipeDuelo[] = [];
+      for (let k = 0; k < 2; k++) {
+        const idx = pila.findIndex((c) => c.n === 7);
+        if (idx >= 0) sietes.push(pila.splice(idx, 1)[0]);
+      }
+      manoBufon = sietes;
+      manoJugador = robar(4);
     } else {
-      manoBufon = robar(2).map((c, idx) => (c.n === 7 ? { palo: c.palo, n: idx === 0 ? 3 : 5 } : c));
+      const noSietes: NaipeDuelo[] = [];
+      for (let k = 0; k < 2; k++) {
+        const idx = pila.findIndex((c) => c.n !== 7);
+        if (idx >= 0) noSietes.push(pila.splice(idx, 1)[0]);
+      }
+      manoBufon = noSietes;
+      manoJugador = robar(4);
+      if (manoJugador.filter((c) => c.n === 7).length < 2 && next() < 0.65) {
+        const idx7 = pila.findIndex((c) => c.n === 7);
+        const idxNo7 = manoJugador.findIndex((c) => c.n !== 7);
+        if (idx7 >= 0 && idxNo7 >= 0) manoJugador[idxNo7] = pila.splice(idx7, 1)[0];
+      }
     }
-    manoJugador = robar(4);
     mentiraDice = t('dueloMentiraDice');
   } else {
     manoJugador = robar(4);
@@ -213,6 +224,7 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
     estado = gano ? 'gano' : 'perdio';
     if (gano) {
       stinger(p.mazoId);
+      estallidoPalo3d('D', 1.3);
       fogonazo3d(1.6);
       sacudirCamara3d(0.7);
     } else {
@@ -231,12 +243,13 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
         lista
           .map((c, i) => {
             const sel = (grupo === 'j' && selJugador.has(i)) || (grupo === 'm' && selMesa.has(i));
+            const pista7 = grupo === 'j' && p.mazoId === 'mentiroso' && c.n === 7 ? 'duelo-pista-7' : '';
             const mostrar = !ocultas || (grupo === 'b' && p.mazoId === 'truco' && i === 0);
             const img = mostrar ? pxNaipe(c) : pxDorso(p.mazoId);
             if (grupo === 'b' || estado !== 'jugando' || (grupo === 'j' && p.mazoId === 'mentiroso')) {
-              return `<span class="duelo-naipe ${sel ? 'elegida' : ''}">${img}</span>`;
+              return `<span class="duelo-naipe ${sel ? 'elegida' : ''} ${pista7}">${img}</span>`;
             }
-            return `<button class="duelo-naipe ${sel ? 'elegida' : ''}" data-accion="sel-${grupo}" data-i="${i}" data-foco="duelo-${grupo}-${i}" ${grupo === 'j' && i === 0 ? 'data-inicio' : ''}>${img}</button>`;
+            return `<button class="duelo-naipe ${sel ? 'elegida' : ''} ${pista7}" data-accion="sel-${grupo}" data-i="${i}" data-foco="duelo-${grupo}-${i}" ${grupo === 'j' && i === 0 ? 'data-inicio' : ''}>${img}</button>`;
           })
           .join('');
 
@@ -253,7 +266,8 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
           const mSum = Array.from(selMesa).reduce((s, i) => s + (mesaCartas[i]?.n ?? 0), 0);
           const total15 = jSum + mSum;
           const listo = selJugador.size === 1 && selMesa.size >= 1 && total15 === 15;
-          accionesJuego = `<p class="duelo-tip">${t('dueloEscobaSuma', { s: total15 })}</p>
+          const clsEscoba = listo ? 'ok' : total15 > 15 ? 'pasado' : '';
+          accionesJuego = `<p class="duelo-tip ${clsEscoba}">${t('dueloEscobaSuma', { s: total15 })}</p>
             <button class="btn marco oro" data-accion="jug-escoba" data-foco="jug-escoba" ${listo ? '' : 'disabled'}>${t('dueloEscoba')}</button>`;
         } else if (p.mazoId === 'chinchon') {
           const descIdx = selJugador.size ? Array.from(selJugador)[0] : 0;
@@ -262,7 +276,8 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
           accionesJuego = `<p class="duelo-tip">${t('dueloChinchonTip')}</p>
             <button class="btn marco oro" data-accion="jug-cortar" data-foco="jug-cortar">${t('dueloCortar', { n: pts })}</button>`;
         } else if (p.mazoId === 'mentiroso') {
-          accionesJuego = `<p class="duelo-tip">${t('dueloMentirosoTip')}</p>
+          const sietes = manoJugador.filter((c) => c.n === 7).length;
+          accionesJuego = `<p class="duelo-tip">${t('dueloMentirosoTip')} <span class="duelo-pista-chip">7 × ${sietes}/4</span></p>
             <button class="btn marco oro" data-accion="jug-mentira" data-foco="jug-mentira" data-inicio>${t('dueloMentira')}</button>
             <button class="btn marco" data-accion="jug-creer" data-foco="jug-creer">${t('dueloCreer')}</button>`;
         } else {
@@ -284,26 +299,29 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
           </div>
           <div class="duelo-acciones">${accionesJuego}<button class="btn marco chico" data-accion="pasar-rey" data-foco="pasar-rey">${t('dueloRendirse')}</button></div>`;
       } else if (estado === 'gano') {
-        const chipsHtml = (s: string) => s.split('|').map((x) => `<span>${esc(x)}</span>`).join('');
+        const chipsHtml = (s: string, cls: string) => s.split('|').map((x) => `<span class="${cls}">${esc(x)}</span>`).join('');
         cuerpoHtml = `
           <div class="duelo-bendicion">
             <h2 class="titulo dorado">${t('dueloBendicionTitulo')}</h2>
             <p class="sub">${t('dueloBendicionSub')}</p>
             <div class="opciones">
               <button class="opcion marco dorado bendicion-bufon-op" data-accion="bendicion" data-id="mano" data-foco="bend-mano" data-inicio>
+                <span class="bend-icono">${pxHud('oro')}</span>
                 <b class="op-nombre">${t('dueloBendManoNom')}</b>
                 <span class="op-desc">${t('dueloBendManoDesc')}</span>
-                <span class="op-chips"><span>● +10</span><span>♥ +10</span><span>⚔ +4</span></span>
+                <span class="op-chips"><span class="oc-oro">● +10</span><span class="oc-vida">♥ +10</span><span class="oc-dano">⚔ +4</span></span>
               </button>
               <button class="opcion marco prisma bendicion-bufon-op" data-accion="bendicion" data-id="bolso" data-foco="bend-bolso">
+                <span class="bend-icono">${pxHud('vida')}</span>
                 <b class="op-nombre">${t('dueloBendBolsoNom')}</b>
                 <span class="op-desc">${t('dueloBendBolsoDesc')}</span>
-                <span class="op-chips">${chipsHtml(t('dueloBendBolsoChips'))}</span>
+                <span class="op-chips">${chipsHtml(t('dueloBendBolsoChips'), 'oc-vida')}</span>
               </button>
               <button class="opcion marco paloD bendicion-bufon-op" data-accion="bendicion" data-id="cabala" data-foco="bend-cabala">
+                <span class="bend-icono">${pxNodo('cabala')}</span>
                 <b class="op-nombre">${t('dueloBendCabalaNom')}</b>
                 <span class="op-desc">${t('dueloBendCabalaDesc')}</span>
-                <span class="op-chips">${chipsHtml(t('dueloBendCabalaChips'))}</span>
+                <span class="op-chips">${chipsHtml(t('dueloBendCabalaChips'), 'oc-util')}</span>
               </button>
             </div>
           </div>`;
@@ -343,9 +361,17 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
           repintar();
           return;
         }
-        if (p.mazoId === 'chinchon' || p.mazoId === 'escoba') selJugador.clear();
-        if (selJugador.has(i)) selJugador.delete(i);
-        else selJugador.add(i);
+        const ya = selJugador.has(i);
+        if (p.mazoId === 'escoba') {
+          selJugador.clear();
+          if (!ya) selJugador.add(i);
+        } else if (p.mazoId === 'chinchon') {
+          selJugador.clear();
+          selJugador.add(i);
+        } else {
+          if (ya) selJugador.delete(i);
+          else selJugador.add(i);
+        }
         repintar();
       },
       'sel-m': (el) => {

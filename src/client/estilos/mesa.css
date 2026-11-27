@@ -8031,3 +8031,11 @@ html.modo-3d .pulperia .pul-bufon::after {
     height: calc(50px * var(--k));
   }
 }
+
+/* ───────────── 1.12.0 · aire en zona de descarte portátil ───────────── */
+@media (min-width: 701px) and (max-width: 1699px) {
+  .mesa .descarte-zona {
+    padding: 10px 8px;
+    gap: 6px;
+  }
+}

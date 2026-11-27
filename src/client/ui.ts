@@ -248,7 +248,7 @@ function mostrarTip(el: HTMLElement): void {
 export const TAPA_NUNCA = 'button, .titulo, .hud [data-n], .mesa [data-ataque], .mesa .e-barras, .mesa [data-carta], .mesa [data-cuenta] .cuenta:not(.reposo), .mesa .e-sellos > *, .esc-bufon .bocadillo, .mesa .e-dice, ' +
   // (0.28) con mando la ayuda está siempre abierta: tampoco pisa el desglose de la cuenta, el naipe de La Corte, el
   // renglón de botones, el rótulo de la bandeja de Chiches, los naipes de la mano ni al Bufón con su globo
-  '.mesa .chiches .ch-rot, .mesa [data-cuenta] .c-bajo, .mesa [data-cuenta] .cuenta.reposo .pista, .mesa .corte, .mesa .corte > *, .mesa .esc-tit, .mesa .pano-regla, .mesa [data-mano] .carta, .anfitrion .bufon, .anfitrion .bocadillo, .esc-bufon .bufon';
+  '.mesa .chiches .ch-rot, .mesa [data-cuenta] .c-bajo, .mesa [data-cuenta] .cuenta.reposo .pista, .mesa .corte, .mesa .corte > *, .mesa .esc-tit, .mesa .pano-regla, .mesa [data-mano] .carta, .anfitrion .bufon, .anfitrion .bocadillo, .esc-bufon .bufon, .al-texto';
 function obstaculos(ancla: HTMLElement): DOMRect[] {
   // (y la pieza misma: la ayuda no tapa lo que se está mirando)
   const out: DOMRect[] = [ancla.getBoundingClientRect()];
@@ -274,7 +274,7 @@ function ubicarTip(el: HTMLElement): void {
   // un nodo del Mapa: la ayuda va al costado del lienzo, a la altura del nodo (nunca encima de él ni de sus vecinos)
   if (carrilDelMapa(el, r)) return;
   tipEl.classList.remove('tip-carril');
-  tipEl.style.maxWidth = '';
+  tipEl.style.maxWidth = innerWidth <= 700 && el.matches('.al-devolver') ? `${Math.min(232, Math.floor(innerWidth * 0.6))}px` : '';
   if (ayudaDeNaipe(el, r)) return;
   ubicarTipLibre(el, r, false);
 }
@@ -303,6 +303,12 @@ function ubicarTipLibre(el: HTMLElement, r: DOMRect, ancha: boolean, angosta = 0
       if (arriba >= 4) lugares.push([x, arriba]);
       if (abajo + h <= innerHeight - 4) lugares.push([x, abajo]);
     }
+  for (let k = 1; k <= 8; k++) {
+    const y = arriba - k * 28;
+    if (y >= 4) {
+      lugares.push([ox(cx), y], [innerWidth - w - 4, y], [4, y]);
+    }
+  }
   // (sin lugar arriba ni abajo, como antes: arriba si entra, si no, abajo)
   if (!lugares.length) lugares.push([ox(cx), arriba >= 4 ? arriba : oy(abajo)]);
   const obs = obstaculos(el);
