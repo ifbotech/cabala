@@ -3,6 +3,11 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 1.7.0 · Pulido Píxel a Píxel: Elegir Mazo EN, 768p/800p y Mando (2026-11-27)
+
+- **Elegir Mazo EN y portátil/Deck (`pantallas.css`):** Amplía el ancho máximo del bocadillo del Bufón (`56vw`) para evitar recortes en inglés y sube `.mazo-detalle` a `124px` con relleno vertical para que el título del Mazo respire dentro del borde en `1366×768` y `1280×800`.
+- **Glifo `A` en `elegir-mazo` (`pantallas.css`):** Agrega relleno inferior (`18px`) en `.mazo-op` con mando para despejar el subtítulo del Mazo.
+
 ## 1.6.0 · Pulido Píxel a Píxel: Mutación sobre Temple, HUD 360px y Pulpería 768p (2026-11-27)
 
 - **Naipes templados + mutados (`mesa.css`):** Eleva `.c-mutacion` a `24px` cuando hay `.c-temple` para que el sello de mutación no quede tapado por `+16 ★ ×2`.

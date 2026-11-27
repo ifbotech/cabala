@@ -5547,13 +5547,16 @@ main.fogon.forjando [data-accion='seguir'] {
   }
   .elegir .mini-anfitrion .bocadillo {
     height: 96px;
+    max-width: min(36em, 56vw);
     display: flex;
     align-items: center;
     overflow: hidden;
   }
   .elegir .mazo-detalle {
-    height: 108px;
-    min-height: 108px;
+    height: 124px;
+    min-height: 124px;
+    padding-top: 6px;
+    padding-bottom: 6px;
     align-items: center;
     justify-content: center;
   }
@@ -6547,5 +6550,12 @@ html[data-entrada='mando'] .forja-mut {
   .pulperia .venta:not(.hierro):has(.sinergia-caja.evoluciona) .sinergia-caja.evoluciona {
     padding: 4px 6px;
     gap: 1px;
+  }
+}
+
+/* ───────────── 1.7.0 · Elegir Mazo mando ───────────── */
+@media (min-width: 701px) {
+  html[data-entrada='mando'] .elegir .mazo-op {
+    padding-bottom: 18px;
   }
 }
