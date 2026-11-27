@@ -59,27 +59,25 @@ export class Heroes3D {
 
   private baseCuerpo(ropa: number, ropaOsc: number, pantalon: number, ancho = 7.4, cinturon = true): VoxelGrid {
     const g = new VoxelGrid();
-    g.mirrorX(2, -19, -2, 5, -15, 3, BOTA);
-    g.ellipsoid(-3.5, -17.5, 1.5, 2.2, 1.6, 2.8, BOTA);
-    g.ellipsoid(3.5, -17.5, 1.5, 2.2, 1.6, 2.8, BOTA);
-    g.taperedCylinder(-3.5, -14, -2, 0, 2.2, 2.2, 2.8, 2.6, pantalon);
-    g.taperedCylinder(3.5, -14, -2, 0, 2.2, 2.2, 2.8, 2.6, pantalon);
-    g.taperedCylinder(0, -2, 14, 0, ancho, 4.0, ancho + 0.8, 4.4, ropa);
+    g.ellipsoid(-3.5, -17.5, 1.2, 2.3, 1.8, 3.0, BOTA);
+    g.ellipsoid(3.5, -17.5, 1.2, 2.3, 1.8, 3.0, BOTA);
+    g.taperedCylinder(-3.5, -15, -2, 0, 2.2, 2.2, 2.8, 2.6, pantalon);
+    g.taperedCylinder(3.5, -15, -2, 0, 2.2, 2.2, 2.8, 2.6, pantalon);
+    g.sculptTorso(-3, 4, 14, ancho + 1.0, 4.4, ancho - 1.4, 3.4, ancho + 0.6, 4.3, ropa);
+    g.ditherRecolor(-Math.ceil(ancho) - 2, -3, -5, Math.ceil(ancho) + 2, 2, 5, ropaOsc, ropa);
     g.ellipsoid(-ancho - 0.6, 12.2, 0, 2.5, 2.4, 2.6, ropa);
     g.ellipsoid(ancho + 0.6, 12.2, 0, 2.5, 2.4, 2.6, ropa);
-    g.ditherBox(-Math.floor(ancho), -2, -4, Math.floor(ancho), 2, 4, ropaOsc, ropa);
     if (cinturon) {
-      g.taperedCylinder(0, 3, 5, 0, ancho + 0.4, 4.4, ancho + 0.4, 4.4, CUERO);
-      g.box(-2, 3, 5, 2, 5, 5, ORO, 'metal');
+      g.taperedCylinder(0, 3, 5, 0, ancho - 0.8, 3.7, ancho - 0.8, 3.7, CUERO);
+      g.ellipsoid(0, 4, 4.0, 1.8, 1.1, 0.8, ORO, 'metal');
     }
     return g;
   }
 
   private baseCabeza(pelo: number): VoxelGrid {
     const g = new VoxelGrid();
-    g.sculptHead(0, 6, 0, 5.2, 6.4, 4.8, PIEL, PIEL_SOMBRA);
-    g.taperedCylinder(0, 4, 13, -1, 5.8, 4.8, 5.0, 4.2, pelo);
-    g.box(-5, 9, -4, 5, 13, 3, pelo);
+    g.sculptDome(0, 6.5, -0.6, 5.8, 6.9, 5.4, pelo);
+    g.sculptHead(0, 6, 0.2, 5.2, 6.4, 4.8, PIEL, PIEL_SOMBRA);
     g.paintFront(
       -3,
       8,
@@ -111,19 +109,19 @@ export class Heroes3D {
 
     const brazoIzq = new THREE.Group();
     const gBI = new VoxelGrid();
-    gBI.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, 0x5e1126);
-    gBI.box(-1, -13, -1, 1, -10, 1, PIEL);
+    gBI.curve3D([[0, 0, 0], [-1.2, -5.5, 1.0], [-0.5, -10.5, 2.5]], 2.2, 1.6, 0x5e1126);
+    gBI.ellipsoid(-0.5, -12, 2.5, 1.4, 1.4, 1.4, PIEL);
     // Escoba larga con paja escalonada oscura
-    gBI.cylinderY(0, -24, 16, 2, 0.8, 0.8, CUERO);
-    gBI.taperedCylinder(0, -33, -23, 2, 4.2, 2.4, 1.8, 1.4, 0xb88224);
-    gBI.ditherBox(-4, -33, 0, 4, -28, 4, 0x9e6a18, 0x6e440c);
+    gBI.cylinderY(0, -24, 16, 2.5, 0.8, 0.8, CUERO);
+    gBI.taperedCylinder(0, -33, -23, 2.5, 4.2, 2.6, 1.8, 1.4, 0xb88224);
+    gBI.ditherRecolor(-5, -34, -1, 5, -27, 6, 0x9e6a18, 0x6e440c);
     brazoIzq.add(construirMallaVoxel(gBI, V, [0, 0, 0]));
     brazoIzq.position.set(-9 * V, 13 * V, 0.5 * V);
 
     const brazoDer = new THREE.Group();
     const gBD = new VoxelGrid();
-    gBD.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, 0x5e1126);
-    gBD.box(-1, -13, -1, 1, -10, 1, PIEL);
+    gBD.curve3D([[0, 0, 0], [1.2, -5.5, 1.0], [0.5, -10.5, 2.5]], 2.2, 1.6, 0x5e1126);
+    gBD.ellipsoid(0.5, -12, 2.5, 1.4, 1.4, 1.4, PIEL);
     brazoDer.add(construirMallaVoxel(gBD, V, [0, 0, 0]));
     brazoDer.position.set(9 * V, 13 * V, 0);
 
@@ -138,8 +136,8 @@ export class Heroes3D {
     const gT = this.baseCuerpo(0x162e66, 0x0e1d42, 0x111829, 7.6);
     // Poncho triangular drapeado en índigo oscuro, borgoña y hueso
     gT.taperedCylinder(0, 4, 14, 0, 9.6, 5.4, 6.2, 4.2, 0x162e66);
-    gT.ditherBox(-8, 7, -4, 8, 9, 4, 0x7a0e28, 0x470620);
-    gT.box(-7, 6, -4, 7, 6, 4, HUESO);
+    gT.ditherRecolor(-10, 7, -6, 10, 9, 6, 0x7a0e28, 0x470620);
+    gT.ditherRecolor(-9, 6, -6, 9, 6, 6, HUESO, HUESO);
     cuerpo.add(construirMallaVoxel(gT, V, [0, 0, 0]));
 
     const cabeza = new THREE.Group();
@@ -154,8 +152,8 @@ export class Heroes3D {
 
     const brazoIzq = new THREE.Group();
     const gBI = new VoxelGrid();
-    gBI.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, 0x162e66);
-    gBI.box(-1, -13, -1, 1, -10, 1, PIEL);
+    gBI.curve3D([[0, 0, 0], [-1.3, -5.5, 1.0], [-0.5, -10.5, 2.5]], 2.2, 1.6, 0x162e66);
+    gBI.ellipsoid(-0.5, -12, 2.5, 1.4, 1.4, 1.4, PIEL);
     // Espada de acero oscuro
     gBI.box(-3, -11, 2, 3, -10, 3, ORO, 'metal');
     gBI.box(-1, -9, 2, 1, 16, 3, 0x73b3db, 'metal');
@@ -165,8 +163,8 @@ export class Heroes3D {
 
     const brazoDer = new THREE.Group();
     const gBD = new VoxelGrid();
-    gBD.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, 0x162e66);
-    gBD.box(-1, -13, -1, 1, -10, 1, PIEL);
+    gBD.curve3D([[0, 0, 0], [1.3, -5.5, 1.0], [0.5, -10.5, 2.5]], 2.2, 1.6, 0x162e66);
+    gBD.ellipsoid(0.5, -12, 2.5, 1.4, 1.4, 1.4, PIEL);
     // Basto nudoso con curve3D
     gBD.curve3D([[0, -12, 2], [1, 0, 3], [0, 14, 2]], 1.4, 2.1, 0x195e28);
     gBD.set(1, 5, 4, 0x22d95b, 'emissive').set(-1, 11, 3, 0x22d95b, 'emissive');
@@ -192,22 +190,22 @@ export class Heroes3D {
     gC.set(-3, 8, 5, 0x7be0ff, 'emissive').set(2, 8, 5, 0x7be0ff, 'emissive');
     // Boina verde bosque
     gC.taperedCylinder(0, 11, 16, 0, 6.2, 6.2, 5.2, 5.2, 0x104d24);
-    gC.box(-5, 13, -5, 5, 14, 5, 0x1d7536);
+    gC.ditherRecolor(-7, 13, -7, 7, 14, 7, 0x1d7536, 0x104d24);
     cabeza.add(construirMallaVoxel(gC, V, [0, 0, 0]));
     cabeza.position.set(0, 14.5 * V, 0);
 
     const brazoIzq = new THREE.Group();
     const gBI = new VoxelGrid();
-    gBI.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, 0x104d24);
-    gBI.box(-1, -13, -1, 1, -10, 1, PIEL);
+    gBI.curve3D([[0, 0, 0], [-1.2, -5.5, 1.0], [-0.5, -10.5, 2.5]], 2.2, 1.6, 0x104d24);
+    gBI.ellipsoid(-0.5, -12, 2.5, 1.4, 1.4, 1.4, PIEL);
     gBI.ellipsoid(0, -11, 4, 2.8, 2.8, 1.0, 0x1d8c3e);
     brazoIzq.add(construirMallaVoxel(gBI, V, [0, 0, 0]));
     brazoIzq.position.set(-9 * V, 13 * V, 0.5 * V);
 
     const brazoDer = new THREE.Group();
     const gBD = new VoxelGrid();
-    gBD.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, 0x104d24);
-    gBD.box(-1, -13, -1, 1, -10, 1, PIEL);
+    gBD.curve3D([[0, 0, 0], [1.2, -5.5, 1.0], [0.5, -10.5, 2.5]], 2.2, 1.6, 0x104d24);
+    gBD.ellipsoid(0.5, -12, 2.5, 1.4, 1.4, 1.4, PIEL);
     gBD.box(-2, -12, 3, 3, -3, 4, HUESO);
     gBD.set(0, -7, 4, 0x8c122e);
     brazoDer.add(construirMallaVoxel(gBD, V, [0, 0, 0]));
@@ -222,7 +220,7 @@ export class Heroes3D {
     const grupo = new THREE.Group();
     const cuerpo = new THREE.Group();
     const gT = this.baseCuerpo(0x3e1366, 0x22093b, 0x160a24, 7.4);
-    gT.taperedCylinder(0, -6, 15, -4, 9.5, 2.0, 6.5, 1.8, 0x22093b); // Capa púrpura abismal
+    gT.sculptCape(-8, 14, -4.2, 9.8, 6.4, 1.4, 4, 0x22093b, 0x3e1366); // Capa púrpura abismal con pliegues
     cuerpo.add(construirMallaVoxel(gT, V, [0, 0, 0]));
 
     const cabeza = new THREE.Group();
@@ -237,15 +235,15 @@ export class Heroes3D {
 
     const brazoIzq = new THREE.Group();
     const gBI = new VoxelGrid();
-    gBI.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, 0x3e1366);
-    gBI.box(-1, -13, -1, 1, -10, 1, PIEL);
+    gBI.curve3D([[0, 0, 0], [-1.2, -5.5, 1.0], [-0.5, -10.5, 2.5]], 2.2, 1.6, 0x3e1366);
+    gBI.ellipsoid(-0.5, -12, 2.5, 1.4, 1.4, 1.4, PIEL);
     brazoIzq.add(construirMallaVoxel(gBI, V, [0, 0, 0]));
     brazoIzq.position.set(-9 * V, 13 * V, 0);
 
     const brazoDer = new THREE.Group();
     const gBD = new VoxelGrid();
-    gBD.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, 0x3e1366);
-    gBD.box(-1, -13, -1, 1, -10, 1, PIEL);
+    gBD.curve3D([[0, 0, 0], [1.2, -5.5, 1.0], [0.5, -10.5, 2.5]], 2.2, 1.6, 0x3e1366);
+    gBD.ellipsoid(0.5, -12, 2.5, 1.4, 1.4, 1.4, PIEL);
     gBD.box(-2, -12, 3, 3, -3, 4, HUESO);
     gBD.set(0, -7, 4, ABISMO);
     brazoDer.add(construirMallaVoxel(gBD, V, [0, 0, 0]));
@@ -260,30 +258,32 @@ export class Heroes3D {
     const grupo = new THREE.Group();
     const cuerpo = new THREE.Group();
     const gT = this.baseCuerpo(0x212033, 0x131221, 0x241610, 8.4);
-    // Escudo de jabalí tallado en madera oscura + candado de oro antiguo
+    // Escudo de jabalí tallado en madera oscura + orejas y colmillos curvos + candado de oro
     gT.ellipsoid(0, 6, 6, 7.2, 6.2, 1.5, 0x5c2818);
-    gT.box(-6, 11, 5, -4, 14, 6, 0x5c2818).box(4, 11, 5, 6, 14, 6, 0x5c2818); // Orejas
-    gT.set(-5, 3, 7, HUESO).set(5, 3, 7, HUESO); // Colmillos
+    gT.curve3D([[-4.5, 10.5, 5.5], [-6.5, 14, 6]], 1.3, 0.6, 0x5c2818);
+    gT.curve3D([[4.5, 10.5, 5.5], [6.5, 14, 6]], 1.3, 0.6, 0x5c2818);
+    gT.curve3D([[-4, 2, 6.5], [-5.5, 3.8, 7.5]], 0.9, 0.4, HUESO);
+    gT.curve3D([[4, 2, 6.5], [5.5, 3.8, 7.5]], 0.9, 0.4, HUESO);
     gT.box(-2, 3, 8, 2, 7, 8, ORO, 'metal'); // Candado
     gT.box(-1, 8, 8, 1, 9, 8, ORO, 'metal');
     cuerpo.add(construirMallaVoxel(gT, V, [0, 0, 0]));
 
     const cabeza = new THREE.Group();
     const gC = this.baseCabeza(0x241410);
-    gC.box(-6, 9, -5, 6, 11, 5, 0x8c122e); // Vincha carmesí
+    gC.ditherRecolor(-6, 9, -6, 6, 11, 6, 0x8c122e, 0x5c091c); // Vincha carmesí
     gC.curve3D([[-5, 10, -5], [-7, 7, -6]], 0.9, 0.5, 0x8c122e);
     cabeza.add(construirMallaVoxel(gC, V, [0, 0, 0]));
     cabeza.position.set(0, 14.5 * V, 0);
 
     const brazoIzq = new THREE.Group();
     const gBI = new VoxelGrid();
-    gBI.taperedCylinder(0, -11, 0, 0, 2.0, 2.0, 2.6, 2.6, PIEL);
+    gBI.curve3D([[0, 0, 0], [-1.3, -5.5, 1.0], [-0.5, -11, 2.2]], 2.4, 1.8, PIEL);
     brazoIzq.add(construirMallaVoxel(gBI, V, [0, 0, 0]));
     brazoIzq.position.set(-9.5 * V, 13 * V, 0);
 
     const brazoDer = new THREE.Group();
     const gBD = new VoxelGrid();
-    gBD.taperedCylinder(0, -11, 0, 0, 2.0, 2.0, 2.6, 2.6, PIEL);
+    gBD.curve3D([[0, 0, 0], [1.3, -5.5, 1.0], [0.5, -11, 2.2]], 2.4, 1.8, PIEL);
     brazoDer.add(construirMallaVoxel(gBD, V, [0, 0, 0]));
     brazoDer.position.set(9.5 * V, 13 * V, 0);
 

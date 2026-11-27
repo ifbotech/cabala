@@ -91,6 +91,153 @@ export class VoxelGrid {
     return this;
   }
 
+  /** Recolorea con dithering Bayer 4×4 solo los voxeles ya existentes dentro de la caja, sin añadir esquinas cuadradas. */
+  ditherRecolor(
+    x0: number,
+    y0: number,
+    z0: number,
+    x1: number,
+    y1: number,
+    z1: number,
+    colBase: number,
+    colOscuro: number,
+    mat: VoxelMat = 'matte',
+  ): this {
+    const xa = Math.round(Math.min(x0, x1));
+    const xb = Math.round(Math.max(x0, x1));
+    const ya = Math.round(Math.min(y0, y1));
+    const yb = Math.round(Math.max(y0, y1));
+    const za = Math.round(Math.min(z0, z1));
+    const zb = Math.round(Math.max(z0, z1));
+    for (let y = ya; y <= yb; y++) {
+      for (let z = za; z <= zb; z++) {
+        for (let x = xa; x <= xb; x++) {
+          if (!this.has(x, y, z)) continue;
+          const b = BAYER4[(y + z) & 3][(x + z) & 3];
+          this.set(x, y, z, b >= 10 ? colOscuro : colBase, mat);
+        }
+      }
+    }
+    return this;
+  }
+
+  /** Torso anatómico continuo en reloj de arena (cadera -> cintura -> pecho/hombros) sin aristas rectangulares. */
+  sculptTorso(
+    yBot: number,
+    yWaist: number,
+    yTop: number,
+    rxBot: number,
+    rzBot: number,
+    rxWaist: number,
+    rzWaist: number,
+    rxTop: number,
+    rzTop: number,
+    color: number,
+    mat: VoxelMat = 'matte',
+  ): this {
+    const ya = Math.round(yBot);
+    const yw = Math.round(yWaist);
+    const yb = Math.round(yTop);
+    const smooth = (t: number) => t * t * (3 - 2 * t);
+    for (let y = ya; y <= yb; y++) {
+      let rx: number;
+      let rz: number;
+      if (y <= yw) {
+        const t = smooth((y - ya) / Math.max(1, yw - ya));
+        rx = rxBot + (rxWaist - rxBot) * t;
+        rz = rzBot + (rzWaist - rzBot) * t;
+      } else {
+        const t = smooth((y - yw) / Math.max(1, yb - yw));
+        rx = rxWaist + (rxTop - rxWaist) * t;
+        rz = rzWaist + (rzTop - rzWaist) * t;
+      }
+      const x0 = Math.floor(-rx);
+      const x1 = Math.ceil(rx);
+      const z0 = Math.floor(-rz);
+      const z1 = Math.ceil(rz + 0.6);
+      const pecho = y > yw ? Math.sin(((y - yw) / Math.max(1, yb - yw)) * Math.PI) * 0.55 : 0;
+      for (let z = z0; z <= z1; z++) {
+        for (let x = x0; x <= x1; x++) {
+          const dx = x / Math.max(0.5, rx);
+          const dzAdj = z > 0 ? Math.max(0.5, rz + pecho) : Math.max(0.5, rz);
+          const dz = z / dzAdj;
+          if (dx * dx + dz * dz <= 1.03) {
+            this.set(x, y, z, color, mat);
+          }
+        }
+      }
+    }
+    return this;
+  }
+
+  /** Capa fluida con pliegues sinusoidales y caída acampanada hacia el ruedo. */
+  sculptCape(
+    yBot: number,
+    yTop: number,
+    zBack: number,
+    rxBot: number,
+    rxTop: number,
+    thickness: number,
+    pleats: number,
+    color: number,
+    colorFold: number,
+  ): this {
+    const ya = Math.round(yBot);
+    const yb = Math.round(yTop);
+    const span = Math.max(1, yb - ya);
+    for (let y = ya; y <= yb; y++) {
+      const t = (y - ya) / span;
+      const rx = rxBot + (rxTop - rxBot) * t;
+      const zFlare = zBack - (1 - t) * 1.6;
+      const x0 = Math.floor(-rx);
+      const x1 = Math.ceil(rx);
+      for (let x = x0; x <= x1; x++) {
+        const nx = x / Math.max(1, rx);
+        const wave = Math.sin(nx * Math.PI * pleats) * 0.85 * (1 - t * 0.4);
+        const zCenter = zFlare + nx * nx * 1.4 + wave;
+        const z0 = Math.round(zCenter - thickness * 0.5);
+        const z1 = Math.round(zCenter + thickness * 0.5);
+        const col = wave < -0.25 ? colorFold : color;
+        for (let z = z0; z <= z1; z++) {
+          this.set(x, y, z, col, 'matte');
+        }
+      }
+    }
+    return this;
+  }
+
+  /** Cúpula superior redondeada para capuchas, melenas o yelmos sin bloques cuadrados. */
+  sculptDome(
+    cx: number,
+    cy: number,
+    cz: number,
+    rx: number,
+    ry: number,
+    rz: number,
+    color: number,
+    mat: VoxelMat = 'matte',
+  ): this {
+    const x0 = Math.floor(cx - rx);
+    const x1 = Math.ceil(cx + rx);
+    const y0 = Math.floor(cy);
+    const y1 = Math.ceil(cy + ry);
+    const z0 = Math.floor(cz - rz);
+    const z1 = Math.ceil(cz + rz);
+    for (let y = y0; y <= y1; y++) {
+      for (let z = z0; z <= z1; z++) {
+        for (let x = x0; x <= x1; x++) {
+          const dx = (x - cx) / Math.max(0.5, rx);
+          const dy = (y - cy) / Math.max(0.5, ry);
+          const dz = (z - cz) / Math.max(0.5, rz);
+          if (dx * dx + dy * dy + dz * dz <= 1.03) {
+            this.set(x, y, z, color, mat);
+          }
+        }
+      }
+    }
+    return this;
+  }
+
   mirrorX(x0: number, y0: number, z0: number, x1: number, y1: number, z1: number, color: number, mat: VoxelMat = 'matte'): this {
     this.box(x0, y0, z0, x1, y1, z1, color, mat);
     this.box(-x1, y0, z0, -x0, y1, z1, color, mat);
@@ -487,11 +634,11 @@ export function construirMallaVoxel(
     }
   }
 
-  // 2 ciclos Taubin con preservación de volumen y tope de ±0.44 para redondear aristas sin colapsar detalles finos
+  // 3 ciclos Taubin con preservación de volumen y tope de ±0.55 para redondear aristas sin colapsar detalles finos
   const nextPos = new Map<number, [number, number, number]>();
-  const clampDisp = (val: number, orig: number): number => Math.max(orig - 0.44, Math.min(orig + 0.44, val));
-  for (let ciclo = 0; ciclo < 2; ciclo++) {
-    for (const lambda of [0.5, -0.48]) {
+  const clampDisp = (val: number, orig: number): number => Math.max(orig - 0.55, Math.min(orig + 0.55, val));
+  for (let ciclo = 0; ciclo < 3; ciclo++) {
+    for (const lambda of [0.54, -0.51]) {
       for (const [k, vs] of verts) {
         const cnt = vs.vecinos.size;
         if (cnt === 0) {
@@ -577,9 +724,9 @@ export function construirMallaVoxel(
     for (let vi = 0; vi < 4; vi++) {
       const vs = verts.get(q.cornerKeys[vi])!;
       b.pos.push((vs.x - px0) * tamVoxel, (vs.y - py0) * tamVoxel, (vs.z - pz0) * tamVoxel);
-      let bnx = vs.nx * 0.82 + fnx * 0.18;
-      let bny = vs.ny * 0.82 + fny * 0.18;
-      let bnz = vs.nz * 0.82 + fnz * 0.18;
+      let bnx = vs.nx * 0.86 + fnx * 0.14;
+      let bny = vs.ny * 0.86 + fny * 0.14;
+      let bnz = vs.nz * 0.86 + fnz * 0.14;
       const nLen = Math.hypot(bnx, bny, bnz) || 1;
       b.norm.push(bnx / nLen, bny / nLen, bnz / nLen);
       const col = q.colors[vi];

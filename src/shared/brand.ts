@@ -4,7 +4,7 @@ export type Idioma = 'es' | 'en';
 export const SLUG = 'cabala';
 /** El título es el mismo en los dos idiomas. */
 export const TITULO = 'CÁBALA';
-export const VERSION = '1.9.0';
+export const VERSION = '1.10.0';
 export const URL_JUEGO = 'https://ifbotech.github.io/cabala/';
 export const REPO = 'https://github.com/ifbotech/cabala';
 

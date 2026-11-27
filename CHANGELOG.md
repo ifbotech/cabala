@@ -3,6 +3,12 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 1.10.0 · Anatomía Esculpida Anti-Minecraft + Botín, Forja y Resumen Móvil (2026-11-27)
+
+- **Anatomía esculpida sin aristas cuadradas (`voxel.ts`, `bufon3d.ts`, `reyes3d.ts`, `heroes3d.ts`):** Nuevas primitivas orgánicas `sculptTorso`, `sculptCape`, `sculptDome` y `ditherRecolor` + 3 ciclos de suavizado Taubin (`±0.55`), eliminando sobrescrituras rectangulares en el Bufón, los 4 Reyes y los 5 Héroes, con brazos curvos en `curve3D` y capas con pliegues.
+- **Bufón en Botín (`pantallas.css`):** Quita el escalado `0.22→1` de `despliega` en `.oferta-bufon-lado` para que el Bufón 3D aparezca a tamaño completo (`--k-bufon: 3` en 1080p, `2` en 768p/800p).
+- **Forja Brava y resumen móvil (`pantallas.css`):** Aire superior para el sello `×2` en `768p`/`800p` y degradado/aire inferior en `.fin-escena.corrida .fin-panel` móvil.
+
 ## 1.9.0 · Personajes 3D Esculpidos y Redondeados + Pulido 1080p/Modales (2026-11-27)
 
 - **Motor Voxel 3D esculpido (`voxel.ts`, `bufon3d.ts`, `reyes3d.ts`, `heroes3d.ts`):** Suavizado Taubin con preservación de volumen y normales mezcladas por vértice sobre toda la malla de superficie (conservando el dithering Bayer 4×4 y el AO violáceo), hombros/hombreras/botas redondeadas, luz dramática mejorada, orbes octaédricos en Segunda Cara de los Reyes y mayor presencia de los Jefes.

@@ -62,18 +62,18 @@ export class Bufon3D {
     // ── Torso arlequín entallado, piernas estilizadas, gola dentada y capa abismal ──
     const gTorso = new VoxelGrid();
 
-    // Piernas estilizadas y botas curvas con cascabeles de oro antiguo
+    // Piernas estilizadas y botas esculpidas con puntas curvas y cascabeles de oro
     gTorso.taperedCylinder(-4, -20, -6, 0, 2.2, 2.2, 2.8, 2.6, PURPURA_OSC);
     gTorso.taperedCylinder(4, -20, -6, 0, 2.2, 2.2, 2.8, 2.6, CARMESI_OSC);
-    gTorso.box(-6, -24, -2, -2, -20, 4, CUERO);
-    gTorso.box(2, -24, -2, 6, -20, 4, CUERO);
+    gTorso.ellipsoid(-4, -22, 1, 2.3, 1.8, 3.2, CUERO);
+    gTorso.ellipsoid(4, -22, 1, 2.3, 1.8, 3.2, CUERO);
     gTorso.curve3D([[-4, -22, 4], [-4, -21, 7], [-4, -19, 8]], 1.2, 0.7, ORO, 'metal');
     gTorso.curve3D([[4, -22, 4], [4, -21, 7], [4, -19, 8]], 1.2, 0.7, ORO, 'metal');
 
-    // Jubón entallado con dithered bipartido
-    gTorso.taperedCylinder(0, -6, 10, 0, 7.6, 4.2, 8.6, 4.6, PURPURA);
-    gTorso.ditherBox(1, -6, -4, 8, 10, 4, CARMESI, CARMESI_OSC);
-    gTorso.ditherBox(-8, -6, -4, 0, 10, 4, PURPURA, PURPURA_OSC);
+    // Jubón anatómico en reloj de arena con bipartido dithered sin aristas cuadradas
+    gTorso.sculptTorso(-7, 0, 10, 8.2, 4.6, 5.4, 3.6, 8.8, 4.8, PURPURA);
+    gTorso.ditherRecolor(1, -7, -6, 10, 10, 6, CARMESI, CARMESI_OSC);
+    gTorso.ditherRecolor(-10, -7, -6, 0, 10, 6, PURPURA, PURPURA_OSC);
 
     // Rombos de tarot en el pecho
     for (const [rx, ry, col] of [
@@ -86,23 +86,23 @@ export class Bufon3D {
     }
 
     // Cinturón de cuero y hebilla de oro antiguo
-    gTorso.taperedCylinder(0, -2, 0, 0, 8.0, 4.6, 8.0, 4.6, CUERO);
-    gTorso.box(-2, -2, 5, 2, 0, 5, ORO, 'metal');
+    gTorso.taperedCylinder(0, -2, 0, 0, 6.2, 4.1, 6.2, 4.1, CUERO);
+    gTorso.ellipsoid(0, -1, 4.3, 2.0, 1.2, 0.9, ORO, 'metal');
 
     // Naipes envejecidos metidos en la faja
-    gTorso.box(-9, -4, 2, -7, 2, 3, HUESO);
-    gTorso.set(-8, 0, 3, CARMESI);
-    gTorso.box(7, -4, 2, 9, 2, 3, HUESO);
-    gTorso.set(8, 0, 3, PURPURA);
+    gTorso.box(-8, -4, 2, -6, 2, 3, HUESO);
+    gTorso.set(-7, 0, 3, CARMESI);
+    gTorso.box(6, -4, 2, 8, 2, 3, HUESO);
+    gTorso.set(7, 0, 3, PURPURA);
 
-    // Capa abismal detrás
-    gTorso.taperedCylinder(0, -18, 10, -4, 11.5, 2.2, 7.5, 2.0, CAPA);
+    // Capa abismal con pliegues detrás
+    gTorso.sculptCape(-19, 10, -4.4, 11.5, 7.6, 1.5, 5, CAPA, PURPURA_OSC);
 
     // Hombros arlequín abullonados y gola dentada oscura con cascabeles redondeados
     gTorso.ellipsoid(-8.2, 8.5, 0, 2.8, 2.6, 2.8, PURPURA);
     gTorso.ellipsoid(8.2, 8.5, 0, 2.8, 2.6, 2.8, CARMESI);
     gTorso.taperedCylinder(0, 9, 12, 0, 10.6, 6.2, 6.2, 4.2, CARMESI_OSC);
-    gTorso.ditherBox(-10, 9, -5, 0, 11, 5, PURPURA_OSC, CAPA);
+    gTorso.ditherRecolor(-12, 8, -7, 0, 12, 7, PURPURA_OSC, CAPA);
     for (let i = -9; i <= 9; i += 3) {
       gTorso.ellipsoid(i, 8, 5, 0.9, 0.9, 0.9, ORO, 'metal');
       gTorso.ellipsoid(i, 8, -5, 0.9, 0.9, 0.9, ORO_OSC, 'metal');
@@ -110,18 +110,16 @@ export class Bufon3D {
 
     this.cuerpo.add(construirMallaVoxel(gTorso, V, [0, 6, 0]));
 
-    // ── Cabeza / Máscara Veneciana esculpida (Cero bloque cuadrado) ──
+    // ── Cabeza / Máscara Veneciana esculpida con capucha redondeada ──
     this.cabeza.position.set(0, 7.5 * V, 0);
     const gCab = new VoxelGrid();
-    gCab.sculptHead(0, 7, 0, 5.8, 7.2, 5.2, MARFIL, MARFIL_SOMBRA);
+    gCab.sculptDome(0, 6, -0.8, 6.6, 8.6, 6.2, PURPURA);
+    gCab.ditherRecolor(-8, 4, -8, 0, 16, 2, PURPURA, PURPURA_OSC);
+    gCab.ditherRecolor(1, 4, -8, 8, 16, 2, CARMESI, CARMESI_OSC);
+    gCab.sculptHead(0, 7, 0.3, 5.6, 7.0, 5.2, MARFIL, MARFIL_SOMBRA);
 
-    // Capucha arlequín trasera y superior bipartida
-    gCab.taperedCylinder(0, 2, 14, -2, 6.6, 4.8, 5.8, 4.2, CAPA);
-    gCab.ditherBox(-6, 4, -6, 0, 15, 2, PURPURA, PURPURA_OSC);
-    gCab.ditherBox(1, 4, -6, 6, 15, 2, CARMESI, CARMESI_OSC);
-
-    // Ribete de oro antiguo sobre la frente
-    gCab.box(-5, 12, 4, 5, 13, 5, ORO, 'metal');
+    // Diadema curva de oro antiguo sobre la frente
+    gCab.curve3D([[-5, 12, 3.5], [0, 12.8, 5.2], [5, 12, 3.5]], 1.0, 1.0, ORO, 'metal');
 
     // Cuencas oculares talladas y oscuras + nariz afilada + lágrima + sonrisa ladina
     for (const sx of [-1, 1] as const) {
@@ -158,14 +156,14 @@ export class Bufon3D {
 
     this.ojoIzq = new THREE.Mesh(geoOjo, matIris);
     this.ojoIzq.rotation.z = -0.16;
-    this.ojoIzq.position.set(-2.5 * V, 8.6 * V, 6.16 * V);
+    this.ojoIzq.position.set(-2.5 * V, 8.6 * V, 6.28 * V);
     this.pupilaIzq = new THREE.Mesh(geoPupila, matPupila);
     this.pupilaIzq.position.set(0, 0, 0.004);
     this.ojoIzq.add(this.pupilaIzq);
 
     this.ojoDer = new THREE.Mesh(geoOjo, matIris);
     this.ojoDer.rotation.z = 0.16;
-    this.ojoDer.position.set(2.5 * V, 8.6 * V, 6.16 * V);
+    this.ojoDer.position.set(2.5 * V, 8.6 * V, 6.28 * V);
     this.pupilaDer = new THREE.Mesh(geoPupila, matPupila);
     this.pupilaDer.position.set(0, 0, 0.004);
     this.ojoDer.add(this.pupilaDer);
@@ -193,12 +191,12 @@ export class Bufon3D {
     this.cabeza.add(this.cuernoIzq, this.cuernoCentro, this.cuernoDer);
     this.cuerpo.add(this.cabeza);
 
-    // ── Brazo izquierdo (-X) con Cetro Marotte gótico ──
+    // ── Brazo izquierdo (-X) curvo con Cetro Marotte gótico ──
     this.brazoIzq.position.set(-9.5 * V, 6.2 * V, 0.5 * V);
     const gBI = new VoxelGrid();
-    gBI.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, PURPURA);
-    gBI.box(-2, -11, -1, 2, -10, 2, ORO, 'metal');
-    gBI.box(-1, -14, 0, 1, -11, 3, MARFIL);
+    gBI.curve3D([[0, 0, 0], [-1.5, -5.5, 1], [-1, -11, 3.5]], 2.3, 1.6, PURPURA);
+    gBI.ellipsoid(-1, -10.5, 3.5, 2.0, 1.2, 1.8, ORO, 'metal');
+    gBI.ellipsoid(-1, -12.5, 3.5, 1.5, 1.5, 1.5, MARFIL);
     this.brazoIzq.add(construirMallaVoxel(gBI, V, [0, 0, 0]));
 
     const gCetro = new VoxelGrid();
@@ -212,16 +210,16 @@ export class Bufon3D {
     gCetro.curve3D([[1, 21, 0], [4, 23, 0]], 1.0, 0.6, CARMESI);
     gCetro.set(-4, 23, 0, ORO, 'metal').set(4, 23, 0, ORO, 'metal');
     this.cetro.add(construirMallaVoxel(gCetro, V, [0, 0, 0]));
-    this.cetro.position.set(-1 * V, -13 * V, 3 * V);
+    this.cetro.position.set(-1 * V, -13 * V, 3.5 * V);
     this.cetro.rotation.set(0.2, 0, 0.25);
     this.brazoIzq.add(this.cetro);
 
-    // ── Brazo derecho (+X) con Abanico de 3 Naipes envejecidos ──
+    // ── Brazo derecho (+X) curvo con Abanico de 3 Naipes envejecidos ──
     this.brazoDer.position.set(9.5 * V, 6.2 * V, 0.5 * V);
     const gBD = new VoxelGrid();
-    gBD.taperedCylinder(0, -10, 0, 0, 1.8, 1.8, 2.4, 2.4, CARMESI);
-    gBD.box(-2, -11, -1, 2, -10, 2, ORO, 'metal');
-    gBD.box(-1, -14, 0, 1, -11, 3, MARFIL);
+    gBD.curve3D([[0, 0, 0], [1.5, -5.5, 1], [1, -11, 3.5]], 2.3, 1.6, CARMESI);
+    gBD.ellipsoid(1, -10.5, 3.5, 2.0, 1.2, 1.8, ORO, 'metal');
+    gBD.ellipsoid(1, -12.5, 3.5, 1.5, 1.5, 1.5, MARFIL);
     this.brazoDer.add(construirMallaVoxel(gBD, V, [0, 0, 0]));
 
     const gAbanico = new VoxelGrid();

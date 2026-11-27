@@ -150,20 +150,21 @@ export class Reyes3D {
     const g = new VoxelGrid();
     const w = 8 + c.anchoExtra;
 
-    // Botas y piernas
-    g.mirrorX(2, -11, -2, 5, -7, 3, BOTA);
-    g.taperedCylinder(-3.5, -7, 0, 0, 2.5, 2.5, 3.0, 2.8, c.capa);
-    g.taperedCylinder(3.5, -7, 0, 0, 2.5, 2.5, 3.0, 2.8, c.capa);
+    // Botas redondeadas y piernas
+    g.ellipsoid(-3.5, -10, 1.2, 2.6, 1.9, 3.5, BOTA);
+    g.ellipsoid(3.5, -10, 1.2, 2.6, 1.9, 3.5, BOTA);
+    g.taperedCylinder(-3.5, -8, 0, 0, 2.5, 2.5, 3.0, 2.8, c.capa);
+    g.taperedCylinder(3.5, -8, 0, 0, 2.5, 2.5, 3.0, 2.8, c.capa);
 
-    // Túnica real entallada con dithering
-    g.taperedCylinder(0, 0, 18, 0, w + 1.2, 4.6, w, 4.4, c.tunica);
-    g.ditherBox(-w, 0, -4, w, 4, 4, c.tunicaOsc, c.tunica);
+    // Túnica real anatómica en reloj de arena con dithering sin aristas cuadradas
+    g.sculptTorso(0, 8, 19, w + 2.4, 5.4, w - 1.4, 4.0, w + 1.0, 4.8, c.tunica);
+    g.ditherRecolor(-w - 3, 0, -6, w + 3, 5, 6, c.tunicaOsc, c.tunica);
     g.box(-1, 1, 4, 1, 16, 5, ORO, 'metal');
-    g.box(-w, 0, 4, w, 1, 5, ORO_OSC, 'metal');
+    g.taperedCylinder(0, 0, 1, 0, w + 2.4, 5.4, w + 2.3, 5.3, ORO_OSC, 'metal');
 
     // Cinturón de cuero y hebilla
-    g.taperedCylinder(0, 7, 9, 0, w + 0.5, 4.8, w + 0.5, 4.8, CUERO);
-    g.box(-2, 7, 5, 2, 9, 5, ORO, 'metal');
+    g.taperedCylinder(0, 7, 9, 0, w - 0.6, 4.3, w - 0.6, 4.3, CUERO);
+    g.ellipsoid(0, 8, 4.6, 2.1, 1.2, 0.9, ORO, 'metal');
 
     // Cuello de armiño envejecido + motas abismales
     g.taperedCylinder(0, 17, 20, 0, w + 1.2, 4.8, w - 0.5, 4.4, ARMINO);
@@ -173,15 +174,13 @@ export class Reyes3D {
 
     // Cadena real + rubí
     g.box(-5, 16, 5, 5, 16, 5, ORO, 'metal');
-    g.box(-1, 14, 5, 1, 15, 5, RUBI, 'metal');
+    g.ellipsoid(0, 14.5, 5, 1.3, 1.3, 0.9, RUBI, 'metal');
 
     // Hombreras reales esculpidas redondeadas
     g.ellipsoid(-w - 1.2, 17.5, 0, 3.8, 3.2, 3.8, c.tunicaOsc);
     g.ellipsoid(w + 1.2, 17.5, 0, 3.8, 3.2, 3.8, c.tunicaOsc);
     g.ellipsoid(-w - 1.6, 19.2, 0, 2.4, 1.4, 2.6, ORO, 'metal');
     g.ellipsoid(w + 1.6, 19.2, 0, 2.4, 1.4, 2.6, ORO, 'metal');
-    g.ellipsoid(-3.5, -10, 1.5, 2.6, 1.8, 3.4, BOTA);
-    g.ellipsoid(3.5, -10, 1.5, 2.6, 1.8, 3.4, BOTA);
 
     return construirMallaVoxel(g, V, [0, 7, 0]);
   }
@@ -190,9 +189,9 @@ export class Reyes3D {
     const c = CFG[palo];
     const g = new VoxelGrid();
     const w = 10 + c.anchoExtra;
-    g.taperedCylinder(0, -18, 1, 0, w + 2, 2.4, w - 2, 1.8, c.capa);
-    g.ditherBox(-w, -18, -2, w, -14, 0, c.tunicaOsc, c.capa);
-    g.mirrorX(w - 1, -17, 0, w, 0, 0, ORO_OSC, 'metal');
+    g.sculptCape(-19, 1, 0, w + 3.2, w - 1.2, 1.6, 5, c.capa, c.tunicaOsc);
+    g.curve3D([[-w + 1, 0, 0], [-w - 2.2, -18, -1.2]], 0.9, 0.9, ORO_OSC, 'metal');
+    g.curve3D([[w - 1, 0, 0], [w + 2.2, -18, -1.2]], 0.9, 0.9, ORO_OSC, 'metal');
     return construirMallaVoxel(g, V, [0, 1, 0]);
   }
 
@@ -200,12 +199,9 @@ export class Reyes3D {
     const c = CFG[palo];
     const g = new VoxelGrid();
 
-    // Cabeza esculpida (cero bloque cuadrado)
-    g.sculptHead(0, 6.5, 0, 5.4, 6.8, 5.0, c.piel, c.pielSombra);
-
-    // Cabello lateral y trasero
-    g.taperedCylinder(0, 3, 13, -1, 6.0, 5.0, 5.4, 4.4, c.pelo);
-    g.box(-5, 9, -4, 5, 13, 2, c.pelo);
+    // Melena/cráneo redondeado + cabeza esculpida (cero bloque cuadrado)
+    g.sculptDome(0, 6.5, -0.8, 6.1, 7.2, 5.6, c.pelo);
+    g.sculptHead(0, 6.5, 0.2, 5.4, 6.8, 5.0, c.piel, c.pielSombra);
 
     const pal: Record<string, number> = {
       C: c.pelo,
@@ -255,7 +251,7 @@ export class Reyes3D {
         matMap,
       );
       g.taperedCylinder(0, -4, 4, 3, 3.2, 2.2, 5.4, 2.8, c.pelo);
-      g.ditherBox(-4, -3, 4, 4, 2, 6, c.peloLuz, c.pelo);
+      g.ditherRecolor(-6, -4, 0, 6, 4, 7, c.peloLuz, c.pelo);
     } else if (palo === 'D') {
       g.paintFront(
         -4,
@@ -295,7 +291,7 @@ export class Reyes3D {
         matMap,
       );
       g.taperedCylinder(0, -7, 3, 3, 2.2, 1.8, 4.4, 2.4, c.pelo);
-      g.ditherBox(-3, -6, 4, 3, 0, 5, c.peloLuz, c.pelo);
+      g.ditherRecolor(-5, -7, 0, 5, 3, 7, c.peloLuz, c.pelo);
     }
 
     // Aro de la corona en oro antiguo
@@ -354,9 +350,9 @@ export class Reyes3D {
     const c = CFG[palo];
     const g = new VoxelGrid();
 
-    g.taperedCylinder(0, -11, 0, 0, 2.0, 2.0, 2.6, 2.6, c.tunica);
-    g.box(-2, -12, -1, 2, -11, 2, ORO, 'metal');
-    g.box(-2, -15, -1, 2, -12, 2, c.piel);
+    g.curve3D([[0, 0, 0], [lado === 'der' ? 1.5 : -1.5, -6, 1.5], [0, -12, 3.5]], 2.7, 1.9, c.tunica);
+    g.ellipsoid(0, -11, 3.5, 2.2, 1.2, 2.0, ORO, 'metal');
+    g.ellipsoid(0, -13, 3.5, 1.8, 1.7, 1.8, c.piel);
 
     if (lado === 'der') {
       if (palo === 'S') {
