@@ -12,7 +12,7 @@ import type { MejoraId } from '../../rules/perfil';
 import { REINADOS } from '../../rules/reinados';
 import { BENDICION, BENDICIONES, REY_DEF } from '../../rules/reyes';
 import { MARCA, VERSION } from '../../shared/brand';
-import { ajustes, alAzar, borrarTodo, fijarIdioma, guardarAjustes, guardarPartida, guardarPerfil, idioma, perfil, t, tx } from '../almacen';
+import { ajustes, alAzar, borrarTodo, exportarProgreso, fijarIdioma, guardarAjustes, guardarPartida, guardarPerfil, idioma, importarProgreso, perfil, t, tx } from '../almacen';
 import { nota, refrescarSonido, sonar } from '../audio';
 import { refrescarMusica } from '../musica';
 import { enFoto } from '../fx/motor';
@@ -438,28 +438,32 @@ export function pantallaCaminoSol(enClimax = false): Pantalla {
 
 let mazoElegido: MazoId = 'escoba';
 let reinadoElegido = 1;
+let semillaElegida = '';
 
 export function pantallaMazo(): Pantalla {
   if (!mazoAbierto(perfil, mazoElegido)) mazoElegido = 'escoba';
   reinadoElegido = Math.max(1, Math.min(reinadoMax(perfil), reinadoElegido));
+  const maestriaTotal = MAZOS.reduce((s, m) => s + Math.min(8, perfil.ganado[m] ?? 0), 0);
   const detalle = (): string => {
     const d = MAZO[mazoElegido];
     const abierto = mazoAbierto(perfil, mazoElegido);
     const m = B.mazos[mazoElegido];
     const [a, b] = avanceMazo(perfil, mazoElegido);
     const vida = vidaInicial(mazoElegido, perfil.altar.vida);
+    const g = Math.min(8, perfil.ganado[mazoElegido] ?? 0);
     return `<div class="md-dorso">${pxDorso(mazoElegido)}</div>
       <div class="md-texto">
         <b class="md-nombre dorado">${esc(tx(d.nombre))} · ${esc(tx(d.personaje))}</b>
         <p class="md-regla">${esc(tx(d.regla))}</p>
-        ${abierto ? `<p class="sub">${t('vida')} ${vida} · ${t('mano', { n: m.mano })} <button class="btn marco chico" data-accion="ver-intro">${t('introBtn')}</button></p>` : `<p class="rojo">${t('bloqueado')} · ${esc(tx(d.desbloqueo!.texto))} ${t('avance', { a, b })}</p>`}
+        ${abierto ? `<div class="sub md-sub"><span>${t('vida')} ${vida} · ${t('mano', { n: m.mano })}${g > 0 ? ` · ★ ${g}/8` : ''}</span><span class="md-acciones"><button class="btn marco chico" data-accion="ver-intro">${t('introBtn')}</button><button class="btn marco chico" data-accion="semilla">${t('semillaBtn')}${semillaElegida ? `: ${esc(semillaElegida)}` : ''}</button></span></div>` : `<p class="rojo">${t('bloqueado')} · ${esc(tx(d.desbloqueo!.texto))} ${t('avance', { a, b })}</p>`}
       </div>`;
   };
   const reinado = (): string => {
     const r = REINADOS[reinadoElegido - 1];
     const max = reinadoMax(perfil);
+    const acumulados = REINADOS.slice(1, reinadoElegido).map((x) => `${t('reinado', { n: x.n })}: ${tx(x.giro)}`).join(' · ');
     return `<button class="btn marco chico" data-accion="reinado-menos" data-foco="r-menos" aria-label="−" ${reinadoElegido <= 1 ? 'disabled' : ''}>‹</button>
-      <div class="reinado-caja"><b>${t('reinado', { n: r.n })} · ${esc(tx(r.nombre))}</b><span class="sub">${esc(tx(r.giro))}</span></div>
+      <div class="reinado-caja" ${acumulados ? tip(`${t('reinado', { n: r.n })} · ${t('maestriaTotal', { a: maestriaTotal, b: MAZOS.length * 8 })}`, acumulados) : tip(t('maestriaTotal', { a: maestriaTotal, b: MAZOS.length * 8 }), tx(r.giro))}><b>${t('reinado', { n: r.n })} · ${esc(tx(r.nombre))}</b><span class="sub">${esc(tx(r.giro))}</span></div>
       <button class="btn marco chico" data-accion="reinado-mas" data-foco="r-mas" aria-label="+" ${reinadoElegido >= max ? 'disabled' : ''}>›</button>`;
   };
   return {
@@ -507,10 +511,29 @@ export function pantallaMazo(): Pantalla {
         sonar('clic');
         irIntroMazo(mazoElegido, () => irMazo());
       },
+      semilla: () => {
+        const hoy = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        const diaria = `CABALA-${hoy}`;
+        const mEl = abrirModal(
+          `<div class="panel aj-modal"><h2 class="titulo">${t('semillaBtn')}</h2><input class="aj-input" type="text" maxlength="24" value="${esc(semillaElegida)}" placeholder="${esc(t('semillaPlaceholder'))}" /><div class="fila"><button class="btn marco chico" data-accion="dia">${t('semillaDia')}</button><button class="btn marco chico oro" data-accion="usar" data-inicio>${t('semillaUsar')}</button></div></div>`,
+          {
+            dia: () => {
+              const inp = mEl.querySelector<HTMLInputElement>('.aj-input');
+              if (inp) inp.value = diaria;
+            },
+            usar: () => {
+              const inp = mEl.querySelector<HTMLInputElement>('.aj-input');
+              semillaElegida = (inp?.value ?? '').trim();
+              cerrarModal();
+              repintar();
+            },
+          },
+        );
+      },
       jugar: () => {
         if (!mazoAbierto(perfil, mazoElegido)) return;
         sonar('clic');
-        empezar(mazoElegido, reinadoElegido);
+        empezar(mazoElegido, reinadoElegido, semillaElegida || undefined);
       },
     },
   };
@@ -645,7 +668,7 @@ export function pantallaColeccion(): Pantalla {
         const r = REY_DEF[s];
         const v = visto(`r:${s}`);
         return `<div class="col-rey ${v ? '' : 'sin-ver'}" ${v ? tip(`${tx(r.nombre)} · ${tx(r.apodo)}`, `${tx(r.rasgo)}: ${tx(r.rasgoDesc)}`, `${nombreCarga(s)}: ${tx(r.cargaDa)}`) : tip(t('sinVer'), t('sinVerDesc'))}>
-          ${reyHtml(s, 'calma')}<b>${v ? esc(tx(r.apodo)) : t('sinVer')}</b><span class="sub">${v ? esc(tx(r.nombre)) : esc(t('sinVerDesc'))}</span>${v ? `<span class="chip canto">${esc(tx(r.rasgo))}</span><p class="col-ficha">${esc(tx(r.rasgoDesc))}</p><p class="col-ficha col-carga">${pxPalo(s)} <b>${esc(nombreCarga(s))}</b> ·${esc(tx(r.cargaDa))}</p>` : ''}
+          ${reyHtml(s, 'calma')}<b>${v ? esc(tx(r.apodo)) : t('sinVer')}</b><span class="sub">${v ? esc(tx(r.nombre)) : esc(t('sinVerDesc'))}</span>${v ? `<span class="chip canto">${esc(tx(r.rasgo))}</span><p class="col-ficha">${esc(tx(r.rasgoDesc))}</p><p class="col-ficha col-carga">${pxPalo(s)} <b>${esc(nombreCarga(s))}</b> · ${esc(tx(r.cargaDa))}</p>` : ''}
         </div>`;
       }).join('')}</div>`;
     if (pestana === 'amuletos') return `<div class="col-rejilla">${AMULETOS.map((id) => item(`a:${id}`, pxAmuleto(id), tx(AMULETO[id].nombre), tx(AMULETO[id].desc), tx(RAREZA_NOMBRE[AMULETO[id].rareza]))).join('')}</div>`;
@@ -653,6 +676,13 @@ export function pantallaColeccion(): Pantalla {
     return `<div class="col-rejilla">${BENDICIONES.map((id) => item(`b:${id}`, pxBendicion(id), tx(BENDICION[id].nombre), tx(BENDICION[id].desc(1)), tx(REY_DEF[BENDICION[id].rey].apodo))).join('')}</div>`;
   };
   const pestanas: Pestana[] = ['mazos', 'reyes', 'amuletos', 'cabalas', 'bendiciones'];
+  const conteoPestana = (p: Pestana): string => {
+    if (p === 'mazos') return `${MAZOS.filter((m) => mazoAbierto(perfil, m)).length}/${MAZOS.length}`;
+    if (p === 'reyes') return `${PALOS.filter((s) => visto(`r:${s}`)).length}/${PALOS.length}`;
+    if (p === 'amuletos') return `${AMULETOS.filter((id) => visto(`a:${id}`)).length}/${AMULETOS.length}`;
+    if (p === 'cabalas') return `${AUMENTOS.filter((id) => visto(`u:${id}`)).length}/${AUMENTOS.length}`;
+    return `${BENDICIONES.filter((id) => visto(`b:${id}`)).length}/${BENDICIONES.length}`;
+  };
   return {
     nombre: 'coleccion',
     atras: irPortada,
@@ -664,7 +694,7 @@ export function pantallaColeccion(): Pantalla {
       </header>
       <div class="cuerpo col-escena">
         <div class="col-columna">
-          <nav class="fila pestanas" role="tablist">${pestanas.map((p) => `<button class="btn marco chico ${p === pestana ? 'oro' : ''}" role="tab" aria-selected="${p === pestana}" data-accion="pestana" data-id="${p}" data-foco="tab-${p}">${t(p === 'amuletos' ? 'amuletos' : p)}</button>`).join('')}</nav>
+          <nav class="fila pestanas" role="tablist">${pestanas.map((p) => `<button class="btn marco chico ${p === pestana ? 'oro' : ''}" role="tab" aria-selected="${p === pestana}" data-accion="pestana" data-id="${p}" data-foco="tab-${p}">${t(p === 'amuletos' ? 'amuletos' : p)} (${conteoPestana(p)})</button>`).join('')}</nav>
           <section class="col-cuerpo col-pared">${cuerpo()}</section>
         </div>
       </div>
@@ -719,13 +749,14 @@ export function pantallaCronica(): Pantalla {
         ${
           perfil.cronica.length
             ? perfil.cronica
-                .slice(0, 6)
+                .slice(0, 20)
                 .map(
                   (r) => `<div class="cr-fila">
             <i class="cr-cara" style="background-image:url(${urlRetrato(r.mazo, { mirada: 0, gesto: r.victoria ? 'feroz' : 'caido', herida: r.victoria ? 0 : 2 })})"></i>
             <div class="cr-texto"><b class="${r.victoria ? 'dorado' : 'rojo'}">${esc(tx(MAZO[r.mazo].nombre))} · ${t('reinado', { n: r.reinado })} · ${r.victoria ? t('gano') : t('cayo', { n: Math.min(3, r.acto + 1) })}</b>
             <span class="sub">${esc(tx(TRAMO_NOMBRE[Math.min(2, r.acto)]))} · ${t('mejorGolpe')} ${r.mejorGolpe} · ${t('semilla', { s: r.semilla })}</span></div>
             <span class="cr-porotos">${pxHud('poroto')}${cifra(`+${r.porotos}`, 'oro')}</span>
+            ${mazoAbierto(perfil, r.mazo) ? `<button class="btn marco chico cr-repetir" data-accion="repetir-cronica" data-mazo="${r.mazo}" data-reinado="${r.reinado}" data-semilla="${esc(r.semilla)}">${t('repetir')}</button>` : ''}
           </div>`,
                 )
                 .join('')
@@ -736,7 +767,17 @@ export function pantallaCronica(): Pantalla {
       </div>
     </main>`,
     acciones: {
-      ...irSolapa, volver: irPortada },
+      ...irSolapa,
+      volver: irPortada,
+      'repetir-cronica': (el) => {
+        const m = el.dataset.mazo as MazoId;
+        const r = Math.max(1, Math.min(reinadoMax(perfil), Number(el.dataset.reinado) || 1));
+        const s = el.dataset.semilla || undefined;
+        if (!mazoAbierto(perfil, m)) return;
+        sonar('clic');
+        empezar(m, r, s);
+      },
+    },
   };
 }
 
@@ -764,6 +805,7 @@ export function pantallaAjustes(): Pantalla {
         <div class="aj-fila"><b>${t('calma')}</b>${conmuta('calma', ajustes.calma, 'aj-calma')}</div>
         <div class="aj-fila"><b>${t('sonido')}</b>${conmuta('sonido', ajustes.sonido, 'aj-sonido')}</div>
         <div class="aj-fila"><b>${t('musica')}</b>${conmuta('musica', ajustes.musica, 'aj-musica')}</div>
+        <div class="aj-fila"><b>${t('respaldo')}</b><div class="fila"><button class="btn marco chico" data-accion="exportar" data-foco="aj-exp">${t('exportar')}</button><button class="btn marco chico" data-accion="importar" data-foco="aj-imp">${t('importar')}</button></div></div>
         <div class="aj-fila"><b>${t('borrar')}</b><button class="btn marco chico" data-accion="borrar" data-foco="aj-borrar">${t('borrar')}</button></div>
         <p class="sub aj-creditos">${t('creditos')} · v${VERSION}</p>
       </section>
@@ -813,6 +855,32 @@ export function pantallaAjustes(): Pantalla {
         guardarAjustes();
         refrescarSonido();
         repintar();
+      },
+      exportar: () => {
+        const datos = exportarProgreso();
+        void navigator.clipboard?.writeText(datos).catch(() => undefined);
+        abrirModal(
+          `<div class="panel aj-modal"><p>${t('exportarTip')}</p><textarea class="aj-textarea" readonly>${esc(datos)}</textarea><div class="fila"><button class="btn marco oro" data-accion="ok" data-inicio>${t('copiado')}</button></div></div>`,
+          { ok: () => cerrarModal() },
+        );
+      },
+      importar: () => {
+        const mEl = abrirModal(
+          `<div class="panel aj-modal"><p>${t('importarTip')}</p><textarea class="aj-textarea" placeholder="{ ... }"></textarea><p class="sub aj-estado"></p><div class="fila"><button class="btn marco" data-accion="no">${t('volver')}</button><button class="btn marco oro" data-accion="si" data-inicio>${t('importar')}</button></div></div>`,
+          {
+            no: () => cerrarModal(),
+            si: () => {
+              const ta = mEl.querySelector<HTMLTextAreaElement>('.aj-textarea');
+              const est = mEl.querySelector<HTMLElement>('.aj-estado');
+              if (ta && importarProgreso(ta.value)) {
+                cerrarModal();
+                repintar();
+              } else if (est) {
+                est.textContent = t('importarError');
+              }
+            },
+          },
+        );
       },
       borrar: () => {
         abrirModal(

@@ -11,12 +11,13 @@ const PUERTAS = [
   ...(sinLab ? [] : [['laboratorio', 590, 'npm run analyze:meta']]),
   ['reglamento', 60, 'npm run docs'],
   ['pruebas', 280, 'npm test'],
-  ['QA visual (es)', 290, 'npm run qa:visual'],
-  ['QA visual (en)', 290, 'npm run qa:visual -- --lang=en'],
+  ['QA visual (es)', 360, 'npm run qa:visual'],
+  ['QA visual (en)', 360, 'npm run qa:visual -- --lang=en'],
   ['QA de humo (es)', 290, 'npm run qa:smoke'],
   ['QA de humo (en, truco)', 290, 'npm run qa:smoke -- --lang=en --mazo=truco'],
   ['QA de audio', 200, 'npm run qa:audio'],
   ['FPS', 200, 'npm run qa:fps'],
+  ['estabilidad', 240, 'npm run qa:estabilidad'],
   ['construcción', 200, 'npm run build:web'],
 ];
 

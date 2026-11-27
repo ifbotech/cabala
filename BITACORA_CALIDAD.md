@@ -79,3 +79,10 @@ Verificada sobre capturas reales en `1920×1080`, `1920×920`, `2560×1320`, `13
 - **Verificación consecutiva #5 (`2560×1320`, `1920×920`, `1920×1080`, `1280×800`, `390×844`):** **0 recortes, 0 solapes, 0 parches 2D flotantes, 0 modelos plásticos**, `CLS = 0`, `130.7–134.0 FPS` (`0 cuadros > 50 ms`), `592/592` capturas `qa:visual` ES/EN con `0 fallos`, `secuencias` 1280/390 sin solapes y `163/163` pruebas en verde.
 
 **Estado del Estudio:** Los 4 pilares (A, B, C y D) completados, auditados en doble pasada consecutiva sin defectos y publicados en vivo en https://ifbotech.github.io/cabala/.
+
+## Auditoría hacia v1.0.0 (`v0.60.0` → `v0.90.0`)
+
+- **`v0.60.0` (Reglas y Balance):** `valorCarta()` centralizado, Comodín inteligente (`escalera`, `escalerapalo`, Escoba `15`, `poker`/`pierna`/`full`), `alPelo` ampliado, Pactos Duales y Duelo del Bufón con agencia real (`0` avisos en `analyze:meta`).
+- **`v0.70.0` (UX, i18n y Ergonomía):** `chips.ts` unificado ES/EN sin recortes, foco atrapado con `inert` en modales, Ajustes rápidos en partida y limpieza de listeners.
+- **`v0.80.0` (Game Feel AAA y Rendimiento):** Conteo `DAÑO × MULTI` sincronizado, `hitstop` 2D/3D unido, `texturaNaipeMitad` sin bloqueo y precompilación WebGL (`159–164.8 FPS`, `peor cuadro <= 49 ms`).
+- **`v0.90.0` (Progresión, Guardado, PWA y QA 1.0):** `sanearPerfil`, Exportar/Importar JSON, `vendor-three` split, 6 Cartas de Gloria sin spoilers, sellos `★ n/8`, Semilla del día, Crónica 20 partidas con `Repetir`, `qa:estabilidad` en `puertas.mjs` y 4 estados nuevos en `ESTADOS`.

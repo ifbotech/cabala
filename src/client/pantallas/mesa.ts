@@ -2553,6 +2553,10 @@ export function pantallaMesa(p: Partida): Pantalla {
     const cuentaEl = $('[data-cuenta] .cuenta');
     cuentaEl?.classList.remove('previa');
     cuentaEl?.classList.add('contando');
+    if (cuentaEl) {
+      delete cuentaEl.dataset.accion;
+      cuentaEl.querySelector('.c-abre')?.remove();
+    }
     $('[data-cuenta] .c-desglose')?.classList.add('contando');
     const { cartas, piezas } = pasosConteo(q);
     const todos = [...cartas, ...piezas];

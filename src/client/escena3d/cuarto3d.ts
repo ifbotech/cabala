@@ -362,10 +362,10 @@ export class CuartoPulperia3D {
     luz.position.set(0, 0.9, 2.2);
     g.add(luz);
 
-    // Fila inferior izquierda: Cartas de Gloria clavadas (hasta 4)
-    for (let i = 0; i < 4; i++) {
+    // Fila inferior izquierda: Cartas de Gloria clavadas (hasta 6 en 2 filas de 3)
+    for (let i = 0; i < 6; i++) {
       const matG = new THREE.MeshStandardMaterial({ map: texturaNaipe('D', 1), roughness: 0.55 });
-      const cg = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.84, 0.04), [
+      const cg = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.78, 0.04), [
         matLaton,
         matLaton,
         matLaton,
@@ -373,10 +373,12 @@ export class CuartoPulperia3D {
         matG,
         matLaton,
       ]);
-      cg.position.set(-2.2 + i * 0.92, -1.16, 0.1);
+      const col = i % 3;
+      const fila = Math.floor(i / 3);
+      cg.position.set(-2.2 + col * 0.78, -0.78 - fila * 0.88, 0.1);
       const clavo = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.05, 6), matLaton);
       clavo.rotation.x = Math.PI / 2;
-      clavo.position.set(0, 0.36, 0.03);
+      clavo.position.set(0, 0.34, 0.03);
       cg.add(clavo);
       cg.visible = false;
       g.add(cg);
@@ -804,14 +806,14 @@ export class CuartoPulperia3D {
 
     const piezas: Array<{ clave: string; mapa: readonly string[]; fondo: string }> = [];
     for (const id of AMULETOS) {
-      if (perfil.vistos.includes(`a:${id}`) || piezas.length < 4) {
+      if (perfil.vistos.includes(`a:${id}`)) {
         const m = amuletoMapa(id);
         if (m) piezas.push({ clave: `a:${id}`, mapa: m, fondo: '#1b112c' });
       }
       if (piezas.length >= 4) break;
     }
     for (const id of AUMENTOS) {
-      if (perfil.vistos.includes(`u:${id}`) || piezas.length < 8) {
+      if (perfil.vistos.includes(`u:${id}`)) {
         const m = aumentoMapa(id);
         if (m) piezas.push({ clave: `u:${id}`, mapa: m, fondo: '#241122' });
       }

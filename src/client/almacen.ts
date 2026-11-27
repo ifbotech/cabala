@@ -14,7 +14,17 @@ const PRE = 'cabala:';
 function leer<T>(clave: string): T | null {
   try {
     const s = localStorage.getItem(PRE + clave);
-    return s ? (JSON.parse(s) as T) : null;
+    if (!s) return null;
+    try {
+      return JSON.parse(s) as T;
+    } catch {
+      try {
+        localStorage.setItem(`${PRE}${clave}:backup`, s);
+      } catch {
+        // sin espacio
+      }
+      return null;
+    }
   } catch {
     return null;
   }
@@ -43,7 +53,48 @@ const preferido = typeof matchMedia === 'function' && matchMedia('(prefers-reduc
 export const ajustes: Ajustes = { idioma: idiomaDe(typeof navigator !== 'undefined' ? navigator.language : 'es'), calma: preferido, sonido: true, musica: true, ...(leer<Partial<Ajustes>>('ajustes') ?? {}) };
 export const guardarAjustes = (): void => escribir('ajustes', ajustes);
 
-export let perfil: Perfil = { ...perfilNuevo(), ...(leer<Perfil>('perfil') ?? {}) };
+function numFinito(v: unknown, def = 0, min = 0): number {
+  return typeof v === 'number' && Number.isFinite(v) && v >= min ? Math.floor(v) : def;
+}
+
+export function sanearPerfil(raw: unknown): Perfil {
+  const base = perfilNuevo();
+  if (!raw || typeof raw !== 'object') return base;
+  const r = raw as Record<string, unknown>;
+  base.porotos = numFinito(r.porotos, base.porotos);
+  base.aprendido = typeof r.aprendido === 'boolean' ? r.aprendido : base.aprendido;
+  if (r.altar && typeof r.altar === 'object') {
+    const a = r.altar as Record<string, unknown>;
+    for (const k of Object.keys(base.altar) as (keyof Perfil['altar'])[]) {
+      base.altar[k] = numFinito(a[k], base.altar[k]);
+    }
+  }
+  if (r.ganado && typeof r.ganado === 'object') {
+    const g = r.ganado as Record<string, unknown>;
+    for (const k of Object.keys(g)) {
+      if (typeof g[k] === 'number' && Number.isFinite(g[k] as number)) {
+        base.ganado[k as MazoId] = Math.max(0, Math.floor(g[k] as number));
+      }
+    }
+  }
+  if (r.stats && typeof r.stats === 'object') {
+    const s = r.stats as Record<string, unknown>;
+    for (const k of Object.keys(base.stats) as (keyof Perfil['stats'])[]) {
+      base.stats[k] = numFinito(s[k], base.stats[k]);
+    }
+  }
+  if (Array.isArray(r.vistos)) {
+    base.vistos = [...new Set(r.vistos.filter((x): x is string => typeof x === 'string'))];
+  }
+  if (Array.isArray(r.cronica)) {
+    base.cronica = r.cronica
+      .filter((x): x is Perfil['cronica'][number] => !!x && typeof x === 'object' && typeof (x as Record<string, unknown>).mazo === 'string')
+      .slice(0, 20);
+  }
+  return base;
+}
+
+export let perfil: Perfil = sanearPerfil(leer<unknown>('perfil'));
 export const guardarPerfil = (): void => escribir('perfil', perfil);
 
 export interface CartaGloria {
@@ -91,7 +142,10 @@ export function usarGlorias(lista: CartaGloria[]): void {
 /** La partida en curso (null si no hay). */
 export function cargarPartida(): Partida | null {
   const p = leer<Partida>('partida');
-  return p && p.v === 1 && p.fase !== 'fin' ? p : null;
+  if (!p || typeof p !== 'object') return null;
+  if (p.v !== 1 || p.fase === 'fin') return null;
+  if (typeof p.mazoId !== 'string' || !Array.isArray(p.mazo) || !Array.isArray(p.tramos) || p.tramos.length === 0) return null;
+  return p;
 }
 export const guardarPartida = (p: Partida | null): void => escribir('partida', p && p.fase !== 'fin' ? p : null);
 
@@ -100,8 +154,33 @@ export function borrarTodo(): void {
   escribir('perfil', null);
   escribir('partida', null);
   escribir('glorias', null);
+  escribir('intros', null);
   perfil = perfilNuevo();
   glorias = [];
+}
+
+/** Exporta el progreso completo en JSON para respaldo manual. */
+export function exportarProgreso(): string {
+  return JSON.stringify({ v: 1, perfil, glorias, ajustes });
+}
+
+/** Importa y valida un respaldo JSON; devuelve false si no es válido. */
+export function importarProgreso(json: string): boolean {
+  try {
+    const data = JSON.parse(json) as Record<string, unknown>;
+    if (!data || typeof data !== 'object' || !data.perfil) return false;
+    perfil = sanearPerfil(data.perfil);
+    guardarPerfil();
+    if (Array.isArray(data.glorias)) {
+      glorias = data.glorias
+        .filter((g): g is CartaGloria => !!g && typeof g === 'object' && typeof (g as CartaGloria).palo === 'string' && typeof (g as CartaGloria).n === 'number')
+        .slice(0, 6);
+      guardarGlorias();
+    }
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** Para la QA: sustituye el perfil en memoria sin tocar lo guardado. */

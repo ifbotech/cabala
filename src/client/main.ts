@@ -35,8 +35,9 @@ ponerMuletillas(() => tx(alAzar(VOZ.muletilla)));
 // para la QA de humo: el estado vivo y el consejo del bot
 (window as unknown as { __cabala?: unknown }).__cabala = { sesion, perfil: () => perfil, mejorGolpe, decidir, pulso, sonados, porForjar, hablaron, musica: estadoMusica, pistas: pistasSonadas };
 
-const qa = new URLSearchParams(location.search).get('qa');
+const params = new URLSearchParams(location.search);
+const qa = params.get('qa');
 if (qa !== null) void import('./qa').then((m) => m.montarQa(qa));
 else irPortada();
 // la forja de fondo: en la QA visual (modo foto) no hace falta
-if (qa === null || new URLSearchParams(location.search).has('vivo')) precargarTodo();
+if (qa === null || params.has('vivo')) precargarTodo();

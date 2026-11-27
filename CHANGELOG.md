@@ -3,6 +3,15 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.90.0 · Progresión, Respaldo, PWA y QA 1.0 (2026-11-26)
+
+Cuarta gran iteración hacia **`v1.0.0`**. *(Reglas, balance certificado, `musica.ts` y `voces.ts` intactos.)*
+
+- **Blindaje de guardado y respaldo (`almacen.ts`, `menu.ts`, `textos.ts`):** `sanearPerfil()` normaliza datos corruptos y respalda lecturas fallidas en `cabala:*:backup`; `cargarPartida()` valida esquema completo; `borrarTodo()` limpia `cabala:intros`; Ajustes suma `Exportar` / `Importar` progreso en JSON.
+- **Bundle split, resize y PWA (`vite.config.ts`, `main.ts`, `escena3d/index.ts`, `index.html`, `manifest.webmanifest`, `camino.ts`):** Chunk separado `vendor-three`, carga diferida de `bot.ts` para QA, `visualViewport` + `esMovil()` dinámico, splash pixel y `<noscript>` en `index.html`, `id` + `maskable` en el manifest y limpieza de `ResizeObserver` al salir de `pantallaFin`.
+- **Pared de la Gloria y Metaprogresión (`cuarto3d.ts`, `menu.ts`, `camino.ts`):** 6 Cartas de Gloria reales sin spoilers; sellos de Reinado (`★ n/8`) y maestría total (`X/40`); Semilla personalizada y Semilla del día (`CABALA-YYYYMMDD`); contadores en Colección; Crónica con hasta 20 partidas desplazables y botón `Repetir`; botón `Copiar resumen` en pantalla final.
+- **Cobertura QA 1.0 (`qa.ts`, `visual-qa.ts`, `puertas.mjs`):** Sumados `cuarto`, `sol-de-mayo`, `duelo-bufon` e `intro-mazo` a `ESTADOS`, toque verificado con `elementFromPoint` en `elige-cinco` y `qa:estabilidad` integrado en `puertas.mjs`.
+
 ## 0.80.0 · Game Feel AAA, Coreografía 3D y Pulso Exacto (2026-11-26)
 
 Tercera gran iteración del plan hacia **`v1.0.0`**. *(Reglas, balance certificado, `musica.ts` y `voces.ts` intactos.)*

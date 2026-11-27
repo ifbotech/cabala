@@ -1606,6 +1606,7 @@ export function pantallaFin(p: Partida): Pantalla {
         <div class="fila fin-botones">
           <b class="fin-hay-mas" aria-hidden="true">${t('hayMas')}</b>
           <button class="btn marco oro grande fin-otra" data-accion="otra" data-foco="otra" data-inicio aria-label="${esc(t('otraManoTip', { m: tx(MAZO[p.mazoId].nombre) }))}">${pxHud('mazo')} ${t('otraManoYa')}</button>
+          <button class="btn marco" data-accion="copiar-fin" data-foco="copiar-fin">${t('copiarResumen')}</button>
           <button class="btn marco" data-accion="altar" data-foco="altar" data-tecla="d">${glifo('Y', 'D')}${t('altar')}</button>
           <button class="btn marco" data-accion="portada" data-foco="portada">${t('portada')}</button>
         </div>
@@ -1620,6 +1621,8 @@ export function pantallaFin(p: Partida): Pantalla {
       // (0.25) en el teléfono el cuadro se desliza: mientras quede algo abajo, la flecha de «hay más» sobre los botones
       const cuadro = $('.fin-cuadro');
       const escena = $('.fin-escena');
+      let obsFin: ResizeObserver | null = null;
+      let mirarFin: (() => void) | null = null;
       if (cuadro && escena) {
         const mirar = (): void => {
           escena.classList.toggle('hay-mas', cuadro.scrollHeight - cuadro.scrollTop - cuadro.clientHeight > 8);
@@ -1628,13 +1631,26 @@ export function pantallaFin(p: Partida): Pantalla {
           const corte = cuadro.querySelector<HTMLElement>('.fin-corte');
           escena.classList.toggle('corrida', !!corte && corte.getBoundingClientRect().top < cuadro.getBoundingClientRect().top - 8);
         };
+        mirarFin = mirar;
         cuadro.addEventListener('scroll', mirar, { passive: true });
         // (las cifras y los naipes se pintan un poco después: el alto cambia y se vuelve a mirar)
         const panel = cuadro.querySelector('.fin-panel');
-        if (panel) new ResizeObserver(mirar).observe(panel);
+        if (panel) {
+          obsFin = new ResizeObserver(mirar);
+          obsFin.observe(panel);
+        }
         mirar();
         requestAnimationFrame(mirar);
       }
+      (window as unknown as { __finCleanup?: () => void }).__finCleanup = () => {
+        obsFin?.disconnect();
+        if (cuadro && mirarFin) cuadro.removeEventListener('scroll', mirarFin);
+      };
+    },
+    alSalir: () => {
+      const w = window as unknown as { __finCleanup?: () => void };
+      w.__finCleanup?.();
+      delete w.__finCleanup;
     },
     acciones: {
       // OTRA MANO YA: otra partida con el mismo Mazo y el mismo Reinado, sin pasar por la elección
@@ -1642,6 +1658,12 @@ export function pantallaFin(p: Partida): Pantalla {
         const { mazoId, reinado } = p;
         sesion.partida = null;
         empezar(mazoId, reinado);
+      },
+      'copiar-fin': (el) => {
+        const txt = `CÁBALA · ${tx(MAZO[p.mazoId].nombre)} · ${t('reinado', { n: p.reinado })} · ${gano ? t('gano') : t('cayo', { n: Math.min(3, p.acto + 1) })} · ${t('mejorGolpe')} ${s.mejorGolpe} · ${p.semilla}`;
+        void navigator.clipboard?.writeText(txt).catch(() => undefined);
+        el.textContent = t('copiado');
+        sonar('clic');
       },
       altar: () => {
         sesion.partida = null;

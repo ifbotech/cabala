@@ -53,6 +53,7 @@ export const ESTADOS = [
   'mesa-pega-todo', 'mesa-maldicion', 'mesa-garrote', 'mesa-limpia',
   'mesa-sol', 'mesa-chinchon', 'mesa-chancho',
   'pulperia-evoluciona',
+  'cuarto', 'sol-de-mayo', 'duelo-bufon', 'intro-mazo',
 ] as const;
 export type EstadoQa = (typeof ESTADOS)[number];
 /** Estados que solo tienen sentido en vivo (`&vivo`, para las secuencias del Jurado): no entran en la QA visual. */

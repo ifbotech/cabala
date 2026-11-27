@@ -826,7 +826,94 @@ button.visor-carta:disabled {
   flex-direction: column;
   gap: calc(var(--u) * 0.5);
   padding: calc(var(--u) * 0.5) var(--u);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.md-sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.md-acciones {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+@media (min-width: 701px) {
+  .coleccion .pestanas {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .coleccion .pestanas .btn {
+    padding-inline: 8px;
+    white-space: nowrap;
+  }
+}
+@media (max-width: 700px) {
+  .md-sub {
+    justify-content: center;
+    gap: 6px 10px;
+  }
+  .cr-fila {
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding: 4px 6px;
+    font-size: 14px;
+    line-height: 1.15;
+  }
+  .cr-cara {
+    width: 34px;
+    height: 34px;
+  }
+  .cr-texto {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .cr-texto b,
+  .cr-texto .sub {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cr-porotos {
+    flex: none;
+  }
+  .cr-repetir {
+    flex: none;
+    padding: 4px 6px;
+  }
+}
+.aj-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--u);
+  width: min(92vw, 460px);
+}
+.aj-input,
+.aj-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--abismo);
+  color: var(--tinta);
+  border: 2px solid var(--hierro);
+  padding: 6px 8px;
+  font-family: var(--cuerpo);
+  font-size: 14px;
+}
+.aj-textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+.intro-mazo .cabecera .lado {
+  min-width: 0;
+}
+.intro-mazo .cabecera .sub,
+.intro-mazo .cabecera .btn {
+  flex: none;
+  white-space: nowrap;
 }
 .cr-fila {
   display: flex;
@@ -5503,8 +5590,8 @@ main.fogon.forjando [data-accion='seguir'] {
 }
 @media (max-width: 700px) {
   .elegir .mazo-detalle {
-    height: 408px;
-    min-height: 408px;
+    height: 452px;
+    min-height: 452px;
     padding-top: 10px;
     padding-bottom: 10px;
     gap: 6px;

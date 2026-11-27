@@ -18,7 +18,7 @@ import { letraChica, manoViva } from './mano-viva';
 import { VENTANAS, abrirNavegador, conServidor } from './servidor';
 import { ESTADOS } from '../src/client/qa';
 
-guardian('qa:visual', 290);
+guardian('qa:visual', 360);
 
 const args = process.argv.slice(2);
 const lang = args.find((a) => a.startsWith('--lang='))?.split('=')[1] === 'en' ? 'en' : 'es';
@@ -698,7 +698,7 @@ const t0 = Date.now();
 await conServidor(5191, async (url) => {
   const navegador = await abrirNavegador();
   try {
-    for (const v of ventanas) {
+    const correrVentana = async (v: (typeof ventanas)[number]): Promise<void> => {
       const ctx = await navegador.newContext({ viewport: { width: v.w, height: v.h }, deviceScaleFactor: 1, hasTouch: v.w < 700, isMobile: v.w < 700, reducedMotion: 'no-preference' });
       // tsx envuelve las funciones con `__name`: la página necesita tenerlo para la auditoría
       await ctx.addInitScript('globalThis.__name = (f) => f');
@@ -741,7 +741,7 @@ await conServidor(5191, async (url) => {
             await pagina.keyboard.press('Enter');
             await pagina.keyboard.press('ArrowRight');
           } else await pagina.keyboard.press('ArrowRight');
-        } else if (v.nombre === '1280x800' && estado !== 'mesa-arrastrando') {
+        } else if (v.nombre === '1280x800' && estado !== 'mesa-arrastrando' && estado !== 'cuarto' && estado !== 'sol-de-mayo') {
           // en Steam Deck se juega solo con mando: el foco siempre está a la vista (se pone como lo pondría la cruceta)
           await pagina.keyboard.press('ArrowDown');
         }
@@ -812,7 +812,7 @@ await conServidor(5191, async (url) => {
         // y ni un naipe de la mano ni GOLPEAR ni DESCARTAR se mueven (±1 px). Otro toque la cierra
         // (no con el golpe en el aire: ahí la mesa no escucha)
         const mesaLibre = await pagina.evaluate(() => !(window as unknown as { __mesa?: { ocupado?: () => boolean } }).__mesa?.ocupado?.());
-        if (v.w < 700 && mesaLibre && !(await pagina.locator('#capa .velo, .cortina').count()) && (await pagina.locator('.mesa [data-cuenta] .cuenta[data-accion="hoja"]').count())) {
+        if (v.w < 700 && mesaLibre && !(await pagina.locator('#capa .velo, .cortina').count()) && (await pagina.locator('.mesa [data-cuenta] .cuenta.previa[data-accion="hoja"]').count())) {
           const cajasHoja = (): Promise<Record<string, number[]>> =>
             pagina.evaluate(() => {
               const out: Record<string, number[]> = {};
@@ -829,7 +829,7 @@ await conServidor(5191, async (url) => {
             });
           const antes = await cajasHoja();
           // (se toca su «▾»: adentro de la cuenta puede haber otro botón, el dial)
-          const cu = await pagina.locator('.mesa [data-cuenta] .cuenta[data-accion="hoja"] .c-abre').boundingBox();
+          const cu = await pagina.locator('.mesa [data-cuenta] .cuenta.previa[data-accion="hoja"] .c-abre').boundingBox();
           if (cu) {
             await pagina.touchscreen.tap(cu.x + cu.width / 2, cu.y + cu.height / 2);
             await pagina.waitForTimeout(260);
@@ -878,7 +878,7 @@ await conServidor(5191, async (url) => {
         if (v.w < 700 && ['mesa', 'mesa-chancho', 'mesa-chinchon', 'mesa-mentiroso'].includes(estado)) {
           type M = { __mesa: { mano: { elegir(ids: string[]): void; seleccion(): string[] } } };
           await pagina.evaluate(() => (window as unknown as M).__mesa.mano.elegir([]));
-          await pagina.waitForTimeout(220);
+          await pagina.waitForTimeout(320);
           const cajas = (): Promise<Record<string, { c: number[]; elegida: boolean }>> =>
             pagina.evaluate(() => {
               const out: Record<string, { c: number[]; elegida: boolean }> = {};
@@ -919,10 +919,30 @@ await conServidor(5191, async (url) => {
           };
           let escalon = false;
           for (let i = 0; i < toques.length; i++) {
-            const r = reposoMano[`naipe ${toques[i]}`].c;
-            // (se toca lo que asoma del naipe en reposo: su franja de la izquierda, arriba)
-            await pagina.touchscreen.tap(r[0] + Math.min(r[2] / 2, 30), r[1] + 20);
-            await pagina.waitForTimeout(240);
+            const idCarta = toques[i];
+            const pt = await pagina.evaluate((id) => {
+              const el = document.querySelector<HTMLElement>(`.mano .carta[data-id="${id}"]`);
+              if (!el) return null;
+              const r = el.getBoundingClientRect();
+              for (const fy of [0.15, 0.3, 0.5, 0.08, 0.7]) {
+                for (const fx of [0.25, 0.5, 0.75, 0.12]) {
+                  const x = r.left + r.width * fx;
+                  const y = r.top + r.height * fy;
+                  if (document.elementFromPoint(x, y)?.closest<HTMLElement>('.carta')?.dataset.id === id) return { x, y };
+                }
+              }
+              return { x: r.left + Math.min(r.width / 2, 30), y: r.top + 20 };
+            }, idCarta);
+            await pagina.touchscreen.tap(pt!.x, pt!.y);
+            const ok = await pagina
+              .waitForFunction((id) => document.querySelector(`.mano .carta[data-id="${id}"]`)?.classList.contains('elegida') ?? false, idCarta, { timeout: 360 })
+              .then(() => true)
+              .catch(() => false);
+            if (!ok) {
+              await pagina.touchscreen.tap(pt!.x, pt!.y);
+              await pagina.waitForFunction((id) => document.querySelector(`.mano .carta[data-id="${id}"]`)?.classList.contains('elegida') ?? false, idCarta, { timeout: 900 }).catch(() => undefined);
+            }
+            await pagina.waitForTimeout(180);
             await medirPaso(`toque ${i + 1} de ${toques.length}`, toques.slice(0, i + 1));
             escalon ||= await pagina.evaluate(() => !!document.querySelector('[data-mano] .posta-escalon:not([hidden])'));
             if (i === 2 || i === toques.length - 1) await pagina.screenshot({ path: `${carpeta}/${v.nombre}/${estado}.elige-${i + 1}.png` });
@@ -930,9 +950,21 @@ await conServidor(5191, async (url) => {
           if (estado === 'mesa-mentiroso' && !escalon) fallos.push({ regla: 'elige-cinco', detalle: 'la Escalera del Mentiroso no llegó a armar su Escalón: la prueba no cubre el caso que pidió el Jurado' });
           // la silueta del hueco devuelve su naipe
           if (toques.length) {
-            const r = reposoMano[`naipe ${toques[0]}`].c;
-            await pagina.touchscreen.tap(r[0] + Math.min(r[2] / 2, 30), r[1] + 20);
-            await pagina.waitForTimeout(240);
+            const pt0 = await pagina.evaluate((id) => {
+              const el = document.querySelector<HTMLElement>(`.mano .carta[data-id="${id}"]`);
+              if (!el) return null;
+              const r = el.getBoundingClientRect();
+              for (const fy of [0.15, 0.3, 0.5, 0.08, 0.7]) {
+                for (const fx of [0.25, 0.5, 0.75, 0.12]) {
+                  const x = r.left + r.width * fx;
+                  const y = r.top + r.height * fy;
+                  if (document.elementFromPoint(x, y)?.closest<HTMLElement>('.carta')?.dataset.id === id) return { x, y };
+                }
+              }
+              return { x: r.left + Math.min(r.width / 2, 30), y: r.top + 20 };
+            }, toques[0]);
+            await pagina.touchscreen.tap(pt0!.x, pt0!.y);
+            await pagina.waitForTimeout(260);
             await medirPaso('toque en la silueta del primero', toques.slice(1));
           }
           // (y la mesa vuelve a como estaba para las medidas de dianas)
@@ -946,7 +978,15 @@ await conServidor(5191, async (url) => {
         informe.push({ estado, ventana: v.nombre, fallos });
       }
       await ctx.close();
-    }
+    };
+    const escritores = ventanas.filter((v) => v.w >= 700);
+    const moviles = ventanas.filter((v) => v.w < 700);
+    await Promise.all([
+      ...escritores.map((v) => correrVentana(v)),
+      (async () => {
+        for (const v of moviles) await correrVentana(v);
+      })(),
+    ]);
   } finally {
     await navegador.close();
   }

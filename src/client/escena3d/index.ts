@@ -40,7 +40,9 @@ class Motor3D {
   private punteroX = 0;
   private punteroY = 0;
   congeladoMs = 0;
-  private readonly esMovil = window.innerWidth < 700;
+  private esMovil(): boolean {
+    return window.innerWidth < 700;
+  }
 
   constructor(canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({
@@ -57,7 +59,7 @@ class Motor3D {
     this.renderer.toneMappingExposure = 1.15;
 
     this.camara = new CamaraPulperia(window.innerWidth / Math.max(1, window.innerHeight));
-    this.mundo = new MundoPulperia(this.escena, this.esMovil);
+    this.mundo = new MundoPulperia(this.escena, this.esMovil());
     this.cartas = new SincroCartas3D(this.escena);
     this.bufon = new Bufon3D(this.escena);
     this.chiches = new Chiches3D(this.escena);
@@ -67,9 +69,11 @@ class Motor3D {
     this.solDeMayo = new CaminoSolDeMayo3D(this.escena);
     this.reyes = new Reyes3D(this.escena);
     this.heroes = new Heroes3D(this.escena);
-    this.renderer.compile(this.escena, this.camara.cam);
+    const sp = new URLSearchParams(location.search);
+    if (!sp.has('qa') || sp.has('vivo')) this.renderer.compile(this.escena, this.camara.cam);
 
     window.addEventListener('resize', () => this.redimensionar());
+    window.visualViewport?.addEventListener('resize', () => this.redimensionar());
     window.addEventListener(
       'pointermove',
       (ev) => {

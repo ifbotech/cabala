@@ -18,6 +18,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="canonical" href="https://ifbotech.github.io/cabala/" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="apple-touch-icon" href="./icono-192.png" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <style>
       html,
@@ -26,12 +27,23 @@
         height: 100%;
         background: #09070f;
       }
+      .cargando-cabala {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        color: #ffd23f;
+        font-family: monospace;
+        font-size: 14px;
+        letter-spacing: 0.16em;
+      }
     </style>
   </head>
   <body>
     <canvas id="fondo" aria-hidden="true"></canvas>
     <canvas id="escena-3d" aria-hidden="true"></canvas>
-    <div id="app"></div>
+    <div id="app"><div class="cargando-cabala">CÁBALA</div></div>
+    <noscript><p style="color:#efe6d5;font-family:monospace;text-align:center;padding:24px">CÁBALA necesita JavaScript para abrir la pulpería.</p></noscript>
     <div id="capa"></div>
     <canvas id="fx-color" aria-hidden="true"></canvas>
     <canvas id="fx-luz" aria-hidden="true"></canvas>

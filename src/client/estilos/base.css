@@ -1309,6 +1309,9 @@ button.hud-tiras .ficha {
     calc(-4px * var(--k)) calc(4px * var(--k)) 0 var(--oro),
     0 calc(8px * var(--k)) 0 var(--oro);
 }
+html.modo-3d .bocadillo::after {
+  display: none;
+}
 
 /* ───────────── 0.15.0 · Deck de verdad ───────────── */
 

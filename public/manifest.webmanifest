@@ -2,6 +2,7 @@
   "name": "CÁBALA",
   "short_name": "CÁBALA",
   "description": "Roguelike de baraja española en pixel-art oscuro. · A Spanish-Deck Roguelike.",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
@@ -17,7 +18,8 @@
     {
       "src": "icono-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "favicon.svg",
