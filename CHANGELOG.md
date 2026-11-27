@@ -3,6 +3,12 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 1.5.0 · Pulido Píxel a Píxel: Elegir Mazo 1080p, Bufón Móvil, Piezas y Sellos (2026-11-27)
+
+- **Elegir Mazo `1920×1080` (`pantallas.css`):** Amplía `.mazo-detalle` a `152px` con relleno vertical para que el título del Mazo no roce el borde superior.
+- **Encuadre del Bufón 3D en móvil (`bufon3d.ts`):** Ajusta escala y desplazamiento vertical en `.fin-bufon` y `.elegir` móvil para despejar el título `LA CORTE CAYÓ`, el retrato partido y el borde superior.
+- **Mesa `1920×1080` y `Lo que llevás` (`mesa.css`, `pantallas.css`):** Mayor aire inferior bajo `.mesa .e-sellos` (`10px`) y degradado/aire inferior en `.panel.piezas.hay-mas .rollo` sobre `HAY MÁS ↓`.
+
 ## 1.4.0 · Pulido Píxel a Píxel: Crónica, Prenda y QA Visual EN (2026-11-27)
 
 - **Crónica móvil y escritorio (`pantallas.css`):** Grilla de dos filas en `.cr-fila` móvil para leer mazo, Reinado, tramo, mejor golpe y semilla sin truncamiento ni `...`; aire vertical sobre el Bufón debajo de la placa de trofeo en escritorio.

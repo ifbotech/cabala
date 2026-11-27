@@ -7975,6 +7975,9 @@ html.modo-3d .pulperia .pul-bufon::after {
   html[data-entrada='mando'] .mesa .mesa-top .lado:last-child {
     gap: 10px;
   }
+  .mesa .e-sellos {
+    margin-bottom: 10px;
+  }
 }
 @media (max-width: 700px) {
   .mano .carta.rotulo-canto:not(.elegida) .c-rotulo {

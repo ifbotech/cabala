@@ -5575,8 +5575,10 @@ main.fogon.forjando [data-accion='seguir'] {
     height: 100px;
   }
   .elegir .mazo-detalle {
-    height: 132px;
-    min-height: 132px;
+    height: 152px;
+    min-height: 152px;
+    padding-top: 8px;
+    padding-bottom: 8px;
   }
   .elegir .reinado {
     height: 68px;
@@ -6524,4 +6526,11 @@ html[data-entrada='mando'] .forja-mut {
     padding: 4px 8px;
     min-height: 44px;
   }
+}
+
+/* ───────────── 1.5.0 · pulido píxel a píxel ───────────── */
+.panel.piezas.hay-mas .rollo {
+  padding-bottom: 48px;
+  -webkit-mask-image: linear-gradient(#000 calc(100% - 44px), transparent 100%);
+  mask-image: linear-gradient(#000 calc(100% - 44px), transparent 100%);
 }
