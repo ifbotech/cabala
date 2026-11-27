@@ -6534,3 +6534,18 @@ html[data-entrada='mando'] .forja-mut {
   -webkit-mask-image: linear-gradient(#000 calc(100% - 44px), transparent 100%);
   mask-image: linear-gradient(#000 calc(100% - 44px), transparent 100%);
 }
+
+/* ───────────── 1.6.0 · Pulpería 768p ───────────── */
+@media (min-width: 701px) and (max-height: 820px) {
+  .pulperia .bandejas {
+    gap: 6px;
+  }
+  .pulperia .venta:not(.hierro):has(.sinergia-caja.evoluciona) {
+    padding: 4px 8px;
+    row-gap: 2px;
+  }
+  .pulperia .venta:not(.hierro):has(.sinergia-caja.evoluciona) .sinergia-caja.evoluciona {
+    padding: 4px 6px;
+    gap: 1px;
+  }
+}

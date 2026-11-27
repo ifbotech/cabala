@@ -1,6 +1,6 @@
 {
   "name": "cabala",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "private": true,
   "description": "CÁBALA — roguelike de baraja española en pixel-art oscuro: Daño × Multi, 5 Mazos, 4 Reyes y el Bufón chanta",
   "type": "module",

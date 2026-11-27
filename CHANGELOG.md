@@ -3,6 +3,12 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 1.6.0 · Pulido Píxel a Píxel: Mutación sobre Temple, HUD 360px y Pulpería 768p (2026-11-27)
+
+- **Naipes templados + mutados (`mesa.css`):** Eleva `.c-mutacion` a `24px` cuando hay `.c-temple` para que el sello de mutación no quede tapado por `+16 ★ ×2`.
+- **HUD estrecho `360px` (`mesa.css`):** Mayor separación horizontal entre Escudo y Oro en pantallas angostas (`<= 380px`).
+- **Pulpería `768p` (`pantallas.css`):** Compacta las bandejas y tarjetas con caja de Evolución en altura `<= 820px` para despejar Servicios y Chiches.
+
 ## 1.5.0 · Pulido Píxel a Píxel: Elegir Mazo 1080p, Bufón Móvil, Piezas y Sellos (2026-11-27)
 
 - **Elegir Mazo `1920×1080` (`pantallas.css`):** Amplía `.mazo-detalle` a `152px` con relleno vertical para que el título del Mazo no roce el borde superior.

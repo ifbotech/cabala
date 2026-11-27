@@ -100,7 +100,7 @@ export function encajarDesglose(o: { bajo: HTMLElement; cu: HTMLElement; izq: nu
     };
   } else {
     bajo.style.height = `${Math.round(tope)}px`;
-    bajo.style.width = `${Math.max(220, Math.round((izq !== null ? izq : zonaDer) - zonaIzq - x - 12))}px`;
+    bajo.style.width = `${Math.max(220, Math.round((izq !== null ? izq : zonaDer) - zonaIzq - x - 20))}px`;
     const mTop = parseFloat(getComputedStyle(bajo).marginTop) || 0;
     const altoHijos = (): number => {
       const vis = [...bajo.children].filter((el) => (el as HTMLElement).offsetHeight > 0) as HTMLElement[];

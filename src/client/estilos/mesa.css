@@ -7986,3 +7986,25 @@ html.modo-3d .pulperia .pul-bufon::after {
     line-height: 1;
   }
 }
+
+/* ───────────── 1.6.0 · pulido píxel a píxel ───────────── */
+.carta:has(.c-temple) .c-mutacion {
+  bottom: calc(24px * var(--k-naipe, 1));
+}
+@media (max-width: 380px) {
+  .hud-lado.izq {
+    gap: 4px;
+    justify-content: space-between;
+    padding-inline: 2px;
+  }
+  .hud-lado.izq > .hud-pozo {
+    flex: 1 1 auto;
+  }
+  .hud-lado.izq > .hud-vida {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+  .hud .hud-pozo .valor {
+    gap: 2px;
+  }
+}
