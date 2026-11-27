@@ -206,6 +206,7 @@ await conServidor(5192, async (url) => {
     exigir(await p.locator('[data-cuenta] .cuenta:not(.reposo)').count(), 'al elegir una carta no aparece la cuenta');
     await p.keyboard.press('Enter');
     exigir((await p.locator('[data-cuenta] .cuenta:not(.reposo)').count()) === 0, 'en reposo la cuenta no se calla');
+    await p.waitForTimeout(280);
     ok('teclado: Enter elige y suelta; la cuenta DAÑO × MULTI aparece y se calla');
 
     // arrastrar al descarte

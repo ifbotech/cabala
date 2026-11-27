@@ -26,6 +26,7 @@ Registro vivo del Estudio Autónomo. Cada versión se audita con lupa adversaria
 | **P. Pulso 3-3-2 y detalles finales 3D (Rev. 5/5)** | Sincronización de `Bufon3D`, `Reyes3D` y `Heroes3D` al pulso `3-3-2` (`armoniaActual()`), bocina del Fonógrafo orientada al jugador, llamas animadas en Crónica/Altar y QA visual ES/EN completo | **Completado (`v0.58.0`)** |
 | **Q. Cirugía de Reglas, Balance y Duelo (Rumbo a `v1.0.0`, 1/5)** | Comodín inteligente, `4+1` póker, `valorCarta()` protector de Bravas, `al pelo` preciso, Pactos Duales y economía ajustados, Reinados 6–8 proporcionales/tácticos, agencia real en `dueloBufon.ts` y `analyze:meta` certificado con **0 avisos** | **Completado (`v0.60.0`)** |
 | **R. UX, Simpleza Radical e i18n Completa (Rumbo a `v1.0.0`, 2/5)** | `chips.ts` sin truncamientos ni códigos `/S/C/D/H` y colores semánticos, `dueloBufon.ts` 100 % ES/EN + foco, `modalMenu` con ajustes rápidos y reinicio, `cabala-negra` despejado, `inert` en modales y limpieza de mesa/mapa móvil | **Completado (`v0.70.0`)** |
+| **S. Game Feel AAA, Coreografía 3D y Pulso (Rumbo a `v1.0.0`, 3/5)** | Conteo sin desfase, hitstop 2D/3D limpio, adiós Rey zombi 3D y Segunda Cara 3D con onda, Cantos/Exacto/Evolución/quiebre de Escudo, Fogón 3D reactivo, fase `'revelando'` en `dueloBufon.ts` y clímax musical en Sol de Mayo | **Completado (`v0.80.0`)** |
 
 ---
 

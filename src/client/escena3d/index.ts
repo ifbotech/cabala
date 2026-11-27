@@ -39,6 +39,7 @@ class Motor3D {
   private ultimaPantalla = 'portada';
   private punteroX = 0;
   private punteroY = 0;
+  congeladoMs = 0;
   private readonly esMovil = window.innerWidth < 700;
 
   constructor(canvas: HTMLCanvasElement) {
@@ -66,6 +67,7 @@ class Motor3D {
     this.solDeMayo = new CaminoSolDeMayo3D(this.escena);
     this.reyes = new Reyes3D(this.escena);
     this.heroes = new Heroes3D(this.escena);
+    this.renderer.compile(this.escena, this.camara.cam);
 
     window.addEventListener('resize', () => this.redimensionar());
     window.addEventListener(
@@ -125,6 +127,7 @@ class Motor3D {
         return 'explorar';
       case 'sol-de-mayo':
         return 'sol-de-mayo';
+      case 'elegir-mazo':
       case 'mazo':
         return 'mazos';
       case 'mesa':
@@ -146,6 +149,10 @@ class Motor3D {
         return 'cronica';
       case 'ajustes':
         return 'ajustes';
+      case 'fin-victoria':
+        return 'amanecer';
+      case 'fin-derrota':
+        return 'ocaso';
       case 'fin':
         return sesion.partida?.fin?.victoria ? 'amanecer' : 'ocaso';
       default:
@@ -154,6 +161,8 @@ class Motor3D {
   }
 
   private escenaDePantalla(pantalla: string): Escena {
+    if (pantalla === 'fin-victoria') return 'amanecer';
+    if (pantalla === 'fin-derrota') return 'ocaso';
     if (pantalla === 'fin') return sesion.partida?.fin?.victoria ? 'amanecer' : 'ocaso';
     if (pantalla === 'pulperia') return 'pulperia';
     if (pantalla === 'fogon') return 'fogon';
@@ -188,23 +197,26 @@ class Motor3D {
   }
 
   private paso(dt: number): void {
-    const quieto = this.foto || ajustes.calma;
+    const congelado = this.congeladoMs > 0 && !this.foto && !ajustes.calma;
+    if (congelado) this.congeladoMs = Math.max(0, this.congeladoMs - dt * 1000);
+    const quieto = this.foto || ajustes.calma || congelado;
+    const dtAnim = quieto ? 0 : dt;
     if (!quieto) this.reloj += dt;
 
     const p = sesion.partida;
     const cartaF = p?.fogonCarta ? p.mazo.find((k) => k.id === p.fogonCarta) : undefined;
     const infoCartaF = cartaF && cartaF.palo !== 'X' ? { palo: cartaF.palo, rango: cartaF.n } : undefined;
     this.mundo.sincronizarPartida(p?.mazoId, p?.combate?.mazo.length, p?.oro);
-    this.mundo.actualizar(dt, quieto);
-    this.camara.actualizar(dt, quieto);
-    this.cartas.sincronizar(this.camara.cam, p?.mazoId ?? 'escoba', dt, quieto, this.punteroX, this.punteroY, this.reloj);
-    this.bufon.sincronizar(this.camara.cam, dt, quieto, this.punteroX, this.punteroY, this.reloj);
-    this.chiches.sincronizar(this.camara.cam, dt, quieto, this.reloj);
-    this.escenarios.actualizar(this.camara.cam, dt, quieto, this.reloj, p?.mazoId ?? 'escoba', infoCartaF);
-    this.cuarto.actualizar(dt, quieto, this.reloj, this.rinconResaltado, this.camara.cam.position);
-    this.solDeMayo.actualizar(dt, quieto, this.reloj);
-    this.reyes.sincronizar(this.camara.cam, dt, quieto, this.reloj);
-    this.heroes.sincronizar(this.camara.cam, quieto, this.reloj);
+    this.mundo.actualizar(dtAnim, quieto);
+    this.camara.actualizar(dtAnim, quieto);
+    this.cartas.sincronizar(this.camara.cam, p?.mazoId ?? 'escoba', dtAnim, quieto, this.punteroX, this.punteroY, this.reloj);
+    this.bufon.sincronizar(this.camara.cam, dtAnim, quieto, this.punteroX, this.punteroY, this.reloj);
+    this.chiches.sincronizar(this.camara.cam, dtAnim, quieto, this.reloj);
+    this.escenarios.actualizar(this.camara.cam, dtAnim, quieto, this.reloj, p?.mazoId ?? 'escoba', infoCartaF);
+    this.cuarto.actualizar(dtAnim, quieto, this.reloj, this.rinconResaltado, this.camara.cam.position);
+    this.solDeMayo.actualizar(dtAnim, quieto, this.reloj);
+    this.reyes.sincronizar(this.camara.cam, dtAnim, quieto, this.reloj);
+    this.heroes.sincronizar(this.camara.cam, dtAnim, quieto, this.reloj);
     this.renderer.render(this.escena, this.camara.cam);
   }
 
@@ -267,6 +279,19 @@ export const poderRey3d = (palo: Palo): void => {
   motor.mundo.fogonazoCandil(1.4);
   motor.camara.sacudir(1.0);
 };
+export const transformarSegunda3d = (palo: Palo): void => {
+  if (!motor) return;
+  motor.reyes.transformarSegunda(motor.camara.cam, palo);
+  motor.mundo.fogonazoCandil(1.4);
+  motor.camara.sacudir(0.85);
+};
+export const congelar3d = (ms: number): void => {
+  if (motor && !ajustes.calma) motor.congeladoMs = Math.max(motor.congeladoMs, ms);
+};
+export const descongelar3d = (): void => {
+  if (motor) motor.congeladoMs = 0;
+};
+export const avivarFuego3d = (nivel: number): void => motor?.escenarios.avivarFogon(nivel);
 export const modoFoto3d = (si: boolean): void => motor?.ponerModoFoto(si);
 export const marcarSucio3d = (): void => motor?.marcarSucio();
 export const forzarCuadro3d = (): void => motor?.forzarCuadro();

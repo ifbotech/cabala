@@ -32,6 +32,11 @@ export class Escenarios3D {
   private readonly rayo = new THREE.Vector3();
   private mazoCartaFogon: MazoId = 'escoba';
   private claveCartaFogon = '';
+  private intensidadFuego = 0;
+
+  avivarFogon(nivel: number): void {
+    this.intensidadFuego = Math.max(0, Math.min(1.5, nivel));
+  }
 
   constructor(escenaThree: THREE.Scene) {
     this.construirMapa();
@@ -461,24 +466,26 @@ export class Escenarios3D {
       const hayFuego = Boolean(document.querySelector('.fogon .fuego'));
       this.cartaFogon.visible = hayFuego;
       if (!quieto) {
+        this.intensidadFuego = Math.max(0, this.intensidadFuego - dt * 0.45);
+        const aviva = this.intensidadFuego;
         const pul = Math.sin(reloj * 9.5) * 0.12 + Math.cos(reloj * 14.3) * 0.08;
-        this.luzFogon.intensity = 20 + pul * 16;
-        this.matBrasa.emissiveIntensity = 1.3 + pul * 0.55;
+        this.luzFogon.intensity = 20 + pul * 16 + aviva * 22;
+        this.matBrasa.emissiveIntensity = 1.3 + pul * 0.55 + aviva * 1.1;
         this.llamas.forEach((ll, i) => {
-          const f = 1 + Math.sin(reloj * (10 + i * 3.1) + i) * 0.18;
+          const f = (1 + Math.sin(reloj * (10 + i * 3.1) + i) * 0.18) * (1 + aviva * 0.55);
           const baseScale = i === 0 ? 2.51 : i === 1 ? 2.96 : i === 2 ? 3.67 : 2.6;
           ll.scale.set((i >= 3 ? 0.85 : 1) + Math.cos(reloj * 8 + i) * 0.09, baseScale * f, i >= 3 ? 0.85 : 1);
           if (i < 3) ll.rotation.y += dt * (1.2 + i * 0.5);
         });
         this.chispasFogon.forEach((ch, i) => {
-          ch.position.y += dt * (0.38 + (i % 3) * 0.14);
+          ch.position.y += dt * (0.38 + aviva * 0.45 + (i % 3) * 0.14);
           if (ch.position.y > 1.38) ch.position.y = 0.62;
           ch.position.x = Math.cos(i * 1.4 + reloj * 1.6) * 0.24;
         });
         if (hayFuego) {
           this.cartaFogon.position.y = 1.52 + Math.sin(reloj * 2.6) * 0.05;
           this.cartaFogon.rotation.y = Math.sin(reloj * 1.4) * 0.16;
-          this.cartaFogon.rotation.z = Math.sin(reloj * 16) * 0.015;
+          this.cartaFogon.rotation.z = Math.sin(reloj * (16 + aviva * 26)) * (0.015 + aviva * 0.09);
         }
       } else {
         this.luzFogon.intensity = 20;

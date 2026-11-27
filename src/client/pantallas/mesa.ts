@@ -21,10 +21,10 @@ import { ajustes, alAzar, guardarPerfil, idioma, perfil, t, tx } from '../almace
 import { agacharMusica, nota, sonar } from '../audio';
 import { cantar, estadoCombate, ponerFuego, remateMusica, stinger } from '../musica';
 import { teclear } from '../habla';
-import { estallidoPalo3d, marcarSucio3d, partirEnemigo3d, poderRey3d } from '../escena3d';
+import { escena3dActiva, estallidoPalo3d, fogonazo3d, marcarSucio3d, partirEnemigo3d, poderRey3d, sacudirCamara3d, transformarSegunda3d } from '../escena3d';
 import { RAMPA_CURA, RAMPA_ESCUDO, RAMPA_GOLPE, RAMPA_PALO, chispas, destello, haloRey, limpiarNumeros, lluviaDeMonedas, monedas, motas, numero, partirNaipe, quiebre, tajo, tajoDeReves, type Carril } from '../fx/efectos';
 import { alCeder, cajaDe, pisan, reservar, soltar as soltarTurno, tomadas, ubicar } from '../fx/director';
-import { S, congelar, enFoto, fogonazoCandil, ponerClima, sacudir } from '../fx/motor';
+import { S, congelar, descongelar, enFoto, fogonazoCandil, ponerClima, sacudir } from '../fx/motor';
 import { actualizarTiras, avivarRetrato, cargaQue, deltaHud, nombreCarga, dispararFicha, gestoFijo, gestoRetrato, gritar, hudHtml, mirarHacia, ponerHud, poseRetrato, reubicarGrito, vistaDe, type VistaHud } from '../hud';
 import { guardar, pintarFase } from '../juego';
 import { crearMano, type Mano, type Zona } from '../mano';
@@ -151,10 +151,15 @@ export function pantallaMesa(p: Partida): Pantalla {
       });
     }
     if (!enFoto()) cantar('bufon', texto);
-    gestoBufon($('.esc-bufon')!, gesto);
+    const bufonEl = $('.esc-bufon')!;
+    gestoBufon(bufonEl, gesto);
+    const caraEl = $('.esc-bufon .bufon');
+    caraEl?.classList.add('habla');
+    if (!enFoto()) window.setTimeout(() => caraEl?.classList.remove('habla'), 1200);
     if (ms > 0 && !enFoto()) vozReloj = window.setTimeout(() => {
       b.hidden = true;
-      gestoBufon($('.esc-bufon')!, p.afinidad <= -2 ? 'sombria' : 'reposo');
+      caraEl?.classList.remove('habla');
+      gestoBufon(bufonEl, p.afinidad <= -2 ? 'sombria' : 'reposo');
     }, ms);
   }
   const voz = (lista: readonly { es: string; en: string }[], gesto: Expresion = 'reposo') => decir(tx(alAzar(lista, enFoto() ? 0 : undefined)), gesto);
@@ -1150,16 +1155,37 @@ export function pantallaMesa(p: Partida): Pantalla {
           break;
         }
         case 'canto': {
-          // (0.26) Chancho Va: el Póker canta a lo grande (fogonazo de oro, la escena tiembla, lluvia de chispas); la
-          // Pierna también canta ¡CHANCHO!, un escalón menos (un temblor chico, menos chispas, el canto más chico)
           const chancho = p.mazoId === 'chancho' ? (q?.jugada === 'poker' ? 2 : q?.jugada === 'pierna' ? 1 : 0) : 0;
           cantoMenor = chancho === 1;
           stinger(p.mazoId);
-          if (chancho && !quieto()) {
+          agacharMusica(280, -5);
+          if (!quieto()) {
             const en = centro(carta());
-            if (chancho === 2) fogonazo('oro');
-            sacudir($('[data-escena]'), chancho);
-            chispas(en.x, en.y - 30, RAMPA_PALO.D, chancho === 2 ? 18 : 8, chancho === 2 ? 100 : 60);
+            if (p.mazoId === 'chancho') {
+              if (chancho === 2) {
+                fogonazo('oro');
+                fogonazo3d(1.3);
+              }
+              sacudir($('[data-escena]'), chancho || 1);
+              chispas(en.x, en.y - 30, RAMPA_PALO.D, chancho === 2 ? 18 : 10, chancho === 2 ? 100 : 60);
+            } else if (p.mazoId === 'escoba') {
+              fogonazo('oro');
+              fogonazo3d(1.1);
+              chispas(en.x, en.y - 30, RAMPA_PALO.D, 18, 95);
+            } else if (p.mazoId === 'truco') {
+              fogonazo('palo', '#ff6a33');
+              sacudir($('[data-escena]'), 2);
+              chispas(en.x, en.y - 30, RAMPA_PALO.H, 14, 85);
+            } else if (p.mazoId === 'chinchon') {
+              fogonazo('palo', '#4fe3ff');
+              chispas(en.x, en.y - 30, RAMPA_PALO.S, 16, 90);
+            } else {
+              fogonazo('palo', '#b066ff');
+              chispas(en.x, en.y - 30, RAMPA_ESCUDO, 14, 85);
+            }
+            const bEl = $('.esc-bufon .bufon');
+            bEl?.classList.add('festeja');
+            window.setTimeout(() => bEl?.classList.remove('festeja'), 750);
           }
           gestoRetrato('feroz', 1200);
           $('[data-cuenta] .c-canto')?.classList.add('salta');
@@ -1204,9 +1230,15 @@ export function pantallaMesa(p: Partida): Pantalla {
           numero(entra, cs[0].x, cs[0].y, tono, grande || dePerfora ? 2 : 1, { carriles: cs, vx: cs[0].alinear === 'izquierda' ? 14 : cs[0].alinear === 'derecha' ? -14 : 0, vidaMin: grande ? 0.6 : 0.36 });
           tDano = performance.now();
           if (cantoPendiente) cantoGrande();
+          const escudoAntes = enemigo.escudo;
           enemigo.vida = ev.vida;
           enemigo.escudo = ev.escudo;
           pintarEnemigo();
+          if (!quieto() && escudoAntes > 0 && ev.escudo === 0) {
+            const ec = centro(carta());
+            sonar('quiebreEscudo');
+            chispas(ec.x, ec.y, RAMPA_ESCUDO, 14, 100);
+          }
           $('[data-carta]')?.classList.add('herido');
           if (!quieto() && enemigo) estallidoPalo3d(enemigo.palo, grande ? 1.4 : 0.9);
           if (sePlanta) gestoPlanta(pierde, enemigo.palo);
@@ -1246,7 +1278,17 @@ export function pantallaMesa(p: Partida): Pantalla {
         case 'exacto': {
           const en = centro(carta());
           destello(en.x, en.y, RAMPA_PALO.D, 26);
+          sonar('exacto');
           stinger('exacto');
+          agacharMusica(340, -7);
+          if (!quieto()) {
+            fogonazo('oro');
+            fogonazo3d(1.4);
+            sacudirCamara3d(0.6);
+            const bEl = $('.esc-bufon .bufon');
+            bEl?.classList.add('festeja');
+            window.setTimeout(() => bEl?.classList.remove('festeja'), 850);
+          }
           gestoRetrato('festejo', 1300);
           poseRetrato('festeja', 700);
           voz(VOZ.exacto, 'risa');
@@ -1259,6 +1301,7 @@ export function pantallaMesa(p: Partida): Pantalla {
           if (base > 0) {
             hud.escudo = Math.min(escudoTope(p), hud.escudo + base);
             ponerHud(hud);
+            sonar('frena', { altura: 1.25 });
             const en = centro($('[data-hud-escudo]'));
             motas(en.x, en.y, RAMPA_ESCUDO, 8, 24);
           }
@@ -1368,7 +1411,13 @@ export function pantallaMesa(p: Partida): Pantalla {
             sacudir($('[data-escena]'), 3);
           }
           if (r && enemigo) {
-            partirNaipe(enemigo.jefe && enemigo.segunda ? lienzoNaipeSegunda(enemigo.palo) : lienzoNaipe(enemigo.palo, enemigo.rango), r, RAMPA_PALO[enemigo.palo]);
+            if (!(enemigo.jefe && escena3dActiva())) {
+              partirNaipe(enemigo.jefe && enemigo.segunda ? lienzoNaipeSegunda(enemigo.palo) : lienzoNaipe(enemigo.palo, enemigo.rango), r, RAMPA_PALO[enemigo.palo]);
+            }
+            if (enemigo.jefe && !quieto()) {
+              fogonazo3d(1.6);
+              sacudirCamara3d(0.9);
+            }
             partirEnemigo3d(enemigo.palo, enemigo.rango, !!enemigo.segunda);
             el!.classList.add('partida');
             monedas(r.left + r.width / 2, r.top + r.height / 2, centro($('[data-hud-oro]')).x, centro($('[data-hud-oro]')).y, 5);
@@ -1426,16 +1475,17 @@ export function pantallaMesa(p: Partida): Pantalla {
           void (el as HTMLElement | null)?.offsetWidth;
           el?.classList.add('embiste');
           if (enemigo?.jefe && !quieto()) poderRey3d(enemigo.palo);
-          // (0.29: el apagado forzado de tu número dura 220 ms: el «−N» nace cuando ya no queda nada de él)
-          await pausa(quieto() ? 140 : 240);
+          // (0.29: el apagado forzado de tu número dura 220 ms; el embiste pega en su ápice a 180 ms)
+          await pausa(quieto() ? 110 : 180);
           const en = centro($('[data-hud-vida]'));
           const pierde = ev.n - ev.frenado;
           const vidaMax = hud.vidaMax;
-          // (0.27) causa → efecto: primero el número, adentro de su caja del HUD («−4 ESCUDO» en tu ESCUDO, «−19» en tu
-          // VIDA: nunca sobre la mano ni sobre GOLPEAR o DESCARTAR), con el golpe y su ruido; recién después bajan las
-          // cifras
-          // (0.28) y las placas se van ANTES de que se reparta el turno siguiente (duran lo que la espera de abajo)
           if (ev.frenado > 0) deltaHud('escudo', -ev.frenado, { ms: PLACA_CONTRA });
+          if (ev.frenado > 0 && pierde > 0 && hud.escudo <= ev.frenado && !quieto()) {
+            const es = centro($('[data-hud-escudo]'));
+            sonar('quiebreEscudo');
+            chispas(es.x, es.y, RAMPA_ESCUDO, 12, 85);
+          }
           if (pierde > 0) {
             deltaHud('vida', -pierde, { ms: PLACA_CONTRA });
             chispas(en.x, en.y, RAMPA_GOLPE, 10, 80);
@@ -1449,9 +1499,11 @@ export function pantallaMesa(p: Partida): Pantalla {
                 poseRetrato('tiembla', 1500);
               }, 900);
             }
-            // (el grito, cuando el «−N» ya se leyó: un texto grande por vez)
             if (pierde * 5 >= vidaMax) {
               const dolor = tx(alAzar(GRITO[p.mazoId].dolor));
+              const bEl = $('.esc-bufon .bufon');
+              bEl?.classList.add('lamenta');
+              window.setTimeout(() => bEl?.classList.remove('lamenta'), 800);
               window.setTimeout(() => p.combate && gritar(p.mazoId, dolor), quieto() ? 0 : 700);
             }
             sacudir($('[data-hud]'), 2);
@@ -1681,12 +1733,15 @@ export function pantallaMesa(p: Partida): Pantalla {
   async function frenar(ms: number): Promise<void> {
     if (quieto()) return;
     congelar(ms);
-    // la música se agacha mientras dura el freno: el golpe se oye solo
     agacharMusica(ms + 60);
     const m = $('.mesa');
     m?.classList.add('hitstop');
-    await pausa(ms);
-    m?.classList.remove('hitstop');
+    try {
+      await pausa(ms);
+    } finally {
+      descongelar();
+      m?.classList.remove('hitstop');
+    }
   }
   /**
    * Un fogonazo de pantalla entera: blanco cuando cae un Rey, dorado en el Golpe exacto que mata y, del color que se
@@ -2289,6 +2344,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     // el golpe que lo dejó a media Vida se congela, la luz se le mete adentro y el naipe se cierra de canto
     quiebre(en.x, en.y, w * 0.95, AURA_SEGUNDA[palo], RAMPA_PALO[palo]);
     fogonazo('palo', AURA_SEGUNDA[palo]);
+    transformarSegunda3d(palo);
     await frenar(140);
     carta()?.classList.add('voltea');
     await pausa(200);
@@ -2623,8 +2679,8 @@ export function pantallaMesa(p: Partida): Pantalla {
       brinco(cd);
       brinco(total, 'sube-pulso');
       encender(x);
-      await pausa(ritmo(i));
       nota(i++);
+      await pausa(ritmo(i - 1));
     }
     for (const x of piezas) {
       const parte = x.tipo === 'd' ? $('[data-cuenta] [data-cd]') : $('[data-cuenta] [data-cm]');
@@ -2675,8 +2731,8 @@ export function pantallaMesa(p: Partida): Pantalla {
         }
         await frenar(apurado() ? 0 : 150);
       } else if (x.tipo === 'x') await frenar(apurado() ? 0 : 60);
-      await pausa(ritmo(i));
       nota(i++, x.tipo === 'x');
+      await pausa(ritmo(i - 1));
     }
     ponerConteo({ dano: q.dano, multi: q.multi });
     // el remate de la cuenta: un respiro, y el total cae grande en oro y se asienta; la cuenta se sacude (más si
@@ -2691,7 +2747,9 @@ export function pantallaMesa(p: Partida): Pantalla {
     sacudir(cuentaEl, q.abate || q.ejecuta ? 2 : 1);
     if (!quieto() && total) {
       const r = total.getBoundingClientRect();
-      chispas(r.left + r.width / 2, r.top + r.height / 2, RAMPA_PALO.D, q.abate || q.ejecuta ? 14 : 8, 50);
+      const nChispas = q.total >= 150 ? 22 : q.total >= 50 ? 14 : 8;
+      chispas(r.left + r.width / 2, r.top + r.height / 2, RAMPA_PALO.D, nChispas, 50);
+      if (q.abate || q.total >= 50) sacudirCamara3d(q.total >= 150 ? 0.55 : 0.25);
     }
     cuentaEl?.classList.add('revelada');
     // el total tiene su instante antes de que las cartas vuelen

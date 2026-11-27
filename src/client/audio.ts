@@ -193,6 +193,11 @@ const SONIDO = {
     k.metal(0.002, 610, 0.5, 0.09);
     k.soplo(0, { dur: 0.04, vol: 0.4, filtro: 'bandpass', corte: 2000, q: 3 });
   },
+  quiebreEscudo: (k) => {
+    k.metal(0, 820, 0.85, 0.14);
+    k.metal(0.035, 520, 0.7, 0.12);
+    k.soplo(0, { dur: 0.11, vol: 0.8, filtro: 'bandpass', corte: 2600, hasta: 900, q: 1.8 });
+  },
   // el oro: dos campanitas, la quinta y la tónica de arriba
   oro: (k) => {
     k.campanita(0, k.p(2, 60), 0.8, 0.1);
@@ -396,7 +401,7 @@ export const familiaDe = (s: Sonido): Familia => (GOLPES.includes(s) ? 'golpe' :
  * cada efecto queda `SOBRE[familia]` dB por encima de la música de la mesa (tramo 2) en su momento.
  */
 export const NIVEL_FX: Record<Sonido, number> = {
-  clic: 0.239, carta: 0.316, suelta: 0.327, error: 0.157, paso: 0.182, brota: 0.13, ficha: 0.175, chispa: 0.242, escalon: 0.128, chiche: 0.136, prenda: 0.168, 'ch-ginebra': 0.209, 'ch-dado': 0.239, 'ch-fosforo': 0.706, 'ch-tiza': 0.229, 'ch-poroto': 0.156, evolucion: 0.127, forja: 0.111, tesoro: 0.19, coser: 0.141, golpe: 0.17, fuerte: 0.12, remateChico: 0.123, corta: 0.144, exacto: 0.132, canto: 0.135, contra: 0.155, frena: 0.186, oro: 0.193, cura: 0.11, cae: 0.146, rey: 0.157, puf: 0.312, bufon: 0.218, fuego: 0.757, suspenso: 0.16, forjaSube: 0.192, ceniza: 0.112, victoria: 0.146, derrota: 0.111, alpelo: 0.174, deguello: 0.253, remate: 0.119, fortin: 0.166, diezmo: 0.281, brindis: 0.278, despeja: 0.298, tintin: 0.213, mascara: 0.168, grieta: 0.184, maldicion: 0.117, revela: 0.097, critico: 0.144, paloS: 0.371, paloC: 0.092, paloD: 0.239, paloH: 0.206, segunda: 0.145, planta: 0.119,
+  clic: 0.239, carta: 0.316, suelta: 0.327, error: 0.157, paso: 0.182, brota: 0.13, ficha: 0.175, chispa: 0.242, escalon: 0.128, chiche: 0.136, prenda: 0.168, 'ch-ginebra': 0.209, 'ch-dado': 0.239, 'ch-fosforo': 0.706, 'ch-tiza': 0.229, 'ch-poroto': 0.156, evolucion: 0.127, forja: 0.111, tesoro: 0.19, coser: 0.141, golpe: 0.17, fuerte: 0.12, remateChico: 0.123, corta: 0.144, exacto: 0.132, canto: 0.135, contra: 0.155, frena: 0.186, quiebreEscudo: 0.17, oro: 0.193, cura: 0.11, cae: 0.146, rey: 0.157, puf: 0.312, bufon: 0.218, fuego: 0.757, suspenso: 0.16, forjaSube: 0.192, ceniza: 0.112, victoria: 0.146, derrota: 0.111, alpelo: 0.174, deguello: 0.253, remate: 0.119, fortin: 0.166, diezmo: 0.281, brindis: 0.278, despeja: 0.298, tintin: 0.213, mascara: 0.168, grieta: 0.184, maldicion: 0.117, revela: 0.097, critico: 0.144, paloS: 0.371, paloC: 0.092, paloD: 0.239, paloH: 0.206, segunda: 0.145, planta: 0.119,
 };
 /** El nivel de las notas del conteo del golpe (`nota`). */
 export const NIVEL_CONTEO = 0.12;

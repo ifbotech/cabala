@@ -4,10 +4,8 @@ import type { Palo } from '../../rules/cartas';
 import type { MazoId } from '../../rules/mazos';
 import { BAYER4 } from '../pixel/dither';
 import { paloMapa } from '../pixel/iconos';
-import { comodinMapa, dorsoNaipe, naipeMapa, naipeSegundaMapa } from '../pixel/naipes';
+import { comodinMapa, dorsoNaipe } from '../pixel/naipes';
 import { tintas } from '../pixel/paleta';
-import { mitad } from '../pixel/partido';
-import { pixeles } from '../pixel/raster';
 import { REY_PX, reyRetrato, type Animo } from '../pixel/reyes';
 import { lienzo, lienzoNaipe, lienzoNaipeSegunda } from '../sprites';
 
@@ -200,10 +198,15 @@ export function texturaNaipeMitad(palo: Palo, n: number, lado: 'izq' | 'der', se
   const k = `mitad:${palo}:${n}:${lado}:${segunda ? 1 : 0}`;
   if (cache.has(k)) return cache.get(k)!;
   const semilla = (palo.charCodeAt(0) * 31 + n * 7) | 0;
-  const base = segunda ? naipeSegundaMapa(palo) : naipeMapa(palo, n);
-  const px = pixeles(mitad(base, lado, semilla), T);
-  const [c, ctx] = crearCanvas(px.w, px.h);
-  ctx.putImageData(new ImageData(px.data as unknown as Uint8ClampedArray<ArrayBuffer>, px.w, px.h), 0, 0);
+  const src = segunda ? lienzoNaipeSegunda(palo) : lienzoNaipe(palo, n);
+  const [c, ctx] = crearCanvas(src.width, src.height);
+  ctx.drawImage(src, 0, 0);
+  const mitadW = Math.floor(src.width / 2);
+  for (let y = 0; y < src.height; y++) {
+    const cx = mitadW + ((semilla + y * 5) % 5) - 2;
+    if (lado === 'izq') ctx.clearRect(cx, y, src.width - cx, 1);
+    else ctx.clearRect(0, y, cx, 1);
+  }
   const tex = aTexturaPixel(c);
   cache.set(k, tex);
   return tex;

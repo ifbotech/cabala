@@ -132,11 +132,20 @@
   }
 }
 .e-carta.embiste {
-  animation: e-embiste 0.28s steps(4);
+  animation: e-embiste 0.34s steps(5);
 }
 @keyframes e-embiste {
-  40% {
-    transform: translateY(calc(22px * var(--k-enemigo))) scale(1.06);
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  30% {
+    transform: translateY(calc(-10px * var(--k-enemigo))) scale(0.96);
+  }
+  53% {
+    transform: translateY(calc(24px * var(--k-enemigo))) scale(1.08);
+  }
+  100% {
+    transform: translateY(0) scale(1);
   }
 }
 .e-carta.entra {
@@ -1559,6 +1568,7 @@ button:disabled .b-quedan {
   inset: 0;
   z-index: 45;
   pointer-events: none;
+  will-change: opacity;
   animation: fogonazo 0.4s steps(5) both;
 }
 .fogonazo.f-blanco {

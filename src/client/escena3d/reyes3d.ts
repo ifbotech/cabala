@@ -108,6 +108,7 @@ export class Reyes3D {
   private readonly luzFrente: THREE.PointLight;
   private readonly vfxGrupo = new THREE.Group();
   private readonly vfx: ParticulaVfx[] = [];
+  private readonly geoOnda = new THREE.RingGeometry(0.16, 0.28, 24);
   private paloActivo: Palo | null = null;
   private entrada = 0;
   private castTimer = 0;
@@ -444,6 +445,19 @@ export class Reyes3D {
     return { grupo, cuerpo, cabeza, brazoIzq, brazoDer, capa, orbesSegunda };
   }
 
+  transformarSegunda(cam: THREE.PerspectiveCamera, palo: Palo): void {
+    this.castTimer = 0.85;
+    const origen = this.raiz.visible ? this.raiz.position.clone() : new THREE.Vector3(0, 2.2, 0.8);
+    const onda = new THREE.Mesh(
+      this.geoOnda,
+      new THREE.MeshBasicMaterial({ color: COLOR_REY[palo], transparent: true, opacity: 0.92, side: THREE.DoubleSide }),
+    );
+    onda.position.copy(origen).add(new THREE.Vector3(0, 0.1, 0.35));
+    onda.quaternion.copy(cam.quaternion);
+    this.vfxGrupo.add(onda);
+    this.vfx.push({ malla: onda, vel: new THREE.Vector3(0, 0, 1.2), rotVel: new THREE.Vector3(0, 0, 1.5), vida: 0.55, maxVida: 0.55, esOnda: true });
+  }
+
   lanzarPoder(cam: THREE.PerspectiveCamera, palo: Palo): void {
     this.castTimer = 0.72;
     const origen = this.raiz.visible ? this.raiz.position.clone() : new THREE.Vector3(0, 2.2, 0.8);
@@ -537,10 +551,12 @@ export class Reyes3D {
     }
 
     const eEl = document.querySelector<HTMLElement>('.mesa .e-carta[data-jefe="1"]');
-    if (!eEl) {
+    if (!eEl || eEl.classList.contains('partida')) {
       this.raiz.visible = false;
-      this.paloActivo = null;
-      this.eraHerido = false;
+      if (!eEl) {
+        this.paloActivo = null;
+        this.eraHerido = false;
+      }
       return;
     }
     const r = eEl.getBoundingClientRect();

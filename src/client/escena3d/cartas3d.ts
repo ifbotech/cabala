@@ -14,6 +14,7 @@ interface Naipe3D {
   ultCx: number;
   ultCy: number;
   eraElegida: boolean;
+  ultPosta?: string;
   slam: number;
 }
 
@@ -22,6 +23,8 @@ interface PiezaFisica {
   vel: THREE.Vector3;
   rotVel: THREE.Vector3;
   vida: number;
+  disposeMat?: boolean;
+  escalaVida?: boolean;
 }
 
 export class SincroCartas3D {
@@ -30,6 +33,8 @@ export class SincroCartas3D {
   private readonly geoCarta = new THREE.BoxGeometry(1, 1, 0.045);
   private readonly geoSombra = new THREE.PlaneGeometry(1, 1);
   private readonly geoMoneda = new THREE.CylinderGeometry(0.16, 0.16, 0.05, 8);
+  private readonly geoEstallido = new THREE.PlaneGeometry(0.24, 0.24);
+  private readonly geoAstilla = new THREE.BoxGeometry(0.16, 0.16, 0.16);
   private readonly matSombra = new THREE.MeshBasicMaterial({
     color: 0x040208,
     transparent: true,
@@ -37,6 +42,8 @@ export class SincroCartas3D {
     depthWrite: false,
   });
   private readonly matOro = new THREE.MeshStandardMaterial({ map: texturaOroMoneda(), color: 0xffd23f, metalness: 0.65, roughness: 0.34 });
+  private readonly matPalo: Record<Palo, THREE.MeshBasicMaterial>;
+  private readonly matAstilla: Record<Palo, THREE.MeshBasicMaterial>;
 
   private readonly enemigoTotem: THREE.Mesh;
   private readonly enemigoMats: THREE.MeshStandardMaterial[];
@@ -56,6 +63,18 @@ export class SincroCartas3D {
   private readonly vHit = new THREE.Vector3();
 
   constructor(escena: THREE.Scene) {
+    this.matPalo = {
+      S: new THREE.MeshBasicMaterial({ map: texturaPalo('S'), transparent: true, opacity: 1, side: THREE.DoubleSide, depthWrite: false }),
+      C: new THREE.MeshBasicMaterial({ map: texturaPalo('C'), transparent: true, opacity: 1, side: THREE.DoubleSide, depthWrite: false }),
+      D: new THREE.MeshBasicMaterial({ map: texturaPalo('D'), transparent: true, opacity: 1, side: THREE.DoubleSide, depthWrite: false }),
+      H: new THREE.MeshBasicMaterial({ map: texturaPalo('H'), transparent: true, opacity: 1, side: THREE.DoubleSide, depthWrite: false }),
+    };
+    this.matAstilla = {
+      S: new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 1 }),
+      C: new THREE.MeshBasicMaterial({ color: 0x22f06a, transparent: true, opacity: 1 }),
+      D: new THREE.MeshBasicMaterial({ color: 0xffd500, transparent: true, opacity: 1 }),
+      H: new THREE.MeshBasicMaterial({ color: 0xff1e5c, transparent: true, opacity: 1 }),
+    };
     this.enemigoMats = [
       new THREE.MeshStandardMaterial({ color: 0xe6d7bc, roughness: 0.65 }),
       new THREE.MeshStandardMaterial({ color: 0xe6d7bc, roughness: 0.65 }),
@@ -68,6 +87,17 @@ export class SincroCartas3D {
     this.enemigoTotem.castShadow = true;
     this.enemigoTotem.visible = false;
     this.raiz.add(this.enemigoTotem);
+    // Pre-compila shader de sprites transparentes y moneda antes del primer golpe
+    const warmupSprite = new THREE.Mesh(
+      this.geoEstallido,
+      new THREE.MeshBasicMaterial({ map: texturaPalo('D'), transparent: true, opacity: 0.01, side: THREE.DoubleSide, depthWrite: false }),
+    );
+    warmupSprite.scale.setScalar(0.001);
+    warmupSprite.position.set(0, -10, 0);
+    const warmupMoneda = new THREE.Mesh(this.geoMoneda, this.matOro);
+    warmupMoneda.scale.setScalar(0.001);
+    warmupMoneda.position.set(0, -10, 0);
+    this.raiz.add(warmupSprite, warmupMoneda);
     escena.add(this.raiz);
   }
 
@@ -133,12 +163,10 @@ export class SincroCartas3D {
 
     const tam = this.proyectarRect(cam, cx, cy, w, h, 5.9, this.vHit);
     if (rango === 12) {
-      const colPalo = palo === 'S' ? 0x00e5ff : palo === 'C' ? 0x22f06a : palo === 'D' ? 0xffd500 : 0xff1e5c;
-      const geoAstilla = new THREE.BoxGeometry(0.16, 0.16, 0.16);
-      const matAstilla = new THREE.MeshStandardMaterial({ color: colPalo, emissive: colPalo, emissiveIntensity: 0.45, roughness: 0.4 });
+      const mat = this.matAstilla[palo];
       for (let i = 0; i < 12; i++) {
         const a = (i / 12) * Math.PI * 2;
-        const m = new THREE.Mesh(geoAstilla, matAstilla);
+        const m = new THREE.Mesh(this.geoAstilla, mat);
         m.position.copy(this.vHit).add(new THREE.Vector3(Math.cos(a) * 0.3, Math.sin(a) * 0.25, 0.1));
         this.raiz.add(m);
         this.piezas.push({
@@ -146,21 +174,22 @@ export class SincroCartas3D {
           vel: new THREE.Vector3(Math.cos(a) * (1.8 + Math.random()), 1.8 + Math.random() * 1.6, 1.4),
           rotVel: new THREE.Vector3(6, 8, 5),
           vida: 0.95,
+          escalaVida: true,
+          disposeMat: false,
         });
       }
     } else {
       for (const lado of ['izq', 'der'] as const) {
         const sign = lado === 'izq' ? -1 : 1;
         const tex = texturaNaipeMitad(palo, rango, lado, segunda);
-        const mat = new THREE.MeshStandardMaterial({
+        const mat = new THREE.MeshBasicMaterial({
           map: tex,
           transparent: true,
-          roughness: 0.55,
-          emissive: 0xffffff,
-          emissiveMap: tex,
-          emissiveIntensity: 0.35,
+          opacity: 1,
+          side: THREE.DoubleSide,
         });
-        const m = new THREE.Mesh(new THREE.PlaneGeometry(tam.worldW, tam.worldH), mat);
+        const m = new THREE.Mesh(this.geoSombra, mat);
+        m.scale.set(tam.worldW, tam.worldH, 1);
         m.position.copy(this.vHit);
         m.quaternion.copy(cam.quaternion);
         this.raiz.add(m);
@@ -169,6 +198,7 @@ export class SincroCartas3D {
           vel: new THREE.Vector3(sign * (1.8 + Math.random() * 0.8), 1.6 + Math.random() * 0.8, 1.1),
           rotVel: new THREE.Vector3(0.4, sign * 1.4, -sign * 2.2),
           vida: 0.95,
+          disposeMat: true,
         });
       }
     }
@@ -276,10 +306,18 @@ export class SincroCartas3D {
         entry.malla.scale.set(tam.worldW, tam.worldH, 1);
         entry.malla.quaternion.copy(cam.quaternion);
 
+        const postaActual = el.dataset.posta ?? '';
+        const popCuenta = el.classList.contains('cuenta-pop');
+        if (popCuenta) {
+          entry.malla.scale.multiplyScalar(1.1);
+          entry.mats[4].emissiveIntensity = 0.92;
+        }
         if (!quieto) {
           const vx = entry.ultCx ? (cx - entry.ultCx) / Math.max(0.008, dt) : 0;
           const vy = entry.ultCy ? (cy - entry.ultCy) / Math.max(0.008, dt) : 0;
-          if (!entry.eraElegida && elegida) entry.slam = 1;
+          if ((!entry.eraElegida && elegida) || (elegida && entry.ultPosta !== undefined && entry.ultPosta !== postaActual)) {
+            entry.slam = 1;
+          }
           entry.slam = Math.max(0, entry.slam - dt * 4.8);
           if (entry.slam > 0) {
             const pop = 1 + Math.sin(entry.slam * Math.PI) * 0.065;
@@ -291,8 +329,12 @@ export class SincroCartas3D {
           } else if (elegida) {
             entry.malla.rotateX(-0.11);
           } else if (enfocada) {
-            entry.malla.rotateX(-punteroY * 0.08);
-            entry.malla.rotateY(punteroX * 0.11);
+            const mx = (punteroX + 1) * 0.5 * Math.max(1, window.innerWidth);
+            const my = (1 - punteroY) * 0.5 * Math.max(1, window.innerHeight);
+            const lx = THREE.MathUtils.clamp((mx - cx) / Math.max(1, r.width * 0.5), -1, 1);
+            const ly = THREE.MathUtils.clamp((my - cy) / Math.max(1, hVis * 0.5), -1, 1);
+            entry.malla.rotateY(lx * 0.18);
+            entry.malla.rotateX(-ly * 0.14);
           } else {
             entry.malla.rotateZ(Math.sin(reloj * 1.4 + cx * 0.01) * 0.012);
           }
@@ -302,6 +344,7 @@ export class SincroCartas3D {
         entry.ultCx = cx;
         entry.ultCy = cy;
         entry.eraElegida = elegida;
+        entry.ultPosta = postaActual;
         entry.malla.visible = true;
 
         // Sombra desplazada por debajo de la carta
@@ -386,6 +429,7 @@ export class SincroCartas3D {
       const pz = this.piezas[i];
       pz.vida -= dt;
       if (pz.vida <= 0) {
+        if (pz.disposeMat && pz.malla.material instanceof THREE.Material) pz.malla.material.dispose();
         this.raiz.remove(pz.malla);
         this.piezas.splice(i, 1);
         continue;
@@ -395,7 +439,10 @@ export class SincroCartas3D {
       pz.malla.rotation.x += pz.rotVel.x * dt;
       pz.malla.rotation.y += pz.rotVel.y * dt;
       pz.malla.rotation.z += pz.rotVel.z * dt;
-      if (pz.malla.material instanceof THREE.Material) {
+      if (pz.escalaVida) {
+        const s = Math.max(0.05, Math.min(1, pz.vida * 3));
+        pz.malla.scale.setScalar(s);
+      } else if (pz.malla.material instanceof THREE.Material) {
         pz.malla.material.opacity = Math.min(1, pz.vida * 2);
       }
     }
@@ -409,17 +456,9 @@ export class SincroCartas3D {
       ? this.enemigoTotem.position.clone()
       : cam.position.clone().add(new THREE.Vector3(0, 0.2, -4.5));
     const cantidad = Math.min(14, 8 + Math.round(fuerza * 4));
-    const tex = texturaPalo(palo);
-    const geo = new THREE.PlaneGeometry(0.24, 0.24);
+    const mat = this.matPalo[palo];
     for (let i = 0; i < cantidad; i++) {
-      const mat = new THREE.MeshBasicMaterial({
-        map: tex,
-        transparent: true,
-        opacity: 1,
-        side: THREE.DoubleSide,
-        depthWrite: false,
-      });
-      const malla = new THREE.Mesh(geo, mat);
+      const malla = new THREE.Mesh(this.geoEstallido, mat);
       malla.position.copy(origen).add(new THREE.Vector3((Math.random() - 0.5) * 0.35, (Math.random() - 0.5) * 0.35, 0.15));
       const ang = (i / cantidad) * Math.PI * 2 + (Math.random() - 0.5) * 0.45;
       const spd = (1.8 + Math.random() * 2.2) * (0.8 + fuerza * 0.25);
@@ -429,6 +468,8 @@ export class SincroCartas3D {
         vel: new THREE.Vector3(Math.cos(ang) * spd, 1.4 + Math.random() * 2.3, 0.8 + Math.random() * 1.4),
         rotVel: new THREE.Vector3((Math.random() - 0.5) * 12, (Math.random() - 0.5) * 12, (Math.random() - 0.5) * 14),
         vida: 0.65 + Math.random() * 0.28,
+        escalaVida: true,
+        disposeMat: false,
       });
     }
   }

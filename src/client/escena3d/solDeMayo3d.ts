@@ -232,6 +232,8 @@ export class CaminoSolDeMayo3D {
     escenaThree.add(this.raiz);
   }
 
+  private pulsoSuave = 0;
+
   ponerVisible(si: boolean): void {
     this.raiz.visible = si;
   }
@@ -239,7 +241,9 @@ export class CaminoSolDeMayo3D {
   actualizar(dt: number, quieto: boolean, reloj: number): void {
     if (!this.raiz.visible) return;
     const arm = armoniaActual();
-    const pulso = arm && (arm.paso === 0 || arm.paso === 6 || arm.paso === 12) ? 0.35 : 0;
+    const pulsoMeta = !quieto && arm && (arm.paso === 0 || arm.paso === 6 || arm.paso === 12) ? 0.35 : 0;
+    this.pulsoSuave += (pulsoMeta - this.pulsoSuave) * (1 - Math.exp(-10 * Math.max(0.001, dt)));
+    const pulso = this.pulsoSuave;
 
     if (!quieto) {
       this.cartaGloria.rotation.y += dt * 0.9;

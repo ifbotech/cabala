@@ -3,6 +3,7 @@ import type { Palo } from '../../rules/cartas';
 import { MAZO, type MazoId } from '../../rules/mazos';
 import { idioma, t, tx } from '../almacen';
 import { sonar } from '../audio';
+import { stinger } from '../musica';
 import { pxNaipe, urlRetrato } from '../sprites';
 import { CUADRO0 } from '../pixel/personajes';
 import { esc, pantallaActual, repintar, type Pantalla } from '../ui';
@@ -133,11 +134,13 @@ export function pantallaIntroMazo(mazo: MazoId, alTerminar: () => void): Pantall
   const def = MAZO[mazo];
 
   const avanzar = (): void => {
-    sonar('clic');
     if (paso < pasos.length - 1) {
       paso++;
+      sonar('carta');
+      if (paso === pasos.length - 1) stinger(mazo);
       repintar();
     } else {
+      sonar('clic');
       marcarIntroVista(mazo);
       alTerminar();
     }

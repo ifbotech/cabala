@@ -304,7 +304,7 @@ export class Heroes3D {
     return Math.max(0.05, (h / H) * visH);
   }
 
-  sincronizar(cam: THREE.PerspectiveCamera, quieto: boolean, reloj: number): void {
+  sincronizar(cam: THREE.PerspectiveCamera, dt: number, quieto: boolean, reloj: number): void {
     const el = document.querySelector<HTMLElement>('.intro-mazo .intro-retrato');
     if (!el) {
       this.raiz.visible = false;
@@ -323,7 +323,7 @@ export class Heroes3D {
 
     const arm = armoniaActual();
     const pulsoMeta = !quieto && arm && (arm.paso === 0 || arm.paso === 6 || arm.paso === 12) ? 1 : 0;
-    this.pulsoSuave += (pulsoMeta - this.pulsoSuave) * 0.16;
+    this.pulsoSuave += (pulsoMeta - this.pulsoSuave) * (1 - Math.exp(-10 * Math.max(0.001, dt)));
     this.luzFrente.intensity = 1.65 + this.pulsoSuave * 0.35;
 
     for (const m of ['escoba', 'truco', 'chinchon', 'mentiroso', 'chancho'] as const) {

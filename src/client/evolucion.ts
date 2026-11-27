@@ -7,19 +7,21 @@ import type { Partida } from '../rules/estado';
 import { EVOLUCION, evoluciones, type EvolucionDe } from '../rules/evoluciones';
 import { AMULETO } from '../rules/amuletos';
 import { t, tx } from './almacen';
+import { agacharMusica, sonar } from './audio';
 import { bufonDice } from './bufon-vivo';
 import { stinger } from './musica';
 import { RAMPA_PALO, chispas, destello } from './fx/efectos';
-import { enFoto } from './fx/motor';
+import { enFoto, fogonazoCandil, sacudir } from './fx/motor';
+import { fogonazo3d } from './escena3d';
 import { quieto } from './ritmo';
 import { pxAmuleto, pxEvolucion } from './sprites';
 import { $, conMaldicion, esc } from './ui';
 import { VOZ } from './voces';
 
 /** Cuánto dura el jackpot si nadie lo corta. */
-export const MS_JACKPOT = 1600;
+export const MS_JACKPOT = 3400;
 /** Lo que no se corta: el cambio de forma tiene que verse. */
-export const MS_FIRME = 400;
+export const MS_FIRME = 450;
 
 /** El HTML del jackpot (lo usa también la QA). */
 export function jackpotHtml(de: EvolucionDe): string {
@@ -80,7 +82,9 @@ export function jackpotEvolucion(de: EvolucionDe): Promise<void> {
   capa.insertAdjacentHTML('beforeend', jackpotHtml(de));
   const el = capa.lastElementChild as HTMLElement;
   if (quieto()) el.classList.add('quieto');
+  sonar('evolucion');
   stinger('evolucion');
+  agacharMusica(800, -8);
   bufonDice(tx(VOZ.evoluciona[de]));
   const icono = (): DOMRect | undefined => el.querySelector('.evo-icono .px')?.getBoundingClientRect();
   if (!quieto()) {
@@ -91,6 +95,9 @@ export function jackpotEvolucion(de: EvolucionDe): Promise<void> {
       const x = r.left + r.width / 2;
       const y = r.top + r.height / 2;
       destello(x, y, RAMPA_PALO.D, 26);
+      fogonazoCandil(1.2);
+      fogonazo3d(1.5);
+      sacudir($('#app'), 3);
       for (const palo of ['S', 'C', 'D', 'H'] as const) chispas(x, y, RAMPA_PALO[palo], 8, 110);
     }, enFoto() ? 0 : 260);
   }

@@ -3,6 +3,16 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 0.80.0 · Game Feel AAA, Coreografía 3D y Pulso Exacto (2026-11-26)
+
+Tercera gran iteración del plan hacia **`v1.0.0`**. *(Reglas, balance certificado, `musica.ts` y `voces.ts` intactos.)*
+
+- **Sincronía 2D/3D y fin de desfasajes (`mesa.ts`, `mesa.css`, `escena3d/index.ts`, `fx/motor.ts`):** El conteo `DAÑO × MULTI` dispara cada nota musical en el instante exacto del salto visual; el embiste enemigo aplica anticipación y golpe en ápice (`180 ms`); `congelar(ms)` congela también la animación 3D durante el *hitstop* y `descongelar()` limpia todo al usar TURBO.
+- **Reyes 3D vivos (`reyes3d.ts`, `mesa.ts`):** Eliminado el bug del Rey 3D «zombi» tras morir; `segundaCara()` dispara onda expansiva 3D (`transformarSegunda3d`) y sacudida de cámara; cableadas las poses 3D reales de `elegir-mazo`, `fin-victoria` y `fin-derrota`.
+- **Picos de dopamina (`evolucion.ts`, `mesa.ts`, `audio.ts`):** Los 5 Mazos tienen fogonazo y chispas propias en `canto`; `exacto` suma `sonar('exacto')`, agachado musical y sacudida 3D; `quiebreEscudo` al romper Escudos; tono al ganar Escudo; `jackpotEvolucion` extendido a `3,4 s` con `sonar('evolucion')`, `agacharMusica` y `fogonazo3d`; `Bufon3D` gesticula `.habla`, `.festeja` y `.lamenta` en combate.
+- **Tacto 3D y mundos vivos (`cartas3d.ts`, `escenarios3d.ts`, `solDeMayo3d.ts`, `heroes3d.ts`):** Inclinación local por carta en `hover`, `slam` en cada cambio de Posta (`dial`/`Q`/`W`), salto 3D en `.cuenta-pop`, Fogón 3D reactivo al riesgo de quemado, pulso suavizado en Sol de Mayo y `dt`-normalizado en `Heroes3D`.
+- **Duelo, Intro y Camino al Sol (`dueloBufon.ts`, `introMazo.ts`, `menu.ts`):** Fase `'revelando'` en `dueloBufon.ts` para ver las cartas del Bufón antes de cobrar la Bendición; notas musicales y FOV creciente (`50 → 54.5`) en `pantallaCaminoSol`; `sonar('carta')` y `stinger` en `introMazo`.
+
 ## 0.70.0 · UX, Simpleza Radical, Claridad 0,2 s e i18n Completa (2026-11-26)
 
 Segunda gran iteración del plan hacia **`v1.0.0`**. *(Reglas, balance certificado, `musica.ts` y `voces.ts` intactos.)*

@@ -8,6 +8,8 @@ import { sonar } from '../audio';
 import { fogonazo3d, sacudirCamara3d } from '../escena3d';
 import { avivarRetrato, hudHtml } from '../hud';
 import { guardar, irCaminoSol, pintarFase } from '../juego';
+import { stinger } from '../musica';
+import { pausa, quieto } from '../ritmo';
 import { pxDorso, pxNaipe } from '../sprites';
 import { anfitrion, esc, irASalida, repintar, $, type Pantalla } from '../ui';
 
@@ -183,7 +185,7 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
     manoBufon = robar(4);
   }
 
-  let estado: 'jugando' | 'gano' | 'perdio' = 'jugando';
+  let estado: 'jugando' | 'revelando' | 'gano' | 'perdio' = 'jugando';
   let revelado = false;
   let vozBufon = p.mazoId === 'mentiroso' ? mentiraDice : t('dueloIntro');
   let exprBufon: 'reposo' | 'brillo' | 'risa' | 'burla' | 'sombria' = 'brillo';
@@ -198,17 +200,22 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
     else pintarFase();
   };
 
-  const resolverResultado = (gano: boolean, msg: string): void => {
+  const resolverResultado = async (gano: boolean, msg: string): Promise<void> => {
+    if (estado !== 'jugando') return;
     revelado = true;
-    estado = gano ? 'gano' : 'perdio';
+    estado = 'revelando';
     vozBufon = msg;
+    exprBufon = gano ? 'risa' : 'burla';
+    sonar('carta');
+    repintar();
+    await pausa(quieto() ? 200 : 850);
+    if (saliendo) return;
+    estado = gano ? 'gano' : 'perdio';
     if (gano) {
-      exprBufon = 'risa';
-      sonar('canto');
+      stinger(p.mazoId);
       fogonazo3d(1.6);
       sacudirCamara3d(0.7);
     } else {
-      exprBufon = 'burla';
       sonar('contra');
     }
     repintar();
@@ -234,7 +241,7 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
           .join('');
 
       let cuerpoHtml = '';
-      if (estado === 'jugando') {
+      if (estado === 'jugando' || estado === 'revelando') {
         let accionesJuego = '';
         if (p.mazoId === 'truco') {
           const env = envidoDe(manoJugador);
@@ -329,7 +336,7 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
       'sel-j': (el) => {
         if (estado !== 'jugando') return;
         const i = Number(el.dataset.i);
-        sonar('clic');
+        sonar('carta');
         if (p.mazoId === 'chancho' && cambiosChancho > 0 && pila.length > 0) {
           manoJugador[i] = pila.shift()!;
           cambiosChancho--;
@@ -344,7 +351,7 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
       'sel-m': (el) => {
         if (estado !== 'jugando') return;
         const i = Number(el.dataset.i);
-        sonar('clic');
+        sonar('carta');
         if (selMesa.has(i)) selMesa.delete(i);
         else selMesa.add(i);
         repintar();
@@ -418,6 +425,8 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
           const destino = activas.length ? activas : (['S', 'C', 'D', 'H'] as const);
           for (const k of destino) p.cargas[k] = (p.cargas[k] ?? 0) + 1;
         }
+        sonar('evolucion');
+        fogonazo3d(1.0);
         salirAlRey();
       },
       'pasar-rey': salirAlRey,

@@ -13,7 +13,7 @@ import { REINADOS } from '../../rules/reinados';
 import { BENDICION, BENDICIONES, REY_DEF } from '../../rules/reyes';
 import { MARCA, VERSION } from '../../shared/brand';
 import { ajustes, alAzar, borrarTodo, fijarIdioma, guardarAjustes, guardarPartida, guardarPerfil, idioma, perfil, t, tx } from '../almacen';
-import { refrescarSonido, sonar } from '../audio';
+import { nota, refrescarSonido, sonar } from '../audio';
 import { refrescarMusica } from '../musica';
 import { enFoto } from '../fx/motor';
 import { numero } from '../fx/efectos';
@@ -376,8 +376,9 @@ export function pantallaCaminoSol(enClimax = false): Pantalla {
     }
     paso = prox;
     sonar('paso');
+    nota(paso * 2, paso === PASOS_SOL.length - 1);
     const p = PASOS_SOL[paso];
-    ponerPoseDiscreta3d(p.pos, p.mira, 50, enFoto());
+    ponerPoseDiscreta3d(p.pos, p.mira, 50 + paso * 1.5, enFoto());
     repintar();
   };
 
