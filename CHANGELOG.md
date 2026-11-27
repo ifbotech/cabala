@@ -3,6 +3,15 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 1.0.0 · Lanzamiento Oficial — La Pulpería y El Sol de Mayo (2026-11-27)
+
+Lanzamiento definitivo **`v1.0.0`** tras 5 iteraciones completas de auditoría multiárea (Reglas/Balance, UX/Simplicidad, Game Feel AAA/3D, Progresión/PWA/QA y Certificación Final):
+
+- **Reglas y Balance (`v0.60.0`):** `valorCarta()` centralizado, Comodín inteligente (`escalera`, `escalerapalo`, Escoba `15`, `poker`/`pierna`/`full`), `alPelo` ampliado, Pactos Duales potenciados y Duelo del Bufón con agencia real (`0` avisos en `analyze:meta`).
+- **UX, i18n y Ergonomía (`v0.70.0`):** `chips.ts` unificado ES/EN sin recortes, foco modal `inert`, Ajustes rápidos en partida y limpieza de listeners.
+- **Game Feel AAA y Rendimiento (`v0.80.0`):** Conteo `DAÑO × MULTI` sincronizado al pulso musical, *hitstop* 2D/3D unido, `texturaNaipeMitad` sin bloqueo y precompilación WebGL (`159–164.8 FPS`, `peor cuadro <= 49 ms`).
+- **Progresión, Respaldo, PWA y QA 1.0 (`v0.90.0`):** `sanearPerfil()`, Exportar/Importar JSON, `vendor-three` split, 6 Cartas de Gloria reales, sellos de Reinado (`★ n/8`), Semilla del día, Crónica de 20 partidas con `Repetir`, `624/624` capturas `qa:visual` ES/EN sin fallos y `0` hallazgos en `qa:estabilidad`.
+
 ## 0.90.0 · Progresión, Respaldo, PWA y QA 1.0 (2026-11-26)
 
 Cuarta gran iteración hacia **`v1.0.0`**. *(Reglas, balance certificado, `musica.ts` y `voces.ts` intactos.)*
