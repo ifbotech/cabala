@@ -10,6 +10,7 @@ import {
   texturaNaipe,
   texturaParticula,
   texturaPiedra,
+  texturaRey,
   texturaSolDeMayo,
 } from './texturas';
 
@@ -126,20 +127,27 @@ export class CaminoSolDeMayo3D {
       }
     }
 
-    // 3 Arcos monumentales de naipes españoles
-    const arcos: Array<{ z: number; izq: [Palo, number]; der: [Palo, number] }> = [
+    // 3 Arcos monumentales: Ases y Reyes en retrato dorado sin carta 12
+    const arcos: Array<{ z: number; izq: [Palo, number]; der: [Palo, number]; rey?: boolean }> = [
       { z: -1.5, izq: ['D', 1], der: ['S', 1] },
       { z: -9.5, izq: ['C', 1], der: ['H', 1] },
-      { z: -17.5, izq: ['D', 12], der: ['S', 12] },
+      { z: -17.5, izq: ['D', 12], der: ['S', 12], rey: true },
     ];
     for (const a of arcos) {
-      const mI = new THREE.MeshStandardMaterial({ map: texturaNaipe(a.izq[0], a.izq[1]), roughness: 0.58 });
-      const mD = new THREE.MeshStandardMaterial({ map: texturaNaipe(a.der[0], a.der[1]), roughness: 0.58 });
-      const cI = new THREE.Mesh(new THREE.BoxGeometry(1.75, 2.55, 0.08), [matLaton, matLaton, matLaton, matLaton, mI, mI]);
+      const mI = new THREE.MeshStandardMaterial({
+        map: a.rey ? texturaRey(a.izq[0], 'calma') : texturaNaipe(a.izq[0], a.izq[1]),
+        roughness: 0.58,
+      });
+      const mD = new THREE.MeshStandardMaterial({
+        map: a.rey ? texturaRey(a.der[0], 'calma') : texturaNaipe(a.der[0], a.der[1]),
+        roughness: 0.58,
+      });
+      const geo = a.rey ? new THREE.BoxGeometry(1.95, 1.95, 0.1) : new THREE.BoxGeometry(1.75, 2.55, 0.08);
+      const cI = new THREE.Mesh(geo, [matLaton, matLaton, matLaton, matLaton, mI, mI]);
       cI.position.set(-3.35, 0.55, a.z);
       cI.rotation.y = 0.28;
       cI.rotation.z = -0.14;
-      const cD = new THREE.Mesh(new THREE.BoxGeometry(1.75, 2.55, 0.08), [matLaton, matLaton, matLaton, matLaton, mD, mD]);
+      const cD = new THREE.Mesh(geo, [matLaton, matLaton, matLaton, matLaton, mD, mD]);
       cD.position.set(3.35, 0.55, a.z);
       cD.rotation.y = -0.28;
       cD.rotation.z = 0.14;

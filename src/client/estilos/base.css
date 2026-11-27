@@ -1775,6 +1775,9 @@ html[data-entrada='teclado'] .glifo.g-tecla {
   mask-image: linear-gradient(#000 calc(100% - 68px), transparent calc(100% - 14px));
 }
 .negra-bandeja.hay-mas[data-hay-mas]::after {
+  left: 50%;
+  right: auto;
+  width: max-content;
   bottom: calc(62px * var(--k));
   pointer-events: none;
 }

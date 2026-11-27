@@ -254,6 +254,14 @@
 .nodo.n-rey {
   --k: var(--k2);
 }
+.nodo.n-rey .nodo-palos {
+  bottom: calc(-12px * var(--k));
+}
+@media (max-width: 700px) {
+  .nodo.n-rey .nodo-palos {
+    bottom: -14px;
+  }
+}
 .nodo .nodo-palos {
   position: absolute;
   left: 50%;
@@ -1909,6 +1917,15 @@ button.visor-carta:disabled {
   }
 }
 
+@media (min-width: 1000px) {
+  .panel.visor .visor-fila {
+    gap: 6px;
+  }
+  .panel.visor .visor-carta .px {
+    width: calc(var(--w) * 0.88px);
+    height: calc(var(--h) * 0.88px);
+  }
+}
 @media (min-width: 1100px) and (max-width: 1699px) {
   /* la letra de rótulo, siempre en su múltiplo de 8 (donde heredaba el tamaño del cuerpo quedaba a 18 o 20 px) */
   .col-mazo b,
@@ -3290,6 +3307,15 @@ button.visor-carta:disabled {
 
 /* 0.21 · «Elegí una Bendición» en el portátil y la Steam Deck (1100–1699): el retrato del Rey va a 1× en la tarjeta
    (a 2× la alargaba y SALTAR caía sobre el HUD, tapando el ORO que se mira para elegir) */
+@media (min-width: 1000px) {
+  .panel.visor .visor-fila {
+    gap: 6px;
+  }
+  .panel.visor .visor-carta .px {
+    width: calc(var(--w) * 0.88px);
+    height: calc(var(--h) * 0.88px);
+  }
+}
 @media (min-width: 1100px) and (max-width: 1699px) {
   .opcion .op-arte:has(.rey) {
     --k-rey: 1;
@@ -4510,7 +4536,7 @@ button.visor-carta:disabled {
 }
 /* «hay más» abajo: la flecha va al rincón de abajo a la derecha y en el violeta de la Negra (al pie, bajo VOLVER,
    parecía el foco) */
-.negra-bandeja.hay-mas::after {
+.negra-bandeja.hay-mas:not([data-hay-mas])::after {
   left: auto;
   right: calc(var(--u) * 2);
   margin-left: 0;
@@ -5780,6 +5806,15 @@ main.fogon.forjando [data-accion='seguir'] {
 }
 .velo.sobre-botin .opciones > .opcion {
   justify-content: space-between;
+}
+@media (min-width: 1000px) {
+  .panel.visor .visor-fila {
+    gap: 6px;
+  }
+  .panel.visor .visor-carta .px {
+    width: calc(var(--w) * 0.88px);
+    height: calc(var(--h) * 0.88px);
+  }
 }
 @media (min-width: 1100px) and (max-width: 1699px) {
   .velo.sobre-botin .oferta-bufon-lado {

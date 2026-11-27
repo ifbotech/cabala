@@ -481,7 +481,7 @@ function ofertaHtml(p: Partida, oferta: Oferta, fraseRey: string): string {
   };
   return `<div class="oferta o-${oferta.tipo} ${oferta.tesoro ? 'o-tesoro' : ''}" data-oferta="${oferta.tipo}">
       <h2 class="titulo oferta-titulo">${t(TITULO_OFERTA[oferta.tipo])}</h2>
-      ${oferta.tesoro ? `<p class="oferta-tesoro">${pxHud('cofre')}<b>${t('tesoro')}</b>${precio ? `<span class="sub">${t('tesoroCandado', { n: precio })}</span>` : ''}${alcanza ? '' : `<span class="op-falta">${t('tesoroFalta', { n: precio - p.oro })}</span>`}${saltarHtml}</p>` : ''}
+      ${oferta.tesoro ? `<p class="oferta-tesoro">${pxHud('cofre')}<b>${t('tesoro')}</b>${precio ? `<span class="sub">${t('tesoroCandado', { n: precio })}</span>` : ''}${alcanza ? '' : `${precio ? '<span class="sub">·</span>' : ''}<span class="op-falta">${t('tesoroFalta', { n: precio - p.oro })}</span>`}${saltarHtml}</p>` : ''}
       ${cabeza}
       <div class="opciones">${oferta.opciones.map(opcion).join('')}</div>
       ${oferta.tesoro ? '' : saltarHtml}

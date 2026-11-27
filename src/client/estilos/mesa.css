@@ -4769,7 +4769,7 @@ html[data-entrada] .mesa:not(.con-dial) .pano-regla .p-mando.p-dial {
    le devuelve el display); y el Comodín tapado por su vecina (mano de 8) lo lleva de canto, en su franja a la vista */
 .mano .carta.rotulo-canto:not(.elegida) .c-rotulo {
   left: calc(2px * var(--k-naipe, 1));
-  top: calc(2px * var(--k-naipe, 1));
+  top: calc(18px * var(--k-naipe, 1));
   transform: none;
   writing-mode: vertical-rl;
   font-family: var(--cuerpo);
@@ -7946,5 +7946,15 @@ html.modo-3d .pulperia .pul-bufon::after {
 @media (max-width: 700px) {
   .mesa .e-ataque > .e-llamas {
     display: none;
+  }
+}
+@media (min-width: 701px) {
+  .mesa .mesa-top .lado:first-child {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+  .mesa .mesa-top .t-racha {
+    padding: 1px 6px;
+    line-height: 1.15;
   }
 }

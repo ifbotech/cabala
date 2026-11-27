@@ -3,6 +3,12 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 1.1.0 · Pulido Píxel a Píxel (2026-11-27)
+
+- **Visor de Mazo y Cábala Negra (`pantallas.css`, `base.css`):** Filas de 9 cartas por palo sin huérfanas en escritorio; cartel `HAY MÁS ↓` centrado sobre la bandeja en `Cábala Negra`.
+- **Combate y Mapa (`mesa.css`, `camino.ts`, `pantallas.css`):** Chip `RACHA ×N` compacto en una línea sin pisar el escudo `INMUNE`; rótulo `COMODÍN` vertical debajo de la estrella `★`; separador `·` en cabecera de Tesoro; escudo de inmunidad del Rey Jefe despejando su corona en Mapa móvil.
+- **Camino al Sol de Mayo 3D (`solDeMayo3d.ts`):** El arco final reemplaza las cartas `12` por retratos exclusivos de los Reyes enmarcados en latón.
+
 ## 1.0.0 · Lanzamiento Oficial — La Pulpería y El Sol de Mayo (2026-11-27)
 
 Lanzamiento definitivo **`v1.0.0`** tras 5 iteraciones completas de auditoría multiárea (Reglas/Balance, UX/Simplicidad, Game Feel AAA/3D, Progresión/PWA/QA y Certificación Final):
