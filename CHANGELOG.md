@@ -3,6 +3,13 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 1.8.0 · Pulido Píxel a Píxel: Ajustes, Colección, Tesoro y Cuenta Móvil (2026-11-27)
+
+- **Ajustes escritorio (`pantallas.css`):** Despeja al Bufón 3D debajo del abanico de cinco Dorsos (`margin-top: calc(10px * var(--k-naipe))`) para que su sombrero y cuernos no queden tapados, y ensancha `.aj-lista` en `1920×1080` para que los créditos y la versión entren en una sola línea.
+- **Colección en `1280×800` y `1366×768` (`pantallas.css`):** Mantiene las 5 pestañas (`MAZOS`, `REYES`, `AMULETOS`, `CÁBALAS`, `BENDICIONES` y su versión en inglés) en una sola fila horizontal sin saltar la quinta a una segunda línea.
+- **Tesoro móvil (`camino.ts`, `pantallas.css`):** Oculta el separador `·` al envolver `Te faltan N de oro` en una segunda línea en `390×844`.
+- **Cuenta móvil (`mesa.css`):** Separa ligeramente los íconos y cifras de efectos (`Escudo` y `Vida`) en `.cuenta.plegada-2`.
+
 ## 1.7.0 · Pulido Píxel a Píxel: Elegir Mazo EN, 768p/800p y Mando (2026-11-27)
 
 - **Elegir Mazo EN y portátil/Deck (`pantallas.css`):** Amplía el ancho máximo del bocadillo del Bufón (`56vw`) para evitar recortes en inglés y sube `.mazo-detalle` a `124px` con relleno vertical para que el título del Mazo respire dentro del borde en `1366×768` y `1280×800`.

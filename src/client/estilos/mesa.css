@@ -8008,3 +8008,16 @@ html.modo-3d .pulperia .pul-bufon::after {
     gap: 2px;
   }
 }
+
+/* ───────────── 1.8.0 · espaciado de efectos en cuenta móvil ───────────── */
+@media (max-width: 700px) {
+  .mesa .cuenta.plegada-2 .c-efectos {
+    gap: 6px;
+  }
+  .mesa .cuenta.plegada-2 .c-efecto {
+    gap: 2px;
+  }
+  .mesa .cuenta.plegada-2 .c-efecto .icono {
+    margin: -4px -1px;
+  }
+}

@@ -6559,3 +6559,34 @@ html[data-entrada='mando'] .forja-mut {
     padding-bottom: 18px;
   }
 }
+
+/* ───────────── 1.8.0 · Ajustes, Colección y Tesoro ───────────── */
+@media (min-width: 701px) {
+  .aj-cuadro .anfitrion {
+    margin-top: calc(10px * var(--k-naipe));
+  }
+}
+@media (min-width: 1700px) and (min-height: 950px) {
+  .aj-escena > .aj-lista {
+    width: min(100%, calc(var(--fr) * 35));
+  }
+}
+@media (min-width: 1100px) and (max-width: 1699px) {
+  .coleccion .col-columna {
+    width: min(calc(100% - 64px), 1240px);
+  }
+  .coleccion .pestanas {
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+  .coleccion .pestanas .btn {
+    padding-inline: 4px;
+    font-size: var(--fs-s);
+    letter-spacing: 0;
+  }
+}
+@media (max-width: 700px) {
+  .oferta-tesoro .op-sep {
+    display: none;
+  }
+}
