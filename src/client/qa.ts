@@ -119,7 +119,7 @@ export function montarQa(estado: string): void {
     case 'cuarto' as EstadoQa: {
       usarGlorias([
         { palo: 'D', n: 1, mazo: 'escoba', reinado: 1, fecha: 1 },
-        { palo: 'S', n: 12, mazo: 'truco', reinado: 2, fecha: 2 },
+        { palo: 'S', n: 1, mazo: 'truco', reinado: 2, fecha: 2 },
         { palo: 'H', n: 7, mazo: 'chinchon', reinado: 1, fecha: 3 },
       ]);
       if (q.get('abierta') === '1') perfil.stats.victorias = Math.max(1, perfil.stats.victorias);

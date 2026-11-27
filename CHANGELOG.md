@@ -3,6 +3,12 @@
 Todas las versiones publicadas de CÁBALA. Las cifras de balance son del laboratorio (`npm run analyze:meta`, bot propio);
 las del panel de jugadores son **simuladas** y se dicen con su ruido.
 
+## 1.9.0 · Personajes 3D Esculpidos y Redondeados + Pulido 1080p/Modales (2026-11-27)
+
+- **Motor Voxel 3D esculpido (`voxel.ts`, `bufon3d.ts`, `reyes3d.ts`, `heroes3d.ts`):** Suavizado Taubin con preservación de volumen y normales mezcladas por vértice sobre toda la malla de superficie (conservando el dithering Bayer 4×4 y el AO violáceo), hombros/hombreras/botas redondeadas, luz dramática mejorada, orbes octaédricos en Segunda Cara de los Reyes y mayor presencia de los Jefes.
+- **Duelo 1080p y Forja Brava (`pantallas.css`):** Naipes de `112×156 px` en `1920×1080` para que el prompt y botones de `duelo-bufon` quepan sin scroll; el panel `¡FORJA BRAVA!` despeja la carta ardiente sobre el fogón 3D; aire entre título y paso `1 / 3` en `intro-mazo`.
+- **Bufón en modales y Pared de la Gloria (`bufon3d.ts`, `qa.ts`):** `anfitrionVisible()` evita mostrar un segundo Bufón diminuto en el fondo al haber modal activo; la Pared de la Gloria en `cuarto` muestra el 1 de Espadas en lugar de un `12` legado.
+
 ## 1.8.0 · Pulido Píxel a Píxel: Ajustes, Colección, Tesoro y Cuenta Móvil (2026-11-27)
 
 - **Ajustes escritorio (`pantallas.css`):** Despeja al Bufón 3D debajo del abanico de cinco Dorsos (`margin-top: calc(10px * var(--k-naipe))`) para que su sombrero y cuernos no queden tapados, y ensancha `.aj-lista` en `1920×1080` para que los créditos y la versión entren en una sola línea.

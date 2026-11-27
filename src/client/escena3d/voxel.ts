@@ -359,14 +359,14 @@ const AO_TABLE = [0.38, 0.62, 0.82, 1.0] as const;
 
 const MAT_MATTE = new THREE.MeshStandardMaterial({
   vertexColors: true,
-  roughness: 0.84,
-  metalness: 0.04,
+  roughness: 0.78,
+  metalness: 0.08,
 });
 
 const MAT_METAL = new THREE.MeshStandardMaterial({
   vertexColors: true,
-  roughness: 0.28,
-  metalness: 0.72,
+  roughness: 0.24,
+  metalness: 0.78,
 });
 
 const MAT_EMISSIVE = new THREE.MeshBasicMaterial({
@@ -376,24 +376,55 @@ const MAT_EMISSIVE = new THREE.MeshBasicMaterial({
 const tmpColor = new THREE.Color();
 const ABISMO_VIOLETA = new THREE.Color(0x120a24);
 
+interface QuadExpuesto {
+  mat: VoxelMat;
+  cornerKeys: [number, number, number, number];
+  colors: [number, number, number][];
+  aos: [number, number, number, number];
+}
+
+interface VerticeSuperficie {
+  x0: number;
+  y0: number;
+  z0: number;
+  x: number;
+  y: number;
+  z: number;
+  vecinos: Set<number>;
+  nx: number;
+  ny: number;
+  nz: number;
+}
+
 export function construirMallaVoxel(
   grid: VoxelGrid,
   tamVoxel: number,
   pivote: [number, number, number] = [0, 0, 0],
 ): THREE.Group {
   const grupo = new THREE.Group();
-  const buckets: Record<VoxelMat, { pos: number[]; norm: number[]; col: number[]; idx: number[] }> = {
-    matte: { pos: [], norm: [], col: [], idx: [] },
-    metal: { pos: [], norm: [], col: [], idx: [] },
-    emissive: { pos: [], norm: [], col: [], idx: [] },
+  const quads: QuadExpuesto[] = [];
+  const verts = new Map<number, VerticeSuperficie>();
+
+  const obtenerVert = (ix: number, iy: number, iz: number): number => {
+    const k = claveDe(ix, iy, iz);
+    if (!verts.has(k)) {
+      verts.set(k, {
+        x0: ix,
+        y0: iy,
+        z0: iz,
+        x: ix,
+        y: iy,
+        z: iz,
+        vecinos: new Set(),
+        nx: 0,
+        ny: 0,
+        nz: 0,
+      });
+    }
+    return k;
   };
 
-  const px0 = pivote[0];
-  const py0 = pivote[1];
-  const pz0 = pivote[2];
-
   for (const v of grid.values()) {
-    const b = buckets[v.mat];
     tmpColor.setHex(v.color);
     // Dithering Bayer 4×4 3D para textura Dark Pixel-Art orgánica
     const bayer = (BAYER4[(v.y + v.z) & 3][(v.x + v.z) & 3] + 0.5) / 16;
@@ -405,13 +436,16 @@ export function construirMallaVoxel(
       const nz = v.z + c.n[2];
       if (grid.has(nx, ny, nz)) continue;
 
-      const baseIdx = b.pos.length / 3;
+      const cornerKeys: [number, number, number, number] = [0, 0, 0, 0];
+      const colors: [number, number, number][] = [];
       const aos: [number, number, number, number] = [3, 3, 3, 3];
 
       for (let vi = 0; vi < 4; vi++) {
         const vert = c.verts[vi];
-        b.pos.push((v.x + vert[0] - px0) * tamVoxel, (v.y + vert[1] - py0) * tamVoxel, (v.z + vert[2] - pz0) * tamVoxel);
-        b.norm.push(c.n[0], c.n[1], c.n[2]);
+        const ix = v.x + vert[0];
+        const iy = v.y + vert[1];
+        const iz = v.z + vert[2];
+        cornerKeys[vi] = obtenerVert(ix, iy, iz);
 
         const [su, sv] = c.aoSigns[vi];
         const s1 = grid.has(nx + su * c.u[0], ny + su * c.u[1], nz + su * c.u[2]) ? 1 : 0;
@@ -427,26 +461,135 @@ export function construirMallaVoxel(
         aos[vi] = ao;
 
         if (v.mat === 'emissive') {
-          b.col.push(tmpColor.r, tmpColor.g, tmpColor.b);
+          colors.push([tmpColor.r, tmpColor.g, tmpColor.b]);
         } else {
           const factor = AO_TABLE[ao] * c.shade * ditherMod;
           const shadowMix = (1 - AO_TABLE[ao]) * 0.45;
           const r = tmpColor.r * factor;
           const g = tmpColor.g * factor;
           const bl = tmpColor.b * factor;
-          b.col.push(
+          colors.push([
             r + (ABISMO_VIOLETA.r - r) * shadowMix,
             g + (ABISMO_VIOLETA.g - g) * shadowMix,
             bl + (ABISMO_VIOLETA.b - bl) * shadowMix,
-          );
+          ]);
         }
       }
 
-      if (aos[0] + aos[2] > aos[1] + aos[3]) {
-        b.idx.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
-      } else {
-        b.idx.push(baseIdx + 1, baseIdx + 2, baseIdx + 3, baseIdx + 1, baseIdx + 3, baseIdx);
+      for (let vi = 0; vi < 4; vi++) {
+        const kA = cornerKeys[vi];
+        const kB = cornerKeys[(vi + 1) & 3];
+        verts.get(kA)!.vecinos.add(kB);
+        verts.get(kB)!.vecinos.add(kA);
       }
+
+      quads.push({ mat: v.mat, cornerKeys, colors, aos });
+    }
+  }
+
+  // 2 ciclos Taubin con preservación de volumen y tope de ±0.44 para redondear aristas sin colapsar detalles finos
+  const nextPos = new Map<number, [number, number, number]>();
+  const clampDisp = (val: number, orig: number): number => Math.max(orig - 0.44, Math.min(orig + 0.44, val));
+  for (let ciclo = 0; ciclo < 2; ciclo++) {
+    for (const lambda of [0.5, -0.48]) {
+      for (const [k, vs] of verts) {
+        const cnt = vs.vecinos.size;
+        if (cnt === 0) {
+          nextPos.set(k, [vs.x, vs.y, vs.z]);
+          continue;
+        }
+        let sx = 0;
+        let sy = 0;
+        let sz = 0;
+        for (const vk of vs.vecinos) {
+          const nb = verts.get(vk)!;
+          sx += nb.x;
+          sy += nb.y;
+          sz += nb.z;
+        }
+        const inv = 1 / cnt;
+        const nx = vs.x + lambda * (sx * inv - vs.x);
+        const ny = vs.y + lambda * (sy * inv - vs.y);
+        const nz = vs.z + lambda * (sz * inv - vs.z);
+        nextPos.set(k, [clampDisp(nx, vs.x0), clampDisp(ny, vs.y0), clampDisp(nz, vs.z0)]);
+      }
+      for (const [k, p] of nextPos) {
+        const vs = verts.get(k)!;
+        vs.x = p[0];
+        vs.y = p[1];
+        vs.z = p[2];
+      }
+    }
+  }
+
+  // Normales esculpidas suaves por vértice mezcladas con normal de cara (82 % suave / 18 % facetada)
+  const faceNormals: [number, number, number][] = [];
+  for (const q of quads) {
+    const p0 = verts.get(q.cornerKeys[0])!;
+    const p1 = verts.get(q.cornerKeys[1])!;
+    const p2 = verts.get(q.cornerKeys[2])!;
+    const p3 = verts.get(q.cornerKeys[3])!;
+    const ax = p2.x - p0.x;
+    const ay = p2.y - p0.y;
+    const az = p2.z - p0.z;
+    const bx = p3.x - p1.x;
+    const by = p3.y - p1.y;
+    const bz = p3.z - p1.z;
+    let fnx = ay * bz - az * by;
+    let fny = az * bx - ax * bz;
+    let fnz = ax * by - ay * bx;
+    const len = Math.hypot(fnx, fny, fnz) || 1;
+    fnx /= len;
+    fny /= len;
+    fnz /= len;
+    faceNormals.push([fnx, fny, fnz]);
+    for (const ck of q.cornerKeys) {
+      const vs = verts.get(ck)!;
+      vs.nx += fnx;
+      vs.ny += fny;
+      vs.nz += fnz;
+    }
+  }
+
+  for (const vs of verts.values()) {
+    const len = Math.hypot(vs.nx, vs.ny, vs.nz) || 1;
+    vs.nx /= len;
+    vs.ny /= len;
+    vs.nz /= len;
+  }
+
+  const buckets: Record<VoxelMat, { pos: number[]; norm: number[]; col: number[]; idx: number[] }> = {
+    matte: { pos: [], norm: [], col: [], idx: [] },
+    metal: { pos: [], norm: [], col: [], idx: [] },
+    emissive: { pos: [], norm: [], col: [], idx: [] },
+  };
+
+  const px0 = pivote[0];
+  const py0 = pivote[1];
+  const pz0 = pivote[2];
+
+  for (let qi = 0; qi < quads.length; qi++) {
+    const q = quads[qi];
+    const [fnx, fny, fnz] = faceNormals[qi];
+    const b = buckets[q.mat];
+    const baseIdx = b.pos.length / 3;
+
+    for (let vi = 0; vi < 4; vi++) {
+      const vs = verts.get(q.cornerKeys[vi])!;
+      b.pos.push((vs.x - px0) * tamVoxel, (vs.y - py0) * tamVoxel, (vs.z - pz0) * tamVoxel);
+      let bnx = vs.nx * 0.82 + fnx * 0.18;
+      let bny = vs.ny * 0.82 + fny * 0.18;
+      let bnz = vs.nz * 0.82 + fnz * 0.18;
+      const nLen = Math.hypot(bnx, bny, bnz) || 1;
+      b.norm.push(bnx / nLen, bny / nLen, bnz / nLen);
+      const col = q.colors[vi];
+      b.col.push(col[0], col[1], col[2]);
+    }
+
+    if (q.aos[0] + q.aos[2] > q.aos[1] + q.aos[3]) {
+      b.idx.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
+    } else {
+      b.idx.push(baseIdx + 1, baseIdx + 2, baseIdx + 3, baseIdx + 1, baseIdx + 3, baseIdx);
     }
   }
 

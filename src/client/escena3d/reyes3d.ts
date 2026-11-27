@@ -175,9 +175,13 @@ export class Reyes3D {
     g.box(-5, 16, 5, 5, 16, 5, ORO, 'metal');
     g.box(-1, 14, 5, 1, 15, 5, RUBI, 'metal');
 
-    // Hombreras reales esculpidas
-    g.mirrorX(w - 1, 16, -3, w + 3, 20, 3, c.tunicaOsc);
-    g.mirrorX(w + 1, 18, -2, w + 3, 20, 2, ORO, 'metal');
+    // Hombreras reales esculpidas redondeadas
+    g.ellipsoid(-w - 1.2, 17.5, 0, 3.8, 3.2, 3.8, c.tunicaOsc);
+    g.ellipsoid(w + 1.2, 17.5, 0, 3.8, 3.2, 3.8, c.tunicaOsc);
+    g.ellipsoid(-w - 1.6, 19.2, 0, 2.4, 1.4, 2.6, ORO, 'metal');
+    g.ellipsoid(w + 1.6, 19.2, 0, 2.4, 1.4, 2.6, ORO, 'metal');
+    g.ellipsoid(-3.5, -10, 1.5, 2.6, 1.8, 3.4, BOTA);
+    g.ellipsoid(3.5, -10, 1.5, 2.6, 1.8, 3.4, BOTA);
 
     return construirMallaVoxel(g, V, [0, 7, 0]);
   }
@@ -433,7 +437,7 @@ export class Reyes3D {
     grupo.add(cuerpo);
 
     const orbesSegunda: THREE.Mesh[] = [];
-    const geoOrbe = new THREE.BoxGeometry(0.06, 0.06, 0.06);
+    const geoOrbe = new THREE.OctahedronGeometry(0.065, 0);
     const matOrbe = new THREE.MeshBasicMaterial({ color: COLOR_REY[palo] });
     for (let i = 0; i < 4; i++) {
       const m = new THREE.Mesh(geoOrbe, matOrbe);
@@ -592,13 +596,13 @@ export class Reyes3D {
     this.pulsoSuave += (pulsoMeta - this.pulsoSuave) * (1 - Math.exp(-10 * dt));
 
     const worldH = this.proyectar(cam, r.left + r.width / 2, r.top + r.height * 0.64, r.height, 5.55, this.raiz.position);
-    this.raiz.scale.setScalar(worldH * 0.76);
+    this.raiz.scale.setScalar(worldH * 0.81);
     this.raiz.quaternion.copy(cam.quaternion);
     this.raiz.visible = true;
 
     this.luzRey.color.setHex(COLOR_REY[palo]);
-    this.luzRey.intensity = (segunda ? 2.05 : 1.35) + (this.castTimer > 0 ? 1.15 : 0) + this.pulsoSuave * 0.4;
-    this.luzFrente.intensity = this.golpeTimer > 0 ? 2.8 : 1.45;
+    this.luzRey.intensity = (segunda ? 2.35 : 1.6) + (this.castTimer > 0 ? 1.15 : 0) + this.pulsoSuave * 0.4;
+    this.luzFrente.intensity = this.golpeTimer > 0 ? 3.0 : 1.85;
 
     for (const k of ['S', 'C', 'D', 'H'] as const) {
       const fig = this.figuras[k];

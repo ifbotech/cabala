@@ -98,12 +98,14 @@ export class Bufon3D {
     // Capa abismal detrás
     gTorso.taperedCylinder(0, -18, 10, -4, 11.5, 2.2, 7.5, 2.0, CAPA);
 
-    // Gola dentada oscura con cascabeles
+    // Hombros arlequín abullonados y gola dentada oscura con cascabeles redondeados
+    gTorso.ellipsoid(-8.2, 8.5, 0, 2.8, 2.6, 2.8, PURPURA);
+    gTorso.ellipsoid(8.2, 8.5, 0, 2.8, 2.6, 2.8, CARMESI);
     gTorso.taperedCylinder(0, 9, 12, 0, 10.6, 6.2, 6.2, 4.2, CARMESI_OSC);
     gTorso.ditherBox(-10, 9, -5, 0, 11, 5, PURPURA_OSC, CAPA);
     for (let i = -9; i <= 9; i += 3) {
-      gTorso.set(i, 8, 5, ORO, 'metal');
-      gTorso.set(i, 8, -5, ORO_OSC, 'metal');
+      gTorso.ellipsoid(i, 8, 5, 0.9, 0.9, 0.9, ORO, 'metal');
+      gTorso.ellipsoid(i, 8, -5, 0.9, 0.9, 0.9, ORO_OSC, 'metal');
     }
 
     this.cuerpo.add(construirMallaVoxel(gTorso, V, [0, 6, 0]));
@@ -156,14 +158,14 @@ export class Bufon3D {
 
     this.ojoIzq = new THREE.Mesh(geoOjo, matIris);
     this.ojoIzq.rotation.z = -0.16;
-    this.ojoIzq.position.set(-2.5 * V, 8.6 * V, 6.08 * V);
+    this.ojoIzq.position.set(-2.5 * V, 8.6 * V, 6.16 * V);
     this.pupilaIzq = new THREE.Mesh(geoPupila, matPupila);
     this.pupilaIzq.position.set(0, 0, 0.004);
     this.ojoIzq.add(this.pupilaIzq);
 
     this.ojoDer = new THREE.Mesh(geoOjo, matIris);
     this.ojoDer.rotation.z = 0.16;
-    this.ojoDer.position.set(2.5 * V, 8.6 * V, 6.08 * V);
+    this.ojoDer.position.set(2.5 * V, 8.6 * V, 6.16 * V);
     this.pupilaDer = new THREE.Mesh(geoPupila, matPupila);
     this.pupilaDer.position.set(0, 0, 0.004);
     this.ojoDer.add(this.pupilaDer);
@@ -235,9 +237,9 @@ export class Bufon3D {
     this.cuerpo.add(this.brazoIzq, this.brazoDer);
 
     // Iluminación nocturna de claroscuro (fiel al tono oscuro del juego)
-    this.luzFrente = new THREE.PointLight(0xffc880, 1.35, 3.6, 1.5);
+    this.luzFrente = new THREE.PointLight(0xffc880, 1.75, 4.2, 1.45);
     this.luzFrente.position.set(-0.35, 0.45, 1.25);
-    this.luzMascara = new THREE.PointLight(0x9e58ff, 1.05, 2.8, 1.8);
+    this.luzMascara = new THREE.PointLight(0x9e58ff, 1.25, 3.1, 1.7);
     this.luzMascara.position.set(0.45, 0.15, 0.85);
     this.raiz.add(this.cuerpo, this.luzFrente, this.luzMascara);
     this.raiz.visible = false;
@@ -245,10 +247,10 @@ export class Bufon3D {
   }
 
   private anfitrionVisible(): HTMLElement | null {
-    const candidatos = [
-      ...Array.from(document.querySelectorAll<HTMLElement>('#capa .velo .bufon')),
-      ...Array.from(document.querySelectorAll<HTMLElement>('#app .bufon')),
-    ];
+    const hayVelo = !!document.querySelector('#capa .velo');
+    const candidatos = hayVelo
+      ? Array.from(document.querySelectorAll<HTMLElement>('#capa .velo .bufon'))
+      : Array.from(document.querySelectorAll<HTMLElement>('#app .bufon'));
     for (const el of candidatos) {
       if (el.closest('.fin-escena.corrida')) continue;
       const st = getComputedStyle(el);
@@ -328,10 +330,10 @@ export class Bufon3D {
     const enModal = !!el.closest('#capa .velo');
     if (paloRey) {
       this.luzMascara.color.setHex(COLOR_REY[paloRey]);
-      this.luzMascara.intensity = (segundaRey ? 1.35 : 1.05) + this.pulsoSuave * 0.35;
+      this.luzMascara.intensity = (segundaRey ? 1.6 : 1.25) + this.pulsoSuave * 0.35;
     } else {
       this.luzMascara.color.setHex(0xffaa44);
-      this.luzMascara.intensity = (enModal ? 1.3 : 1.05) + this.pulsoSuave * 0.35;
+      this.luzMascara.intensity = (enModal ? 1.55 : 1.25) + this.pulsoSuave * 0.35;
     }
 
     let objX = punteroX;

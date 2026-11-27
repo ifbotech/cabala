@@ -48,10 +48,10 @@ export class Heroes3D {
       this.raiz.add(this.heroes[m].grupo);
     }
 
-    this.luzFrente = new THREE.PointLight(0xffcf94, 1.45, 4.0, 1.4);
-    this.luzFrente.position.set(-0.3, 0.5, 1.3);
-    this.luzRim = new THREE.PointLight(0xd9842b, 1.05, 3.2, 1.6);
-    this.luzRim.position.set(0.55, 0.35, -0.4);
+    this.luzFrente = new THREE.PointLight(0xffcf94, 2.1, 4.4, 1.35);
+    this.luzFrente.position.set(-0.3, 0.5, 1.35);
+    this.luzRim = new THREE.PointLight(0xd9842b, 1.45, 3.6, 1.5);
+    this.luzRim.position.set(0.55, 0.45, -0.35);
     this.raiz.add(this.luzFrente, this.luzRim);
     this.raiz.visible = false;
     escena.add(this.raiz);
@@ -60,9 +60,13 @@ export class Heroes3D {
   private baseCuerpo(ropa: number, ropaOsc: number, pantalon: number, ancho = 7.4, cinturon = true): VoxelGrid {
     const g = new VoxelGrid();
     g.mirrorX(2, -19, -2, 5, -15, 3, BOTA);
+    g.ellipsoid(-3.5, -17.5, 1.5, 2.2, 1.6, 2.8, BOTA);
+    g.ellipsoid(3.5, -17.5, 1.5, 2.2, 1.6, 2.8, BOTA);
     g.taperedCylinder(-3.5, -14, -2, 0, 2.2, 2.2, 2.8, 2.6, pantalon);
     g.taperedCylinder(3.5, -14, -2, 0, 2.2, 2.2, 2.8, 2.6, pantalon);
     g.taperedCylinder(0, -2, 14, 0, ancho, 4.0, ancho + 0.8, 4.4, ropa);
+    g.ellipsoid(-ancho - 0.6, 12.2, 0, 2.5, 2.4, 2.6, ropa);
+    g.ellipsoid(ancho + 0.6, 12.2, 0, 2.5, 2.4, 2.6, ropa);
     g.ditherBox(-Math.floor(ancho), -2, -4, Math.floor(ancho), 2, 4, ropaOsc, ropa);
     if (cinturon) {
       g.taperedCylinder(0, 3, 5, 0, ancho + 0.4, 4.4, ancho + 0.4, 4.4, CUERO);
