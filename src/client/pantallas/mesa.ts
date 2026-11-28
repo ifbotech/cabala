@@ -558,7 +558,7 @@ export function pantallaMesa(p: Partida): Pantalla {
     // (con el Dado Cargado tirado, la cuenta en reposo ya dice lo que suma al próximo golpe)
     const dado = '';
     if (!sel.length)
-      return `<div class="cuenta reposo">${dado}<span class="sub pista p-puntero">${t('elegiCartas')}</span><span class="sub pista p-botones">${glifo('A', 'ENTER')} ${t('pistaElige')} · ${glifo('LB', 'Q')}${glifo('RB', 'W')} ${t('pistaCorre')} · ${glifo('X', 'G')} ${t('pistaGolpea')} · ${glifo('Y', 'D')} ${t(c().pasar ? 'pistaPasa' : 'pistaDescarta')}${p.mazoId === 'mentiroso' && c().enganos > 0 ? ` · ${glifo('LT', 'E')} ${t('pistaEngana')}` : ''}</span></div>`;
+      return `<div class="cuenta reposo">${dado}<span class="sub pista p-puntero">${t('elegiCartas')}</span><span class="sub pista p-botones">${glifo('A', 'ENTER')} ${t('pistaElige')} · ${glifo('X', 'G')} ${t('pistaGolpea')} · ${glifo('Y', 'D')} ${t(c().pasar ? 'pistaPasa' : 'pistaDescarta')}${p.mazoId === 'mentiroso' && c().enganos > 0 ? ` · ${glifo('LT', 'E')} ${t('pistaEngana')}` : ''}</span></div>`;
     if (!q.ok) {
       const motivo = q.motivo === 'comodines' ? t('soloComodines') : q.motivo === 'muchas' ? t('muchas') : t('noJugada');
       return `<div class="cuenta invalida"><span class="chip">${motivo}</span></div>`;
@@ -653,8 +653,8 @@ export function pantallaMesa(p: Partida): Pantalla {
     const faltaEnvido = p.mazoId === 'truco' && !q.canto && sumaPar >= 0 && sumaPar < minEnvido ? `<span class="chip c-falta mirable" tabindex="0" ${tip(tx(MAZO.truco.canto), t('envidoFaltaTip', { m: minEnvido }))}>${esc(t('envidoFalta', { n: minEnvido - sumaPar }))}</span>` : '';
     const efectos = `${escudoPalos > 0 ? efecto(t('escudo'), 'escudo', escudoPalos, 'azul') : ''}${q.cura ? efecto(t('cura'), 'vida', q.cura, 'verde') : sinCura}${q.oro ? efecto(t('oro'), 'oro', q.oro, 'oro') : ''}`;
     const maldicionChip = maldicionHtml(q);
-    // (0.27) con mando o teclado, cómo se corre de Posta (y qué hace R3): un renglón que no se parte, bajo el desglose
-    const pistaPano = `<span class="c-pista-pano" aria-hidden="true"><span class="pp-uno">${glifo('LB', 'Q')}${glifo('RB', 'W')}<b>${esc(t('pistaCorre'))}</b></span>${dialEnCuenta ? `<span class="pp-uno">${glifo('R3', 'X')}<b>${esc(t(dialExacto ? 'pistaJusto' : 'pistaTodo'))}</b></span>` : ''}</span>`;
+    // (sin Postas: la mano se levanta en su lugar)
+    const pistaPano = '';
     return `<div class="cuenta previa ${q.abate || q.ejecuta ? 'abate' : ''}" ${tip(`${tx(JUGADA_NOMBRE[q.jugada])}: ${t('dano')} × ${t('multi')}`, d, m)}>
       <span class="c-formula">
         <span class="chip c-jugada">${esc(tx(JUGADA_NOMBRE[q.jugada]))}</span>
@@ -721,12 +721,10 @@ export function pantallaMesa(p: Partida): Pantalla {
       // fórmula no queda estirada con huecos entre «×» y el Multi—)
       if (innerWidth <= 700) fijarAnchos(el);
       acomodarCuenta(el);
-      // (0.29) la primera vez que aparecen, «CORTÁS» y «corre de Posta» llevan su ayuda de tres palabras (una vez y se va)
+      // (0.29) la primera vez que aparecen, «CORTÁS» lleva su ayuda de tres palabras (una vez y se va)
       if (!ocupado && q.ok && sel.length) {
         const corta = el.querySelector<HTMLElement>('.c-corta');
-        const pista = el.querySelector<HTMLElement>('.c-pista-pano');
         if (corta) ayudaPrimera(corta, 'cortas', t('ayudaCortas'));
-        else if (pista && pista.offsetParent && pista.offsetWidth > 0) ayudaPrimera(pista, 'posta', t('ayudaPosta'));
       }
       // con la letra recién cargada, se vuelve a medir (la de respaldo es de otro ancho)
       if (document.fonts.status !== 'loaded')

@@ -88,6 +88,10 @@ button:focus-visible, [tabindex]:focus-visible {
   overflow: hidden;
 }
 
+#app {
+  z-index: 10;
+}
+
 #capa {
   pointer-events: none;
   z-index: 40;
@@ -95,6 +99,15 @@ button:focus-visible, [tabindex]:focus-visible {
 
 #capa > .velo, #capa > .tip {
   pointer-events: auto;
+}
+
+#fondo {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
 }
 
 #fx-color, #fx-luz {
@@ -204,6 +217,21 @@ button:focus-visible, [tabindex]:focus-visible {
 .marco.plata { border-image-source: var(--m-plata); }
 .marco.prisma { border-image-source: var(--m-prisma); }
 .marco.hundido { border-image-source: var(--m-hundido); }
+.marco.paloS { border-image-source: var(--m-paloS); }
+.marco.paloC { border-image-source: var(--m-paloC); }
+.marco.paloD { border-image-source: var(--m-paloD); }
+.marco.paloH { border-image-source: var(--m-paloH); }
+
+.btn.marco.oro {
+  color: #160c1c;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.opcion.marco, .venta.marco, .mazo-op.marco {
+  border-image-slice: 8;
+  background: rgba(22, 12, 28, 0.94);
+  color: var(--hueso);
+}
 
 .btn {
   display: inline-flex;
@@ -254,7 +282,7 @@ button:focus-visible, [tabindex]:focus-visible {
 .chip.maldicion { border-color: var(--sangre); color: #ff6e8e; }
 
 .glifo {
-  display: inline-flex;
+  display: none;
   align-items: center;
   justify-content: center;
   padding: 1px 5px;
@@ -264,7 +292,8 @@ button:focus-visible, [tabindex]:focus-visible {
   color: var(--oro);
 }
 
-html[data-entrada='raton'] .glifo { display: none; }
+html[data-entrada='teclado'] .glifo.g-tecla { display: inline-flex; }
+html[data-entrada='mando'] .glifo.g-mando { display: inline-flex; }
 
 /* Anfitrión Bufón y bocadillo */
 .anfitrion {
@@ -277,18 +306,59 @@ html[data-entrada='raton'] .glifo { display: none; }
   position: relative;
   width: 96px;
   height: 112px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
 }
 
-.bufon .bf-capa {
+.bufon > .px {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  background-size: contain;
+  background-position: center bottom;
+}
+
+.bufon .bf-palo {
+  transform-origin: 50% 85%;
+  animation: bfPalo 3.2s steps(4) infinite alternate;
+}
+
+.bufon .bf-parpado {
+  opacity: 0;
+  animation: bfParpadeo 5.2s steps(1) infinite;
+}
+
+@keyframes bfPalo {
+  from { transform: rotate(-2deg); }
+  to { transform: rotate(2deg); }
+}
+
+@keyframes bfParpadeo {
+  0%, 94%, 100% { opacity: 0; }
+  96%, 98% { opacity: 1; }
+}
+
+.rey {
+  position: relative;
+  width: calc(64px * var(--k-rey-retrato, 1.4));
+  height: calc(64px * var(--k-rey-retrato, 1.4));
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 2px solid var(--aura, var(--oro));
+  background: var(--abismo);
+}
+
+.rey > .px, .rey > .r-aura {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-size: 100% 100%;
+}
+
+.rey > .r-aura {
+  background: radial-gradient(circle at 50% 55%, color-mix(in srgb, var(--aura, #ffd500) 32%, transparent) 0%, transparent 72%);
+  pointer-events: none;
 }
 
 .bocadillo {
@@ -352,10 +422,18 @@ html[data-entrada='raton'] .glifo { display: none; }
   width: 46px;
   height: 46px;
   border: 2px solid var(--oro-2);
-  background-size: cover;
   background-color: var(--noche-3);
   position: relative;
   flex-shrink: 0;
+}
+
+.hud-cara {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
 }
 
 .hud-grito {
@@ -370,22 +448,82 @@ html[data-entrada='raton'] .glifo { display: none; }
   pointer-events: none;
 }
 
-.hud-dato {
+.hud-pozo {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 3px 8px;
+  background: var(--noche-3);
+  border: 1px solid #3f2459;
+  min-height: 44px;
+}
+
+.hud-pozo .rotulo {
+  font-size: 9px;
+  line-height: 1;
+}
+
+.hud-pozo .valor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hud-pozo .px.icono { --k: 1.25; }
+.hud-pozo .px.cf, .hud-pozo .cifra.grande .px.cf { --k: 1.45; }
+.hud-pozo .de .px.cf { --k: 1.0; opacity: 0.78; }
+
+.hud-barra {
+  display: block;
+  width: 100%;
+  height: 3px;
+  background: var(--abismo);
+}
+
+.hud-barra > i {
+  display: block;
+  height: 100%;
+  background: var(--lima);
+  transition: width 180ms steps(6);
+}
+
+.hud-limpia {
+  font: 700 8px/1 var(--f-tit);
+  color: var(--cian);
+  white-space: nowrap;
+}
+
+.hud-tiras {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   padding: 4px 8px;
   background: var(--noche-3);
   border: 1px solid #3f2459;
-  font: 700 13px/1 var(--f-tit);
+  min-height: 44px;
+  max-width: 34vw;
+  overflow: hidden;
+}
+
+.hud-nada {
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.hud-mas {
+  font: 700 11px/1 var(--f-tit);
+  color: var(--oro);
+  padding: 2px 5px;
+  background: var(--abismo);
+  border: 1px solid var(--oro);
 }
 
 .hud-tira {
   display: flex;
   align-items: center;
   gap: 4px;
-  max-width: 44vw;
-  overflow-x: auto;
+  overflow: hidden;
 }
 
 .ficha {
@@ -416,6 +554,8 @@ html[data-entrada='raton'] .glifo { display: none; }
   pointer-events: none;
 }
 
+.tip b { display: block; font: 700 12px/1.2 var(--f-tit); color: var(--oro); margin-bottom: 3px; }
+.tip span { display: block; }
 .tip-t { font: 700 12px/1.2 var(--f-tit); color: var(--oro); margin-bottom: 4px; }
 
 .solo-movil { display: none; }
@@ -425,12 +565,16 @@ html[data-entrada='raton'] .glifo { display: none; }
   .solo-movil { display: inline; }
   .pantalla { padding: 8px 10px; gap: 6px; }
   .pantalla.en-partida { padding-bottom: 58px; }
-  .hud { height: 52px; padding: 4px 8px; gap: 6px; }
-  .hud .px.cf { --k: 1.25; }
-  .hud .px.icono { --k: 1.35; }
-  .hud-dato { padding: 3px 5px; font-size: 11px; gap: 3px; }
-  .hud-retrato { width: 34px; height: 34px; }
-  .hud-tira { max-width: 28vw; }
+  .hud { height: 54px; padding: 3px 6px; gap: 4px; overflow: hidden; }
+  .hud-lado { gap: 4px; }
+  .hud-pozo { padding: 2px 5px; min-height: 38px; max-height: 46px; overflow: hidden; }
+  .hud-pozo .rotulo { font-size: 8px; }
+  .hud-pozo .px.icono { --k: 0.95; }
+  .hud-pozo .px.cf, .hud-pozo .cifra.grande .px.cf { --k: 1.05; }
+  .hud-pozo .de, .hud-limpia { display: none; }
+  .hud-retrato { width: 38px; height: 38px; }
+  .hud-tiras { padding: 2px 5px; min-height: 38px; max-width: 24vw; }
+  .hud-nada { display: none; }
   .ficha { width: 26px; height: 26px; }
   .btn.monumental { min-width: 160px; font-size: 15px; padding: 10px 16px; }
 }

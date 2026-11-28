@@ -146,7 +146,7 @@ export function montarQa(estado: string): void {
     }
     case 'mazo':
       montar(partida(mazo, (p) => enCombate(p, 0)));
-      $<HTMLElement>('[data-accion="mazo"]')?.click();
+      $<HTMLElement>('[data-accion="ver-mazo"]')?.click();
       break;
     case 'jugadas':
       montar(partida(mazo, (p) => enCombate(p, 0)));
@@ -157,7 +157,7 @@ export function montarQa(estado: string): void {
       darDon(p, 'S');
       darAmuleto(p, 'cuchillo');
       montar(p);
-      $<HTMLElement>('[data-accion="piezas"]')?.click();
+      $<HTMLElement>('[data-accion="ver-piezas"]')?.click();
       break;
     }
     case 'fin-victoria': {

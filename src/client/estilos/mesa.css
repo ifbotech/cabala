@@ -7,12 +7,12 @@
 .escena {
   position: relative;
   flex: 1 1 auto;
-  min-height: 220px;
+  min-height: 250px;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: end;
   gap: 12px;
-  padding: 12px 24px 14px;
+  padding: 10px 24px 10px;
   background:
     radial-gradient(ellipse at 50% 85%, rgba(144, 56, 216, 0.22) 0%, transparent 62%),
     linear-gradient(180deg, rgba(18, 10, 36, 0.3) 0%, rgba(36, 17, 43, 0.85) 78%, #160c1c 100%);
@@ -45,18 +45,18 @@
 }
 
 .sprite-heroe {
-  width: calc(64px * var(--k-enemigo, 2));
-  height: calc(80px * var(--k-enemigo, 2));
+  width: 100px;
+  height: 140px;
 }
 
 .sprite-enemigo {
-  width: calc(64px * var(--k-enemigo, 2));
-  height: calc(80px * var(--k-enemigo, 2));
+  width: 112px;
+  height: 162px;
 }
 
 .sprite-enemigo.sprite-rey {
-  width: calc(76px * var(--k-rey, 2));
-  height: calc(92px * var(--k-rey, 2));
+  width: 128px;
+  height: 182px;
 }
 
 /* Árbitro central: El Bufón */
@@ -177,7 +177,7 @@
 
 /* Barras diegéticas bajo los combatientes */
 .h-barras, .e-barras {
-  width: 210px;
+  width: 245px;
   max-width: 100%;
   display: flex;
   flex-direction: column;
@@ -275,18 +275,37 @@
 
 .cuenta {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px;
   padding: 5px 12px;
   background: rgba(11, 7, 17, 0.85);
   border: 2px solid #4a2a68;
 }
 
 .cuenta.abate { border-color: var(--oro); }
-.c-formula { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.c-desglose { display: flex; gap: 6px; flex-wrap: wrap; font-size: 12px; }
+.cuenta.reposo .p-botones { display: none; }
+html[data-entrada='teclado'] .cuenta.reposo .p-puntero,
+html[data-entrada='mando'] .cuenta.reposo .p-puntero { display: none; }
+html[data-entrada='teclado'] .cuenta.reposo .p-botones,
+html[data-entrada='mando'] .cuenta.reposo .p-botones { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+
+.c-formula { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.c-numeros { display: inline-flex; align-items: center; gap: 6px; }
+.c-parte { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; background: var(--noche-3); border: 1px solid #4a2a68; }
+.c-parte .px.cf, .c-total .px.cf { --k: 1.8; }
+.c-efectos, .c-chips { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.c-veredicto { font: 700 12px/1 var(--f-tit); padding: 3px 7px; background: var(--abismo); border: 1px solid var(--oro); color: var(--oro); }
+.c-bajo { width: 100%; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; font-size: 11px; color: var(--hueso-2); }
+.d-fila { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.d-rot { color: var(--oro); font: 700 10px/1 var(--f-tit); }
+.d-rot-c { display: none; }
+.d-terminos { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.d-t { display: inline-flex; align-items: center; gap: 2px; }
+.c-pista-pano { display: none; }
+.b-previa { position: absolute; top: 0; bottom: 0; background: rgba(255, 213, 0, 0.55); pointer-events: none; z-index: 1; }
+.b-previa.entera { background: rgba(255, 213, 0, 0.8); }
 
 /* Mano y botones */
 .mano-zona {
@@ -321,11 +340,11 @@
 
 .mano {
   position: relative;
-  min-height: 156px;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  height: 170px;
+  min-height: 170px;
+  width: 100%;
+  margin-bottom: 6px;
+  overflow: visible;
 }
 
 .mano .carta {
@@ -334,6 +353,10 @@
   top: 0;
   transition: filter 80ms steps(2);
   transform-origin: center center;
+}
+
+.mano .carta.niega {
+  animation: vibraHerido 220ms steps(4);
 }
 
 .mano .carta.elegida {
@@ -404,16 +427,21 @@
 .corte { display: none; }
 
 @media (max-width: 1024px) {
-  :root { --k-enemigo: 1.75; --k-rey: 1.75; }
+  .sprite-heroe { width: 96px; height: 134px; }
+  .sprite-enemigo { width: 108px; height: 156px; }
+  .sprite-enemigo.sprite-rey { width: 120px; height: 170px; }
   .h-barras, .e-barras { width: 175px; }
 }
 
 @media (max-width: 760px) {
-  :root { --k-enemigo: 1.25; --k-rey: 1.25; --k-naipe: 0.72; }
+  :root { --k-naipe: 0.72; }
+  .sprite-heroe { width: 72px; height: 100px; }
+  .sprite-enemigo { width: 84px; height: 122px; }
+  .sprite-enemigo.sprite-rey { width: 92px; height: 130px; }
   .escena {
     grid-template-columns: 1fr 1fr;
-    padding: 8px 8px 10px;
-    min-height: 170px;
+    padding: 6px 6px 8px;
+    min-height: 155px;
     gap: 6px;
   }
   .esc-bufon {
@@ -425,15 +453,20 @@
   }
   .esc-bufon .bufon { width: 48px; height: 56px; }
   .esc-bufon .bocadillo { max-width: 160px; font-size: 10px; padding: 3px 6px; }
-  .h-barras, .e-barras { width: 155px; }
+  .h-barras, .e-barras { width: 175px; }
   .e-ataque { padding: 2px 5px; font-size: 10px; gap: 3px; flex-wrap: wrap; justify-content: center; }
   .e-ataque .px.icono, .e-ataque .px.cf, .e-ataque .cifra.grande .px.cf { --k: 1; }
+  .cuenta-zona { min-height: 36px; padding: 2px 4px; }
+  .cuenta { padding: 4px 8px; gap: 4px; }
+  .c-parte .px.cf, .c-total .px.cf { --k: 1.25; }
+  .c-bajo { display: none; }
   .mano-zona {
     grid-template-columns: 1fr;
     gap: 4px;
     min-height: 0;
   }
-  .mano { min-height: 98px; }
+  .mano { height: 124px; min-height: 124px; margin-bottom: 4px; }
+  .mano.dos-filas { height: 158px; min-height: 158px; }
   .descarte-zona { display: none; }
   .botones {
     flex-direction: row;
