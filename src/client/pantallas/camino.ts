@@ -29,7 +29,7 @@ import { JUGADA_COMO, JUGADA_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_AYUDA, PASO_N
 import { VOZ } from '../voces';
 import { bufonDice } from '../bufon-vivo';
 import { glifo } from '../nav';
-import { $, abrirModal, anfitrion, bufonHtml, cerrarModal, conMaldicion, esc, fichaDe, irASalida, repintar, reyHtml, sinergiaHtml, tip, type Accion, type Pantalla } from '../ui';
+import { $, abrirModal, cerrarModal, conMaldicion, esc, fichaDe, irASalida, repintar, reyHtml, sinergiaHtml, tip, type Accion, type Pantalla } from '../ui';
 import { fichaIc } from '../chips';
 
 const fijo = (): number | undefined => (enFoto() ? 0 : undefined);
@@ -325,7 +325,6 @@ function modalOferta(p: Partida, indice: number, alTerminar: () => void): void {
   const pieza = $(`#app main.botin:not(.directo) [data-accion="abrir"][data-i="${indice}"]`)?.closest<HTMLElement>('.botin-fila');
   if (pieza) {
     velo.classList.add('sobre-botin');
-    velo.insertAdjacentHTML('afterbegin', `<div class="oferta-bufon-lado" aria-hidden="true">${bufonHtml('brillo')}</div>`);
     const d = pieza.getBoundingClientRect();
     if (!quieto())
       for (const o of velo.querySelectorAll<HTMLElement>('.opciones > .opcion')) {
@@ -445,7 +444,6 @@ export function pantallaPulperia(p: Partida): Pantalla {
       return `<main class="pantalla en-partida pulperia">
       <header class="cabecera"><h1 class="titulo">${t('pulperia')}</h1><div class="lado"><b class="pul-hay-mas" aria-hidden="true">${t('hayMas')}</b><button class="btn marco oro" data-accion="salir" data-foco="salir">${t('salir')} ›</button></div></header>
       <div class="pul-cuerpo">
-        ${anfitrion(voz, gesto, 'pul-bufon')}
         <div class="bandejas">
           <section class="bandeja marco">
             <h2 class="rotulo">${t('amuletos')} ${p.amuletos.length}/${p.huecos}</h2>
@@ -681,7 +679,6 @@ export function pantallaFin(p: Partida): Pantalla {
         <h1 class="titulo fin-titulo">${gano ? t('victoria') : esc(tituloDerrota())}</h1>
         <div class="fin-tira" aria-hidden="true">${reyes.map((r, i) => naipeRey(r.palo, i)).join('')}</div>
         <div class="fin-cuadro">
-          ${anfitrion(tx(alAzar(gano ? VOZ.gano : VOZ.perdio, fijo())), gano ? 'risa' : 'sombria', 'fin-bufon')}
           ${heroe}
           <section class="panel fin-panel">
             ${resumenHtml(p, sesion.resumen ?? resumenDe(p, perfil))}

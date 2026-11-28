@@ -11,7 +11,7 @@ import { fogonazoCandil, sacudir } from '../fx/motor';
 import { stinger } from '../musica';
 import { pausa, quieto } from '../ritmo';
 import { pxDorso, pxNaipe } from '../sprites';
-import { anfitrion, esc, irASalida, repintar, $, type Pantalla } from '../ui';
+import { esc, irASalida, repintar, $, type Pantalla } from '../ui';
 
 interface NaipeDuelo {
   palo: Palo;
@@ -286,7 +286,7 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
         cuerpoHtml = `
           <div class="duelo-tablero">
             <div class="duelo-fila">
-              <span class="rotulo">${t('dueloBufonMano')}</span>
+              <span class="rotulo">MANO RIVAL</span>
               <div class="duelo-cartas">${cartasHtml(manoBufon, 'b', !revelado)}</div>
             </div>
             ${mesaCartas.length ? `<div class="duelo-fila"><span class="rotulo">${t('dueloMesa')}</span><div class="duelo-cartas">${cartasHtml(mesaCartas, 'm')}</div></div>` : ''}
@@ -314,12 +314,12 @@ export function pantallaDueloBufon(p: Partida): Pantalla {
       return `<main class="pantalla en-partida duelo-bufon">
         <header class="cabecera">
           <div class="lado">
-            <h1 class="titulo dorado">${t('dueloTitulo')}</h1>
+            <h1 class="titulo dorado">DUELO DE BARAJA</h1>
             <span class="sub">${t('dueloSub', { mazo: nombreMazo })}</span>
           </div>
         </header>
         <div class="duelo-zona">
-          <div class="duelo-anfitrion">${anfitrion(vozBufon, exprBufon, 'duelo-bufon-anf')}</div>
+          <p class="duelo-aviso">${esc(vozBufon)}</p>
           <div class="duelo-centro">${cuerpoHtml}</div>
         </div>
         ${hudHtml(p)}

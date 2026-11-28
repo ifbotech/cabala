@@ -411,9 +411,6 @@ await conServidor(5192, async (url) => {
     v.on('pageerror', (e) => errores.push(e.message));
     await v.goto(`${url}/?perfil=nuevo&lang=${lang}`);
     await v.waitForSelector('.portada [data-accion="jugar"]');
-    const sonados = (): Promise<string> => v.evaluate(() => (window as unknown as { __cabala: { sonados: string[] } }).__cabala.sonados.join(' '));
-    await v.waitForFunction(() => !!document.querySelector('.portada [data-anfitrion] [data-voz] .dicho')?.textContent, undefined, { timeout: 5000 });
-    exigir((await sonados()).includes('bufon'), 'el Bufón llegó a la portada sin su sonido');
 
     type Mus = { deseada: string | null; suena: string | null; pasos: number };
     const suena = (pg: Page, pista: string | null): Promise<unknown> =>

@@ -23,7 +23,7 @@ import { S, congelar, descongelar, enFoto, fogonazoCandil, ponerClima, sacudir }
 import { actualizarTiras, avivarRetrato, cargaQue, deltaHud, nombreCarga, dispararFicha, gestoFijo, gestoRetrato, gritar, hudHtml, mirarHacia, ponerHud, poseRetrato, reubicarGrito, vistaDe, type VistaHud } from '../hud';
 import { guardar, pintarFase } from '../juego';
 import { crearMano, type Mano, type Zona } from '../mano';
-import { encajarDesglose, nombreHtml, terminoVisto } from '../desglose';
+import { nombreHtml, terminoVisto } from '../desglose';
 import type { Expresion } from '../pixel/bufon';
 import { cifra, enemigoSpriteHtml, forjarLuego, heroeSpriteHtml, lienzoNaipe, lienzoNaipeSegunda, pxMascara, pxNaipeSegunda, pxAmuleto, pxBendicion, pxEstrella, pxHud, pxInmune, pxNaipe, pxNodo, pxPalo, urlEnemigo, urlHeroe } from '../sprites';
 import { ESTADOS_COMBATIENTE, type EstadoCombatiente } from '../pixel/combatientes';
@@ -140,15 +140,10 @@ export function pantallaMesa(p: Partida): Pantalla {
       });
     }
     if (!enFoto()) cantar('bufon', texto);
-    const bufonEl = $('.esc-bufon')!;
-    gestoBufon(bufonEl, gesto);
-    const caraEl = $('.esc-bufon .bufon');
-    caraEl?.classList.add('habla');
-    if (!enFoto()) window.setTimeout(() => caraEl?.classList.remove('habla'), 1200);
+    const bufonEl = $('.esc-bufon');
+    if (bufonEl) gestoBufon(bufonEl, gesto);
     if (ms > 0 && !enFoto()) vozReloj = window.setTimeout(() => {
       b.hidden = true;
-      caraEl?.classList.remove('habla');
-      gestoBufon(bufonEl, p.afinidad <= -2 ? 'sombria' : 'reposo');
     }, ms);
   }
   const voz = (lista: readonly { es: string; en: string }[], gesto: Expresion = 'reposo') => decir(tx(alAzar(lista, enFoto() ? 0 : undefined)), gesto);
@@ -317,26 +312,8 @@ export function pantallaMesa(p: Partida): Pantalla {
    * (después `apretarCuenta` pliega la cuenta si la escena queda por debajo de su piso).
    */
   let filaCuenta = 56;
-  function acomodarCuenta(zona: HTMLElement): void {
-    if (innerWidth <= 700 || !mano) return;
-    const zm = $<HTMLElement>('[data-mano]');
-    if (!zm) return;
-    const rz = zona.getBoundingClientRect();
-    const bajo = zona.querySelector<HTMLElement>('.c-bajo');
-    const cu = bajo?.parentElement as HTMLElement | null | undefined;
-    if (bajo && cu) {
-      // (0.28) la columna cae en la franja fija de lo jugado (arriba de la mano, que no se mueve): su techo es el de la
-      // zona de la mano y su alto, el del paño. (0.29) Si no entra cede por pasos sin cortar un nombre (`desglose.ts`):
-      // la pista, los renglones, los nombres cortos escritos a mano y, al final, «otras +N»; a 1080p va en dos columnas
-      const kp = Number(getComputedStyle(zm).getPropertyValue('--k-pano')) || 1;
-      const techo = zm.getBoundingClientRect().top;
-      const tope = 140 * kp + 12;
-      // (la columna de la derecha llega hasta el borde de la mesa solo si los botones empiezan por debajo de la franja)
-      const rb = $('.mesa .botones')?.getBoundingClientRect();
-      const zonaDer = rb && rb.top < techo + tope - 2 ? Math.min(rz.right, rb.left) : rz.right;
-      encajarDesglose({ bajo, cu, izq: mano.panoIzq(), der: mano.panoDer(), zonaIzq: rz.left, zonaDer, techo, tope });
-      filaCuenta = cu.offsetTop + cu.clientTop + bajo.offsetTop;
-    }
+  function acomodarCuenta(_zona: HTMLElement): void {
+    // Sin Postas: el desglose fluye en una fila compacta sin reservar franja extra.
   }
   /**
    * La cuenta va en un solo renglón de chips más su desglose: si en la Deck o el portátil (701–1699 px) no cabe, se
@@ -1140,7 +1117,7 @@ export function pantallaMesa(p: Partida): Pantalla {
             cortaDicha.add(p.semilla);
             decir(t('bufonCorta'), 'brillo', 4200);
           } else if (Math.random() < 0.4) voz(VOZ.canto, 'risa');
-          else gestoBufon($('.esc-bufon')!, 'risa');
+          else { const e = $('.esc-bufon'); if (e) gestoBufon(e, 'risa'); }
           break;
         }
         case 'dano': {
@@ -1205,7 +1182,8 @@ export function pantallaMesa(p: Partida): Pantalla {
           // te pasaste por un pelo: no cobra, pero la racha sigue viva. Suena a roce y a risita, no a Escudo
           stinger('alpelo');
           gestoRetrato('feroz', 900);
-          gestoBufon($('.esc-bufon')!, 'risa');
+          const e = $('.esc-bufon');
+          if (e) gestoBufon(e, 'risa');
           if (!quieto()) {
             const en = centro(carta());
             destello(en.x + 30, en.y - 40, RAMPA_PALO.D, 12);
@@ -1507,25 +1485,6 @@ export function pantallaMesa(p: Partida): Pantalla {
           break;
         case 'dado':
           pintarArriba();
-      if (!enFoto()) {
-        const tareas: (() => unknown)[] = [];
-        for (const est of ESTADOS_COMBATIENTE) {
-          for (const f of [0, 1] as const) {
-            tareas.push(() => urlHeroe(p.mazoId, est, f));
-            if (enemigo) {
-              const e = enemigo;
-              tareas.push(() => urlEnemigo(e.palo, e.rango, est, f, !!e.segunda));
-            }
-          }
-        }
-        forjarLuego(tareas, true);
-      }
-      if (!enFoto() && !quieto()) {
-        idleReloj = window.setInterval(() => {
-          cuadroAnim = cuadroAnim === 0 ? 1 : 0;
-          refrescarSprites();
-        }, 460);
-      }
           break;
         case 'victoria':
           await cobrarPendientes();
@@ -2516,7 +2475,7 @@ export function pantallaMesa(p: Partida): Pantalla {
       </header>
       <section class="escena" data-escena>
         <div class="esc-heroe" data-heroe>${heroeHtml()}</div>
-        <div class="esc-bufon">${bufonHtml(p.afinidad <= -2 ? 'sombria' : 'reposo')}<p class="bocadillo" data-voz hidden></p></div>
+        <p class="mesa-aviso" data-voz hidden></p>
         <div class="enemigo" data-enemigo>${enemigoHtml()}</div>
       </section>
       <section class="cuenta-zona" data-cuenta aria-live="polite"></section>
@@ -2553,6 +2512,32 @@ export function pantallaMesa(p: Partida): Pantalla {
         zonas: () => ({ enemigo: $('[data-escena]', raiz)?.getBoundingClientRect(), descarte: $('[data-soltar="descarte"]', raiz)?.getBoundingClientRect() }),
       }, 5);
       pintarArriba();
+      if (!enFoto()) {
+        const tareas: (() => unknown)[] = [
+          () => urlHeroe(p.mazoId, 'idle', 0),
+          () => urlHeroe(p.mazoId, 'idle', 1),
+          () => urlHeroe(p.mazoId, 'ataca', 0),
+          () => urlHeroe(p.mazoId, 'escudo', 0),
+          () => urlHeroe(p.mazoId, 'herido', 0),
+        ];
+        if (enemigo) {
+          const e = enemigo;
+          tareas.push(
+            () => urlEnemigo(e.palo, e.rango, 'idle', 0, !!e.segunda),
+            () => urlEnemigo(e.palo, e.rango, 'idle', 1, !!e.segunda),
+            () => urlEnemigo(e.palo, e.rango, 'ataca', 0, !!e.segunda),
+            () => urlEnemigo(e.palo, e.rango, 'herido', 0, !!e.segunda),
+            () => lienzoNaipe(e.palo, e.rango),
+          );
+        }
+        forjarLuego(tareas, true);
+      }
+      if (!enFoto() && !quieto()) {
+        idleReloj = window.setInterval(() => {
+          cuadroAnim = cuadroAnim === 0 ? 1 : 0;
+          refrescarSprites();
+        }, 460);
+      }
       // (0.24) si la mano cambia de ancho (la ventana, o el mando que se lleva la zona AL DESCARTE), el dial vuelve a
       // medir si entra al costado del paño
       let anchoMano = zonaMano.clientWidth;

@@ -6,16 +6,13 @@ import { vidaInicial } from '../../rules/partida';
 import type { MazoId } from '../../rules/mazos';
 import { BENDICION, BENDICIONES, REY_DEF } from '../../rules/reyes';
 import { MARCA, VERSION } from '../../shared/brand';
-import { ajustes, alAzar, borrarTodo, guardarAjustes, guardarPartida, perfil, t, tx } from '../almacen';
+import { ajustes, borrarTodo, guardarAjustes, guardarPartida, perfil, t, tx } from '../almacen';
 import { refrescarSonido, sonar } from '../audio';
 import { refrescarMusica } from '../musica';
-import { enFoto } from '../fx/motor';
 import { nombreCarga } from '../hud';
 import { continuar, empezar, hayPartida, irAjustes, irColeccion, irMazo, irPortada, sesion } from '../juego';
-import { CUADRO0 } from '../pixel/personajes';
-import { cifra, heroeSpriteHtml, pxAmuleto, pxBendicion, pxDorso, pxHud, pxLogo, pxPalo } from '../sprites';
-import { VOZ } from '../voces';
-import { abrirModal, anfitrion, cerrarModal, esc, repintar, reyHtml, tip, type Pantalla } from '../ui';
+import { cifra, heroeSpriteHtml, pxAmuleto, pxBendicion, pxDorso, pxLogo, pxPalo } from '../sprites';
+import { abrirModal, cerrarModal, esc, repintar, reyHtml, tip, type Pantalla } from '../ui';
 
 type Solapa = 'coleccion' | 'ajustes';
 const SOLAPAS: Solapa[] = ['coleccion', 'ajustes'];
@@ -27,7 +24,6 @@ const irSolapa = { 'sol-coleccion': () => irColeccion(), 'sol-ajustes': () => ir
 
 export function pantallaPortada(): Pantalla {
   const hay = hayPartida();
-  const voz = tx(alAzar(VOZ.portada, enFoto() ? 2 : undefined));
   return {
     nombre: 'portada',
     html: () => `<main class="pantalla portada">
@@ -36,7 +32,7 @@ export function pantallaPortada(): Pantalla {
         <p class="sub portada-sub">${MARCA.es.subtitulo}</p>
       </div>
       <div class="portada-medio">
-        ${anfitrion(voz, 'reposo')}
+        <div class="portada-pila" aria-hidden="true">${(['chinchon', 'truco', 'escoba'] as MazoId[]).map((m, i) => `<span class="pila-dorso" style="--i:${i}">${pxDorso(m)}</span>`).join('')}</div>
         <nav class="portada-menu">
           <button class="btn marco oro monumental" data-accion="jugar" data-inicio data-foco="jugar">${hay ? t('continuar') : t('jugar')}</button>
           ${hay ? `<button class="btn marco chico" data-accion="nueva" data-foco="nueva">${t('nueva')}</button>` : ''}
@@ -45,7 +41,6 @@ export function pantallaPortada(): Pantalla {
             <button class="btn marco" data-accion="ajustes" data-foco="ajustes">${t('ajustes')}</button>
           </div>
         </nav>
-        <div class="portada-pila" aria-hidden="true">${(['chinchon', 'truco', 'escoba'] as MazoId[]).map((m, i) => `<span class="pila-dorso" style="--i:${i}">${pxDorso(m)}</span>`).join('')}</div>
       </div>
       <footer class="pie">
         <span class="sub">2D PIXEL MVP · v${VERSION}</span>
@@ -206,10 +201,7 @@ export function pantallaAjustes(): Pantalla {
         <span class="lado"></span>
       </header>
       <div class="cuerpo aj-escena">
-        <div class="aj-cuadro">
-          <div class="aj-abanico" aria-hidden="true">${MAZOS.map((m, i) => `<span class="aj-dorso" style="--i:${i}">${pxDorso(m)}</span>`).join('')}</div>
-          ${anfitrion(tx(alAzar(VOZ.ajustes, enFoto() ? 0 : undefined)), 'reposo', 'aj-bufon')}
-        </div>
+        <div class="aj-abanico" aria-hidden="true">${MAZOS.map((m, i) => `<span class="aj-dorso" style="--i:${i}">${pxDorso(m)}</span>`).join('')}</div>
         <section class="aj-lista marco">
           <div class="aj-fila"><b>${t('calma')}</b>${conmuta('calma', ajustes.calma, 'aj-calma')}</div>
           <div class="aj-fila"><b>${t('sonido')}</b>${conmuta('sonido', ajustes.sonido, 'aj-sonido')}</div>
