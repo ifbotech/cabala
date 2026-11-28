@@ -103,11 +103,13 @@ describe('bucle lineal de 3 Tramos y Duelo del Bufón', () => {
     const pP = juego.nuevaPartida({ mazo: 'truco', semilla: 'DUELO-P' });
     pP.fase = 'duelo';
     pP.paso = 3;
+    const oroAntes = pP.oro;
     juego.resolverDueloBufon(pP, false);
     expect(pP.fase).toBe('combate');
     expect(pP.paso).toBe(4);
     expect(pP.combate?.fila[0].jefe).toBe(true);
-    expect(pP.combate?.furia).toBe(2);
+    expect(pP.combate?.furia).toBe(0);
+    expect(pP.oro).toBe(oroAntes + 8);
   });
   it('el bot completa partidas deterministas en los 5 Mazos sin atascarse', () => {
     for (const mazo of MAZOS) {

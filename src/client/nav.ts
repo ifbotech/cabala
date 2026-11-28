@@ -5,6 +5,7 @@
 // desplaza lo que se desplaza y Start abre el menú. Lo que se inspecciona sin pulsarse (el enemigo, La Corte) lleva
 // `tabindex="0"`.
 import { $, $$, atras, enfocarJugador, hayModal } from './ui';
+import { reiniciarRun } from './juego';
 
 const FOCO = 'button:not(:disabled):not([aria-disabled="true"]), [tabindex="0"]';
 
@@ -179,6 +180,8 @@ export function iniciarNav(): void {
         ev.preventDefault();
         b.click();
       }
+    } else if ((k === 'r' || k === 'R') && !hayModal() && reiniciarRun()) {
+      ev.preventDefault();
     }
   });
   // al cambiar de pantalla, el foco va a lo principal (si se viene jugando sin ratón)

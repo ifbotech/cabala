@@ -90,22 +90,22 @@
     "escudoCaballo": 17,
     "actos": [
       {
-        "vida": 1.65,
-        "ataque": 1,
-        "escudo": 1,
+        "vida": 0.95,
+        "ataque": 0,
+        "escudo": 0.6,
         "jefe": 0.9
       },
       {
-        "vida": 5.35,
-        "ataque": 13,
-        "escudo": 2,
+        "vida": 2.2,
+        "ataque": 6,
+        "escudo": 1.2,
         "jefe": 1
       },
       {
-        "vida": 17.0,
-        "ataque": 31,
-        "escudo": 4,
-        "jefe": 1
+        "vida": 4.2,
+        "ataque": 12,
+        "escudo": 2,
+        "jefe": 1.05
       }
     ],
     "elite": {
@@ -172,7 +172,7 @@
       "envido": 25,
       "envidoMin": 8,
       "cargaDano": 1,
-      "multiMano": 7
+      "multiMano": 5
     },
     "chinchon": {
       "vida": 28,
@@ -185,7 +185,7 @@
     },
     "mentiroso": {
       "vida": 34,
-      "mano": 8,
+      "mano": 6,
       "hasta": 6,
       "comodines": 3,
       "enganos": 1,
@@ -207,32 +207,33 @@
   "botin": {
     "oro": {
       "guardia": [
-        8,
-        10,
-        12
+        14,
+        18,
+        22
       ],
       "elite": [
-        14,
-        17,
-        20
+        20,
+        26,
+        32
       ],
       "rey": [
-        20,
-        24,
+        26,
+        32,
         0
       ]
     },
-    "curaRey": 0.3,
+    "curaRey": 0.35,
+    "curaElite": 0.25,
     "vidaRey": 0.2,
     "vidaReyMin": 6,
-    "saltar": 4
+    "saltar": 6
   },
   "pulperia": {
     "precio": {
-      "comun": 10,
-      "raro": 16,
-      "epico": 24,
-      "legendario": 40
+      "comun": 8,
+      "raro": 13,
+      "epico": 19,
+      "legendario": 30
     },
     "purgar": 8,
     "purgarSube": 4,

@@ -351,6 +351,36 @@
   padding: 1px 4px;
 }
 
+.c-bonus {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  font: 700 10px/1 var(--f-tit);
+  background: var(--abismo);
+  color: var(--oro);
+  border: 1px solid var(--oro);
+  padding: 1px 3px;
+}
+
+.golpe-banner {
+  position: fixed;
+  left: 50%;
+  top: 28%;
+  transform: translate(-50%, -50%);
+  z-index: 55;
+  font: 700 22px/1.1 var(--f-tit);
+  color: var(--oro);
+  text-shadow: 0 3px 0 var(--abismo), 0 0 12px rgba(255, 213, 0, 0.55);
+  pointer-events: none;
+  animation: bannerSube 620ms steps(6) forwards;
+}
+
+@keyframes bannerSube {
+  0% { opacity: 0; transform: translate(-50%, -30%) scale(0.8); }
+  25% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  100% { opacity: 0; transform: translate(-50%, -85%) scale(1); }
+}
+
 .pano-postas {
   position: absolute;
   inset: 0;

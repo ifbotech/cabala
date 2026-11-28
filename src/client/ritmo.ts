@@ -12,7 +12,12 @@ export const quieto = (): boolean => ajustes.calma || enFoto() || RAPIDO;
 /** Las esperas en curso: TURBO (0.22) las corta todas con la próxima entrada. */
 const enEspera = new Set<() => void>();
 
-/** Espera `ms` milisegundos, o nada si todo va quieto; un toque, una tecla o un botón del mando la cortan en el acto. */
+export let turbo = false;
+export const fijarTurbo = (v: boolean): void => {
+  turbo = v;
+};
+
+/** Espera `ms` milisegundos, o nada si todo va quieto; con Turbo ×2 dura la mitad. */
 export const pausa = (ms: number): Promise<void> =>
   quieto()
     ? Promise.resolve()
@@ -22,7 +27,7 @@ export const pausa = (ms: number): Promise<void> =>
           enEspera.delete(fin);
           ok();
         };
-        const reloj = setTimeout(fin, ms);
+        const reloj = setTimeout(fin, turbo ? Math.round(ms * 0.45) : ms);
         enEspera.add(fin);
       });
 

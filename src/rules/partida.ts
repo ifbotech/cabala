@@ -7,7 +7,7 @@ import type { Palo } from './cartas';
 import * as combate from './combate';
 import type { Ev } from './combate';
 import { carga, curar, nivelBend } from './estado';
-import type { ItemBotin, Oferta, Partida, TipoCombate } from './estado';
+import type { ItemBotin, ModTramo, Oferta, Partida, TipoCombate } from './estado';
 import type { MazoId } from './mazos';
 import { BENDICION, BENDICIONES, nivelDe } from './reyes';
 import type { BendicionId } from './reyes';
@@ -65,11 +65,30 @@ export function sortearAmuletos(p: Partida, de: 'guardia' | 'elite' | 'rey' | 't
 export const vidaInicial = (mazo: MazoId): number => B.mazos[mazo].vida;
 export const reyDeTramo = (p: Pick<Partida, 'reyes' | 'acto'>): Palo => p.reyes[Math.min(p.acto, p.reyes.length - 1)] ?? 'S';
 
+const MODIFICADORES: readonly ModTramo[] = ['escudoDoble', 'manoRapida', 'oroExtra', 'furiaInicial'];
+
 function iniciarPasoCombate(p: Partida): Ev[] {
   const rey = reyDeTramo(p);
-  if (p.paso === 0) return combate.iniciarCombate(p, 'guardia', [combate.crearEnemigo(p, rey, SOTA)]);
-  if (p.paso === 2) return combate.iniciarCombate(p, 'elite', [combate.crearEnemigo(p, rey, CABALLO, { elite: true })]);
-  return combate.iniciarCombate(p, 'rey', [combate.crearEnemigo(p, rey, REY, { jefe: true })]);
+  if (p.paso === 0) {
+    p.modificador = p.acto === 0 ? 'ninguno' : elegir(p, MODIFICADORES);
+  }
+  const mod = p.modificador ?? 'ninguno';
+  let evs: Ev[];
+  if (p.paso === 0) evs = combate.iniciarCombate(p, 'guardia', [combate.crearEnemigo(p, rey, SOTA)]);
+  else if (p.paso === 2) evs = combate.iniciarCombate(p, 'elite', [combate.crearEnemigo(p, rey, CABALLO, { elite: true })]);
+  else evs = combate.iniciarCombate(p, 'rey', [combate.crearEnemigo(p, rey, REY, { jefe: true })]);
+  const c = p.combate;
+  if (c && c.fila[0]) {
+    if (mod === 'escudoDoble') {
+      c.fila[0].escudo += 15;
+      c.fila[0].escudoMax += 15;
+    } else if (mod === 'furiaInicial') {
+      c.furia += 1;
+    } else if (mod === 'manoRapida' && c.mazo.length > 0) {
+      c.mano.push(c.mazo.shift()!);
+    }
+  }
+  return evs;
 }
 
 function abrirPulperia(p: Partida): void {
@@ -77,6 +96,8 @@ function abrirPulperia(p: Partida): void {
     amuletos: sortearAmuletos(p, 'tienda', 2).map((a) => ({ id: a, precio: precioAmuleto(p, a) })),
     purgar: precioPurgar(p),
     curar: precioCurar(p),
+    mejorar: 10,
+    rerolls: 1,
   };
   p.fase = 'pulperia';
 }
@@ -135,6 +156,8 @@ function botinDe(p: Partida, tipo: TipoCombate): void {
   if (tipo === 'rey') s.reyes++;
   const items: ItemBotin[] = [];
   let oro = B.botin.oro[tipo][Math.min(p.acto, 2)] + carga(p, 'D');
+  if (p.modificador === 'oroExtra') oro += 6;
+  else if (p.modificador === 'furiaInicial') oro += 4;
   const bn = B.bendiciones;
   const lv = nivelBend(p, 'interes');
   if (lv) oro += Math.min(nivelDe(bn.interes.tope, lv), Math.floor(p.oro / nivelDe(bn.interes.cada, lv)));
@@ -143,7 +166,9 @@ function botinDe(p: Partida, tipo: TipoCombate): void {
     items.push({ t: 'oro', n: oro, hecho: true });
   }
   let cura = carga(p, 'H');
-  if (tipo === 'rey') {
+  if (tipo === 'elite') {
+    cura += Math.round(p.vidaMax * ((B.botin as { curaElite?: number }).curaElite ?? 0.25));
+  } else if (tipo === 'rey') {
     const sube = Math.max(B.botin.vidaReyMin, Math.round(B.mazos[p.mazoId].vida * B.botin.vidaRey));
     if (sube > 0) {
       p.vidaMax += sube;
@@ -240,11 +265,13 @@ export function resolverDueloBufon(p: Partida, gano: boolean): void {
   if (p.fase !== 'duelo') return;
   if (gano) {
     p.afinidad = Math.min(3, p.afinidad + 1);
+    curar(p, p.vidaMax * 0.15);
     p.botin = { de: 'duelo', items: [{ t: 'oferta', oferta: ofertaBendicion(p) }] };
     p.fase = 'botin';
   } else {
-    p.afinidad = Math.max(-3, p.afinidad - 1);
-    p.furiaRey += 2;
+    // Premio consuelo sin castigo mortal al Rey
+    p.oro += 8;
+    curar(p, 10);
     p.paso = 4;
     iniciarPasoCombate(p);
   }
@@ -278,6 +305,31 @@ export function curarEnPulperia(p: Partida): boolean {
   curar(p, p.vidaMax * B.pulperia.curarPct);
   p.curas++;
   t.curar = precioCurar(p);
+  return true;
+}
+
+export const precioReroll = (p: Partida): number => (p.tienda && p.tienda.rerolls > 0 ? 0 : 6);
+
+export function rerollPulperia(p: Partida): boolean {
+  const t = p.tienda;
+  if (p.fase !== 'pulperia' || !t) return false;
+  const costo = precioReroll(p);
+  if (p.oro < costo) return false;
+  p.oro -= costo;
+  if (t.rerolls > 0) t.rerolls--;
+  t.amuletos = sortearAmuletos(p, 'tienda', 2).map((a) => ({ id: a, precio: precioAmuleto(p, a) }));
+  return true;
+}
+
+export const mejorable = (p: Partida, cartaId: string): boolean => p.mazo.some((c) => c.id === cartaId && c.palo !== 'X');
+
+export function mejorarCarta(p: Partida, cartaId: string): boolean {
+  const t = p.tienda;
+  const c = p.mazo.find((x) => x.id === cartaId && x.palo !== 'X');
+  if (p.fase !== 'pulperia' || !t || !c || p.oro < t.mejorar) return false;
+  p.oro -= t.mejorar;
+  c.bonus = (c.bonus ?? 0) + 3;
+  t.mejorar += 4;
   return true;
 }
 

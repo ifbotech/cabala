@@ -38,6 +38,7 @@ const fijo = (): number | undefined => (enFoto() ? 0 : undefined);
 
 /** El visor del Mazo: las cartas por palo. Con `elegir`, cada carta es un botón para purgar. */
 export function modalMazo(p: Partida, titulo: string, elegir?: (id: string) => void, cartas: readonly Carta[] = p.mazo, cualquiera = false): void {
+  const cara = (c: Carta): string => pxNaipe(c) + (c.bonus ? `<span class="c-bonus">+${c.bonus}</span>` : '');
   const grupos = (['S', 'C', 'D', 'H', 'X'] as const).map((s) => ordenar(cartas.filter((c) => c.palo === s))).filter((g) => g.length);
   const html = `<div class="panel visor">
     <header class="cabecera"><h2 class="titulo">${esc(titulo)}</h2><button class="btn marco chico" data-accion="cerrar" data-inicio>${t('cerrar')}</button></header>
@@ -45,7 +46,7 @@ export function modalMazo(p: Partida, titulo: string, elegir?: (id: string) => v
       .map(
         (g) =>
           `<div class="visor-fila">${g
-            .map((c) => (elegir ? `<button class="visor-carta" data-accion="carta" data-id="${c.id}" ${cualquiera || juego.purgable(p, c.id) ? '' : 'disabled'}>${pxNaipe(c)}</button>` : `<span class="visor-carta">${pxNaipe(c)}</span>`))
+            .map((c) => (elegir ? `<button class="visor-carta" data-accion="carta" data-id="${c.id}" ${cualquiera ? (c.palo !== 'X' ? '' : 'disabled') : juego.purgable(p, c.id) ? '' : 'disabled'}>${cara(c)}</button>` : `<span class="visor-carta">${cara(c)}</span>`))
             .join('')}</div>`,
       )
       .join('')}</div>
@@ -468,6 +469,12 @@ export function pantallaPulperia(p: Partida): Pantalla {
             <section class="bandeja marco">
               <h2 class="rotulo">${t('servicios')}</h2>
               <div class="ventas">
+                <button class="venta opcion marco oro" data-accion="reroll" data-foco="reroll">
+                  <span class="op-icono">${pxHud('dado1')}</span><b class="op-nombre">CAMBIAR OFERTAS</b><span class="op-desc">Renueva las 2 Cábalas del mostrador.</span>${juego.precioReroll(p) === 0 ? '<span class="chip sinergia">GRATIS</span>' : precio(juego.precioReroll(p), p.oro >= juego.precioReroll(p))}
+                </button>
+                <button class="venta opcion marco prisma" data-accion="mejorar" data-foco="mejorar">
+                  <span class="op-icono">${pxHud('furia')}</span><b class="op-nombre">TEMPLAR (+3 DAÑO)</b><span class="op-desc">Suma +3 de Daño permanente a una carta.</span>${precio(tienda.mejorar, p.oro >= tienda.mejorar)}
+                </button>
                 <button class="venta opcion marco hierro" data-accion="purgar" data-foco="purgar" ${p.mazo.length <= B.jugador.mazoMin ? 'disabled' : ''}>
                   <span class="op-icono">${pxHud('descarte')}</span><b class="op-nombre">${t('purgar')}</b><span class="op-desc">${t('purgarDesc')}</span>${precio(tienda.purgar, p.oro >= tienda.purgar)}
                 </button>
@@ -518,6 +525,40 @@ export function pantallaPulperia(p: Partida): Pantalla {
         };
         if (p.amuletos.length >= p.huecos) modalReemplazo(p, a.id, hacer, () => cerrarModal());
         else hacer();
+      },
+      reroll: () => {
+        const costo = juego.precioReroll(p);
+        if (p.oro < costo) {
+          decir(VOZ.sinOro, 'burla');
+          sonar('error');
+        } else if (juego.rerollPulperia(p)) {
+          decir(VOZ.pulperia, 'brillo');
+          sonar('carta');
+          guardar();
+        }
+        repintar();
+      },
+      mejorar: () => {
+        if (p.oro < p.tienda!.mejorar) {
+          decir(VOZ.sinOro, 'burla');
+          sonar('error');
+          repintar();
+          return;
+        }
+        modalMazo(
+          p,
+          'Elegí una carta para templar (+3 Daño)',
+          (id) => {
+            if (juego.mejorarCarta(p, id)) {
+              decir(VOZ.compra, 'risa');
+              sonar('canto');
+              guardar();
+            }
+            repintar();
+          },
+          p.mazo,
+          true,
+        );
       },
       purgar: () => {
         if (p.oro < p.tienda!.purgar) {

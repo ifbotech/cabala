@@ -17,6 +17,8 @@ export interface Carta {
   palo: PaloCarta;
   /** 0 = Comodín · 1 a 9 = numeradas. */
   n: number;
+  /** Daño permanente sumado en la Pulpería. */
+  bonus?: number;
 }
 
 export const MAX_NUM = 9;

@@ -50,6 +50,12 @@ export function empezar(mazo: MazoId, semilla?: string): void {
   pintarFase();
 }
 
+export function reiniciarRun(): boolean {
+  if (!sesion.partida) return false;
+  empezar(sesion.partida.mazoId);
+  return true;
+}
+
 export function continuar(): boolean {
   const p = sesion.partida ?? cargarPartida();
   if (!p) return false;

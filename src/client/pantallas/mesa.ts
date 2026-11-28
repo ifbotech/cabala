@@ -32,7 +32,7 @@ import { JUGADA_NOMBRE, NODO_NOMBRE, PALO_NOMBRE, PALO_PODER, PASO_AYUDA, PASO_N
 import { ENSENANZA, GRITO, VOZ } from '../voces';
 import { $, ayudaPrimera, bufonHtml, esc, fichaDe, gestoBufon, ocultarTip, reubicarTip, reyHtml, tip, type Pantalla } from '../ui';
 import { glifo, porTeclado } from '../nav';
-import { pausa, quieto } from '../ritmo';
+import { fijarTurbo, pausa, quieto, turbo } from '../ritmo';
 import { accionesComunes, modalJugadas, textoGlosario } from './camino';
 
 const AURA: Record<Palo, string> = { S: '#00c8ff', C: '#22d95b', D: '#ffd500', H: '#ff1453' };
@@ -1081,7 +1081,14 @@ export function pantallaMesa(p: Partida): Pantalla {
           impactoPalo(ev.engano ? 'X' : palo, en.x, en.y, peso > 0);
           animarCombatiente('enemigo', 'herido', 300);
           if (!quieto() && peso > 0) congelar(65);
-          sonar(fuerte || peso === 2 ? 'fuerte' : 'golpe');
+          sonar(fuerte || peso === 2 ? 'fuerte' : 'golpe', { altura: 1 + Math.min(0.4, (p.combate?.golpes ?? p.stats.golpes) * 0.06) });
+          if (!quieto() && q?.ok && (q.exacto || q.canto || peso > 0)) {
+            const ban = document.createElement('b');
+            ban.className = 'golpe-banner';
+            ban.textContent = q.exacto ? '¡GOLPE EXACTO!' : `¡${tx(JUGADA_NOMBRE[q.jugada]).toUpperCase()}!`;
+            $('#capa')?.append(ban);
+            window.setTimeout(() => ban.remove(), 650);
+          }
           // y encima, el timbre de su palo: el acero canta, la madera suena hueca, el oro tintinea, la copa salpica
           if (!ev.engano && palo !== 'X') sonar(`palo${palo}` as 'paloS', { retraso: 0.025 });
           // (0.29: tiemblan el naipe y su barra; los sellos y la placa TE PEGA quedan quietos y se siguen leyendo)
@@ -2506,8 +2513,8 @@ export function pantallaMesa(p: Partida): Pantalla {
     nombre: 'mesa',
     html: () => `<main class="pantalla en-partida mesa">
       <header class="cabecera mesa-top">
-        <div class="lado"><span class="rotulo">${esc(tramo)} · ${esc(tx(NODO_NOMBRE[tipo]))}</span><span class="sub" data-turno></span></div>
-        <div class="lado"><button class="btn marco chico b-jugadas" data-accion="jugadas" data-foco="jugadas" data-tecla="j" aria-label="${t('jugadas')}">${glifo('SEL', 'J')}<span class="b-signo">?</span> <span class="solo-ancho">${t('jugadas')}</span></button><button class="btn marco chico" data-accion="menu" data-foco="menu" aria-label="${t('menu')}"><span class="b-menu-signo" aria-hidden="true">≡</span> <span class="solo-ancho">${t('menu')}</span></button></div>
+        <div class="lado"><span class="rotulo">${esc(tramo)} · ${esc(tx(NODO_NOMBRE[tipo]))}</span>${p.modificador && p.modificador !== 'ninguno' ? `<span class="chip canto">${({ escudoDoble: 'Escudo +15', manoRapida: 'Mano rápida +1', oroExtra: 'Oro extra +6', furiaInicial: 'Furia +1 / Oro +4' } as Record<string, string>)[p.modificador] ?? ''}</span>` : ''}<span class="sub" data-turno></span></div>
+        <div class="lado"><button class="btn marco chico ${turbo ? 'oro' : ''}" data-accion="turbo" data-foco="turbo" aria-pressed="${turbo}">×2</button><button class="btn marco chico b-jugadas" data-accion="jugadas" data-foco="jugadas" data-tecla="j" aria-label="${t('jugadas')}">${glifo('SEL', 'J')}<span class="b-signo">?</span> <span class="solo-ancho">${t('jugadas')}</span></button><button class="btn marco chico" data-accion="menu" data-foco="menu" aria-label="${t('menu')}"><span class="b-menu-signo" aria-hidden="true">≡</span> <span class="solo-ancho">${t('menu')}</span></button></div>
       </header>
       <section class="escena" data-escena>
         <div class="esc-heroe" data-heroe>${heroeHtml()}</div>
@@ -2607,6 +2614,12 @@ export function pantallaMesa(p: Partida): Pantalla {
     },
     acciones: {
       ...accionesComunes(p),
+      turbo: (el) => {
+        fijarTurbo(!turbo);
+        el.classList.toggle('oro', turbo);
+        el.setAttribute('aria-pressed', String(turbo));
+        sonar('clic');
+      },
       jugadas: () => modalJugadas(p),
       golpear: () => void golpear(mano?.seleccion() ?? []),
       // (0.28) la cuenta plegada del teléfono: un toque abre (o cierra) su hoja sobre la escena

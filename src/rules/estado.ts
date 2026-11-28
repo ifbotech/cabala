@@ -67,7 +67,11 @@ export interface Tienda {
   amuletos: { id: AmuletoId; precio: number; vendido?: true }[];
   purgar: number;
   curar: number;
+  mejorar: number;
+  rerolls: number;
 }
+
+export type ModTramo = 'ninguno' | 'escudoDoble' | 'manoRapida' | 'oroExtra' | 'furiaInicial';
 
 export type Fase = 'combate' | 'botin' | 'pulperia' | 'duelo' | 'fin';
 /** Paso lineal dentro de cada Tramo: 0 Sota → 1 Pulpería → 2 Caballo → 3 Duelo del Bufón → 4 Rey Jefe. */
@@ -109,6 +113,7 @@ export interface Partida {
   acto: number;
   paso: PasoTramo;
   reyes: Palo[];
+  modificador?: ModTramo;
   fase: Fase;
   combate?: Combate;
   botin?: Botin;
@@ -153,7 +158,7 @@ export const activo = (p: Partida): Enemigo | undefined => p.combate?.fila[0];
 
 export function valorCarta(p: Pick<Partida, 'mazoId'>, c: Carta): number {
   const brava = p.mazoId === 'truco' ? ((B.mazos.truco.bravas as Record<string, number>)[`${c.palo}${c.n}`] ?? 0) : 0;
-  return c.n + brava;
+  return c.n + brava + (c.bonus ?? 0);
 }
 
 export function curar(p: Partida, n: number): number {

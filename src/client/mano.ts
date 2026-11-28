@@ -1094,7 +1094,10 @@ export function crearMano(raiz: HTMLElement, oye: OyenteMano, nPostas = 3): Mano
         el.dataset.n = String(carta.n);
         el.setAttribute('aria-pressed', 'false');
         el.setAttribute('aria-label', carta.palo === 'X' ? '★' : `${carta.n} ${carta.palo}`);
-        el.innerHTML = pxNaipe(carta) + (carta.palo === 'X' ? `<span class="c-rotulo">${t('comodin')}</span>` : '');
+        el.innerHTML =
+          pxNaipe(carta) +
+          (carta.palo === 'X' ? `<span class="c-rotulo">${t('comodin')}</span>` : '') +
+          (carta.bonus ? `<span class="c-bonus">+${carta.bonus}</span>` : '');
         raiz.append(el);
         const { h } = medidas();
         const x0 = desde ? desde.x - caja.left : raiz.clientWidth / 2;
